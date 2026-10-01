@@ -1,0 +1,11 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+  - 'packages/domain/*'
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - '@tailwindcss/oxide'
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@swc/core'
