@@ -1,0 +1,42 @@
+# Decisions log
+
+Architecture decisions live in `docs/adr/`. This file holds product defaults and assumptions.
+
+## Open questions from the brief (default in use)
+
+| # | Question | Default in use | Status |
+|---|---|---|---|
+| 1 | Invoicing provider: Green Invoice (Morning) vs iCount | **Green Invoice**, behind `InvoicingProvider` | To validate |
+| 2 | Messaging: WhatsApp via GHL vs direct Cloud API | **GHL now**, `MessagingProvider` adapter ready for Cloud API with a dedicated business number | To validate |
+| 3 | Makeup enforcement strict vs soft | **Strict, with logged owner override** | To validate |
+| 4 | Do venue/authority closures generate credits? | **Configurable per event; default "makeups offered, no refund"** | To validate |
+| 5 | Proration for mid-month start/stop | **Per remaining sessions in the month** | To validate |
+| 6 | Pension eligibility threshold | **Configurable, 3 months with retro** | To validate with accountant |
+| 7 | Parents self-book makeups without approval? | **Yes, within policy and capacity** | To validate |
+| 8 | Trial fee offset | **Offset if enrolling within 14 days, printed on the link** | To validate |
+
+## Assumptions to validate with the owner
+
+| # | Assumption | Why it matters |
+|---|---|---|
+| A1 | Sibling discount applies to the **2nd and later** children, on the **cheaper** enrollment(s) | Changes monthly totals for families with 3–4 kids |
+| A2 | Cancellation cut-off "25th" means end of the 25th, Israel time, in the month **before** the first uncharged month | Billing correctness |
+| A3 | Absence notice threshold is `≥ 12h` (exactly 12h counts as timely) | Edge case in makeup credit |
+| A4 | Makeup credits from closures **do not** count against the 1-per-month cap and expire at the event's deadline, not month end | Closure campaigns after the war gave multiple makeups |
+| A5 | Consumer prices are **VAT-inclusive** | Receipt lines and price lists |
+| A6 | Household = billing unit; divorced parents can be two guardians on one household, or two households splitting a student's enrollment (Phase 4 decides split billing) | Custody cases in the data |
+| A7 | A student can hold more than one active enrollment (e.g., group + private) | Pricing and makeups per enrollment |
+| A8 | Yom HaZikaron evening and Tisha B'Av are no-lesson days by default; Yom HaAtzmaut is a normal day unless overridden | Session generation |
+| A9 | Parents log in by **SMS OTP** in Phase 0; WhatsApp OTP added once a WhatsApp sender is set up | Supabase phone auth providers |
+| A10 | Staff log in by email + password; instructors without email can use phone OTP with the instructor role | Some instructors are students |
+| A11 | One business Grow account per tenant (separate business bank details, not personal numbers) | Ends the Reut/Asaf account split |
+| A12 | Sick-leave accrual uses Israeli statutory 1.5 days/month | Accountant to confirm |
+
+## Technical decisions (non-ADR)
+
+| Date | Decision |
+|---|---|
+| 2026-10-01 | Docs drafted in shared project files (`rswim-os/`) until a GitHub repo is attached; they move into the repo root unchanged |
+| 2026-10-01 | Node 22 LTS, pnpm 9, TypeScript 5.x strict |
+| 2026-10-01 | i18n: `next-intl`, `he` default, `en` secondary |
+| 2026-10-01 | IDs: UUID v7 (time-ordered) generated in app |
