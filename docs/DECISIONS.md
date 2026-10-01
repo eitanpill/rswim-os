@@ -39,4 +39,12 @@ Architecture decisions live in `docs/adr/`. This file holds product defaults and
 | 2026-10-01 | Docs drafted in shared project files (`rswim-os/`) until a GitHub repo is attached; they move into the repo root unchanged |
 | 2026-10-01 | Node 22 LTS, pnpm 9, TypeScript 5.x strict |
 | 2026-10-01 | i18n: `next-intl`, `he` default, `en` secondary |
-| 2026-10-01 | IDs: UUID v7 (time-ordered) generated in app |
+| 2026-10-01 | IDs: `gen_random_uuid()` defaults for now; switch to UUID v7 when a table needs time-ordered keys |
+| 2026-10-01 | No GitHub repo yet: Phase 0 is built as a local git repo (`rswim-os/`), pushed once a repo exists |
+| 2026-10-01 | Next.js pinned to 15.5.x (brief says 15; 16 is out). TypeScript pinned to 5.9 (7.0 is too new for typescript-eslint). Tailwind 4 |
+| 2026-10-01 | tRPC deferred to Phase 1: Phase 0 has no client-side data fetching, so Server Actions cover it |
+| 2026-10-01 | Surfaces are real path segments (`/admin`, `/instructor`, `/parent`, …) rather than `(group)` folders, so the middleware can guard by prefix |
+| 2026-10-01 | One membership per user per org (unique). Someone who is both admin and instructor (Asaf) is an `admin` linked to a staff record; admins can open the instructor surface |
+| 2026-10-01 | Local demo login (`RSWIM_DEV_AUTH=1`) so shells and E2E run without a Supabase project. Refused when `VERCEL_ENV=production` |
+| 2026-10-01 | Fake phone numbers in seeds use the `050-000xxxx` range |
+| 2026-10-01 | Staff invite flow moved to Phase 1 (with staff profiles); Phase 0 ships the membership model, hook and guards it will use |

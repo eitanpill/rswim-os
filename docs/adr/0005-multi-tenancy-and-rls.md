@@ -25,3 +25,9 @@ R-SWIM is tenant #1; the developer already serves other swim/aquatic businesses.
 ## Consequences
 - Every new table needs an RLS policy and a row in the RLS test matrix; a CI check fails if a table in `public` has RLS disabled.
 - Per-tenant branding/domains (Phase 10) map host → org before auth.
+
+## Addendum (2026-10-01, Phase 0 implementation)
+- **Live membership check.** Policies do not trust `app_role`/`permissions` from the JWT. `app.current_membership()` reads the active membership for (`sub`, `org_id` claim) on every statement, so suspending a member cuts access before their token expires. The token's claims are still used by the web app for routing.
+- **`rswim_system` instead of a raw service role for tenant jobs.** Worker jobs for one org run as the `rswim_system` DB role with `app.org_id` set (`withOrg`). It does not bypass RLS, so the "always filter by org" rule is enforced by Postgres, not by convention. Only cross-tenant plumbing (outbox relay, seed, migrations) uses the owner connection (`asPlatform`).
+- **Sensitive columns.** `enc_*` columns are not selectable by `authenticated` at all (column privileges). Reads go through `app.read_sensitive()`, which checks `sensitive.read` (owners implicitly) and writes an audit row in the same transaction.
+- **Instructor visibility** (`app.instructor_student_ids()`) is a stub returning no students until Phase 2 adds sessions.

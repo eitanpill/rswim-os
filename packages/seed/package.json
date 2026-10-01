@@ -1,0 +1,30 @@
+{
+  "name": "@rswim/seed",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/demo.ts"
+  },
+  "scripts": {
+    "seed": "tsx src/cli.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rswim/db": "workspace:*",
+    "@rswim/domain-core": "workspace:*",
+    "@supabase/supabase-js": "^2.117.2",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@rswim/config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.23.1",
+    "eslint": "^9.39.5",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

@@ -51,9 +51,9 @@ A working skeleton that every later phase builds on: monorepo, CI, database with
 - Test consumer `core/test.ping` writes `test_effects`.
 
 ### 0.8 Hebrew calendar service (`packages/calendar`)
-- `dayInfo(date, {il: true})` → `{isShabbat, isErevChag, isYomTov, isCholHaMoed, isFast, isMemorial, holidayNames: {he, en}}` using `@hebcal/core` Israel schedule.
-- `isNoLessonDay(date, policy)` driven by `calendar.*` policy keys (POLICIES §7) and `hebrew_calendar_overrides`.
-- `shabbatWindow(date)` for comms send-blocking (Jerusalem candle-lighting/havdalah).
+- `dayInfo(date)` → `{isShabbat, isErevChag, isYomTov, isCholHaMoed, isMajorFast, isTishaBav, isYomHaZikaron(Eve), holidays: {he, en}[]}` using the `@hebcal/core` Israel schedule.
+- `lessonDay(date, policy, overrides)` driven by `calendar.*` policy keys (POLICIES §7) and owner overrides, with the reasons that blocked the day.
+- `restWindow(date)` / `isInRestWindow(instant)` for comms send-blocking (Jerusalem candle lighting to havdalah, joined across Shabbat + Yom Tov).
 - Tests: 5787 (2026–27) holiday fixtures incl. Sukkot Chol HaMoed, Pesach, Yom Kippur, Tisha B'Av.
 
 ### 0.9 Seed data (fake, Hebrew)
@@ -80,3 +80,7 @@ Venues/programs CRUD, pricing, scheduling, any GHL/Grow calls (interfaces only),
 ## Risks
 - Supabase custom access-token hook needs a hosted project setting for staging/prod (local works out of the box).
 - Inngest Cloud account and Supabase projects for staging/prod need to be created by the owner (credentials go into environment secrets, never into the repo).
+
+## Outcome (2026-10-01)
+All three acceptance criteria pass; see `docs/STATUS.md` for the evidence and what is not yet verified against hosted services.
+Changes from the plan: tRPC and the staff invite flow moved to Phase 1; surfaces are path segments, not route groups; seeds live in `packages/seed`; provider interfaces are in `packages/integrations`. Details in `docs/DECISIONS.md`.
