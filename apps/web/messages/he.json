@@ -1,0 +1,92 @@
+{
+  "app": { "name": "R-SWIM OS", "tagline": "מערכת ההפעלה של בית הספר לשחייה" },
+  "common": {
+    "signOut": "יציאה",
+    "language": "English",
+    "switchOrg": "החלפת ארגון",
+    "comingSoon": "יגיע בשלב הבא",
+    "offline": "אין חיבור לאינטרנט. הנתונים יישמרו וישלחו כשהחיבור יחזור.",
+    "mainNav": "ניווט ראשי",
+    "role": {
+      "owner": "בעלים",
+      "admin": "מנהל/ת",
+      "instructor": "מדריך/ה",
+      "escort": "מלווה",
+      "accountant": "רואה חשבון",
+      "parent": "הורה",
+      "institution_contact": "איש קשר מוסדי"
+    }
+  },
+  "login": {
+    "title": "כניסה",
+    "staffTitle": "כניסת צוות",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "submit": "כניסה",
+    "parentsLink": "הורים ומתאמנים: כניסה עם מספר טלפון",
+    "phoneTitle": "כניסה עם טלפון",
+    "phone": "מספר טלפון",
+    "sendCode": "שליחת קוד",
+    "code": "קוד אימות",
+    "verify": "אימות וכניסה",
+    "codeSent": "שלחנו קוד ב-SMS למספר {phone}",
+    "devTitle": "כניסת דמו (פיתוח בלבד)",
+    "devHint": "נתונים מומצאים. כפתורים אלה לא קיימים בסביבת הייצור.",
+    "errors": {
+      "invalid": "הפרטים שהוזנו לא נכונים",
+      "phone": "מספר טלפון לא תקין",
+      "code": "הקוד לא נכון או שפג תוקפו",
+      "no_membership": "המשתמש לא משויך לאף בית ספר. פנו למנהל/ת.",
+      "not_configured": "ההתחברות עוד לא הוגדרה בסביבה הזו"
+    }
+  },
+  "admin": {
+    "nav": {
+      "today": "היום",
+      "families": "משפחות",
+      "board": "לוח קבוצות",
+      "money": "כספים",
+      "more": "עוד"
+    },
+    "home": {
+      "title": "מרכז הבקרה",
+      "today": "היום",
+      "todayEmpty": "אין שיעורים מתוכננים עדיין",
+      "needsYou": "מחכה לך",
+      "needsYouEmpty": "אין כרגע משהו שדורש החלטה שלך",
+      "money": "דופק כספי",
+      "growth": "צמיחה",
+      "expected": "צפוי החודש",
+      "collected": "נגבה"
+    },
+    "placeholder": "המסך הזה ייבנה בשלב {phase}"
+  },
+  "instructor": {
+    "nav": { "day": "היום שלי", "hours": "שעות", "swaps": "החלפות", "profile": "פרופיל" },
+    "home": {
+      "title": "היום שלי",
+      "empty": "אין לך שיעורים היום",
+      "emptyHint": "כשיהיו, תראו כאן את רשימת הילדים לכל שיעור"
+    }
+  },
+  "transport": { "home": { "title": "הסעות צהרון", "empty": "אין מסלולים היום" } },
+  "accountant": {
+    "home": { "title": "פורטל רואה חשבון", "empty": "ייצוא שכר וחשבוניות יופיע כאן" }
+  },
+  "parent": {
+    "nav": { "family": "המשפחה", "schedule": "לו״ז", "payments": "תשלומים", "documents": "מסמכים" },
+    "home": {
+      "title": "המשפחה שלי",
+      "nextLesson": "השיעור הבא",
+      "nextLessonEmpty": "עוד אין שיעור קרוב",
+      "actions": "פעולות מהירות",
+      "reportAbsence": "דיווח היעדרות",
+      "bookMakeup": "קביעת השלמה",
+      "payments": "תשלומים וקבלות"
+    }
+  },
+  "platform": {
+    "home": { "title": "קונסולת פלטפורמה", "empty": "ניהול לקוחות (טננטים) יגיע בשלב 10" }
+  },
+  "calendar": { "noLessons": "אין שיעורים היום", "today": "היום" }
+}
