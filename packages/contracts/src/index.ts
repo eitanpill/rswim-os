@@ -5,3 +5,4 @@ export * from './phone';
 export * from './catalog';
 export * from './policy';
 export * from './forms';
+export * from './scheduling';

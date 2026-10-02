@@ -5,3 +5,4 @@ export * from './venues';
 export * from './catalog';
 export * from './staff';
 export * from './integrations';
+export * from './scheduling';

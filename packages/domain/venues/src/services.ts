@@ -214,7 +214,8 @@ export async function deletePool(tx: Tx, poolId: string) {
   await tx.delete(pools).where(eq(pools.id, poolId));
 }
 
-async function windowsOfPool(tx: Tx, poolId: string): Promise<WindowInput[]> {
+/** A pool's operating windows with their lanes (used by the window editor and by scheduling). */
+export async function windowsOfPool(tx: Tx, poolId: string): Promise<WindowInput[]> {
   const rows = await tx
     .select()
     .from(venueOperatingWindows)

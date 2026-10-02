@@ -47,10 +47,9 @@ test.describe('role shells on mobile', () => {
     await expect(page).toHaveURL(/\/instructor$/);
     await expect(page.getByRole('heading', { level: 1, name: 'היום שלי' })).toBeVisible();
     await expectRtlMobileShell(page);
-    await expect(page).toHaveScreenshot('instructor-mobile.png', {
-      mask: [page.getByTestId('today-line')],
-      fullPage: true,
-    });
+    // The day's lessons and pending answers change with the date and the other tests: the screenshot covers the
+    // shell (header and bottom nav) only.
+    await expect(page).toHaveScreenshot('instructor-mobile.png', { mask: [page.locator('main')] });
   });
 
   test('parent sees their family portal', async ({ page }) => {

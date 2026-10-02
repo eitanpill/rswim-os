@@ -104,6 +104,26 @@
       "ghl": {
         "title": "חיבור ל-LeadYourWay",
         "hint": "ייבוא אנשי קשר וסנכרון דו-כיווני"
+      },
+      "groups": {
+        "title": "קבוצות",
+        "hint": "יצירה, מדריכים, ילדים ושיעורים"
+      },
+      "terms": {
+        "title": "תקופות ולוח שנה",
+        "hint": "יצירת שיעורים לשנה, חגים וחריגים"
+      },
+      "shifts": {
+        "title": "שינויי משמרת",
+        "hint": "מה מחכה לאישור מדריכים"
+      },
+      "slots": {
+        "title": "שיעורים פרטיים",
+        "hint": "משבצות פרטיות, זוגיות וטיפולים"
+      },
+      "waitlist": {
+        "title": "רשימת המתנה",
+        "hint": "ממתינים והצעות לקבוצות חדשות"
       }
     }
   },
@@ -117,7 +137,17 @@
     "home": {
       "title": "היום שלי",
       "empty": "אין לך שיעורים היום",
-      "emptyHint": "כשיהיו, תראו כאן את רשימת הילדים לכל שיעור"
+      "emptyHint": "כשיהיו, תראו כאן את רשימת הילדים לכל שיעור",
+      "waiting": "מחכה לתשובה שלך",
+      "askGroup": "לקחת את {group} בימי {day} ב-{time}, החל מ-{date}?",
+      "askSession": "להחליף בשיעור של {group} ב-{date}?",
+      "askReschedule": "להזיז את השיעור של {group} ב-{date} ל-{start}–{end}?",
+      "replacing": "במקום {name}",
+      "accept": "מאשר/ת",
+      "decline": "לא מתאים לי",
+      "answered": "התשובה נשלחה",
+      "week": "השיעורים שלי השבוע",
+      "sendDecline": "שליחת סירוב"
     }
   },
   "transport": {
@@ -172,7 +202,9 @@
       "phone": "מספר טלפון לא תקין",
       "email": "אימייל לא תקין",
       "invalid": "ערך לא תקין",
-      "duplicate": "כבר קיים פריט כזה"
+      "duplicate": "כבר קיים פריט כזה",
+      "datesReversed": "תאריך הסיום חייב להיות אחרי תאריך ההתחלה",
+      "timesReversed": "שעת הסיום חייבת להיות אחרי שעת ההתחלה"
     }
   },
   "enums": {
@@ -297,6 +329,73 @@
       "en": "אנגלית",
       "ar": "ערבית",
       "ru": "רוסית"
+    },
+    "admittedGender": {
+      "mixed": "מעורבת",
+      "female": "בנות / נשים",
+      "male": "בנים / גברים"
+    },
+    "instructorGender": {
+      "female": "מדריכה",
+      "male": "מדריך"
+    },
+    "sessionStatus": {
+      "scheduled": "מתוכנן",
+      "cancelled_by_school": "בוטל על ידינו",
+      "cancelled_external": "בוטל (סגירה חיצונית)",
+      "completed": "התקיים"
+    },
+    "enrollmentStatus": {
+      "lead": "פנייה",
+      "trial_booked": "ניסיון נקבע",
+      "trial_done": "אחרי ניסיון",
+      "active": "פעיל/ה",
+      "frozen": "בהקפאה",
+      "cancel_requested": "ביקשו לעזוב",
+      "cancelled": "עזב/ה",
+      "completed": "הסתיים"
+    },
+    "slotKind": {
+      "private": "פרטי",
+      "pair": "זוגי",
+      "trio": "שלישייה",
+      "therapy": "טיפולי",
+      "trial": "ניסיון",
+      "makeup": "השלמה"
+    },
+    "slotStatus": {
+      "open": "פתוח",
+      "full": "מלא",
+      "cancelled": "בוטל"
+    },
+    "shiftChangeStatus": {
+      "pending": "ממתין לאישור",
+      "accepted": "אושר",
+      "declined": "נדחה",
+      "escalated": "לא נענה, עבר אלייך",
+      "applied": "בוצע",
+      "cancelled": "בוטל"
+    },
+    "termKind": {
+      "school_year": "שנת לימודים",
+      "summer": "קיץ",
+      "course": "קורס",
+      "custom": "אחר"
+    },
+    "skipReason": {
+      "shabbat": "שבת",
+      "erev_chag": "ערב חג",
+      "yom_tov": "חג",
+      "yom_kippur": "יום כיפור",
+      "tisha_bav": "תשעה באב",
+      "yom_hazikaron_evening": "ערב יום הזיכרון",
+      "yom_hazikaron": "יום הזיכרון",
+      "yom_haatzmaut": "יום העצמאות",
+      "chol_hamoed": "חול המועד",
+      "override_closed": "סגור לפי לוח בית הספר",
+      "venue_closure": "סגירת המקום",
+      "before_group_start": "לפני פתיחת הקבוצה",
+      "after_group_end": "אחרי סיום הקבוצה"
     }
   },
   "venues": {
@@ -754,7 +853,8 @@
       "enrollment": "הרשמה",
       "payroll": "שכר",
       "staffing": "צוות",
-      "comms": "תקשורת"
+      "comms": "תקשורת",
+      "scheduling": "שיבוץ"
     },
     "fields": {
       "billing": {
@@ -852,6 +952,11 @@
         "block_shabbat_and_chag": "לא לשלוח בשבת ובחג",
         "lead_followup_max_nudges": "מקסימום תזכורות לליד",
         "reminder_before_lesson_hours": "תזכורת לפני שיעור"
+      },
+      "scheduling": {
+        "travel_buffer_min": "זמן נסיעה בין מקומות",
+        "window_instructor_gender": "מי מלמד/ת בשעות נפרדות",
+        "open_group_min_waiting": "ממתינים להצעת קבוצה חדשה"
       }
     },
     "options": {
@@ -902,7 +1007,9 @@
       "granted_unless_opt_out": "מותר אלא אם ביקשו שלא",
       "denied_unless_opt_in": "אסור אלא אם אישרו",
       "lesson_time_only": "בזמן השיעור בלבד",
-      "open": "ללא הגבלה"
+      "open": "ללא הגבלה",
+      "match_window": "לפי החלון (מדריכה בשעות נשים)",
+      "any_gender": "כל מדריך/ה"
     },
     "units": {
       "hours": "שעות",
@@ -910,6 +1017,282 @@
       "days": "ימים",
       "agorot": "₪",
       "bp": "%"
+    }
+  },
+  "scheduling": {
+    "age": {
+      "months": "{n} חודשים",
+      "years": "בגיל {n}"
+    },
+    "rules": {
+      "alreadyInGroup": "{name} כבר בקבוצה הזו",
+      "full": "הקבוצה מלאה ({capacity} מקומות)",
+      "genderUnknown": "לא רשום מגדר ל{name}, והחלון הזה מיועד ל{window, select, female {נשים ובנות} male {גברים ובנים} other {מעורב}}",
+      "windowGender": "{name} {gender, select, female {בת} male {בן} other {ללא מגדר רשום}}, והבריכה בשעה הזו פתוחה רק ל{window, select, female {נשים ובנות} male {גברים ובנים} other {מעורב}}",
+      "groupGender": "{name} {gender, select, female {בת} male {בן} other {ללא מגדר רשום}}, והקבוצה מיועדת ל{admitted, select, female {בנות} male {בנים} other {מעורבת}}",
+      "ageUnknown": "לא רשום תאריך לידה ל{name}",
+      "tooYoung": "{name} צעיר/ה מדי לקבוצה ({months} חודשים, מינימום {min})",
+      "tooOld": "{name} מבוגר/ת מדי לקבוצה ({months} חודשים, מקסימום {max})",
+      "levelUnknown": "לא רשומה רמה ל{name}",
+      "levelBelow": "הרמה של {name} נמוכה מרמת הקבוצה",
+      "levelAbove": "הרמה של {name} גבוהה מרמת הקבוצה",
+      "timeClash": "{name} כבר בקבוצה {group} באותה שעה",
+      "femaleInstructorRequired": "המשפחה של {name} ביקשה מדריכה בלבד, ובקבוצה הזו מלמד מדריך",
+      "instructorUnknown": "לקבוצה אין עדיין מדריך/ה, ו{name} צריך/ה מדריכה",
+      "lastSeat": "זה המקום האחרון בקבוצה",
+      "noLanes": "יש לבחור לפחות מסלול אחד",
+      "outsideWindow": "אין לנו חלון זמן בבריכה ביום ובשעות האלה, על המסלולים שנבחרו",
+      "windowAdmits": "החלון פתוח ל{window, select, female {נשים ובנות} male {גברים ובנים} other {מעורב}} והקבוצה מיועדת ל{admitted, select, female {בנות} male {בנים} other {מעורבת}}",
+      "windowEnds": "חלון הזמן בבריכה מסתיים ב-{date}",
+      "laneTaken": "המסלול תפוס בשעה הזו על ידי הקבוצה {group}",
+      "instructorInactive": "{name} לא פעיל/ה כרגע בצוות",
+      "instructorGender": "הקבוצה צריכה {required, select, female {מדריכה} other {מדריך}}, ו{name} לא מתאים/ה",
+      "windowInstructorGender": "בחלון של {window, select, female {נשים ובנות} male {גברים ובנים} other {מעורב}} מלמדים רק {window, select, female {מדריכות} male {מדריכים} other {כולם}}, ולכן {name} לא יכול/ה ללמד כאן",
+      "instructorSkills": "ל{name} חסרות הכשרות לקבוצה: {skills}",
+      "instructorAway": "{name} לא זמין/ה בתאריך הזה (היעדרות רשומה)",
+      "instructorUnavailable": "{name} לא זמין/ה ביום ובשעות האלה לפי הזמינות שלו/ה",
+      "instructorBusy": "{name} כבר מלמד/ת את {group} באותה שעה",
+      "travelBuffer": "{name} מלמד/ת את {group} במקום אחר, ואין {minutes} דקות לנסיעה",
+      "instructorBusyOn": "{name} תפוס/ה ב-{date}"
+    },
+    "score": {
+      "levelSame": "אותה רמה כמו הקבוצה",
+      "levelNear": "רמה קרובה לקבוצה",
+      "levelFar": "רמה רחוקה מהקבוצה",
+      "siblingsParallel": "אחים באותה שעה, בבריכה הזו",
+      "siblingsSequential": "אחים בשיעור צמוד",
+      "siblingsApart": "אחים בימים או בשעות אחרים",
+      "friendInGroup": "חבר/ה בקבוצה",
+      "preferredInstructor": "המדריך/ה המועדף/ת",
+      "weekdayPreferred": "היום שהמשפחה ביקשה",
+      "weekdayNotPreferred": "לא היום שהמשפחה ביקשה",
+      "timePreferred": "בשעות שהמשפחה ביקשה",
+      "timeNotPreferred": "מחוץ לשעות שהמשפחה ביקשה",
+      "emptyGroup": "קבוצה ריקה עדיין"
+    },
+    "shift": {
+      "noInstructor": "אין מדריך/ה לשאול",
+      "sameInstructor": "זה כבר המדריך/ה של הקבוצה",
+      "alreadyPending": "כבר יש שינוי שמחכה לתשובה בקבוצה הזו",
+      "notPending": "השינוי כבר לא מחכה לתשובה",
+      "notAccepted": "אפשר להחיל רק שינוי שהמדריך/ה אישר/ה",
+      "requested": "השינוי נשלח לאישור המדריך/ה"
+    },
+    "errors": {
+      "levelProgram": "הרמות שנבחרו לא שייכות לתוכנית של הקבוצה",
+      "levelOrder": "רמת המקסימום נמוכה מרמת המינימום",
+      "timeChangeNeedsNewGroup": "לקבוצה יש מדריך/ה ושיעורים קדימה. כדי לשנות יום, שעה או מקום, מסיימים את הקבוצה בתאריך ופותחים קבוצה חדשה",
+      "notInGroup": "הילד/ה לא בקבוצה הזו בתאריך הזה",
+      "slotNotOpen": "המשבצת כבר לא פתוחה",
+      "slotPast": "המשבצת כבר עברה",
+      "alreadyBooked": "הילד/ה כבר רשום/ה למשבצת הזו",
+      "alreadyWaiting": "הילד/ה כבר ברשימת ההמתנה לתוכנית הזו"
+    },
+    "board": {
+      "title": "לוח קבוצות",
+      "subtitle": "גוררים ילד/ה לקבוצה אחרת, או בוחרים \"העברה\". הכללים נבדקים לפני כל שינוי",
+      "allGroups": "כל הקבוצות",
+      "venues": "מקומות",
+      "onDate": "נכון לתאריך",
+      "show": "הצגה",
+      "hint": "העברה נכנסת לתוקף מהתאריך שנבחר",
+      "noGroups": "אין עדיין קבוצות במקום הזה",
+      "lanes": "מסלולים {lanes}",
+      "noLead": "אין מדריך/ה",
+      "fill": "{n}/{capacity}",
+      "changePending": "שינוי מדריך ממתין",
+      "empty": "אין עדיין ילדים בקבוצה",
+      "waterFear": "פחד ממים",
+      "femaleOnly": "מדריכה בלבד",
+      "status": {
+        "trial_booked": "ניסיון",
+        "frozen": "בהקפאה",
+        "cancel_requested": "ביקשו לעזוב"
+      },
+      "moveTo": "העברה של {name} לקבוצה אחרת",
+      "move": "העברה…",
+      "cannotCheck": "לא הצלחנו לבדוק את ההעברה",
+      "moveTitle": "להעביר את {name} ל{to}?",
+      "fromTo": "מ{from} אל {to}",
+      "blocked": "אי אפשר להעביר:",
+      "score": "התאמה: {points} נקודות",
+      "notify": "יקבלו עדכון: {names}",
+      "confirm": "אישור העברה",
+      "cancel": "ביטול",
+      "close": "סגירה",
+      "moved": "ההעברה נשמרה"
+    },
+    "groups": {
+      "title": "קבוצות",
+      "subtitle": "כל הקבוצות הפעילות לפי מקום ויום",
+      "toBoard": "ללוח הקבוצות",
+      "empty": "אין עדיין קבוצות כאן",
+      "minutes": "{n} דק׳",
+      "noLead": "בלי מדריך/ה",
+      "new": "קבוצה חדשה",
+      "pickPool": "באיזו בריכה?"
+    },
+    "groupForm": {
+      "name": "שם הקבוצה",
+      "program": "תוכנית",
+      "admittedGender": "למי הקבוצה",
+      "weekday": "יום",
+      "startsAt": "שעת התחלה",
+      "durationMin": "משך (דקות)",
+      "capacity": "מקומות",
+      "lanes": "מסלולים",
+      "lane": "מסלול {label}",
+      "levelMin": "מרמה",
+      "levelMax": "עד רמה",
+      "anyLevel": "כל רמה",
+      "ageMin": "מגיל (חודשים)",
+      "ageMax": "עד גיל (חודשים)",
+      "monthsHint": "גיל 4 = 48 חודשים",
+      "instructorGender": "מי מלמד/ת",
+      "anyInstructor": "מדריך או מדריכה",
+      "lead": "מדריך/ה",
+      "noLead": "בלי מדריך/ה בינתיים",
+      "leadHint": "המדריך/ה יתבקש/ו לאשר את השיבוץ",
+      "skills": "הכשרות נדרשות",
+      "effectiveFrom": "פעילה מ-",
+      "effectiveTo": "עד (לא כולל)",
+      "effectiveToHint": "ריק = בלי תאריך סיום",
+      "notes": "הערות",
+      "timeChangeHint": "שינוי מדריך/ה עושים למטה, באישור המדריך/ה. שינוי יום או שעה בקבוצה עם מדריך/ה ושיעורים קדימה דורש קבוצה חדשה",
+      "create": "יצירת קבוצה"
+    },
+    "group": {
+      "toBoard": "בלוח הקבוצות",
+      "lead": "מדריך/ה",
+      "noLead": "אין",
+      "fill": "תפוסה",
+      "fillValue": "{n} מתוך {capacity}",
+      "lanes": "מסלולים",
+      "admits": "למי",
+      "edit": "עריכת הקבוצה",
+      "instructor": "שינוי מדריך/ה",
+      "newLead": "מדריך/ה חדש/ה",
+      "from": "החל מ-",
+      "reason": "סיבה (תוצג למדריך/ה)",
+      "acceptHint": "לא משתנה כלום עד שהמדריך/ה מאשר/ת באפליקציה. אחר כך ההורים מקבלים עדכון",
+      "requestChange": "שליחה לאישור",
+      "members": "ילדים בקבוצה",
+      "noMembers": "אין עדיין ילדים בקבוצה",
+      "since": "מ-{date}",
+      "remove": "הוצאה מהקבוצה",
+      "confirmRemove": "להוציא את הילד/ה מהקבוצה מהיום?",
+      "addStudent": "הוספת ילד/ה",
+      "searchPlaceholder": "שם פרטי או משפחה",
+      "search": "חיפוש",
+      "place": "שיבוץ",
+      "upcoming": "השיעורים הבאים",
+      "noSessions": "עוד לא נוצרו שיעורים לקבוצה",
+      "toTerms": "ליצירת שיעורים לתקופה",
+      "changeSession": "שינוי לשיעור הזה בלבד",
+      "substitute": "מדריך/ה מחליף/ה",
+      "newStart": "שעה חדשה",
+      "newEnd": "עד",
+      "archive": "העברה לארכיון",
+      "confirmArchive": "להעביר את הקבוצה לארכיון? היא תרד מהלוח"
+    },
+    "shifts": {
+      "title": "שינויי משמרת",
+      "subtitle": "כל שינוי במשמרת של מדריך/ה מחכה לאישור שלו/ה",
+      "empty": "אין שינויי משמרת",
+      "reassignGroup": "{group}: {from} ← {to}, מ-{date}",
+      "reassignSession": "{group} ב-{date}: {from} ← {to}",
+      "reschedule": "{group} ב-{date}: שעה חדשה {start}–{end}",
+      "nobody": "אין",
+      "waitingFor": "מחכה לתשובה של {name}",
+      "note": "תשובה: {note}",
+      "noteLabel": "הערה (לא חובה)",
+      "applyNow": "להחיל בלי אישור",
+      "confirmApply": "להחיל את השינוי בלי אישור המדריך/ה? זה נרשם ביומן",
+      "cancel": "ביטול השינוי"
+    },
+    "terms": {
+      "title": "תקופות ולוח שנה",
+      "subtitle": "שנת לימודים, קיץ וקורסים. יצירת השיעורים מדלגת על חגים, חול המועד וסגירות",
+      "empty": "אין עדיין תקופות",
+      "new": "תקופה חדשה",
+      "name": "שם",
+      "kind": "סוג",
+      "startsOn": "מתאריך",
+      "endsOn": "עד תאריך",
+      "notes": "הערות",
+      "create": "יצירת תקופה",
+      "details": "פרטי התקופה",
+      "sessionCount": "{n} שיעורים",
+      "generate": "יצירת שיעורים",
+      "generateHint": "יוצר את כל השיעורים של כל הקבוצות הפעילות בתקופה. אפשר להריץ שוב: רק מה שחסר נוסף",
+      "generateNow": "יצירת שיעורים עכשיו",
+      "generated": "השיעורים נוצרו. הדוח למטה",
+      "report": "דוח היצירה האחרון",
+      "noRuns": "עוד לא נוצרו שיעורים לתקופה",
+      "reportSummary": "נוצרו {created} שיעורים, {existing} כבר היו קיימים, {skipped} תאריכים דולגו",
+      "outsideGroupDates": "{n} תאריכים מחוץ לתאריכי הקבוצות לא מוצגים",
+      "overrides": "חריגים בלוח השנה",
+      "overridesHint": "ימים שבית הספר סגור בהם (או פתוח למרות חג), לכל המקומות או למקום אחד",
+      "noOverrides": "אין חריגים קרובים",
+      "override": {
+        "closed": "סגור",
+        "open": "פתוח"
+      },
+      "overrideKind": "סוג",
+      "allVenues": "כל המקומות",
+      "addOverride": "הוספת חריג",
+      "date": "תאריך",
+      "venue": "מקום",
+      "reason": "סיבה"
+    },
+    "slots": {
+      "title": "שיעורים פרטיים",
+      "subtitle": "משבצות לארבעת השבועות הקרובים",
+      "empty": "אין משבצות פתוחות",
+      "seats": "{n} מתוך {capacity} מקומות",
+      "cancelBooking": "ביטול הרשמה",
+      "student": "ילד/ה",
+      "book": "רישום",
+      "cancelSlot": "ביטול המשבצת",
+      "confirmCancel": "לבטל את המשבצת וכל ההרשמות אליה?",
+      "open": "פתיחת משבצות",
+      "opened": "המשבצות נפתחו",
+      "instructor": "מדריך/ה",
+      "venue": "מקום",
+      "kind": "סוג",
+      "program": "תוכנית",
+      "noProgram": "בלי תוכנית",
+      "date": "תאריך",
+      "startsAt": "משעה",
+      "endsAt": "עד שעה",
+      "repeatWeeks": "לכמה שבועות",
+      "capacity": "מקומות",
+      "capacityHint": "ריק = לפי הסוג (פרטי 1, זוגי 2, שלישייה 3)",
+      "notes": "הערות",
+      "parentBookingLater": "הזמנה עצמית של הורים מהפורטל"
+    },
+    "waitlist": {
+      "title": "רשימת המתנה",
+      "subtitle": "מי מחכה, למה, ואיפה כדאי לפתוח קבוצה",
+      "suggestions": "כדאי לפתוח קבוצה",
+      "suggestion": "{n} ממתינים ל{program} ביום {day}, {venue}",
+      "ages": "גילאי {from}–{to}",
+      "anyVenue": "כל מקום",
+      "openGroup": "פתיחת קבוצה",
+      "empty": "אין ממתינים",
+      "withdraw": "הסרה מהרשימה",
+      "placeIn": "שיבוץ בקבוצה",
+      "place": "שיבוץ",
+      "add": "הוספה לרשימת ההמתנה",
+      "student": "ילד/ה",
+      "program": "תוכנית",
+      "venue": "מקום",
+      "priority": "עדיפות",
+      "priorityHint": "0 עד 9, גבוה קודם",
+      "weekdays": "ימים מועדפים",
+      "earliestAt": "לא לפני",
+      "latestAt": "לא אחרי",
+      "notes": "הערות"
     }
   }
 }

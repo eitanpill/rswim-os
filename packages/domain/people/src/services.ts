@@ -140,6 +140,88 @@ export async function getHousehold(tx: Tx, householdId: string) {
   return { household, guardians: gs, students: ss, relations };
 }
 
+/** Students by id, with the facts scheduling decides on (no sensitive columns). */
+export async function studentsByIds(tx: Tx, ids: readonly string[]) {
+  if (ids.length === 0) return [];
+  return tx
+    .select({
+      id: students.id,
+      householdId: students.householdId,
+      firstName: students.firstName,
+      lastName: students.lastName,
+      dob: students.dob,
+      gender: students.gender,
+      levelId: students.levelId,
+      preferredStaffId: students.preferredStaffId,
+      waterFear: students.waterFear,
+      photoConsent: students.photoConsent,
+      requiresFemaleInstructor: students.requiresFemaleInstructor,
+    })
+    .from(students)
+    .where(inArray(students.id, [...ids]));
+}
+
+/** Students whose name matches, for pickers (waitlist, slot booking). */
+export async function searchStudents(tx: Tx, query: string, limit = 20) {
+  const q = `%${query.trim()}%`;
+  return tx
+    .select({
+      id: students.id,
+      householdId: students.householdId,
+      firstName: students.firstName,
+      lastName: students.lastName,
+      dob: students.dob,
+      gender: students.gender,
+    })
+    .from(students)
+    .where(
+      query.trim()
+        ? or(
+            ilike(students.firstName, q),
+            ilike(students.lastName, q),
+            ilike(sql`${students.firstName} || ' ' || ${students.lastName}`, q),
+          )
+        : undefined,
+    )
+    .orderBy(asc(students.firstName), asc(students.lastName))
+    .limit(limit);
+}
+
+/** Guardians of the households these students belong to, for "who to notify" previews. */
+export async function guardiansOfStudents(tx: Tx, studentIds: readonly string[]) {
+  if (studentIds.length === 0) return [];
+  return tx
+    .select({
+      studentId: students.id,
+      guardianId: guardians.id,
+      firstName: guardians.firstName,
+      lastName: guardians.lastName,
+      phoneE164: guardians.phoneE164,
+      whatsappOptIn: guardians.whatsappOptIn,
+    })
+    .from(students)
+    .innerJoin(guardians, eq(guardians.householdId, students.householdId))
+    .where(inArray(students.id, [...studentIds]));
+}
+
+/** Sibling and friend links touching these students, as (student, other, type) both ways. */
+export async function relationsOfStudents(tx: Tx, studentIds: readonly string[]) {
+  if (studentIds.length === 0) return [];
+  const rows = await tx
+    .select()
+    .from(studentRelations)
+    .where(
+      or(
+        inArray(studentRelations.studentId, [...studentIds]),
+        inArray(studentRelations.relatedStudentId, [...studentIds]),
+      ),
+    );
+  return rows.flatMap((r) => [
+    { studentId: r.studentId, otherId: r.relatedStudentId, type: r.type as StudentRelationType },
+    { studentId: r.relatedStudentId, otherId: r.studentId, type: r.type as StudentRelationType },
+  ]);
+}
+
 // ─── Writes ─────────────────────────────────────────────────────────────────
 
 async function guardianChanged(

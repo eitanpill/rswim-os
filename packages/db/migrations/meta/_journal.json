@@ -29,6 +29,20 @@
       "when": 1790928995265,
       "tag": "0003_core_data_security",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790936506810,
+      "tag": "0004_scheduling",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790936522789,
+      "tag": "0005_scheduling_security",
+      "breakpoints": true
     }
   ]
 }

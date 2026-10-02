@@ -15,4 +15,6 @@ export {
   lte,
   lt,
   gt,
+  isNotNull,
+  notInArray,
 } from 'drizzle-orm';

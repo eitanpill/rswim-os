@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   addDays,
+  DEFAULT_CALENDAR_POLICY,
   dayInfo,
   hebrewDate,
   isInRestWindow,
@@ -76,6 +77,19 @@ describe('lessonDay with default policy', () => {
     expect(lessonDay('2027-08-12').reasons).toEqual(['tisha_bav']);
     expect(lessonDay('2026-10-10').reasons).toEqual(['shabbat']);
     expect(lessonDay('2027-05-10').reasons).toEqual(['yom_hazikaron_evening']);
+    // The memorial day itself and Independence Day are off only when the policy says so.
+    expect(lessonDay('2027-05-11').lessons).toBe(true);
+    const strict = {
+      ...DEFAULT_CALENDAR_POLICY,
+      noLessonsOn: [
+        ...DEFAULT_CALENDAR_POLICY.noLessonsOn,
+        'yom_hazikaron' as const,
+        'yom_haatzmaut' as const,
+      ],
+    };
+    expect(lessonDay('2027-05-11', strict).reasons).toEqual(['yom_hazikaron']);
+    expect(dayInfo('2027-05-12').isYomHaAtzmaut).toBe(true);
+    expect(lessonDay('2027-05-12', strict).reasons).toEqual(['yom_haatzmaut']);
   });
 
   it('lets camps run on Chol HaMoed when policy says run', () => {

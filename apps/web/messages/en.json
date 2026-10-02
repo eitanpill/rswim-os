@@ -104,6 +104,26 @@
       "ghl": {
         "title": "LeadYourWay connection",
         "hint": "Contact import and two-way sync"
+      },
+      "groups": {
+        "title": "Groups",
+        "hint": "Create groups, instructors, children and sessions"
+      },
+      "terms": {
+        "title": "Terms and calendar",
+        "hint": "Generate the year's sessions, holidays and exceptions"
+      },
+      "shifts": {
+        "title": "Shift changes",
+        "hint": "What waits for instructors' acceptance"
+      },
+      "slots": {
+        "title": "Private lessons",
+        "hint": "Private, pair and therapy slots"
+      },
+      "waitlist": {
+        "title": "Waitlist",
+        "hint": "Waiting families and new-group suggestions"
       }
     }
   },
@@ -117,7 +137,17 @@
     "home": {
       "title": "My day",
       "empty": "No sessions today",
-      "emptyHint": "When you have sessions, each one's kids list shows here"
+      "emptyHint": "When you have sessions, each one's kids list shows here",
+      "waiting": "Waiting for your answer",
+      "askGroup": "Take {group} on {day}s at {time}, starting {date}?",
+      "askSession": "Substitute in {group} on {date}?",
+      "askReschedule": "Move {group} on {date} to {start}–{end}?",
+      "replacing": "Instead of {name}",
+      "accept": "Accept",
+      "decline": "Doesn't work for me",
+      "answered": "Your answer was sent",
+      "week": "My lessons this week",
+      "sendDecline": "Send decline"
     }
   },
   "transport": {
@@ -172,7 +202,9 @@
       "phone": "Invalid phone number",
       "email": "Invalid email",
       "invalid": "Invalid value",
-      "duplicate": "This already exists"
+      "duplicate": "This already exists",
+      "datesReversed": "The end date must be after the start date",
+      "timesReversed": "The end time must be after the start time"
     }
   },
   "enums": {
@@ -297,6 +329,73 @@
       "en": "English",
       "ar": "Arabic",
       "ru": "Russian"
+    },
+    "admittedGender": {
+      "mixed": "Mixed",
+      "female": "Girls / women",
+      "male": "Boys / men"
+    },
+    "instructorGender": {
+      "female": "Female instructor",
+      "male": "Male instructor"
+    },
+    "sessionStatus": {
+      "scheduled": "Scheduled",
+      "cancelled_by_school": "Cancelled by us",
+      "cancelled_external": "Cancelled (external closure)",
+      "completed": "Held"
+    },
+    "enrollmentStatus": {
+      "lead": "Lead",
+      "trial_booked": "Trial booked",
+      "trial_done": "Trial done",
+      "active": "Active",
+      "frozen": "Frozen",
+      "cancel_requested": "Asked to leave",
+      "cancelled": "Left",
+      "completed": "Ended"
+    },
+    "slotKind": {
+      "private": "Private",
+      "pair": "Pair",
+      "trio": "Trio",
+      "therapy": "Therapy",
+      "trial": "Trial",
+      "makeup": "Makeup"
+    },
+    "slotStatus": {
+      "open": "Open",
+      "full": "Full",
+      "cancelled": "Cancelled"
+    },
+    "shiftChangeStatus": {
+      "pending": "Waiting for acceptance",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "escalated": "Unanswered, back to you",
+      "applied": "Applied",
+      "cancelled": "Cancelled"
+    },
+    "termKind": {
+      "school_year": "School year",
+      "summer": "Summer",
+      "course": "Course",
+      "custom": "Other"
+    },
+    "skipReason": {
+      "shabbat": "Shabbat",
+      "erev_chag": "Erev chag",
+      "yom_tov": "Yom tov",
+      "yom_kippur": "Yom Kippur",
+      "tisha_bav": "Tisha B'Av",
+      "yom_hazikaron_evening": "Eve of Yom HaZikaron",
+      "yom_hazikaron": "Yom HaZikaron",
+      "yom_haatzmaut": "Yom HaAtzmaut",
+      "chol_hamoed": "Chol HaMoed",
+      "override_closed": "Closed on the school calendar",
+      "venue_closure": "Venue closure",
+      "before_group_start": "Before the group starts",
+      "after_group_end": "After the group ends"
     }
   },
   "venues": {
@@ -754,7 +853,8 @@
       "enrollment": "Enrollment",
       "payroll": "Payroll",
       "staffing": "Staffing",
-      "comms": "Communications"
+      "comms": "Communications",
+      "scheduling": "Scheduling"
     },
     "fields": {
       "billing": {
@@ -852,6 +952,11 @@
         "block_shabbat_and_chag": "No messages on Shabbat and holidays",
         "lead_followup_max_nudges": "Max lead follow-ups",
         "reminder_before_lesson_hours": "Reminder before lesson"
+      },
+      "scheduling": {
+        "travel_buffer_min": "Travel time between venues",
+        "window_instructor_gender": "Who teaches in separate hours",
+        "open_group_min_waiting": "Waiting families to suggest a new group"
       }
     },
     "options": {
@@ -902,7 +1007,9 @@
       "granted_unless_opt_out": "Allowed unless opted out",
       "denied_unless_opt_in": "Not allowed unless opted in",
       "lesson_time_only": "Lesson time only",
-      "open": "Open"
+      "open": "Open",
+      "match_window": "Match the window (women teach in women's hours)",
+      "any_gender": "Any instructor"
     },
     "units": {
       "hours": "hours",
@@ -910,6 +1017,282 @@
       "days": "days",
       "agorot": "₪",
       "bp": "%"
+    }
+  },
+  "scheduling": {
+    "age": {
+      "months": "{n} months",
+      "years": "age {n}"
+    },
+    "rules": {
+      "alreadyInGroup": "{name} is already in this group",
+      "full": "The group is full ({capacity} places)",
+      "genderUnknown": "{name} has no recorded gender, and this window is for {window, select, female {women and girls} male {men and boys} other {mixed}}",
+      "windowGender": "{name} is {gender, select, female {a girl} male {a boy} other {no recorded gender}}, and the pool is open only to {window, select, female {women and girls} male {men and boys} other {mixed}} at this time",
+      "groupGender": "{name} is {gender, select, female {a girl} male {a boy} other {no recorded gender}}, and the group is for {admitted, select, female {girls} male {boys} other {mixed}}",
+      "ageUnknown": "{name} has no date of birth on file",
+      "tooYoung": "{name} is too young for the group ({months} months, minimum {min})",
+      "tooOld": "{name} is too old for the group ({months} months, maximum {max})",
+      "levelUnknown": "{name} has no level on file",
+      "levelBelow": "{name}'s level is below the group's",
+      "levelAbove": "{name}'s level is above the group's",
+      "timeClash": "{name} is already in {group} at the same time",
+      "femaleInstructorRequired": "{name}'s family asked for a female instructor only, and a man teaches this group",
+      "instructorUnknown": "The group has no instructor yet, and {name} needs a female instructor",
+      "lastSeat": "This is the last place in the group",
+      "noLanes": "Pick at least one lane",
+      "outsideWindow": "We have no pool window on this day and time on the chosen lanes",
+      "windowAdmits": "The window is for {window, select, female {women and girls} male {men and boys} other {mixed}} and the group is for {admitted, select, female {girls} male {boys} other {mixed}}",
+      "windowEnds": "The pool window ends on {date}",
+      "laneTaken": "The lane is taken at this time by {group}",
+      "instructorInactive": "{name} is not active on the team",
+      "instructorGender": "The group needs a {required, select, female {female} other {male}} instructor, and {name} does not fit",
+      "windowInstructorGender": "Only {window, select, female {women} male {men} other {anyone}} teach in the {window, select, female {women and girls} male {men and boys} other {mixed}} window, so {name} cannot teach here",
+      "instructorSkills": "{name} lacks training the group needs: {skills}",
+      "instructorAway": "{name} is away on this date",
+      "instructorUnavailable": "{name} is not available on this day and time",
+      "instructorBusy": "{name} already teaches {group} at the same time",
+      "travelBuffer": "{name} teaches {group} at another venue, leaving less than {minutes} minutes to travel",
+      "instructorBusyOn": "{name} is busy on {date}"
+    },
+    "score": {
+      "levelSame": "Same level as the group",
+      "levelNear": "Level close to the group",
+      "levelFar": "Level far from the group",
+      "siblingsParallel": "Siblings at the same time and place",
+      "siblingsSequential": "Siblings back to back",
+      "siblingsApart": "Siblings on other days or times",
+      "friendInGroup": "A friend is in the group",
+      "preferredInstructor": "Preferred instructor",
+      "weekdayPreferred": "The day the family asked for",
+      "weekdayNotPreferred": "Not the day the family asked for",
+      "timePreferred": "Within the hours the family asked for",
+      "timeNotPreferred": "Outside the hours the family asked for",
+      "emptyGroup": "The group is still empty"
+    },
+    "shift": {
+      "noInstructor": "There is no instructor to ask",
+      "sameInstructor": "That is already the group's instructor",
+      "alreadyPending": "A change for this group is already waiting for an answer",
+      "notPending": "The change is no longer waiting for an answer",
+      "notAccepted": "Only a change the instructor accepted can be applied",
+      "requested": "Sent to the instructor for acceptance"
+    },
+    "errors": {
+      "levelProgram": "The chosen levels do not belong to the group's program",
+      "levelOrder": "The maximum level is below the minimum level",
+      "timeChangeNeedsNewGroup": "The group has an instructor and sessions ahead. To change its day, time or venue, end it on a date and open a new group",
+      "notInGroup": "The child is not in this group on this date",
+      "slotNotOpen": "The slot is no longer open",
+      "slotPast": "The slot is in the past",
+      "alreadyBooked": "The child is already booked into this slot",
+      "alreadyWaiting": "The child is already on the waitlist for this program"
+    },
+    "board": {
+      "title": "Group board",
+      "subtitle": "Drag a child to another group, or pick \"Move\". Every rule is checked before anything changes",
+      "allGroups": "All groups",
+      "venues": "Venues",
+      "onDate": "As of",
+      "show": "Show",
+      "hint": "A move takes effect from the chosen date",
+      "noGroups": "No groups at this venue yet",
+      "lanes": "Lanes {lanes}",
+      "noLead": "No instructor",
+      "fill": "{n}/{capacity}",
+      "changePending": "Instructor change pending",
+      "empty": "No children in this group yet",
+      "waterFear": "Water fear",
+      "femaleOnly": "Female instructor only",
+      "status": {
+        "trial_booked": "Trial",
+        "frozen": "Frozen",
+        "cancel_requested": "Leaving"
+      },
+      "moveTo": "Move {name} to another group",
+      "move": "Move…",
+      "cannotCheck": "We could not check this move",
+      "moveTitle": "Move {name} to {to}?",
+      "fromTo": "From {from} to {to}",
+      "blocked": "This move is not allowed:",
+      "score": "Fit: {points} points",
+      "notify": "Will be told: {names}",
+      "confirm": "Confirm move",
+      "cancel": "Cancel",
+      "close": "Close",
+      "moved": "The move was saved"
+    },
+    "groups": {
+      "title": "Groups",
+      "subtitle": "All active groups by venue and day",
+      "toBoard": "Group board",
+      "empty": "No groups here yet",
+      "minutes": "{n} min",
+      "noLead": "No instructor",
+      "new": "New group",
+      "pickPool": "Which pool?"
+    },
+    "groupForm": {
+      "name": "Group name",
+      "program": "Program",
+      "admittedGender": "Who the group is for",
+      "weekday": "Day",
+      "startsAt": "Start time",
+      "durationMin": "Length (minutes)",
+      "capacity": "Places",
+      "lanes": "Lanes",
+      "lane": "Lane {label}",
+      "levelMin": "From level",
+      "levelMax": "To level",
+      "anyLevel": "Any level",
+      "ageMin": "From age (months)",
+      "ageMax": "To age (months)",
+      "monthsHint": "Age 4 = 48 months",
+      "instructorGender": "Who teaches",
+      "anyInstructor": "Any instructor",
+      "lead": "Instructor",
+      "noLead": "No instructor for now",
+      "leadHint": "The instructor will be asked to accept",
+      "skills": "Required training",
+      "effectiveFrom": "Active from",
+      "effectiveTo": "Until (exclusive)",
+      "effectiveToHint": "Empty = no end date",
+      "notes": "Notes",
+      "timeChangeHint": "Change the instructor below, with their acceptance. Changing the day or time of a staffed group with sessions ahead needs a new group",
+      "create": "Create group"
+    },
+    "group": {
+      "toBoard": "On the board",
+      "lead": "Instructor",
+      "noLead": "None",
+      "fill": "Filled",
+      "fillValue": "{n} of {capacity}",
+      "lanes": "Lanes",
+      "admits": "For",
+      "edit": "Edit group",
+      "instructor": "Change instructor",
+      "newLead": "New instructor",
+      "from": "Starting",
+      "reason": "Reason (shown to the instructor)",
+      "acceptHint": "Nothing changes until the instructor accepts in the app. Then parents are told",
+      "requestChange": "Send for acceptance",
+      "members": "Children in the group",
+      "noMembers": "No children in the group yet",
+      "since": "since {date}",
+      "remove": "Remove from group",
+      "confirmRemove": "Remove the child from the group from today?",
+      "addStudent": "Add a child",
+      "searchPlaceholder": "First or last name",
+      "search": "Search",
+      "place": "Place",
+      "upcoming": "Next sessions",
+      "noSessions": "No sessions generated for this group yet",
+      "toTerms": "Generate sessions for a term",
+      "changeSession": "Change this session only",
+      "substitute": "Substitute instructor",
+      "newStart": "New time",
+      "newEnd": "Until",
+      "archive": "Archive",
+      "confirmArchive": "Archive the group? It leaves the board"
+    },
+    "shifts": {
+      "title": "Shift changes",
+      "subtitle": "Every change to an instructor's shift waits for their acceptance",
+      "empty": "No shift changes",
+      "reassignGroup": "{group}: {from} → {to}, from {date}",
+      "reassignSession": "{group} on {date}: {from} → {to}",
+      "reschedule": "{group} on {date}: new time {start}–{end}",
+      "nobody": "nobody",
+      "waitingFor": "Waiting for {name}",
+      "note": "Answer: {note}",
+      "noteLabel": "Note (optional)",
+      "applyNow": "Apply without acceptance",
+      "confirmApply": "Apply the change without the instructor's acceptance? This is logged",
+      "cancel": "Cancel change"
+    },
+    "terms": {
+      "title": "Terms and calendar",
+      "subtitle": "School year, summer and courses. Generating sessions skips holidays, Chol HaMoed and closures",
+      "empty": "No terms yet",
+      "new": "New term",
+      "name": "Name",
+      "kind": "Kind",
+      "startsOn": "From",
+      "endsOn": "To",
+      "notes": "Notes",
+      "create": "Create term",
+      "details": "Term details",
+      "sessionCount": "{n} sessions",
+      "generate": "Generate sessions",
+      "generateHint": "Creates every session of every active group in the term. Safe to run again: only what is missing is added",
+      "generateNow": "Generate sessions now",
+      "generated": "Sessions generated. See the report below",
+      "report": "Latest generation report",
+      "noRuns": "No sessions generated for this term yet",
+      "reportSummary": "Created {created} sessions, {existing} already existed, {skipped} dates skipped",
+      "outsideGroupDates": "{n} dates outside the groups' own dates are not listed",
+      "overrides": "Calendar exceptions",
+      "overridesHint": "Days the school is closed (or open despite a holiday), for all venues or one",
+      "noOverrides": "No upcoming exceptions",
+      "override": {
+        "closed": "Closed",
+        "open": "Open"
+      },
+      "overrideKind": "Kind",
+      "allVenues": "All venues",
+      "addOverride": "Add exception",
+      "date": "Date",
+      "venue": "Venue",
+      "reason": "Reason"
+    },
+    "slots": {
+      "title": "Private lessons",
+      "subtitle": "Slots for the next four weeks",
+      "empty": "No open slots",
+      "seats": "{n} of {capacity} places",
+      "cancelBooking": "Cancel booking",
+      "student": "Child",
+      "book": "Book",
+      "cancelSlot": "Cancel slot",
+      "confirmCancel": "Cancel the slot and every booking in it?",
+      "open": "Open slots",
+      "opened": "Slots opened",
+      "instructor": "Instructor",
+      "venue": "Venue",
+      "kind": "Kind",
+      "program": "Program",
+      "noProgram": "No program",
+      "date": "Date",
+      "startsAt": "From",
+      "endsAt": "To",
+      "repeatWeeks": "For how many weeks",
+      "capacity": "Places",
+      "capacityHint": "Empty = by kind (private 1, pair 2, trio 3)",
+      "notes": "Notes",
+      "parentBookingLater": "parents booking themselves from the portal"
+    },
+    "waitlist": {
+      "title": "Waitlist",
+      "subtitle": "Who is waiting, for what, and where to open a group",
+      "suggestions": "Worth opening a group",
+      "suggestion": "{n} waiting for {program} on {day}, {venue}",
+      "ages": "ages {from}–{to}",
+      "anyVenue": "any venue",
+      "openGroup": "Open a group",
+      "empty": "Nobody is waiting",
+      "withdraw": "Remove",
+      "placeIn": "Place in group",
+      "place": "Place",
+      "add": "Add to waitlist",
+      "student": "Child",
+      "program": "Program",
+      "venue": "Venue",
+      "priority": "Priority",
+      "priorityHint": "0 to 9, higher first",
+      "weekdays": "Preferred days",
+      "earliestAt": "Not before",
+      "latestAt": "Not after",
+      "notes": "Notes"
     }
   }
 }

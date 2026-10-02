@@ -20,6 +20,7 @@ export interface DayInfo {
   isYomHaZikaron: boolean;
   /** The day whose evening starts Yom HaZikaron. */
   isYomHaZikaronEve: boolean;
+  isYomHaAtzmaut: boolean;
   holidays: { he: string; en: string }[];
 }
 
@@ -69,6 +70,7 @@ export function dayInfo(date: LocalDate): DayInfo {
     isTishaBav,
     isYomHaZikaron: named(today, 'Yom HaZikaron'),
     isYomHaZikaronEve: named(tomorrow, 'Yom HaZikaron'),
+    isYomHaAtzmaut: named(today, "Yom HaAtzma'ut"),
     holidays: today
       .filter(
         (e) => (e.getFlags() & (flags.HEBREW_DATE | flags.PARSHA_HASHAVUA | flags.DAF_YOMI)) === 0,
@@ -90,6 +92,8 @@ export type NoLessonReason =
   | 'yom_kippur'
   | 'tisha_bav'
   | 'yom_hazikaron_evening'
+  | 'yom_hazikaron'
+  | 'yom_haatzmaut'
   | 'chol_hamoed'
   | 'override_closed';
 
@@ -143,6 +147,8 @@ export function lessonDay(
     ['yom_kippur', info.isYomKippur],
     ['tisha_bav', info.isTishaBav],
     ['yom_hazikaron_evening', info.isYomHaZikaronEve],
+    ['yom_hazikaron', info.isYomHaZikaron],
+    ['yom_haatzmaut', info.isYomHaAtzmaut],
   ];
   const reasons = checks
     .filter(([r, hit]) => hit && policy.noLessonsOn.includes(r))

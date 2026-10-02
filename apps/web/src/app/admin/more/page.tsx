@@ -2,8 +2,25 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { Card, PageHeader } from '@rswim/ui';
 
-const LINKS = ['venues', 'programs', 'prices', 'policies', 'staff', 'ghl'] as const;
+const LINKS = [
+  'groups',
+  'terms',
+  'shifts',
+  'slots',
+  'waitlist',
+  'venues',
+  'programs',
+  'prices',
+  'policies',
+  'staff',
+  'ghl',
+] as const;
 const HREF: Record<(typeof LINKS)[number], string> = {
+  groups: '/admin/groups',
+  terms: '/admin/terms',
+  shifts: '/admin/shifts',
+  slots: '/admin/slots',
+  waitlist: '/admin/waitlist',
   venues: '/admin/venues',
   programs: '/admin/programs',
   prices: '/admin/prices',

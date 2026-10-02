@@ -7,6 +7,7 @@ import { DEMO_ORG, PERSONAS, SECOND_ORG } from '@rswim/db/personas';
 import { createDataKey, encryptField } from '@rswim/domain-core';
 import type pg from 'pg';
 import { seedCoreData, type CoreDataSummary } from './core-data';
+import { seedSchedulingData, type SchedulingDataSummary } from './scheduling-data';
 import { FIRST_BOYS, FIRST_GIRLS, LAST, PARENT_MEN, PARENT_WOMEN } from './names';
 
 export interface SeedOptions {
@@ -25,6 +26,8 @@ export interface SeedSummary {
   memberships: number;
   /** Phase 1 venues, programs, prices and policies (demo org only). */
   core?: CoreDataSummary;
+  /** Phase 2 term, groups, sessions, enrollments, slots and waitlist (demo org only). */
+  scheduling?: SchedulingDataSummary;
 }
 
 /** Small deterministic PRNG so the demo data is the same on every run. */
@@ -332,7 +335,10 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         }
       }
 
-      if (isDemo) summary.core = await seedCoreData(client, org.id, staffIds);
+      if (isDemo) {
+        summary.core = await seedCoreData(client, org.id, staffIds);
+        summary.scheduling = await seedSchedulingData(client, org.id, staffIds, fakePhone);
+      }
 
       // Memberships (demo org only: the personas)
       if (isDemo) {

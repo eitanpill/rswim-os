@@ -134,4 +134,41 @@ describe('demo seed', () => {
       ]),
     ).toEqual([{ n: 0 }]); // the second tenant stays bare
   });
+  it('sets up Phase 2 scheduling: groups, sessions without Chol HaMoed, a waitlist cluster and a pending change', async () => {
+    const rows = async (sql: string, params: unknown[] = []) =>
+      (await t.pool.query(sql, params)).rows;
+    const summary = await seedDemo(t.pool, { masterKey });
+    expect(summary.scheduling).toMatchObject({
+      groups: 10,
+      slots: 4,
+      waitlist: 6,
+      pendingShiftChanges: 1,
+    });
+    expect(summary.scheduling?.sessions).toBeGreaterThan(300);
+    expect(summary.scheduling?.enrollments).toBeGreaterThan(15);
+    expect(
+      await rows(
+        `select count(*)::int n from sessions where organization_id = $1 and date between '2026-09-27' and '2026-10-03'`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([{ n: 0 }]); // Sukkot week: Chol HaMoed and the chag days
+    // No girl sits in a boys group and no boy in a girls group.
+    expect(
+      await rows(
+        `select count(*)::int n from enrollments e join students s on s.id = e.student_id
+         join class_templates c on c.id = e.class_template_id
+         where c.admitted_gender <> 'mixed' and c.admitted_gender <> s.gender`,
+      ),
+    ).toEqual([{ n: 0 }]);
+    expect(
+      await rows(
+        `select s.status, m.first_name from shift_changes s join staff_members m on m.id = s.respondent_staff_id
+         where s.organization_id = $1`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([{ status: 'pending', first_name: 'נועה' }]);
+    expect(await rows(`select count(*)::int n from slot_bookings where status = 'booked'`)).toEqual(
+      [{ n: 1 }],
+    );
+  });
 });

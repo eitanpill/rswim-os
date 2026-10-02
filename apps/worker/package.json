@@ -15,6 +15,7 @@
     "@rswim/db": "workspace:*",
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-crm": "workspace:*",
+    "@rswim/domain-scheduling": "workspace:*",
     "@rswim/integrations": "workspace:*",
     "inngest": "^4.21.0",
     "pino": "^10.3.1",

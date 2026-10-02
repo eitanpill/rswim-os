@@ -3,7 +3,7 @@ import { icons } from '@/components/icons';
 import type { NavSpec } from '@/components/nav-bar';
 
 /** Sections that are still placeholders, with the phase that builds them. */
-export const ADMIN_SECTIONS = { board: '2', money: '4' } as const;
+export const ADMIN_SECTIONS = { money: '4' } as const;
 
 export async function adminNav(): Promise<NavSpec[]> {
   const t = await getTranslations('admin.nav');
