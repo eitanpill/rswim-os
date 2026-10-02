@@ -7,3 +7,4 @@ export * from './policy';
 export * from './forms';
 export * from './scheduling';
 export * from './attendance';
+export * from './billing';

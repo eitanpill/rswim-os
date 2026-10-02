@@ -984,6 +984,7 @@
   "policy": {
     "sections": {
       "billing": "Billing & subscription",
+      "dunning": "Collections",
       "discount": "Discounts",
       "trial": "Trial lesson",
       "attendance": "Attendance",
@@ -1012,7 +1013,15 @@
         "freeze_charge": "Charge while frozen",
         "freeze_requires_approval": "Freeze needs approval",
         "annual_early_termination": "Annual plan early termination",
-        "closure_credit": "Credit for external closure"
+        "closure_credit": "Credit for external closure",
+        "anomaly_change_bp": "Unusual change from last month (pre-run review)"
+      },
+      "dunning": {
+        "first_retry_days": "Days to the first retry",
+        "retry_interval_days": "Days between retries",
+        "max_retries": "Retries",
+        "escalate_after_days": "Days before the owner takes over",
+        "pause_enrollment": "Pause the enrollment while unpaid"
       },
       "discount": {
         "sibling": {

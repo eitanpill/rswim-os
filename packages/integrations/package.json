@@ -12,7 +12,8 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
-    "@rswim/money": "workspace:*"
+    "@rswim/money": "workspace:*",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@rswim/config": "workspace:*",

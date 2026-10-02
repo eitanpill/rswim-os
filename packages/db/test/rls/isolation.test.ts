@@ -84,6 +84,18 @@ const TENANT_TABLES = [
   'absence_notices',
   'makeup_bookings',
   'progress_marks',
+  'reimbursement_profiles',
+  'household_billing',
+  'enrollment_freezes',
+  'cancellation_requests',
+  'billing_runs',
+  'billing_run_lines',
+  'standing_orders',
+  'payment_links',
+  'payments',
+  'ledger_entries',
+  'fiscal_documents',
+  'dunning_cases',
 ] as const;
 
 describe('schema guardrails', () => {

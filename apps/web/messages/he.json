@@ -984,6 +984,7 @@
   "policy": {
     "sections": {
       "billing": "חיוב ומנוי",
+      "dunning": "גבייה וחובות",
       "discount": "הנחות",
       "trial": "שיעור ניסיון",
       "attendance": "נוכחות",
@@ -1012,7 +1013,15 @@
         "freeze_charge": "חיוב בזמן הקפאה",
         "freeze_requires_approval": "הקפאה דורשת אישור",
         "annual_early_termination": "ביטול מנוי שנתי",
-        "closure_credit": "זיכוי על סגירה חיצונית"
+        "closure_credit": "זיכוי על סגירה חיצונית",
+        "anomaly_change_bp": "שינוי חריג מהחודש הקודם (סימון בבדיקה לפני חיוב)"
+      },
+      "dunning": {
+        "first_retry_days": "ימים עד ניסיון החיוב החוזר הראשון",
+        "retry_interval_days": "ימים בין ניסיונות חיוב",
+        "max_retries": "מספר ניסיונות חיוב חוזרים",
+        "escalate_after_days": "ימים עד העברה לטיפול הבעלים",
+        "pause_enrollment": "השהיית ההרשמה בחוב שלא נגבה"
       },
       "discount": {
         "sibling": {

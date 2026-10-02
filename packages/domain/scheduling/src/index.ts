@@ -7,3 +7,4 @@ export * from './services/terms';
 export * from './services/waitlist';
 export * from './services/sessions';
 export { todayIL } from './services/shared';
+export * from './services/billing-facts';

@@ -35,6 +35,18 @@ export const PolicyRules = z
         freeze_requires_approval: z.boolean(),
         annual_early_termination: z.enum(['pay_difference_to_monthly', 'no_refund']),
         closure_credit: z.enum(['none', 'credit']),
+        /** How far a household's total may move from last month before the pre-run review flags it. */
+        anomaly_change_bp: int(0, 100_000),
+      })
+      .partial()
+      .strict(),
+    dunning: z
+      .object({
+        first_retry_days: int(0, 30),
+        retry_interval_days: int(1, 30),
+        max_retries: int(0, 10),
+        escalate_after_days: int(1, 90),
+        pause_enrollment: z.boolean(),
       })
       .partial()
       .strict(),
@@ -279,6 +291,14 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
     freeze_requires_approval: true,
     annual_early_termination: 'pay_difference_to_monthly',
     closure_credit: 'none',
+    anomaly_change_bp: 3000,
+  },
+  dunning: {
+    first_retry_days: 1,
+    retry_interval_days: 3,
+    max_retries: 3,
+    escalate_after_days: 10,
+    pause_enrollment: false,
   },
   discount: {
     sibling: { kind: 'percent', percent_bp: 1000, flat_agorot: 3000, applies_to: 'cheapest_first' },
