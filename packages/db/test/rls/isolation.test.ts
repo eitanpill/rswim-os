@@ -75,6 +75,15 @@ const TENANT_TABLES = [
   'slot_bookings',
   'waitlist_entries',
   'shift_changes',
+  'closure_events',
+  'trials',
+  'form_templates',
+  'form_submissions',
+  'attendance',
+  'makeup_credits',
+  'absence_notices',
+  'makeup_bookings',
+  'progress_marks',
 ] as const;
 
 describe('schema guardrails', () => {

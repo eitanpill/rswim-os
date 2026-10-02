@@ -119,6 +119,7 @@ export const PolicyRules = z
     health: z
       .object({
         declaration_required: z.boolean(),
+        declaration_valid_months: int(1, 36),
         sick_children_allowed: z.boolean(),
       })
       .partial()
@@ -325,7 +326,11 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
     holiday_makeup: 'none',
     holiday_notice_days_before: 3,
   },
-  health: { declaration_required: true, sick_children_allowed: false },
+  health: {
+    declaration_required: true,
+    declaration_valid_months: 12,
+    sick_children_allowed: false,
+  },
   consent: { photo_default: 'granted_unless_opt_out' },
   regulations: { acceptance_required: true },
   venue: {

@@ -87,6 +87,10 @@ export const students = pgTable(
     preferredStaffId: uuid('preferred_staff_id'), // FK (set null) in 0003
     encMedicalNotes: bytea('enc_medical_notes'),
     encNationalId: bytea('enc_national_id'),
+    /** Lets the instructor's lineup show a medical flag without reading the encrypted notes. */
+    hasMedicalNotes: boolean('has_medical_notes').generatedAlwaysAs(
+      sql`enc_medical_notes is not null`,
+    ),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

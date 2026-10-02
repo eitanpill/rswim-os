@@ -28,6 +28,8 @@ export function toDomainError(e: unknown): DomainError | null {
   if (isDomainError(e)) return e;
   const pg = findPgError(e);
   if (!pg) return null;
+  // Our own triggers raise SQLSTATE RSW01 with an i18n code as the message (0007).
+  if (pg.code === 'RSW01') return new DomainError(pg.message);
   if (pg.code === '23514' && /new version|cannot be deleted|cannot move/.test(pg.message)) {
     return new DomainError('settings.errors.versionLocked');
   }

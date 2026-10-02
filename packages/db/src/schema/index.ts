@@ -6,3 +6,4 @@ export * from './catalog';
 export * from './staff';
 export * from './integrations';
 export * from './scheduling';
+export * from './attendance';

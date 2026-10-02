@@ -4,7 +4,7 @@
 |---|---|---|
 | 0 Foundations | **Done**, merged | All three acceptance criteria pass |
 | 1 Core data | **Done**, merged (PR #2) | Both acceptance criteria pass |
-| 2 Scheduling engine | **Done**, PR from `phase-2` | All three acceptance criteria pass (see below) |
+| 2 Scheduling engine | **Done**, merged (PR #3) | All three acceptance criteria pass (see below) |
 | 3–10 | Not started | |
 
 ## Phase 2 acceptance criteria
