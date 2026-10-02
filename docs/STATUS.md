@@ -3,8 +3,20 @@
 | Phase | State | Notes |
 |---|---|---|
 | 0 Foundations | **Done**, merged | All three acceptance criteria pass |
-| 1 Core data | **Done**, in review (PR from `phase-1`) | Both acceptance criteria pass (see below) |
-| 2–10 | Not started | |
+| 1 Core data | **Done**, merged (PR #2) | Both acceptance criteria pass |
+| 2 Scheduling engine | **Done**, PR from `phase-2` | All three acceptance criteria pass (see below) |
+| 3–10 | Not started | |
+
+## Phase 2 acceptance criteria
+
+| Criterion | Proof | Result |
+|---|---|---|
+| Generating a term skips Chol HaMoed | `apps/web/e2e/scheduling.spec.ts` AC1 (UI only): a 20.9–10.10.2026 course term is generated and the report lists 28.9 and 30.9 as חול המועד (and 21.9 as יום כיפור). Service level: `packages/domain/scheduling/test/services.test.ts`, plus the run report, re-run idempotency, venue closures and calendar overrides | Pass |
+| Dragging a girl into a boys-only window is blocked with a clear Hebrew reason | `scheduling.spec.ts` AC2 on desktop (real drag and drop) and on a phone ("move to"): the sheet says "‹name› בת, והבריכה בשעה הזו פתוחה רק לגברים ובנים" and offers no confirm; nothing moves. Service level: the same refusal from `placeStudent`, and the pure rule in `policies.test.ts` | Pass |
+| Instructor shift changes require acceptance | `scheduling.spec.ts` AC3: the owner asks to move a group to Noa, the group keeps its instructor, Noa accepts in the instructor app, the owner sees it accepted. Service level: only the respondent can answer (RLS + trigger, forged updates refused), the worker applies an accepted change, `scheduling.staff_changed` is emitted only then, unanswered changes escalate | Pass |
+
+Totals on 2026-10-02: 282 unit/integration tests + 16 browser tests, all green. `lint`, `typecheck`, `format:check`
+clean. Coverage stays 100% on the pure policy modules, now including `domain-scheduling` policies and `calendar`.
 
 ## Phase 1 acceptance criteria
 
@@ -36,4 +48,4 @@ Coverage is 100% (statements and branches) on `money`, `contracts`, `calendar` a
 - The Inngest worker has not run against Inngest Cloud or the Inngest dev server; relay and consumer logic is tested directly.
 
 ## Next
-Phase 2: class templates, sessions generated from the Hebrew calendar, enrollments and the group board.
+Phase 3: lead → trial → enrollment flow, attendance (instructor PWA, offline), absence notices and makeups.

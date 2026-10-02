@@ -59,3 +59,13 @@ Architecture decisions live in `docs/adr/`. This file holds product defaults and
 | 2026-10-02 | Policy editor shows money in shekels and percentages in percent; rules store agorot and basis points |
 | 2026-10-02 | Staff invite links are one-time: only a SHA-256 of the token is stored, the link is shown once, and acceptance checks the invited email or phone against the signed-in user |
 | 2026-10-02 | Student relations (siblings, friends) are stored once per pair with the lower id first |
+| 2026-10-02 | Phase 2: the first lead instructor of a new group is a shift change too, so the instructor accepts it like any other (`staffing.shift_change.requires_acceptance` can turn acceptance off) |
+| 2026-10-02 | Changing the weekday, time, length or venue of a group that has an instructor and sessions ahead is refused: end the group on a date and open a new one, so no instructor's shift moves without asking |
+| 2026-10-02 | An accepted shift change is applied by the worker (`scheduling-apply-shift-change`), and only an applied change emits `scheduling.staff_changed` (what Phase 5 turns into parent messages). The owner can apply without acceptance; that is logged in the audit trail |
+| 2026-10-02 | Unanswered changes escalate to the owner after `staffing.shift_change.escalate_after_hours` (hourly worker cron) |
+| 2026-10-02 | Instructors in gender-separated windows must match the window (`scheduling.window_instructor_gender = match_window`), the common rule at religious venues |
+| 2026-10-02 | Placement scores are tuning constants in code, not policy rows: they only order suggestions and never block |
+| 2026-10-02 | A move on the board ends the old enrollment on the move date and starts the new one the same day, linked through `previous_enrollment_id`, so billing (Phase 4) sees one continuous seat |
+| 2026-10-02 | Session generation is idempotent per (group, date) and every run stores its report (created, existing, each skipped date with reasons and the policy version used) |
+| 2026-10-02 | Booking forms list up to 500 students in a select for now; a type-ahead search replaces it when a tenant outgrows that |
+| 2026-10-02 | Composite FKs from groups and slots to programs cascade like the other program FKs; the app never deletes programs (it deactivates them), so only deleting an organization reaches it |

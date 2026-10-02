@@ -84,6 +84,21 @@ Each rule lists: key · default · evaluated by · notes. "Override" means an ow
 | `calendar.holiday_makeup` | `none` | | No refund/makeup unless stated |
 | `calendar.holiday_notice_days_before` | `3` | comms automation | Auto "no lessons / back to routine" message |
 
+Also available for `calendar.no_lessons_on` (off by default): `yom_hazikaron` (the day itself) and `yom_haatzmaut`.
+The school's own exceptions (a closed day, or open despite a holiday) are `hebrew_calendar_overrides` rows, org-wide or
+per venue; a venue closure always wins.
+
+## 7a. Scheduling (Phase 2)
+
+| Key | Default | Used by | Notes |
+|---|---|---|---|
+| `scheduling.travel_buffer_min` | `30` | instructor checks | Minimum gap when one instructor teaches at two venues back to back |
+| `scheduling.window_instructor_gender` | `match_window` | instructor checks | In a women-only window only women teach (men-only: men). `any_gender` turns it off |
+| `scheduling.open_group_min_waiting` | `5` | waitlist suggestions | Waiting families with the same program, day and age band that make "open a group" worth suggesting |
+
+Soft placement scores (`SCORE_WEIGHTS` in `packages/domain/scheduling/src/policies.ts`) are tuning values for the
+suggestion order, not business rules, so they live in code (DECISIONS 2026-10-02).
+
 ## 8. Health, safety, consent
 
 | Key | Default | Notes |
