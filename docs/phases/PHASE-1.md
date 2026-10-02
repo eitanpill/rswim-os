@@ -29,14 +29,14 @@ and pay rules; families. Guardians are linked to GoHighLevel contacts, both ways
 - Catalog: `programs`, `levels`.
 - Configuration: `policy_sets`, `price_lists`, `price_items`.
 - Staff: `certifications`, `staff_skills` (array on `staff_members`), `availability_rules`,
-  `availability_exceptions`, `pay_rules`, `staff_invites` + `app.accept_invite()`.
+  `availability_exceptions`, `pay_rules`, `staff_invites` + `public.accept_staff_invite()`.
 - People: `students.level_id`, `students.preferred_staff_id`, `student_relations`; GHL fields on guardians.
 - Integrations: `import_runs` (one row per GHL import with counts and the per-contact report).
 - RLS for every new table (owner/admin write; instructors read venues/programs/levels and their own staff data;
   accountant reads pay rules with `payroll.read`; parents read nothing new), with rows added to the isolation suite.
 
 ### 1.3 Domain (pure, 100% branch coverage)
-- `@rswim/domain-config`: `resolvePolicy()` (scope precedence `class_template > venue_program > program > venue > org`,
+- `@rswim/domain-settings`: `resolvePolicy()` (scope precedence `class_template > venue_program > program > venue > org`,
   effective dates, deep merge, contributing ids) and `resolvePrice()` (most specific active list on a date).
 - `@rswim/domain-venues`: window validation (end after start, no overlap on shared lanes), weekday helpers.
 - `@rswim/domain-crm`: `planContactImport()` (tag → field mapping, phone normalisation, dedupe by GHL id then

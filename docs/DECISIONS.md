@@ -48,3 +48,14 @@ Architecture decisions live in `docs/adr/`. This file holds product defaults and
 | 2026-10-01 | Local demo login (`RSWIM_DEV_AUTH=1`) so shells and E2E run without a Supabase project. Refused when `VERCEL_ENV=production` |
 | 2026-10-01 | Fake phone numbers in seeds use the `050-000xxxx` range |
 | 2026-10-01 | Staff invite flow moved to Phase 1 (with staff profiles); Phase 0 ships the membership model, hook and guards it will use |
+| 2026-10-02 | Phase 1 keeps every table in `packages/db` (one schema, one migration history) instead of `packages/domain/<module>/schema.ts`; modules still read other modules only through services |
+| 2026-10-02 | The web app reads and writes through Drizzle as the signed-in user (`asUser`) on every admin screen, so RLS decides what each role sees. Supabase is used for auth only |
+| 2026-10-02 | A policy set or published price list may be **inserted** with a start date in the past (e.g. entering the current season's prices). Once in effect it is history: only its end date (not before today) or archiving may change. History goes only when its organization is deleted (offboarding, demo re-seed) |
+| 2026-10-02 | Gender windows gained `female` (women and girls) and `male` (men and boys) besides the narrower women/men/girls/boys, matching how the venues publish their hours |
+| 2026-10-02 | GHL tag → field mapping is tenant configuration (`org_settings.integrations.ghl.tagMap`); R-SWIM's vocabulary is the default for the first tenant |
+| 2026-10-02 | GHL dedupe order: GHL id, then phone (normalised to +972), then email. Contacts that collide inside GHL are reported for review, never merged automatically. On link, the guardian's own data wins and is pushed to GHL once |
+| 2026-10-02 | Two-way sync without echo: a hash of the synced fields is stored on the guardian; a push is skipped when nothing changed since the last exchange, and an applied webhook sets the hash so it is not pushed back |
+| 2026-10-02 | GHL is built and tested against a fake client and recorded fake contacts only. The API token stays in the worker's environment (`GHL_API_TOKEN`), never in the database; connecting the real account waits for Pit |
+| 2026-10-02 | Policy editor shows money in shekels and percentages in percent; rules store agorot and basis points |
+| 2026-10-02 | Staff invite links are one-time: only a SHA-256 of the token is stored, the link is shown once, and acceptance checks the invited email or phone against the signed-in user |
+| 2026-10-02 | Student relations (siblings, friends) are stored once per pair with the lower id first |

@@ -53,7 +53,12 @@ Tests that touch the database create a throwaway database through `TEST_DATABASE
 `packages/db/sql/supabase-shim.sql` (roles + `auth.users`) first; never apply the shim to Supabase.
 
 Local demo login without Supabase: `RSWIM_DEV_AUTH=1 pnpm --filter @rswim/web dev`, then pick a persona on `/login`.
-It is refused on Vercel production deployments.
+It is refused on Vercel production deployments. The web app also needs `DATABASE_URL` (it queries as the signed-in user).
+`pnpm test:e2e` rebuilds a `rswim_e2e` database (migrations + fake seed) through `TEST_DATABASE_ADMIN_URL` first.
+
+GHL (LeadYourWay): the worker reads `GHL_API_TOKEN`; the webhook route needs `GHL_WEBHOOK_PUBLIC_KEY`. For local demos
+run the worker with `RSWIM_GHL_FAKE=1` (optionally `RSWIM_GHL_FAKE_CONTACTS=<fake contacts json>`). Never point tests
+at the real account.
 
 ## Database access, in one paragraph
 Signed-in requests run as `authenticated` with JWT claims (`asUser`). Background jobs for one tenant run as
@@ -61,7 +66,8 @@ Signed-in requests run as `authenticated` with JWT claims (`asUser`). Background
 another tenant. Only genuinely cross-tenant plumbing (the outbox relay, seeding, migrations) uses the owner
 connection (`asPlatform`). Role and permissions are read live from `memberships`, not trusted from the token.
 Every new table needs RLS policies plus rows in `packages/db/test/rls/isolation.test.ts`; the suite fails if a table
-has RLS disabled.
+has RLS disabled. Admin screens follow one pattern: a server action calls `runForm(fd, Schema, service)` from
+`apps/web/src/lib/forms.ts`, which validates, runs the domain service as the user, and returns translated errors.
 
 ## Non-negotiable conventions
 1. **Multi-tenant**: every tenant table has `organization_id uuid not null`, composite FKs `(organization_id, id)`, and RLS. Nothing bypasses RLS except platform plumbing via `asPlatform`.
