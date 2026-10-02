@@ -5,6 +5,8 @@ import { applySupabaseShim, createDb, createPool, runMigrations, type Db } from 
 export const ADMIN_URL =
   process.env.TEST_DATABASE_ADMIN_URL ?? 'postgresql://rswim:rswim@localhost:5432/postgres';
 
+const SETUP_LOCK = 7_240_001;
+
 export interface TestDatabase {
   url: string;
   pool: pg.Pool;
@@ -18,13 +20,20 @@ export async function createTestDatabase(): Promise<TestDatabase> {
   const admin = new pg.Client({ connectionString: ADMIN_URL });
   await admin.connect();
   await admin.query(`create database ${name}`);
-  await admin.end();
 
   const url = new URL(ADMIN_URL);
   url.pathname = `/${name}`;
   const pool = createPool(url.toString(), 5);
-  await applySupabaseShim(pool);
-  await runMigrations(pool);
+  // Roles are cluster-wide, so parallel test packages setting up fresh databases race on
+  // `create role`. Serialise setup with an advisory lock held on the admin database.
+  await admin.query('select pg_advisory_lock($1)', [SETUP_LOCK]);
+  try {
+    await applySupabaseShim(pool);
+    await runMigrations(pool);
+  } finally {
+    await admin.query('select pg_advisory_unlock($1)', [SETUP_LOCK]);
+    await admin.end();
+  }
 
   return {
     url: url.toString(),
