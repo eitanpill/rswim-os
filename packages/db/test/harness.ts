@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import pg from 'pg';
-import { applySupabaseShim, createDb, createPool, runMigrations, type Db } from '../src';
+import { createDb, createPool, type Db } from '../src';
+import { applySupabaseShim, runMigrations } from '../src/migrate';
 
 export const ADMIN_URL =
   process.env.TEST_DATABASE_ADMIN_URL ?? 'postgresql://rswim:rswim@localhost:5432/postgres';

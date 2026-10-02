@@ -102,4 +102,36 @@ describe('demo seed', () => {
       c.release();
     }
   });
+
+  it('sets up Phase 1 core data: gender windows and two price versions at one venue', async () => {
+    const rows = async (sql: string, params: unknown[] = []) =>
+      (await t.pool.query(sql, params)).rows;
+    expect(
+      await rows(
+        `select w.weekday, w.gender_restriction from venue_operating_windows w join venues v on v.id = w.venue_id
+         where v.organization_id = $1 and v.name = 'קאנטרי הדמו - ירושלים' order by w.weekday`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([
+      { weekday: 0, gender_restriction: 'mixed' },
+      { weekday: 1, gender_restriction: 'female' },
+      { weekday: 3, gender_restriction: 'male' },
+    ]);
+    expect(
+      await rows(
+        `select l.effective_from::text, l.status, i.amount_agorot from price_lists l
+         join price_items i on i.price_list_id = l.id join venues v on v.id = l.venue_id
+         where v.organization_id = $1 order by l.effective_from`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([
+      { effective_from: '2026-09-01', status: 'published', amount_agorot: 33000 },
+      { effective_from: '2027-01-01', status: 'published', amount_agorot: 35000 },
+    ]);
+    expect(
+      await rows(`select count(*)::int n from policy_sets where organization_id = $1`, [
+        SECOND_ORG.id,
+      ]),
+    ).toEqual([{ n: 0 }]); // the second tenant stays bare
+  });
 });

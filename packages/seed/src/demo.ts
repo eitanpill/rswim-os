@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { DEMO_ORG, PERSONAS, SECOND_ORG } from '@rswim/db/personas';
 import { createDataKey, encryptField } from '@rswim/domain-core';
 import type pg from 'pg';
+import { seedCoreData, type CoreDataSummary } from './core-data';
 import { FIRST_BOYS, FIRST_GIRLS, LAST, PARENT_MEN, PARENT_WOMEN } from './names';
 
 export interface SeedOptions {
@@ -22,6 +23,8 @@ export interface SeedSummary {
   guardians: number;
   staff: number;
   memberships: number;
+  /** Phase 1 venues, programs, prices and policies (demo org only). */
+  core?: CoreDataSummary;
 }
 
 /** Small deterministic PRNG so the demo data is the same on every run. */
@@ -328,6 +331,8 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
           summary.students++;
         }
       }
+
+      if (isDemo) summary.core = await seedCoreData(client, org.id, staffIds);
 
       // Memberships (demo org only: the personas)
       if (isDemo) {

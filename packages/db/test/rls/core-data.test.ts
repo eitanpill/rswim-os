@@ -357,6 +357,19 @@ describe('policies and prices in effect are history', () => {
       c.release();
     }
   });
+  it('lets the history go only with its organization (tenant offboarding, demo re-seed)', async () => {
+    const C = await createOrgFixture(t.pool, 'core-c');
+    await expect(
+      t.pool.query(`delete from programs where id = $1`, [C.core.program]),
+    ).rejects.toThrow(/in effect/);
+    await t.pool.query(`delete from organizations where id = $1`, [C.orgId]);
+    const left = await t.pool.query(
+      `select (select count(*) from policy_sets where organization_id = $1)::int
+            + (select count(*) from price_lists where organization_id = $1)::int as n`,
+      [C.orgId],
+    );
+    expect(left.rows[0].n).toBe(0);
+  });
 });
 
 describe('staff invite acceptance', () => {

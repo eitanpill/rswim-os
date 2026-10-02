@@ -138,7 +138,7 @@ export const Weekday = z.int().min(0).max(6);
 export type Weekday = z.infer<typeof Weekday>;
 
 /** "HH:MM", 24h. */
-export const TimeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'שעה לא תקינה');
+export const TimeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'forms.errors.time');
 export type TimeOfDay = z.infer<typeof TimeOfDay>;
 
 /** "YYYY-MM-DD". */

@@ -197,11 +197,22 @@ export async function createPolicyVersion(
   return id;
 }
 
-/** The rules that apply in a context on a date, with the versions they came from. */
-export async function resolvePolicyFor(tx: Tx, ctx: PolicyContext) {
+/**
+ * The rules that apply in a context on a date, with the versions they came from. `exclude` leaves one scope's own
+ * versions out, which answers "what would this scope inherit if it set nothing?" for the editor.
+ */
+export async function resolvePolicyFor(tx: Tx, ctx: PolicyContext, exclude?: PolicyScope) {
   const rows = await tx.select().from(policySets);
+  const isExcluded = (r: (typeof rows)[number]) =>
+    exclude !== undefined &&
+    r.scopeType === exclude.scopeType &&
+    r.venueId === (exclude.venueId ?? null) &&
+    r.programId === (exclude.programId ?? null) &&
+    r.classTemplateId === (exclude.classTemplateId ?? null);
   return resolvePolicy(
-    rows.map((r) => ({ ...r, scopeType: r.scopeType as ScopeType, rules: r.rules as PolicyRules })),
+    rows
+      .filter((r) => !isExcluded(r))
+      .map((r) => ({ ...r, scopeType: r.scopeType as ScopeType, rules: r.rules as PolicyRules })),
     ctx,
   );
 }

@@ -51,12 +51,19 @@ end $$;
 create or replace function app.today() returns date
 language sql stable as $$ select (now() at time zone 'Asia/Jerusalem')::date $$;
 
+-- History is kept for as long as the organization exists. When the organization itself is deleted (tenant
+-- offboarding, demo re-seed), the cascade has already removed its row, and its history may go with it.
+create or replace function app.org_deleted(p_org uuid) returns boolean
+language sql stable security definer set search_path = public, pg_temp as $$
+  select not exists (select 1 from organizations where id = p_org)
+$$;
+
 -- A policy set already in effect is history: only its end date may be set, and not into the past.
 create or replace function app.guard_policy_set() returns trigger
 language plpgsql as $$
 begin
   if tg_op = 'DELETE' then
-    if old.effective_from <= app.today() then
+    if old.effective_from <= app.today() and not app.org_deleted(old.organization_id) then
       raise exception 'policy set % is in effect and cannot be deleted', old.id using errcode = 'check_violation';
     end if;
     return old;
@@ -80,7 +87,7 @@ create or replace function app.guard_price_list() returns trigger
 language plpgsql as $$
 begin
   if tg_op = 'DELETE' then
-    if app.price_list_locked(old.status, old.effective_from) then
+    if app.price_list_locked(old.status, old.effective_from) and not app.org_deleted(old.organization_id) then
       raise exception 'price list % is in effect and cannot be deleted', old.id using errcode = 'check_violation';
     end if;
     return old;
@@ -105,7 +112,8 @@ declare l record;
 begin
   select status, effective_from into l from price_lists
   where id = case when tg_op = 'DELETE' then old.price_list_id else new.price_list_id end;
-  if found and app.price_list_locked(l.status, l.effective_from) then
+  if found and app.price_list_locked(l.status, l.effective_from)
+     and not (tg_op = 'DELETE' and app.org_deleted(old.organization_id)) then
     raise exception 'price list is in effect: create a new version instead' using errcode = 'check_violation';
   end if;
   if tg_op = 'UPDATE' and new.price_list_id <> old.price_list_id then

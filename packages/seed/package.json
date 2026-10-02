@@ -13,8 +13,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@rswim/contracts": "workspace:*",
     "@rswim/db": "workspace:*",
     "@rswim/domain-core": "workspace:*",
+    "@rswim/domain-crm": "workspace:*",
     "@supabase/supabase-js": "^2.117.2",
     "pg": "^8.23.1"
   },
