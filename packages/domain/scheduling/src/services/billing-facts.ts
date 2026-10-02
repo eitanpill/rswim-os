@@ -49,6 +49,24 @@ export async function placesOverlapping(tx: Tx, from: string, before: string) {
     .orderBy(asc(enrollments.startsOn));
 }
 
+/** The children's group places still running on a date (the family card's freezes and cancellations). */
+export async function currentPlacesOfStudents(tx: Tx, studentIds: readonly string[], date: string) {
+  if (studentIds.length === 0) return [];
+  return tx
+    .select(placeColumns)
+    .from(enrollments)
+    .innerJoin(classTemplates, eq(classTemplates.id, enrollments.classTemplateId))
+    .innerJoin(programs, eq(programs.id, classTemplates.programId))
+    .where(
+      and(
+        inArray(enrollments.studentId, [...studentIds]),
+        inArray(enrollments.status, ['active', 'frozen', 'cancel_requested']),
+        or(isNull(enrollments.endsOn), sql`${enrollments.endsOn} > ${date}::date`),
+      ),
+    )
+    .orderBy(asc(enrollments.startsOn));
+}
+
 /** Places by id with their group, program and venue (freezes and cancellations decide by them). */
 export async function placesByIds(tx: Tx, ids: readonly string[]) {
   if (ids.length === 0) return [];

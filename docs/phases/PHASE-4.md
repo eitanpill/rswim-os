@@ -46,7 +46,7 @@ wording, ID number, session dates and payment method a reimbursement claim needs
   - `period`, `description`, `source`, `billing_run_id`, `policy_version_key`
   - `idempotency_key`, unique
   - `reverses_entry_id`
-- `billing_runs` (period, status draft → approved → posted, totals, anomalies) and `billing_run_lines`.
+- `billing_runs` (period, status draft → posted, or discarded; totals, anomalies) and `billing_run_lines`.
 - Collection tables:
   - `standing_orders`: provider mandate per household, status, last failure.
   - `payments`: provider or manual, method, external id, status, attempt, recorded by, proof file.
@@ -82,12 +82,12 @@ wording, ID number, session dates and payment method a reimbursement claim needs
   - `balanceOf`
   - `agingBuckets`
 - Services:
-  - billing run: draft, review, approve, post
+  - billing run: draft (and redraft), review, approve (posting the ledger entries), discard
   - ledger: post, reverse, credit, write off
   - manual payments, with a cash handover note
   - refunds
   - payment links
-  - standing orders: add, cancel, import, duplicates
+  - standing orders: add, cancel, duplicates (importing existing Grow mandates waits for the account)
   - freezes and cancellation requests
   - household statement
   - debts dashboard
@@ -102,7 +102,7 @@ wording, ID number, session dates and payment method a reimbursement claim needs
 - Real adapters wait for Pit's accounts. The interfaces in `packages/integrations` stay the contract.
 
 ### 4.5 Worker
-- Post an approved run.
+- Collect an approved run.
 - Charge households by standing order; send a payment link to households without one.
 - Process Grow webhooks.
 - Run dunning daily.

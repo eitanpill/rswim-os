@@ -32,7 +32,13 @@ export const LedgerSource = z.enum(LEDGER_SOURCES);
 export type LedgerSource = z.infer<typeof LedgerSource>;
 
 /** What a billing run line charges for. */
-export const BILLING_LINE_KINDS = ['seat', 'slots', 'package', 'trial', 'sibling_discount'] as const;
+export const BILLING_LINE_KINDS = [
+  'seat',
+  'slots',
+  'package',
+  'trial',
+  'sibling_discount',
+] as const;
 export const BillingLineKind = z.enum(BILLING_LINE_KINDS);
 export type BillingLineKind = z.infer<typeof BillingLineKind>;
 

@@ -7,7 +7,13 @@ import { z } from 'zod';
 import { FREEZE_REASONS, optionalText, requiredDate } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
 import { DomainError, emit, type ServiceContext } from '@rswim/domain-core';
-import { endPlaceForCancellation, placesByIds, restorePlace } from '@rswim/domain-scheduling';
+import {
+  currentPlacesOfStudents,
+  endPlaceForCancellation,
+  placesByIds,
+  restorePlace,
+} from '@rswim/domain-scheduling';
+import { studentsByIds } from '@rswim/domain-people';
 import { resolvePolicyFor } from '@rswim/domain-settings';
 import { billingRulesFrom, cancellationEffectiveMonth } from '../policies';
 import { guarded, todayIL } from './shared';
@@ -191,4 +197,22 @@ export async function pendingFreezes(tx: Tx) {
     .from(enrollmentFreezes)
     .where(eq(enrollmentFreezes.status, 'requested'))
     .orderBy(enrollmentFreezes.fromDate);
+}
+
+/** The children's running group places with their freezes and cancellations (the family card). */
+export async function seatsOfStudents(tx: Tx, studentIds: readonly string[]) {
+  const places = await currentPlacesOfStudents(tx, studentIds, await todayIL(tx));
+  const changes = await seatChangesOf(
+    tx,
+    places.map((p) => p.enrollmentId),
+  );
+  return { places, ...changes };
+}
+
+/** Places with their child's name and group, for lists of freezes and cancellations. */
+export async function describePlaces(tx: Tx, enrollmentIds: readonly string[]) {
+  const places = await placesByIds(tx, [...new Set(enrollmentIds)]);
+  const kids = await studentsByIds(tx, [...new Set(places.map((p) => p.studentId))]);
+  const name = new Map(kids.map((k) => [k.id, `${k.firstName} ${k.lastName}`]));
+  return places.map((p) => ({ ...p, studentName: name.get(p.studentId) ?? '' }));
 }

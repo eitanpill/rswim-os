@@ -85,3 +85,16 @@ Architecture decisions live in `docs/adr/`. This file holds product defaults and
 | 2026-10-02 | Instructor attendance syncs from a localStorage queue; each tap has a device id and time, the server keeps each child's latest tap by device time, and a replay changes nothing |
 | 2026-10-02 | `optionalText` and the other blank-to-null helpers treat `null` as blank, so a parsed value validates again unchanged (actions validate for field errors, services validate again) |
 | 2026-10-02 | Attendance stores present / late / absent with the row's kind (member, makeup, trial) instead of the plan's seven statuses; whether an absence was notified comes from `absence_notices`, so one fact is never stored twice |
+| 2026-10-02 | Phase 4: group seats are charged in advance for the month; private lessons, therapy slots and trial fees are charged in arrears, in the next month's run, so a late cancellation is known before it is charged |
+| 2026-10-02 | Billing runs are draft → posted, or discarded. Drafting again replaces the draft, so the owner fixes what the review flagged and drafts again; a posted month cannot be drafted again (corrections are ledger entries) |
+| 2026-10-02 | The review's "charge without an enrollment" is a standing order with no seat behind it (or a seat line whose seat is gone); "enrollment without a charge" is a seat with no price or no line. A family that owes and has no standing order is flagged too, and collection sends it a payment link |
+| 2026-10-02 | A run collects no more than the family owes after credits (min of the run's total and the balance), so credits and earlier payments are never charged again |
+| 2026-10-02 | Payments settle charges first in, first out; a sibling discount settles with its child's seat. Receipts list what the payment settled |
+| 2026-10-02 | Hebrew fiscal wording (payment methods, "ת.ז.", "חודש", the prepayment note) lives in `FISCAL_TEXT_HE` in contracts: it goes to the tax document, not the UI, so it is not an i18n string |
+| 2026-10-02 | Grow webhooks are taken in our own normalized format (`charge.succeeded`, `charge.failed`, `link.paid`) signed with HMAC-SHA256 in `x-grow-signature` (`GROW_WEBHOOK_SECRET`). The real adapter maps Grow's callbacks onto it once the account exists |
+| 2026-10-02 | A freeze does not change the enrollment's status: billing reads approved freezes by date, so a freeze that ends needs no second update |
+| 2026-10-02 | The payer's ID number is stored encrypted with the org key (only the last four digits readable); a reimbursement profile that needs it and has none stores a failed document with the reason instead of issuing a receipt without it |
+| 2026-10-02 | Freeze attachments (a medical certificate) are optional for now: file uploads arrive with document storage |
+| 2026-10-02 | Importing existing standing orders from Grow waits for the account; until then the office enters the mandate id by hand on the family card |
+| 2026-10-02 | Without a payment or invoicing provider set up (`RSWIM_GROW_FAKE=1` / `RSWIM_INVOICING_FAKE=1` for demos), the worker leaves the event unconsumed and logs it, so nothing is marked done that never happened |
+| 2026-10-02 | The demo price list leaves the adults program without a price on purpose, so the October run's review shows an enrollment without a charge |

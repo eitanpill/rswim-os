@@ -223,7 +223,7 @@ export async function seedCoreData(
       ['private', 'single', 180],
       ['private', 'single', 250, { dur: 45 }],
       ['private', 'package', 1600, { sessions: 10 }],
-      ['adults', 'monthly', 340],
+      // Adults have no price on purpose: the October run's review flags their seats (brief §10).
     ],
     true,
   );

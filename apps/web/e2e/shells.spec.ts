@@ -74,7 +74,7 @@ test.describe('role shells on mobile', () => {
       'aria-current',
       'page',
     );
-    await expect(page.getByText('המסך הזה ייבנה בשלב 4')).toBeVisible();
+    await expect(page.getByTestId('debt-totals')).toBeVisible();
   });
 });
 

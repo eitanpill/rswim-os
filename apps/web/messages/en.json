@@ -144,6 +144,10 @@
       "forms": {
         "title": "Forms and regulations",
         "hint": "Versions, publishing, signatures"
+      },
+      "reimbursement": {
+        "title": "Reimbursement profiles",
+        "hint": "Invoice wording for the MoD and insurers"
       }
     }
   },
@@ -178,8 +182,10 @@
   },
   "accountant": {
     "home": {
-      "title": "Accountant portal",
-      "empty": "Payroll and invoice exports will appear here"
+      "title": "Money",
+      "empty": "No open debts",
+      "debts": "Open debts",
+      "runs": "Monthly runs"
     }
   },
   "parent": {
@@ -261,7 +267,12 @@
       "duplicate": "This already exists",
       "datesReversed": "The end date must be after the start date",
       "timesReversed": "The end time must be after the start time",
-      "dateTime": "Invalid date and time"
+      "dateTime": "Invalid date and time",
+      "amount": "Invalid amount",
+      "period": "Invalid month (YYYY-MM)",
+      "last4": "4 digits",
+      "nationalId": "Invalid ID number",
+      "dateOrder": "End date is before start date"
     }
   },
   "enums": {
@@ -536,6 +547,115 @@
       "guaranteed": "Guaranteed",
       "best_effort": "If a seat is free",
       "none": "None"
+    },
+    "ledgerEntryType": {
+      "charge": "Charge",
+      "discount": "Discount",
+      "credit": "Credit",
+      "payment": "Payment",
+      "refund": "Refund",
+      "write_off": "Write-off",
+      "adjustment": "Adjustment"
+    },
+    "ledgerSource": {
+      "billing_run": "Monthly run",
+      "manual": "Manual",
+      "trial_offset": "Trial offset",
+      "closure_credit": "Closure credit",
+      "payment": "Payment",
+      "refund": "Refund",
+      "reversal": "Reversal"
+    },
+    "billingLineKind": {
+      "seat": "Group seat",
+      "slots": "Private lessons",
+      "package": "Package",
+      "trial": "Trial",
+      "sibling_discount": "Sibling discount"
+    },
+    "billingRunStatus": {
+      "draft": "Draft",
+      "posted": "Approved",
+      "discarded": "Discarded"
+    },
+    "anomalyKind": {
+      "charge_without_enrollment": "Charge without enrollment",
+      "enrollment_without_charge": "Enrollment without charge",
+      "duplicate_mandate": "Duplicate standing order",
+      "missing_mandate": "No standing order",
+      "amount_changed": "Sharp change in total"
+    },
+    "paymentMethod": {
+      "credit_card": "Credit card",
+      "standing_order": "Standing order",
+      "bit": "Bit",
+      "paybox": "PayBox",
+      "cash": "Cash",
+      "bank_transfer": "Bank transfer",
+      "cheque": "Cheque",
+      "other": "Other"
+    },
+    "paymentStatus": {
+      "pending": "Pending",
+      "succeeded": "Received",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "paymentKind": {
+      "payment": "Payment",
+      "refund": "Refund"
+    },
+    "standingOrderStatus": {
+      "active": "Active",
+      "failing": "Failing",
+      "cancelled": "Cancelled"
+    },
+    "paymentLinkStatus": {
+      "open": "Open",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "fiscalDocumentKind": {
+      "invoice_receipt": "Invoice-receipt",
+      "credit_note": "Credit note"
+    },
+    "fiscalDocumentStatus": {
+      "pending": "Issuing",
+      "issued": "Issued",
+      "failed": "Failed"
+    },
+    "dunningStatus": {
+      "open": "Open",
+      "escalated": "With the owner",
+      "resolved": "Resolved",
+      "written_off": "Written off"
+    },
+    "reimbursementKind": {
+      "ministry_of_defense": "Ministry of Defense",
+      "insurance": "Insurance",
+      "reservists": "Reservists",
+      "employer": "Employer",
+      "other": "Other"
+    },
+    "preferredMethod": {
+      "standing_order": "Standing order",
+      "payment_link": "Payment link",
+      "manual": "Manual"
+    },
+    "freezeStatus": {
+      "requested": "Awaiting approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "freezeReason": {
+      "medical": "Medical",
+      "vacation": "Vacation",
+      "other": "Other"
+    },
+    "cancellationStatus": {
+      "active": "In effect",
+      "withdrawn": "Withdrawn"
     }
   },
   "venues": {
@@ -1716,6 +1836,240 @@
       "record": "Record signature",
       "accept": "I have read and accept",
       "recorded": "Signature recorded"
+    }
+  },
+  "billing": {
+    "decision": {
+      "cancelBeforeCutoff": "Cancelled on {requested}, by the {cutoff}th: last charge is {last}",
+      "cancelAfterCutoff": "Cancelled on {requested}, after the {cutoff}th: {last} is charged too",
+      "noSessions": "No lessons this month",
+      "noBillableSessions": "No billable lessons this month",
+      "belowMinSessions": "Only {billable} billable lessons, below the minimum ({min}): no charge",
+      "fullMonth": "Full month ({sessions} lessons)",
+      "proratedDays": "Prorated: {days} of {total} days",
+      "proratedSessions": "Prorated: {billable} of {total} lessons",
+      "cancelled": "Seat cancelled, last charged {last}",
+      "frozen": "Freeze: {sessions} lessons not charged",
+      "noPrice": "No price in the price list for this program",
+      "slotBooked": "Lesson held",
+      "slotLateCancel": "Cancelled {hours}h before (under {min}): charged",
+      "slotCancelledInTime": "Cancelled {hours}h before: not charged",
+      "slotsMonth": "{lessons} lessons last month ({late} late cancellations)",
+      "package": "Package, charged once",
+      "trialFee": "Trial lesson fee",
+      "siblingPercent": "Sibling discount {percent}%",
+      "siblingFlat": "Sibling discount {amount}",
+      "annualNoRefund": "Annual plan: no refund on early exit",
+      "annualDifference": "Annual plan: monthly-price difference over {months} months",
+      "duplicateMandate": "{count} active standing orders for one family",
+      "mandateWithoutSeat": "Active standing order without any seat",
+      "chargeWithoutSeat": "Charge for a seat that is not active",
+      "seatWithoutLine": "Active seat without a charge line",
+      "noMandate": "Owes {amount} with no standing order: a payment link goes out",
+      "amountUp": "Total went up from {from} to {to} ({percent}%)",
+      "amountDown": "Total went down from {from} to {to} ({percent}%)",
+      "dunningEscalate": "{days} days passed: the case goes to the owner",
+      "dunningRetry": "Retry {attempt} of {max}",
+      "dunningRemind": "Reminder {attempt} of {max}: payment link resent",
+      "dunningWait": "Next step on {on}",
+      "dunningOwner": "Waiting for the owner",
+      "dunningPaid": "Debt paid",
+      "chargeFailed": "Charge failed ({reason})",
+      "closureCredit": "Credit for the lesson cancelled on {date}",
+      "receiptNeedsNationalId": "The reimbursement profile needs the payer's ID number, and none is on file"
+    },
+    "errors": {
+      "runLocked": "The run is approved and can't change",
+      "alreadyPosted": "This month's run is already approved",
+      "noMandate": "The family has no active standing order",
+      "refundTooMuch": "Can't refund more than was paid",
+      "notRefundable": "This payment can't be refunded",
+      "notProviderPayment": "The payment didn't go through the provider",
+      "linkNotOpen": "The link is already paid or cancelled",
+      "freezeNotOpen": "The freeze was already handled",
+      "notCancellable": "This seat can't be cancelled",
+      "noDataKey": "The encryption key isn't set; can't store an ID number",
+      "cannotReverseReversal": "A reversal can't be reversed",
+      "reverseViaRefund": "Reverse a payment with a refund",
+      "runNotPosted": "The run isn't approved yet"
+    }
+  },
+  "money": {
+    "tabs": {
+      "overview": "Debts",
+      "runs": "Monthly runs",
+      "cash": "Cash",
+      "freezes": "Freezes",
+      "label": "Money screens"
+    },
+    "overview": {
+      "title": "Money",
+      "subtitle": "Who owes, for how long, and what's happening about it",
+      "total": "Total owed",
+      "current": "Up to 30 days",
+      "days31to60": "31-60 days",
+      "days61to90": "61-90 days",
+      "over90": "Over 90 days",
+      "empty": "No family owes money",
+      "since": "Owing since {date}",
+      "mandate": {
+        "active": "Standing order active",
+        "failing": "Standing order failing",
+        "none": "No standing order"
+      },
+      "case": "Collection case: {status}, {retries} retries",
+      "writeOff": "Write off",
+      "writeOffNote": "Reason",
+      "writeOffSubmit": "Write off the debt",
+      "writtenOff": "Debt written off"
+    },
+    "runs": {
+      "title": "Monthly runs",
+      "subtitle": "Draft, review, approve. Collection then runs on its own",
+      "draft": "Draft a month",
+      "period": "Month (YYYY-MM)",
+      "draftSubmit": "Draft",
+      "empty": "No runs yet",
+      "families": "{n} families",
+      "flags": "{n} flags",
+      "open": "Open"
+    },
+    "review": {
+      "title": "Run {period}",
+      "subtitle": "Check the flags before approving. Fix the data and redraft if needed",
+      "totals": "{families} families · {total} (last month {previous})",
+      "flags": "Flags to check ({n})",
+      "noFlags": "No flags, all looks right",
+      "previous": "Last month: {amount}",
+      "noPrevious": "Not charged last month",
+      "redraft": "Redraft",
+      "approve": "Approve and collect",
+      "discard": "Discard draft",
+      "posted": "Approved on {at}. Collection goes out through standing orders and payment links",
+      "discarded": "Draft discarded",
+      "approved": "Run approved, collection started",
+      "dates": "Dates: {dates}"
+    },
+    "cash": {
+      "title": "Cash not handed over",
+      "empty": "All cash handed over",
+      "handOver": "Mark handed over",
+      "receivedBy": "Received by {name}"
+    },
+    "freezes": {
+      "title": "Freeze requests",
+      "empty": "No pending requests",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "family": {
+      "title": "Money",
+      "balance": "Balance",
+      "owes": "Owes {amount}",
+      "credit": "In credit {amount}",
+      "settled": "Nothing owed",
+      "ledger": "Entries",
+      "noEntries": "No entries yet",
+      "reverse": "Reverse",
+      "reverseNote": "Reason",
+      "reversed": "Reversed",
+      "payment": "Record a payment",
+      "method": "Method",
+      "amount": "Amount (₪)",
+      "paidOn": "Date",
+      "note": "Note",
+      "receivedBy": "Received by",
+      "record": "Record payment",
+      "adjust": "Credit, manual charge or write-off",
+      "kind": "Kind",
+      "kinds": {
+        "credit": "Credit",
+        "charge": "Manual charge",
+        "write_off": "Write-off"
+      },
+      "description": "Description",
+      "periodOptional": "Month (optional)",
+      "studentOptional": "Child (optional)",
+      "post": "Post",
+      "payments": "Payments",
+      "noPayments": "No payments",
+      "refund": "Refund",
+      "refundVia": "Refund how",
+      "refundProvider": "To the card, via the provider",
+      "refundSubmit": "Refund",
+      "mandates": "Standing orders",
+      "noMandates": "No standing order",
+      "mandateId": "Mandate id at the provider",
+      "last4": "Last 4 digits",
+      "day": "Charge day",
+      "mandateAmount": "Fixed amount (optional)",
+      "addMandate": "Add standing order",
+      "cancelMandate": "Cancel",
+      "links": "Payment links",
+      "noLinks": "No links",
+      "requestLink": "Send a payment link",
+      "linkDescription": "For",
+      "linkTerms": "Terms (optional)",
+      "cancelLink": "Cancel link",
+      "linkPending": "Creating link...",
+      "details": "Invoice and reimbursement details",
+      "payerName": "Payer name on invoices",
+      "payerEmail": "Invoice email",
+      "payerId": "Payer ID number",
+      "payerIdHint": "Stored encrypted. Blank keeps it, a dash (-) removes it",
+      "payerIdOnFile": "ID on file: ****{last4}",
+      "profile": "Reimbursement profile",
+      "noProfile": "None",
+      "preferred": "Pays by",
+      "notes": "Notes",
+      "documents": "Invoices and receipts",
+      "noDocuments": "No documents",
+      "document": "Invoice-receipt {number}",
+      "documentFailed": "Not issued: {reason}",
+      "documentPending": "Issuing",
+      "seats": "Freezes and cancellations",
+      "noSeats": "No active seats",
+      "freeze": "Freeze",
+      "from": "From",
+      "to": "To",
+      "reason": "Reason",
+      "requestFreeze": "Record freeze",
+      "cancelFreeze": "Cancel freeze",
+      "cancel": "Cancel seat",
+      "requestedAt": "Requested at (blank = now)",
+      "requestCancel": "Record cancellation",
+      "withdraw": "Withdraw cancellation",
+      "cancelInfo": "Last charge: {last}. Seat ends on {ends}",
+      "freezeInfo": "{from} to {to} · {status}"
+    },
+    "profiles": {
+      "title": "Reimbursement profiles",
+      "subtitle": "Ministry of Defense, insurers and employers: the wording on the invoice",
+      "name": "Name",
+      "kind": "Kind",
+      "wording": "Invoice wording",
+      "requiresNationalId": "Payer ID required",
+      "includeSessionDates": "List session dates",
+      "splitPerMonth": "One invoice per month",
+      "active": "Active",
+      "add": "Add profile",
+      "empty": "No profiles",
+      "inactive": "Inactive"
+    },
+    "parent": {
+      "title": "Payments",
+      "balance": "Your balance",
+      "owes": "To pay: {amount}",
+      "credit": "Credit: {amount}",
+      "settled": "All paid, thank you!",
+      "pay": "Pay",
+      "mandate": "Standing order: card {last4}",
+      "mandateFailing": "The last card charge failed. Pay by link or update the card with the office",
+      "noMandate": "No standing order",
+      "history": "Entries",
+      "documents": "Invoices and receipts",
+      "download": "Download",
+      "empty": "No entries yet"
     }
   }
 }

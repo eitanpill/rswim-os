@@ -35,6 +35,9 @@ importers:
       '@rswim/domain-attendance':
         specifier: workspace:*
         version: link:../../packages/domain/attendance
+      '@rswim/domain-billing':
+        specifier: workspace:*
+        version: link:../../packages/domain/billing
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../../packages/domain/core
@@ -147,6 +150,9 @@ importers:
       '@rswim/domain-attendance':
         specifier: workspace:*
         version: link:../../packages/domain/attendance
+      '@rswim/domain-billing':
+        specifier: workspace:*
+        version: link:../../packages/domain/billing
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../../packages/domain/core
@@ -786,6 +792,9 @@ importers:
       '@rswim/domain-attendance':
         specifier: workspace:*
         version: link:../domain/attendance
+      '@rswim/domain-billing':
+        specifier: workspace:*
+        version: link:../domain/billing
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../domain/core

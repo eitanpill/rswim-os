@@ -4,6 +4,8 @@ const PORT = 3100;
 const ADMIN_URL =
   process.env.TEST_DATABASE_ADMIN_URL ?? 'postgresql://rswim:rswim@localhost:5432/postgres';
 // prepare-db.ts recreates this database from migrations and the fake seed before every run.
+// The same test-only master key as prepare-db.ts (a fixed fake, never a real key).
+const E2E_MASTER_KEY = Buffer.alloc(32, 7).toString('base64');
 const E2E_DATABASE_URL = Object.assign(new URL(ADMIN_URL), { pathname: '/rswim_e2e' }).toString();
 
 export default defineConfig({
@@ -31,6 +33,11 @@ export default defineConfig({
     url: `http://localhost:${PORT}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
-    env: { RSWIM_DEV_AUTH: '1', NEXT_TELEMETRY_DISABLED: '1', DATABASE_URL: E2E_DATABASE_URL },
+    env: {
+      RSWIM_DEV_AUTH: '1',
+      NEXT_TELEMETRY_DISABLED: '1',
+      DATABASE_URL: E2E_DATABASE_URL,
+      RSWIM_MASTER_KEY: E2E_MASTER_KEY,
+    },
   },
 });

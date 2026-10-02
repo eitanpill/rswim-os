@@ -12,7 +12,7 @@ export default async function AdminSection({ params }: { params: Promise<{ secti
     <>
       <PageHeader title={t(`nav.${key}`)} />
       <Card>
-        <EmptyState title={t('placeholder', { phase: ADMIN_SECTIONS[key] })} />
+        <EmptyState title={t('placeholder', { phase: ADMIN_SECTIONS[key] ?? '' })} />
       </Card>
     </>
   );

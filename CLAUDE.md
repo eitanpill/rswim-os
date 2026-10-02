@@ -60,6 +60,10 @@ GHL (LeadYourWay): the worker reads `GHL_API_TOKEN`; the webhook route needs `GH
 run the worker with `RSWIM_GHL_FAKE=1` (optionally `RSWIM_GHL_FAKE_CONTACTS=<fake contacts json>`). Never point tests
 at the real account.
 
+Grow (payments) and Green Invoice (receipts) run on fakes only until Pit's accounts exist: start the worker with
+`RSWIM_GROW_FAKE=1 RSWIM_INVOICING_FAKE=1` (a mandate id containing "fail" is declined). The Grow webhook route needs
+`GROW_WEBHOOK_SECRET`. Saving a payer's ID number needs `RSWIM_MASTER_KEY` in the web app's environment too.
+
 ## Database access, in one paragraph
 Signed-in requests run as `authenticated` with JWT claims (`asUser`). Background jobs for one tenant run as
 `rswim_system` with `app.org_id` set (`withOrg`, from `@rswim/db/service`): RLS still applies, so a job cannot touch
