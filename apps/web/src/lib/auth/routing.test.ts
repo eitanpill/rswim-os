@@ -17,6 +17,7 @@ describe('decideRoute', () => {
     expect(decideRoute('/login', null)).toEqual({ action: 'next' });
     expect(decideRoute('/login/phone', null)).toEqual({ action: 'next' });
     expect(decideRoute('/api/health', null)).toEqual({ action: 'next' });
+    expect(decideRoute('/api/webhooks/ghl', null)).toEqual({ action: 'next' });
   });
 
   it('sends anonymous users to login with a return path', () => {

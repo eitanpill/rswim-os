@@ -2,7 +2,8 @@ import { getTranslations } from 'next-intl/server';
 import { icons } from '@/components/icons';
 import type { NavSpec } from '@/components/nav-bar';
 
-export const ADMIN_SECTIONS = { families: '1', board: '2', money: '4', more: '1' } as const;
+/** Sections that are still placeholders, with the phase that builds them. */
+export const ADMIN_SECTIONS = { board: '2', money: '4' } as const;
 
 export async function adminNav(): Promise<NavSpec[]> {
   const t = await getTranslations('admin.nav');

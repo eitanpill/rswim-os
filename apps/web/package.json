@@ -17,6 +17,13 @@
     "@rswim/calendar": "workspace:*",
     "@rswim/contracts": "workspace:*",
     "@rswim/db": "workspace:*",
+    "@rswim/domain-core": "workspace:*",
+    "@rswim/domain-crm": "workspace:*",
+    "@rswim/domain-people": "workspace:*",
+    "@rswim/domain-settings": "workspace:*",
+    "@rswim/domain-staff": "workspace:*",
+    "@rswim/domain-venues": "workspace:*",
+    "@rswim/integrations": "workspace:*",
     "@rswim/money": "workspace:*",
     "@rswim/ui": "workspace:*",
     "@supabase/ssr": "^0.12.7",
@@ -25,18 +32,22 @@
     "next-intl": "^4.14.8",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "zod": "^4.6.5",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "@rswim/config": "workspace:*",
+    "@rswim/seed": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.39.5",
+    "pg": "^8.23.1",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.20.0",
     "typescript": "~5.9.3",
     "vitest": "^3.2.7"
   }

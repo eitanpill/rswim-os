@@ -1,6 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 3100;
+const ADMIN_URL =
+  process.env.TEST_DATABASE_ADMIN_URL ?? 'postgresql://rswim:rswim@localhost:5432/postgres';
+// prepare-db.ts recreates this database from migrations and the fake seed before every run.
+const E2E_DATABASE_URL = Object.assign(new URL(ADMIN_URL), { pathname: '/rswim_e2e' }).toString();
 
 export default defineConfig({
   testDir: './e2e',
@@ -23,10 +27,10 @@ export default defineConfig({
     { name: 'desktop', use: { viewport: { width: 1280, height: 800 } }, grep: /@desktop/ },
   ],
   webServer: {
-    command: `pnpm build && pnpm exec next start --port ${PORT}`,
+    command: `pnpm exec tsx e2e/prepare-db.ts && pnpm build && pnpm exec next start --port ${PORT}`,
     url: `http://localhost:${PORT}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
-    env: { RSWIM_DEV_AUTH: '1', NEXT_TELEMETRY_DISABLED: '1' },
+    env: { RSWIM_DEV_AUTH: '1', NEXT_TELEMETRY_DISABLED: '1', DATABASE_URL: E2E_DATABASE_URL },
   },
 });

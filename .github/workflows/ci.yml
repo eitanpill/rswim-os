@@ -46,6 +46,19 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # The web server runs against a throwaway database rebuilt from migrations and the fake seed (e2e/prepare-db.ts).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rswim
+          POSTGRES_PASSWORD: rswim
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U rswim" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_ADMIN_URL: postgresql://rswim:rswim@localhost:5432/postgres
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
