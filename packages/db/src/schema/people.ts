@@ -6,6 +6,8 @@ import {
   foreignKey,
   index,
   pgTable,
+  primaryKey,
+  timestamp,
   text,
   unique,
   uuid,
@@ -43,6 +45,9 @@ export const guardians = pgTable(
     relation: text('relation'), // mother, father, self, grandparent…
     isBillingContact: boolean('is_billing_contact').notNull().default(false),
     ghlContactId: text('ghl_contact_id'),
+    /** Hash of the contact fields last exchanged with GHL; equal hash = nothing to sync (prevents echo loops). */
+    ghlSyncedHash: text('ghl_synced_hash'),
+    ghlSyncedAt: timestamp('ghl_synced_at', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -75,6 +80,8 @@ export const students = pgTable(
     isSelfGuardian: boolean('is_self_guardian').notNull().default(false),
     requiresFemaleInstructor: boolean('requires_female_instructor').notNull().default(false),
     custodyPattern: text('custody_pattern'),
+    levelId: uuid('level_id'), // FK (set null) in 0003
+    preferredStaffId: uuid('preferred_staff_id'), // FK (set null) in 0003
     encMedicalNotes: bytea('enc_medical_notes'),
     encNationalId: bytea('enc_national_id'),
     createdAt: createdAt(),
@@ -107,6 +114,11 @@ export const staffMembers = pgTable(
     status: text('status').notNull().default('active'),
     encNationalId: bytea('enc_national_id'),
     encBankDetails: bytea('enc_bank_details'),
+    skills: text('skills')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    notes: text('notes'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -116,5 +128,32 @@ export const staffMembers = pgTable(
       'staff_members_employment_type_check',
       sql`${t.employmentType} in ('employee', 'freelancer_exempt', 'freelancer_licensed', 'hybrid')`,
     ),
+  ],
+);
+
+/** Siblings drive the sibling discount; friends are a soft scheduling preference (brief §6.3). Stored once per pair. */
+export const studentRelations = pgTable(
+  'student_relations',
+  {
+    organizationId: orgId(),
+    studentId: uuid('student_id').notNull(),
+    relatedStudentId: uuid('related_student_id').notNull(),
+    type: text('type').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.studentId, t.relatedStudentId, t.type] }),
+    foreignKey({
+      name: 'student_relations_student_fk',
+      columns: [t.organizationId, t.studentId],
+      foreignColumns: [students.organizationId, students.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'student_relations_related_fk',
+      columns: [t.organizationId, t.relatedStudentId],
+      foreignColumns: [students.organizationId, students.id],
+    }).onDelete('cascade'),
+    check('student_relations_order_check', sql`${t.studentId} < ${t.relatedStudentId}`),
+    check('student_relations_type_check', sql`${t.type} in ('sibling', 'friend')`),
   ],
 );
