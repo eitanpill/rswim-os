@@ -24,7 +24,7 @@ and waiting for review. The demo price list has no price for adults on purpose.
 ## 1. The pre-run review (acceptance criterion 2)
 1. **כספים › חיובים חודשיים**. October is a draft with flags; September is approved.
 2. Open **10/2026**. Under **דגלים לבדיקה**:
-   - **חיוב בלי רישום**: "הוראת קבע פעילה בלי אף מקום בקבוצה" (a family whose child left).
+   - **חיוב בלי רישום**: "הוראת קבע פעילה בלי אף מקום בקבוצה" (a family with no child in any group).
    - **רישום בלי חיוב**: "אין מחיר במחירון לתוכנית הזו" (the adults group).
    - **הוראת קבע כפולה**: "2 הוראות קבע פעילות למשפחה אחת".
    - **אין הוראת קבע**: the family owes and will get a payment link instead.
@@ -37,7 +37,7 @@ and waiting for review. The demo price list has no price for adults on purpose.
 ## 2. A failed charge starts dunning (acceptance criterion 3)
 1. **כספים** (debts): the declined family shows **הוראת קבע נכשלה** and **תיק גבייה: פתוח**, with the debt's age.
 2. With the worker running, the daily job retries the card one day after the failure and every three days after that,
-   up to three times, then hands the case to the owner after ten days (all in **מדיניות › גבייה**).
+   up to three times, then hands the case to the owner after ten days (all in **מדיניות › גבייה וחובות**).
 3. **מחיקת החוב** writes the debt off in the ledger and closes the case; paying it closes the case too.
 
 ## 3. A reimbursement receipt (acceptance criterion 4)
