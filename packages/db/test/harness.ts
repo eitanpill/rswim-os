@@ -41,9 +41,21 @@ export async function createTestDatabase(): Promise<TestDatabase> {
     pool,
     db: createDb(pool),
     async drop() {
+      // pool.end() does not wait for every socket to close, so `drop … with (force)` can still terminate a backend
+      // whose client then reports 57P01. That is the expected end of a throwaway database, not a test failure.
+      pool.on('error', () => undefined);
       await pool.end();
       const c = new pg.Client({ connectionString: ADMIN_URL });
       await c.connect();
+      // Give the closed sockets a moment to leave, so `force` rarely has anyone to terminate.
+      for (let i = 0; i < 50; i++) {
+        const { rows } = await c.query<{ n: number }>(
+          'select count(*)::int as n from pg_stat_activity where datname = $1',
+          [name],
+        );
+        if (!rows[0]?.n) break;
+        await new Promise((r) => setTimeout(r, 20));
+      }
       await c.query(`drop database if exists ${name} with (force)`);
       await c.end();
     },
