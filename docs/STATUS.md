@@ -4,8 +4,22 @@
 |---|---|---|
 | 0 Foundations | **Done**, merged | All three acceptance criteria pass |
 | 1 Core data | **Done**, merged (PR #2) | Both acceptance criteria pass |
-| 2 Scheduling engine | **Done**, merged (PR #3) | All three acceptance criteria pass (see below) |
-| 3–10 | Not started | |
+| 2 Scheduling engine | **Done**, merged (PR #3) | All three acceptance criteria pass |
+| 3 Attendance, makeups, trials, forms | **Done** (PR #4) | Both acceptance criteria pass (see below) |
+| 4–10 | Not started | |
+
+## Phase 3 acceptance criteria
+
+| Criterion | Proof | Result |
+|---|---|---|
+| A 13h-before absence yields a credit expiring at the end of the month; an 11h one doesn't | `apps/web/e2e/attendance.spec.ts` AC1 (UI only): the owner records two WhatsApp notices for a lesson of בנים דולפין, received 13h and 11h before it. The form answers "ההודעה התקבלה 13 שעות ו-0 דקות לפני השיעור (נדרשות לפחות 12 שעות) · נפתחה השלמה" and "…רק 11 שעות… · הודעה מאוחרת לא מזכה בהשלמה"; the makeups screen shows the first credit valid until the last day of the lesson's month and no credit for the second. Service level: `packages/domain/attendance/test/services.test.ts` (policy version recorded, parents' notices wait for the worker), and the boundaries (12h00 is timely, the monthly cap, the 24h private rule, makeups off) in `policies.test.ts` | Pass |
+| A 3-day venue closure issues credits to every affected active student, opens makeup windows and produces an uptake report | `attendance.spec.ts` AC2: the owner closes Gush Etzion Tuesday to Thursday, the preview lists every lesson and child (frozen children and trials get none, with the reason), opening it cancels the lessons, issues one credit per lost lesson usable from the day after the closure to the deadline, and the uptake report counts them per group. Service level: the same workflow plus booking, the last seat, closing with `expire` and `convert_to_credit`, and nightly expiry | Pass |
+
+Also through the UI: the instructor marks attendance in one tap, a mark made offline is queued and synced when the
+phone is back online, and a parent reports an absence and accepts a form in the portal.
+
+Totals on 2026-10-02: 339 unit/integration tests + 20 browser tests, all green. `lint`, `typecheck`, `format:check`
+clean. Coverage stays 100% on the pure policy modules, now including `domain-attendance` and `domain-enrollment`.
 
 ## Phase 2 acceptance criteria
 
@@ -47,5 +61,9 @@ Coverage is 100% (statements and branches) on `money`, `contracts`, `calendar` a
 - Against a real Supabase project: the access-token hook, SMS OTP and password sign-in are tested at the SQL and unit level, and the shells via the local demo login, but no hosted Supabase project exists yet.
 - The Inngest worker has not run against Inngest Cloud or the Inngest dev server; relay and consumer logic is tested directly.
 
+- The parent's absence notice is classified by the worker (`attendance-process-absence`); without the worker running
+  it stays "ההודעה התקבלה" until the nightly safety net or the next worker start.
+
 ## Next
-Phase 3: lead → trial → enrollment flow, attendance (instructor PWA, offline), absence notices and makeups.
+Phase 4: billing and money (ledger, standing orders, payment links, the trial-fee offset and converted closure
+credits arriving as ledger entries, private lesson absences).

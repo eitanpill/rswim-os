@@ -69,3 +69,19 @@ Architecture decisions live in `docs/adr/`. This file holds product defaults and
 | 2026-10-02 | Session generation is idempotent per (group, date) and every run stores its report (created, existing, each skipped date with reasons and the policy version used) |
 | 2026-10-02 | Booking forms list up to 500 students in a select for now; a type-ahead search replaces it when a tenant outgrows that |
 | 2026-10-02 | Composite FKs from groups and slots to programs cascade like the other program FKs; the app never deletes programs (it deactivates them), so only deleting an organization reaches it |
+| 2026-10-02 | Phase 3: a family's absence notice is stored as received now and classified by the worker (`attendance.absence_reported`); only the office's notices are decided in the same request. A parent never runs the code that decides their own credit, and the database forces the parent's channel, time and status |
+| 2026-10-02 | Policy sets, programs and levels are readable by every member (parents included): the portal explains decisions with the regulations, and none of them hold personal data |
+| 2026-10-02 | Makeup fit (age, level, gender, female instructor) is checked in the domain policy; the booking trigger re-checks ownership, the credit, expiry and the free seat under a row lock, so the last seat cannot be sold twice |
+| 2026-10-02 | The makeup marketplace reads seats through `app.makeup_session_facts`, which tells a family how many seats are free and what a group admits, never who is in it |
+| 2026-10-02 | Hosted Supabase: turn off the Data API (PostgREST) for the project; every read and write goes through the app as the signed-in user |
+| 2026-10-02 | Private-lesson absences and credits move to Phase 4 with private billing; Phase 3 credits come from group lessons, closures and goodwill |
+| 2026-10-02 | "Active subscription" for makeups (`makeup.requires_active_subscription`) means an active enrollment until billing exists in Phase 4 |
+| 2026-10-02 | Holiday closures count as the school's own cancellation (guaranteed makeup); venue, authority, technical and water-quality closures are external (best effort) |
+| 2026-10-02 | Money effects of Phase 3 only emit events: `enrollment.trial_converted` carries the trial-fee offset and `attendance.closure_credits_converted` the converted credits, for the Phase 4 ledger |
+| 2026-10-02 | Public form links for families without a portal login move to Phase 5 (messaging); until then the office records paper and phone acceptances |
+| 2026-10-02 | New policy key `health.declaration_valid_months` (default 12): a health declaration is due again after that many months |
+| 2026-10-02 | Frozen seats still count as held when computing free seats: a frozen child may come back, so their seat is not sold as a makeup |
+| 2026-10-02 | Office makeup bookings that break a soft rule (age band, level distance, no active enrollment) need a note, kept with the booking (`makeup.enforcement = strict_with_override`); hard rules (gender, own group, no seat, expiry) cannot be overridden |
+| 2026-10-02 | Instructor attendance syncs from a localStorage queue; each tap has a device id and time, the server keeps each child's latest tap by device time, and a replay changes nothing |
+| 2026-10-02 | `optionalText` and the other blank-to-null helpers treat `null` as blank, so a parsed value validates again unchanged (actions validate for field errors, services validate again) |
+| 2026-10-02 | Attendance stores present / late / absent with the row's kind (member, makeup, trial) instead of the plan's seven statuses; whether an absence was notified comes from `absence_notices`, so one fact is never stored twice |

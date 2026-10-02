@@ -103,7 +103,8 @@ suggestion order, not business rules, so they live in code (DECISIONS 2026-10-02
 
 | Key | Default | Notes |
 |---|---|---|
-| `health.declaration_required` | `true` | Before first lesson; renew yearly |
+| `health.declaration_required` | `true` | Before first lesson |
+| `health.declaration_valid_months` | `12` | A new declaration is due after this many months (Phase 3) |
 | `health.medical_cert_required_for` | `[declared_limitation]` | Owner may require |
 | `consent.photo_default` | `granted_unless_opt_out` | Opt-out in writing (form) |
 | `regulations.acceptance_required` | `true` | Versioned text + timestamp + phone/IP |
