@@ -67,3 +67,15 @@ describe('formatILS', () => {
     expect(formatILS(agorot(24750), 'en')).toMatch(/247\.50/);
   });
 });
+
+describe('parseShekels', () => {
+  it('parses typed shekel amounts to agorot exactly', async () => {
+    const { parseShekels } = await import('../src');
+    expect(parseShekels('330')).toBe(33000);
+    expect(parseShekels('330.5')).toBe(33050);
+    expect(parseShekels('1,000.25')).toBe(100025);
+    expect(parseShekels(' ₪ 90 ')).toBe(9000);
+    expect(parseShekels('0.07')).toBe(7);
+    for (const bad of ['', 'abc', '-5', '1.234', '1e3']) expect(parseShekels(bad), bad).toBeNull();
+  });
+});

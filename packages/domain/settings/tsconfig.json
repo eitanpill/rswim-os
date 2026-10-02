@@ -1,5 +1,5 @@
 {
   "extends": "@rswim/config/tsconfig.base.json",
   "compilerOptions": { "types": ["node"] },
-  "include": ["src", "test"]
+  "include": ["src", "test", "*.ts"]
 }

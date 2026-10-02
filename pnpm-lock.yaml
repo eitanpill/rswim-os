@@ -264,6 +264,197 @@ importers:
         specifier: ^3.2.7
         version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  packages/domain/crm:
+    dependencies:
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
+      '@rswim/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@rswim/domain-core':
+        specifier: workspace:*
+        version: link:../core
+      '@rswim/integrations':
+        specifier: workspace:*
+        version: link:../../integrations
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@rswim/config':
+        specifier: workspace:*
+        version: link:../../config
+      '@rswim/domain-people':
+        specifier: workspace:*
+        version: link:../people
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/domain/people:
+    dependencies:
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
+      '@rswim/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@rswim/domain-core':
+        specifier: workspace:*
+        version: link:../core
+      '@rswim/money':
+        specifier: workspace:*
+        version: link:../../money
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@rswim/config':
+        specifier: workspace:*
+        version: link:../../config
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/domain/settings:
+    dependencies:
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
+      '@rswim/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@rswim/domain-core':
+        specifier: workspace:*
+        version: link:../core
+      '@rswim/money':
+        specifier: workspace:*
+        version: link:../../money
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@rswim/config':
+        specifier: workspace:*
+        version: link:../../config
+      '@rswim/domain-venues':
+        specifier: workspace:*
+        version: link:../venues
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/domain/staff:
+    dependencies:
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
+      '@rswim/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@rswim/domain-core':
+        specifier: workspace:*
+        version: link:../core
+      '@rswim/money':
+        specifier: workspace:*
+        version: link:../../money
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@rswim/config':
+        specifier: workspace:*
+        version: link:../../config
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/domain/venues:
+    dependencies:
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
+      '@rswim/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@rswim/domain-core':
+        specifier: workspace:*
+        version: link:../core
+      '@rswim/money':
+        specifier: workspace:*
+        version: link:../../money
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@rswim/config':
+        specifier: workspace:*
+        version: link:../../config
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
   packages/integrations:
     dependencies:
       '@rswim/money':
@@ -276,12 +467,18 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
       eslint:
         specifier: ^9.39.5
         version: 9.39.5(jiti@2.7.0)
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
 
   packages/money:
     devDependencies:

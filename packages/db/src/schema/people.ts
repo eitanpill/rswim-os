@@ -5,6 +5,7 @@ import {
   date,
   foreignKey,
   index,
+  jsonb,
   pgTable,
   primaryKey,
   timestamp,
@@ -47,6 +48,8 @@ export const guardians = pgTable(
     ghlContactId: text('ghl_contact_id'),
     /** Hash of the contact fields last exchanged with GHL; equal hash = nothing to sync (prevents echo loops). */
     ghlSyncedHash: text('ghl_synced_hash'),
+    /** What the CRM knows (program interest, age bands, water fear, branch) mapped from GHL tags on import. */
+    crmProfile: jsonb('crm_profile').notNull().default({}),
     ghlSyncedAt: timestamp('ghl_synced_at', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

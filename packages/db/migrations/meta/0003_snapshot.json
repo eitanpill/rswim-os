@@ -1,6 +1,6 @@
 {
-  "id": "daa91eca-6116-4439-b490-40978cba4147",
-  "prevId": "6140692a-3e51-414d-a902-226ad06d9f9b",
+  "id": "c685ef37-2d6f-43ac-8c9c-3d4d973b8329",
+  "prevId": "95cab02e-491b-49b4-94e0-b86e89b10a63",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -607,6 +607,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "crm_profile": {
+          "name": "crm_profile",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
         },
         "ghl_synced_at": {
           "name": "ghl_synced_at",

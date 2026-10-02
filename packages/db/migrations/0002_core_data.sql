@@ -334,6 +334,7 @@ CREATE TABLE "import_runs" (
 );
 --> statement-breakpoint
 ALTER TABLE "guardians" ADD COLUMN "ghl_synced_hash" text;--> statement-breakpoint
+ALTER TABLE "guardians" ADD COLUMN "crm_profile" jsonb DEFAULT '{}'::jsonb NOT NULL;--> statement-breakpoint
 ALTER TABLE "guardians" ADD COLUMN "ghl_synced_at" timestamp with time zone;--> statement-breakpoint
 ALTER TABLE "staff_members" ADD COLUMN "skills" text[] DEFAULT '{}'::text[] NOT NULL;--> statement-breakpoint
 ALTER TABLE "staff_members" ADD COLUMN "notes" text;--> statement-breakpoint

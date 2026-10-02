@@ -1,5 +1,5 @@
 {
-  "id": "6140692a-3e51-414d-a902-226ad06d9f9b",
+  "id": "95cab02e-491b-49b4-94e0-b86e89b10a63",
   "prevId": "c3d29e03-e2f7-4808-8d83-d1e051506850",
   "version": "7",
   "dialect": "postgresql",
@@ -607,6 +607,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "crm_profile": {
+          "name": "crm_profile",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
         },
         "ghl_synced_at": {
           "name": "ghl_synced_at",
