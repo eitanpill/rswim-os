@@ -3,6 +3,7 @@ import { addDays } from '@rswim/calendar';
 import { listShiftChanges, mySessions } from '@rswim/domain-scheduling';
 import { listStaff } from '@rswim/domain-staff';
 import { Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import Link from 'next/link';
 import { TodayLine } from '@/components/today-card';
 import { ActionForm, Field, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
@@ -107,17 +108,20 @@ export default async function InstructorDay({
           ) : (
             <ul className="flex flex-col gap-2">
               {sessions.map((s) => (
-                <li
-                  key={s.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3"
-                >
-                  <span className="font-medium">{s.groupName}</span>
-                  <span className="text-sm text-ink-muted">
-                    {dmy(s.date)} ·{' '}
-                    <span dir="ltr">
-                      {clockIL(s.startsAt)}–{clockIL(s.endsAt)}
+                <li key={s.id}>
+                  <Link
+                    href={`/instructor/session/${s.id}`}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3 hover:border-brand-500"
+                    data-testid="my-session"
+                  >
+                    <span className="font-medium">{s.groupName}</span>
+                    <span className="text-sm text-ink-muted">
+                      {dmy(s.date)} ·{' '}
+                      <span dir="ltr">
+                        {clockIL(s.startsAt)}–{clockIL(s.endsAt)}
+                      </span>
                     </span>
-                  </span>
+                  </Link>
                 </li>
               ))}
             </ul>

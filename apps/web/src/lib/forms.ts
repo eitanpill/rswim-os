@@ -25,13 +25,15 @@ export function formToObject(fd: FormData): Record<string, unknown> {
   return out;
 }
 
+export type Translate = (key: string, params?: Record<string, string | number>) => string;
+
 export interface RunFormOptions<R> {
   /** Paths to refresh after success (the current page usually). */
   revalidate?: string | string[];
   /** Where to go after success, e.g. the page of the record just created. */
   redirectTo?: (result: R) => string;
-  /** Translation key for the confirmation shown after success. */
-  success?: string;
+  /** Translation key for the confirmation shown after success, or a message built from the result. */
+  success?: string | ((result: R, tr: Translate) => string);
   /** Maps a validation issue's path to the form field that shows it (default: the first path segment). */
   errorField?: (path: readonly PropertyKey[]) => string;
   /** Data the page shows once after success, e.g. an invite link. */
@@ -77,7 +79,10 @@ export async function runForm<S extends z.ZodType, R>(
   return {
     ok: true,
     errors: {},
-    message: t(opts.success ?? 'forms.saved'),
+    message:
+      typeof opts.success === 'function'
+        ? opts.success(result, tr)
+        : t(opts.success ?? 'forms.saved'),
     savedAt: Date.now(),
     ...(opts.data ? { data: opts.data(result) } : {}),
   };

@@ -71,6 +71,9 @@ describe('toDomainError', () => {
     expect(
       toDomainError({ code: '42501', message: 'new row violates row-level security policy' })?.code,
     ).toBe('common.errors.forbidden');
+    expect(toDomainError(wrap('RSW01', 'attendance.errors.noSeat'))?.code).toBe(
+      'attendance.errors.noSeat',
+    );
     expect(toDomainError(wrap('08006'))).toBeNull();
     expect(toDomainError(new Error('boom'))).toBeNull();
     expect(toDomainError(null)).toBeNull();

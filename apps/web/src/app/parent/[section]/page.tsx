@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Card, EmptyState, PageHeader } from '@rswim/ui';
 
-const SECTIONS = { schedule: '7', payments: '7', documents: '7' } as const;
+const SECTIONS = { payments: '4' } as const;
 
 export default async function ParentSection({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;

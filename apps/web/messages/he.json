@@ -124,6 +124,26 @@
       "waitlist": {
         "title": "רשימת המתנה",
         "hint": "ממתינים והצעות לקבוצות חדשות"
+      },
+      "attendance": {
+        "title": "נוכחות והיעדרויות",
+        "hint": "שיעורי היום, מי מגיע ורישום הודעות"
+      },
+      "makeups": {
+        "title": "השלמות",
+        "hint": "זיכויים פתוחים, קביעה ומחוות"
+      },
+      "trials": {
+        "title": "שיעורי ניסיון",
+        "hint": "קביעה, סיכום והרשמה"
+      },
+      "closures": {
+        "title": "סגירות",
+        "hint": "ביטול המוני, השלמות ודוח ניצול"
+      },
+      "forms": {
+        "title": "טפסים ותקנון",
+        "hint": "גרסאות, פרסום וחתימות"
       }
     }
   },
@@ -176,7 +196,43 @@
       "actions": "פעולות מהירות",
       "reportAbsence": "דיווח היעדרות",
       "bookMakeup": "קביעת השלמה",
-      "payments": "תשלומים וקבלות"
+      "payments": "תשלומים וקבלות",
+      "makeups": "השלמות לקבוע",
+      "noCredits": "אין השלמות פתוחות",
+      "credit": "השלמה ל{name}, עד {until}",
+      "forms": "טפסים לחתימה",
+      "formsDue": "{n, plural, one {טופס אחד מחכה} other {# טפסים מחכים}} לחתימה שלכם",
+      "signForms": "לחתימה"
+    },
+    "schedule": {
+      "title": "השיעורים הקרובים",
+      "subtitle": "לא מגיעים? דווחו כאן. הודעה בזמן מזכה בהשלמה לפי התקנון",
+      "booked": "ההשלמה נקבעה",
+      "makeups": "השלמות שנקבעו",
+      "cancelMakeup": "ביטול",
+      "cancelConfirm": "לבטל את ההשלמה? הזיכוי יחזור אליכם",
+      "none": "אין שיעורים בשבועיים הקרובים",
+      "pending": "ההודעה התקבלה",
+      "withCredit": "מזכה בהשלמה",
+      "noCredit": "לא מזכה בהשלמה",
+      "comingAfterAll": "בכל זאת מגיעים",
+      "report": "לא נגיע",
+      "confirm": "לדווח ש{name} לא יגיע/תגיע לשיעור?",
+      "reported": "ההודעה נשלחה"
+    },
+    "makeup": {
+      "title": "קביעת השלמה",
+      "subtitle": "שיעורים מתאימים עם מקום פנוי, עד {until}",
+      "back": "חזרה",
+      "empty": "אין כרגע שיעור מתאים עם מקום פנוי",
+      "emptyHint": "שווה לבדוק שוב בהמשך, מקומות מתפנים כשילדים מודיעים על היעדרות",
+      "book": "קביעה"
+    },
+    "documents": {
+      "title": "מסמכים",
+      "due": "לחתימה",
+      "allDone": "הכול חתום, תודה!",
+      "accepted": "תודה, נשמר"
     }
   },
   "platform": {
@@ -204,7 +260,8 @@
       "invalid": "ערך לא תקין",
       "duplicate": "כבר קיים פריט כזה",
       "datesReversed": "תאריך הסיום חייב להיות אחרי תאריך ההתחלה",
-      "timesReversed": "שעת הסיום חייבת להיות אחרי שעת ההתחלה"
+      "timesReversed": "שעת הסיום חייבת להיות אחרי שעת ההתחלה",
+      "dateTime": "תאריך ושעה לא תקינים"
     }
   },
   "enums": {
@@ -396,6 +453,89 @@
       "venue_closure": "סגירת המקום",
       "before_group_start": "לפני פתיחת הקבוצה",
       "after_group_end": "אחרי סיום הקבוצה"
+    },
+    "attendanceKind": {
+      "member": "בקבוצה",
+      "makeup": "השלמה",
+      "trial": "ניסיון"
+    },
+    "attendanceStatus": {
+      "present": "הגיע/ה",
+      "late": "איחור",
+      "absent": "לא הגיע/ה"
+    },
+    "absenceChannel": {
+      "parent_portal": "אזור ההורים",
+      "phone": "טלפון",
+      "whatsapp": "וואטסאפ",
+      "instructor": "דרך המדריך/ה",
+      "other": "אחר"
+    },
+    "absenceNoticeStatus": {
+      "pending": "בבדיקה",
+      "processed": "טופלה",
+      "withdrawn": "בוטלה"
+    },
+    "absenceClassification": {
+      "timely": "בזמן",
+      "late_notice": "מאוחרת"
+    },
+    "creditReason": {
+      "notified_absence": "היעדרות",
+      "school_cancellation": "ביטול שלנו",
+      "external_closure": "סגירה חיצונית",
+      "goodwill": "מחווה"
+    },
+    "creditStatus": {
+      "open": "פתוח",
+      "booked": "נקבע",
+      "used": "נוצל",
+      "expired": "פג",
+      "converted": "הומר",
+      "void": "בוטל"
+    },
+    "makeupBookingStatus": {
+      "booked": "נקבעה",
+      "attended": "הגיע/ה",
+      "missed": "לא הגיע/ה",
+      "cancelled": "בוטלה"
+    },
+    "trialStatus": {
+      "booked": "נקבע",
+      "attended": "הגיע/ה",
+      "no_show": "לא הגיע/ה",
+      "cancelled": "בוטל"
+    },
+    "trialOutcome": {
+      "fit": "מתאים/ה",
+      "not_fit": "לא מתאים/ה כרגע"
+    },
+    "formKind": {
+      "registration": "טופס הרשמה",
+      "health_declaration": "הצהרת בריאות",
+      "regulations": "תקנון",
+      "photo_consent": "הסכמה לצילום"
+    },
+    "formChannel": {
+      "parent_portal": "אזור ההורים",
+      "owner_recorded": "בטלפון, נרשם במשרד",
+      "paper": "טופס נייר"
+    },
+    "closureEventStatus": {
+      "draft": "טיוטה",
+      "open": "פתוח, השלמות רצות",
+      "closed": "נסגר",
+      "cancelled": "בוטל"
+    },
+    "closureEndRule": {
+      "expire": "פגים",
+      "convert_to_credit": "הופכים לזיכוי כספי",
+      "partial_refund": "החזר חלקי"
+    },
+    "makeupGuarantee": {
+      "guaranteed": "מובטחת",
+      "best_effort": "לפי מקום פנוי",
+      "none": "אין"
     }
   },
   "venues": {
@@ -782,6 +922,11 @@
       "b": "עם",
       "type": "קשר",
       "add": "הוספת קשר"
+    },
+    "forms": {
+      "title": "טפסים ותקנון",
+      "allDone": "כל הטפסים חתומים",
+      "accepted": "חתימות שנרשמו ({n})"
     }
   },
   "people": {
@@ -922,7 +1067,8 @@
       },
       "health": {
         "declaration_required": "נדרשת הצהרת בריאות",
-        "sick_children_allowed": "ילדים חולים רשאים להגיע"
+        "sick_children_allowed": "ילדים חולים רשאים להגיע",
+        "declaration_valid_months": "תוקף הצהרת בריאות (חודשים)"
       },
       "consent": {
         "photo_default": "צילום"
@@ -1293,6 +1439,274 @@
       "earliestAt": "לא לפני",
       "latestAt": "לא אחרי",
       "notes": "הערות"
+    }
+  },
+  "attendance": {
+    "tabs": {
+      "label": "מסכי שיעורים",
+      "day": "שיעורים לפי יום",
+      "makeups": "השלמות",
+      "trials": "שיעורי ניסיון",
+      "closures": "סגירות",
+      "forms": "טפסים ותקנון"
+    },
+    "day": {
+      "title": "נוכחות והיעדרויות",
+      "subtitle": "בחרו שיעור כדי לראות מי מגיע ולרשום הודעת היעדרות",
+      "date": "תאריך",
+      "show": "הצגה",
+      "prev": "יום קודם",
+      "next": "יום הבא",
+      "empty": "אין שיעורים ביום הזה",
+      "back": "חזרה לשיעורי היום"
+    },
+    "lineup": {
+      "title": "מי מגיע ({n})",
+      "empty": "אין ילדים רשומים לשיעור הזה",
+      "notified": "הודיעו שלא יגיעו",
+      "unmarked": "טרם סומן",
+      "minutes": "{n} דק׳",
+      "counts": "הגיעו {present} · לא הגיעו {absent} · מתוך {total}",
+      "pending": "{n} סימונים ממתינים לשליחה",
+      "synced": "הכול נשמר",
+      "lateBy": "באיחור של",
+      "skills": "מיומנויות ברמה: {done} מתוך {total}",
+      "progressOffline": "אין חיבור. סימון המיומנות לא נשמר, נסו שוב כשיחזור החיבור",
+      "back": "חזרה ליום שלי"
+    },
+    "flags": {
+      "waterFear": "פחד ממים",
+      "femaleInstructor": "מדריכה בלבד",
+      "noPhotos": "בלי צילום",
+      "medical": "הערה רפואית"
+    },
+    "absence": {
+      "notices": "הודעות היעדרות",
+      "none": "לא התקבלו הודעות לשיעור הזה",
+      "withCredit": "מזכה בהשלמה",
+      "noCredit": "ללא השלמה",
+      "withdraw": "ביטול ההודעה",
+      "withdrawConfirm": "לבטל את הודעת ההיעדרות? אם נפתחה השלמה שעוד לא נקבעה, היא תבוטל.",
+      "record": "רישום הודעת היעדרות",
+      "student": "ילד/ה",
+      "channel": "איך הודיעו",
+      "receivedAt": "מתי התקבלה ההודעה",
+      "receivedAtHint": "ריק = עכשיו. ההחלטה לפי התקנון נקבעת לפי השעה הזו",
+      "note": "הערה",
+      "submit": "רישום ובדיקה מול התקנון",
+      "pending": "ההודעה התקבלה ותיבדק מול התקנון"
+    },
+    "makeups": {
+      "title": "השלמות",
+      "subtitle": "זיכויים פתוחים, עד מתי הם בתוקף ואיפה נקבעו",
+      "booked": "ההשלמה נקבעה",
+      "live": "זיכויים פעילים ({n})",
+      "empty": "אין כרגע זיכויים פתוחים",
+      "window": "לניצול בין {from} ל-{until}",
+      "until": "בתוקף עד {until}",
+      "bookedInto": "נקבעה ב{group}, {when}",
+      "cancelBooking": "ביטול ההשלמה",
+      "findLesson": "מציאת שיעור להשלמה",
+      "void": "ביטול הזיכוי",
+      "voidNote": "סיבת הביטול",
+      "voidSubmit": "ביטול הזיכוי",
+      "goodwill": "זיכוי מחווה",
+      "goodwillHint": "השלמה שניתנת מחוץ לתקנון. היא לא נספרת במכסה החודשית",
+      "goodwillIssued": "הזיכוי נוסף",
+      "student": "ילד/ה",
+      "program": "תוכנית",
+      "expiresOn": "בתוקף עד",
+      "reason": "סיבה",
+      "issue": "הוספת זיכוי"
+    },
+    "offers": {
+      "title": "השלמה ל{name}",
+      "subtitle": "שיעורים מתאימים עם מקום פנוי, עד {until}",
+      "back": "חזרה להשלמות",
+      "lessons": "שיעורים אפשריים ({n})",
+      "empty": "אין כרגע שיעור מתאים עם מקום פנוי",
+      "emptyHint": "כשמישהו יודיע על היעדרות או ייפתח מקום, השיעור יופיע כאן",
+      "seats": "{n, plural, one {מקום פנוי אחד} other {# מקומות פנויים}}",
+      "overrideNote": "למה בכל זאת",
+      "overrideHint": "השיעור חורג מכלל רך. ההסבר נשמר עם ההשלמה",
+      "book": "קביעת השלמה",
+      "bookAnyway": "קביעה בכל זאת"
+    },
+    "closures": {
+      "title": "סגירות וביטולים המוניים",
+      "subtitle": "בריכה סגורה לכמה ימים: כל השיעורים מתבטלים, כל ילד מקבל השלמה, ונפתח חלון השלמות",
+      "list": "אירועי סגירה",
+      "empty": "עוד לא נרשמו סגירות",
+      "allVenues": "כל המקומות",
+      "new": "סגירה חדשה",
+      "venue": "מקום",
+      "source": "סיבת הסגירה",
+      "startsOn": "מתאריך",
+      "endsOn": "עד תאריך",
+      "reason": "תיאור (יוצג להורים)",
+      "makeupFrom": "תחילת חלון ההשלמות",
+      "makeupFromHint": "ריק = היום שאחרי הסגירה",
+      "makeupDeadline": "מועד אחרון להשלמה",
+      "endRule": "מה קורה בסוף לזיכויים שלא נוצלו",
+      "endRuleDefault": "לפי התקנון",
+      "preview": "תצוגה מקדימה",
+      "back": "חזרה לסגירות",
+      "terms": "תנאי האירוע",
+      "makeupWindow": "חלון ההשלמות",
+      "guarantee": "התחייבות להשלמה",
+      "rule": "לפי התקנון",
+      "previewTitle": "מה ייקרה כשתפתחו את האירוע",
+      "totals": "{sessions} שיעורים יבוטלו · {children} ילדים · {credits} השלמות ייפתחו · {guests} השלמות שנקבעו יבוטלו",
+      "guests": "{n} ילדי השלמה ששובצו לשיעור הזה יקבלו את הזיכוי בחזרה",
+      "open": "פתיחת האירוע וביטול השיעורים",
+      "openConfirm": "לבטל את כל השיעורים בטווח ולפתוח השלמות לכל הילדים?",
+      "discard": "ביטול הטיוטה",
+      "opened": "בוטלו {sessions} שיעורים ונפתחו {credits} השלמות",
+      "report": "דוח ניצול השלמות",
+      "sessionsCancelled": "{n} שיעורים בוטלו",
+      "group": "קבוצה",
+      "total": "סה״כ",
+      "col": {
+        "issued": "נפתחו",
+        "booked": "נקבעו",
+        "used": "נוצלו",
+        "missed": "לא הגיעו",
+        "expired": "פגו",
+        "converted": "הומרו לזיכוי",
+        "outstanding": "עוד פתוחות"
+      },
+      "close": "סגירת האירוע",
+      "closeConfirm": "לסגור את האירוע? זיכויים שלא נקבעו יטופלו לפי כלל הסיום."
+    },
+    "closure": {
+      "credit": "מקבל/ת השלמה",
+      "frozen": "מנוי מוקפא, ללא השלמה",
+      "trial": "שיעור ניסיון, ייקבע מחדש",
+      "noMakeup": "התקנון לא נותן השלמה לסגירה כזו"
+    },
+    "decision": {
+      "timely": "ההודעה התקבלה {hours} שעות ו-{minutes} דקות לפני השיעור (נדרשות לפחות {min} שעות)",
+      "lateNotice": "ההודעה התקבלה רק {hours} שעות ו-{minutes} דקות לפני השיעור (נדרשות לפחות {min} שעות)",
+      "afterStart": "ההודעה התקבלה אחרי תחילת השיעור",
+      "creditIssued": "נפתחה השלמה",
+      "makeupsOff": "בתוכנית הזו אין השלמות",
+      "lateNoMakeup": "הודעה מאוחרת לא מזכה בהשלמה",
+      "timelyNoMakeup": "לפי התקנון היעדרות אינה מזכה בהשלמה",
+      "monthlyCap": "כבר נוצלה המכסה של {max, plural, one {השלמה אחת} other {# השלמות}} בחודש",
+      "present": "הגיע/ה בזמן",
+      "late": "איחור של {minutes} דקות (עד {max} נחשב נוכחות)",
+      "tooLate": "איחור של {minutes} דקות, יותר מ-{max}, נרשם כהיעדרות",
+      "closureBySchool": "ביטול שלנו: {guarantee, select, guaranteed {השלמה מובטחת} best_effort {השלמה לפי מקום פנוי} other {ללא השלמה}}",
+      "closureExternal": "סגירה חיצונית: {guarantee, select, guaranteed {השלמה מובטחת} best_effort {השלמה לפי מקום פנוי} other {ללא השלמה}}",
+      "beforeWindow": "חלון ההשלמות נפתח רק ב-{from}",
+      "afterExpiry": "אחרי תום תוקף ההשלמה ({until})",
+      "otherProgram": "תוכנית אחרת",
+      "ownGroup": "זו הקבוצה הקבועה של הילד/ה",
+      "noSeat": "אין מקום פנוי",
+      "genderUnknown": "לא רשום מגדר ל{name}, והשעה הזו מיועדת ל{window, select, female {נשים ובנות} women {נשים} girls {בנות} male {גברים ובנים} men {גברים} boys {בנים} other {קהל מעורב}}",
+      "windowGender": "הבריכה בשעה הזו פתוחה רק ל{window, select, female {נשים ובנות} women {נשים} girls {בנות} male {גברים ובנים} men {גברים} boys {בנים} other {קהל מעורב}}, ו{name} לא מתאים/ה",
+      "groupGender": "הקבוצה מיועדת ל{admitted, select, female {בנות} male {בנים} other {קהל מעורב}}, ו{name} לא מתאים/ה",
+      "tooYoung": "{name} צעיר/ה מטווח הגילאים של הקבוצה",
+      "tooOld": "{name} מבוגר/ת מטווח הגילאים של הקבוצה",
+      "levelApart": "{name} רחוק/ה {levels} רמות מהקבוצה (מותר עד {max})",
+      "femaleInstructorRequired": "{name} צריך/ה מדריכה, ובשיעור הזה מלמד מדריך",
+      "creditNotOpen": "הזיכוי כבר לא פתוח",
+      "selfBookingOff": "קביעת השלמה נעשית דרך המשרד",
+      "noActiveEnrollment": "אין לילד/ה מנוי פעיל",
+      "overrideNeeded": "כדי לקבוע בכל זאת צריך לכתוב הסבר"
+    },
+    "errors": {
+      "alreadyReported": "כבר התקבלה הודעה על השיעור הזה",
+      "notInSession": "הילד/ה לא רשום/ה לשיעור הזה",
+      "sessionNotScheduled": "השיעור בוטל או לא מתוכנן",
+      "cannotCancelBooking": "אי אפשר לבטל את ההשלמה הזו (אולי השיעור כבר התחיל)",
+      "creditNotOpen": "הזיכוי כבר לא פתוח",
+      "creditNotYours": "הזיכוי לא שייך לילד/ה הזה/ו",
+      "afterExpiry": "השיעור אחרי תום תוקף ההשלמה",
+      "sessionStarted": "השיעור כבר התחיל",
+      "noSeat": "המקום האחרון נתפס הרגע. בחרו שיעור אחר",
+      "bookingStatus": "אי אפשר לשנות את ההשלמה הזו",
+      "verdictOnly": "מדריכים יכולים לעדכן רק את הסיכום של שיעור הניסיון",
+      "deadlineBeforeWindow": "המועד האחרון לפני תחילת חלון ההשלמות",
+      "eventNotDraft": "האירוע כבר נפתח",
+      "eventNotOpen": "האירוע לא פתוח",
+      "expiryPast": "תאריך התוקף כבר עבר",
+      "notOffered": "השיעור הזה לא מתאים להשלמה הזו"
+    }
+  },
+  "enrollment": {
+    "decision": {
+      "offsetOff": "לפי התקנון דמי הניסיון לא מקוזזים",
+      "noFee": "שיעור הניסיון היה ללא תשלום",
+      "offsetExpired": "חלון הקיזוז נגמר ב-{until}",
+      "offsetApplied": "דמי הניסיון (₪{amount}) יקוזזו מהתשלום הראשון",
+      "missing": "עוד לא נחתם",
+      "newVersion": "פורסמה גרסה חדשה, צריך לחתום שוב",
+      "renew": "צריך לחדש כל {months} חודשים"
+    },
+    "errors": {
+      "sessionNotBookable": "אי אפשר לקבוע ניסיון בשיעור הזה (בוטל או כבר התחיל)",
+      "trialNotBooked": "שיעור הניסיון כבר לא פתוח",
+      "trialNotAttended": "אפשר להמיר רק אחרי שהילד/ה הגיע/ה לניסיון",
+      "alreadyConverted": "שיעור הניסיון כבר הומר להרשמה",
+      "formsMissing": "{count, plural, one {חסר טופס אחד} other {חסרים # טפסים}} לפני הרשמה (תקנון והצהרת בריאות). אפשר לרשום אותם בכרטיס המשפחה",
+      "formNotPublished": "הטופס עוד לא פורסם",
+      "studentRequired": "צריך לבחור ילד/ה לטופס הזה",
+      "answerAll": "צריך לענות על כל השאלות"
+    },
+    "trials": {
+      "title": "שיעורי ניסיון",
+      "subtitle": "קביעת ניסיון, סיכום המדריך/ה והרשמה בתוך חלון הקיזוז",
+      "list": "שיעורי ניסיון אחרונים וקרובים",
+      "empty": "אין שיעורי ניסיון",
+      "attended": "הגיע/ה?",
+      "yes": "כן",
+      "no": "לא",
+      "outcome": "התאמה",
+      "recommendedGroup": "קבוצה מומלצת",
+      "note": "הערה",
+      "saveVerdict": "שמירת הסיכום",
+      "verdictSaved": "הסיכום נשמר",
+      "verdictTitle": "סיכום שיעורי ניסיון",
+      "cancel": "ביטול הניסיון",
+      "cancelConfirm": "לבטל את שיעור הניסיון?",
+      "isConverted": "נרשם/ה לקבוצה",
+      "offerUntil": "דמי הניסיון מקוזזים בהרשמה עד {until}",
+      "group": "קבוצה",
+      "startsOn": "החל מ",
+      "convert": "הרשמה לקבוצה",
+      "converted": "נרשם/ה",
+      "book": "קביעת שיעור ניסיון",
+      "student": "ילד/ה",
+      "session": "שיעור",
+      "bookSubmit": "קביעת ניסיון",
+      "bookedOk": "שיעור הניסיון נקבע"
+    },
+    "forms": {
+      "title": "טפסים ותקנון",
+      "subtitle": "כל גרסה היא נוסח קבוע. פרסום גרסה חדשה מבקש מכל המשפחות לחתום שוב",
+      "versions": "גרסאות",
+      "empty": "עוד אין טפסים",
+      "version": "גרסה {n}",
+      "from": "מ-{date}",
+      "published": "פורסם",
+      "publish": "פרסום",
+      "publishConfirm": "לפרסם? אחרי הפרסום אי אפשר לשנות את הנוסח, וכל המשפחות יתבקשו לחתום",
+      "text": "הנוסח המלא",
+      "newVersion": "גרסה חדשה",
+      "kind": "סוג",
+      "effectiveFrom": "בתוקף מ",
+      "formTitle": "כותרת",
+      "body": "נוסח",
+      "questions": "שאלות כן/לא",
+      "questionsHint": "שאלה אחת בכל שורה (למשל בהצהרת בריאות)",
+      "saveDraft": "שמירת טיוטה",
+      "draftSaved": "הטיוטה נשמרה. אפשר לפרסם מהרשימה",
+      "tickYes": "סמנו את השאלות שהתשובה עליהן כן",
+      "channel": "איך התקבלה החתימה",
+      "record": "רישום חתימה",
+      "accept": "קראתי ואני מאשר/ת",
+      "recorded": "החתימה נרשמה"
     }
   }
 }

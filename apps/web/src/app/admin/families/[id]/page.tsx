@@ -1,13 +1,17 @@
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { STUDENT_RELATION_TYPES } from '@rswim/contracts';
+import { FORM_CHANNELS, STUDENT_RELATION_TYPES } from '@rswim/contracts';
+import { formsDueFor, submissionsOfHousehold } from '@rswim/domain-enrollment';
 import { getHousehold } from '@rswim/domain-people';
 import { listPrograms } from '@rswim/domain-settings';
 import { listStaff } from '@rswim/domain-staff';
 import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import { ActionButton, ActionForm, SelectField, SubmitButton } from '@/components/form';
+import { FormsDue } from '@/components/forms-due';
+import { dateTimeIL } from '@/lib/attendance';
 import { withSession } from '@/lib/db';
 import { enumLabel, enumOptions } from '@/lib/options';
+import { recordAcceptanceAction } from '../../forms/actions';
 import {
   addGuardianAction,
   addStudentAction,
@@ -34,11 +38,16 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
   const data = await withSession(async (tx) => {
     const family = await getHousehold(tx, id);
     if (!family) return null;
-    const [programs, staff] = await Promise.all([listPrograms(tx), listStaff(tx)]);
-    return { family, programs, staff };
+    const [programs, staff, forms, accepted] = await Promise.all([
+      listPrograms(tx),
+      listStaff(tx),
+      formsDueFor(tx, id),
+      submissionsOfHousehold(tx, id),
+    ]);
+    return { family, programs, staff, forms, accepted };
   });
   if (!data) notFound();
-  const { family, programs, staff } = data;
+  const { family, programs, staff, forms, accepted } = data;
   const { household, guardians, students, relations } = family;
   const t = await getTranslations('families');
   const tc = await getTranslations('common');
@@ -232,6 +241,40 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
             ) : null}
           </Card>
         ) : null}
+
+        <Card data-testid="family-forms">
+          <CardTitle>{t('forms.title')}</CardTitle>
+          {forms.due.length === 0 ? (
+            <p className="mb-2 text-sm text-ok">{t('forms.allDone')}</p>
+          ) : (
+            <FormsDue
+              due={forms.due}
+              current={forms.current}
+              householdId={household.id}
+              studentName={(sid) => students.find((s) => s.id === sid)?.firstName ?? ''}
+              action={recordAcceptanceAction}
+              channels={(await enumOptions('formChannel', FORM_CHANNELS)).filter(
+                (o) => o.value !== 'parent_portal',
+              )}
+            />
+          )}
+          {accepted.length ? (
+            <details className="mt-3">
+              <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-700">
+                {t('forms.accepted', { n: accepted.length })}
+              </summary>
+              <ul className="flex flex-col gap-1 text-sm">
+                {accepted.map((a) => (
+                  <li key={a.id}>
+                    {a.title}
+                    {a.studentId ? ` · ${studentName(a.studentId)}` : ''} ·{' '}
+                    {label('formChannel', a.channel)} · {dateTimeIL(a.acceptedAt)}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </Card>
 
         <Card>
           <details>

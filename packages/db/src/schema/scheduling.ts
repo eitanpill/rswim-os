@@ -223,6 +223,8 @@ export const sessions = pgTable(
     endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
     status: text('status').notNull().default('scheduled'),
     cancelReason: text('cancel_reason'),
+    /** The mass cancellation that cancelled it (FK in 0007). */
+    closureEventId: uuid('closure_event_id'),
     generationRunId: uuid('generation_run_id'),
     /** ResolvedPolicy.versionKey of the policy sets that decided this date. */
     policyVersionKey: text('policy_version_key'),

@@ -1,3 +1,4 @@
+import { attendanceNightly, attendanceProcessAbsence } from './attendance';
 import { corePing } from './core-ping';
 import { crmApplyWebhook, crmImportContacts, crmPushGuardian } from './crm';
 import { outboxRelay } from './outbox-relay';
@@ -11,4 +12,6 @@ export const functions = [
   crmApplyWebhook,
   schedulingApplyShiftChange,
   schedulingEscalateShiftChanges,
+  attendanceProcessAbsence,
+  attendanceNightly,
 ];

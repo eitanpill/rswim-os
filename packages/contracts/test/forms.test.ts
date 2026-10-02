@@ -24,6 +24,7 @@ describe('form helpers', () => {
   it('optionalText maps blank to null', () => {
     expect(optionalText().parse('')).toBeNull();
     expect(optionalText().parse(undefined)).toBeNull();
+    expect(optionalText().parse(null)).toBeNull();
     expect(optionalText().parse(' x ')).toBe('x');
     expect(issues(optionalText(1).safeParse('xx'))).toEqual(['forms.errors.tooLong']);
   });

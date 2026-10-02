@@ -70,13 +70,16 @@ describe('read access by role', () => {
     'venue_operating_windows',
     'operating_window_lanes',
     'venue_closures',
-    'programs',
-    'levels',
   ])('%s: every staff member reads, parents do not', async (table) => {
     expect(await visibility(table)).toEqual(everyStaff);
   });
 
-  it.each(['venue_contracts', 'policy_sets', 'price_lists', 'price_items'])(
+  // Phase 3: parents book makeups by program and level, and accept the regulations these rules configure.
+  it.each(['programs', 'levels', 'policy_sets'])('%s: every member reads', async (table) => {
+    expect(await visibility(table)).toEqual({ ...everyStaff, parent: 1 });
+  });
+
+  it.each(['venue_contracts', 'price_lists', 'price_items'])(
     '%s: owner, admins and the accountant read',
     async (table) => {
       expect(await visibility(table)).toEqual(ownerAdminAccountant);

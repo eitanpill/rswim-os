@@ -156,6 +156,7 @@ export async function studentsByIds(tx: Tx, ids: readonly string[]) {
       waterFear: students.waterFear,
       photoConsent: students.photoConsent,
       requiresFemaleInstructor: students.requiresFemaleInstructor,
+      hasMedicalNotes: students.hasMedicalNotes,
     })
     .from(students)
     .where(inArray(students.id, [...ids]));

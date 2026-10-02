@@ -5,7 +5,9 @@ import { toE164IL } from './phone';
  * Zod building blocks for HTML form input, where every field arrives as a string and an empty field means "not set".
  * Messages are i18n keys under `forms.errors`, rendered in Hebrew by the web app.
  */
-const blankToUndefined = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
+// null counts as blank too, so a parsed value parses again unchanged (services re-validate what actions pass them).
+const blankToUndefined = (v: unknown) =>
+  v === null || (typeof v === 'string' && v.trim() === '') ? undefined : v;
 
 export const requiredText = (max = 200) =>
   z

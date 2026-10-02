@@ -6,3 +6,4 @@ export * from './catalog';
 export * from './policy';
 export * from './forms';
 export * from './scheduling';
+export * from './attendance';
