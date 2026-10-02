@@ -145,6 +145,14 @@ export const PolicyRules = z
       })
       .partial()
       .strict(),
+    scheduling: z
+      .object({
+        travel_buffer_min: int(0, 240),
+        window_instructor_gender: z.enum(['match_window', 'any_gender']),
+        open_group_min_waiting: int(1, 50),
+      })
+      .partial()
+      .strict(),
     staffing: z
       .object({
         shift_change_requires_acceptance: z.boolean(),
@@ -327,6 +335,11 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
   },
   enrollment: { transfers_allowed: true },
   payroll: { pension_threshold_months: 3, sick_leave_accrual_halfdays_per_month: 3 },
+  scheduling: {
+    travel_buffer_min: 30,
+    window_instructor_gender: 'match_window',
+    open_group_min_waiting: 5,
+  },
   staffing: {
     shift_change_requires_acceptance: true,
     shift_change_escalate_after_hours: 12,

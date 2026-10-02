@@ -11,7 +11,7 @@ export function createPool(connectionString: string, max = 10): pg.Pool {
   return new pg.Pool({ connectionString, max });
 }
 
-export function createDb(pool: pg.Pool): Db {
+export function createDb(pool: pg.Pool | pg.PoolClient): Db {
   return drizzle(pool, { schema });
 }
 

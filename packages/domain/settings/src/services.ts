@@ -21,6 +21,7 @@ import {
   resolvePolicy,
   resolvePrice,
   type PolicyContext,
+  type ResolvedPolicy,
   type PriceListVersion,
   type PriceQuery,
 } from './policies';
@@ -215,6 +216,20 @@ export async function resolvePolicyFor(tx: Tx, ctx: PolicyContext, exclude?: Pol
       .map((r) => ({ ...r, scopeType: r.scopeType as ScopeType, rules: r.rules as PolicyRules })),
     ctx,
   );
+}
+
+/**
+ * Loads every policy version once and returns a resolver, for callers that resolve many contexts in one go (the
+ * session generator resolves a policy per group per date).
+ */
+export async function loadPolicyResolver(tx: Tx): Promise<(ctx: PolicyContext) => ResolvedPolicy> {
+  const rows = await tx.select().from(policySets);
+  const versions = rows.map((r) => ({
+    ...r,
+    scopeType: r.scopeType as ScopeType,
+    rules: r.rules as PolicyRules,
+  }));
+  return (ctx) => resolvePolicy(versions, ctx);
 }
 
 // ─── Price lists ────────────────────────────────────────────────────────────

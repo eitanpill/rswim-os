@@ -63,6 +63,18 @@ const TENANT_TABLES = [
   'staff_invites',
   'student_relations',
   'import_runs',
+  'terms',
+  'hebrew_calendar_overrides',
+  'class_templates',
+  'class_template_lanes',
+  'session_generation_runs',
+  'sessions',
+  'session_staff',
+  'enrollments',
+  'private_slots',
+  'slot_bookings',
+  'waitlist_entries',
+  'shift_changes',
 ] as const;
 
 describe('schema guardrails', () => {
