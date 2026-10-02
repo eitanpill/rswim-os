@@ -39,6 +39,7 @@ const SECTION_ORDER = [
   'consent',
   'regulations',
   'enrollment',
+  'scheduling',
   'staffing',
   'payroll',
   'comms',
