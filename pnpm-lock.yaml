@@ -138,6 +138,9 @@ importers:
       '@rswim/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@rswim/domain-attendance':
+        specifier: workspace:*
+        version: link:../../packages/domain/attendance
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../../packages/domain/core
@@ -707,12 +710,18 @@ importers:
       '@rswim/db':
         specifier: workspace:*
         version: link:../db
+      '@rswim/domain-attendance':
+        specifier: workspace:*
+        version: link:../domain/attendance
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../domain/core
       '@rswim/domain-crm':
         specifier: workspace:*
         version: link:../domain/crm
+      '@rswim/domain-enrollment':
+        specifier: workspace:*
+        version: link:../domain/enrollment
       '@rswim/domain-scheduling':
         specifier: workspace:*
         version: link:../domain/scheduling

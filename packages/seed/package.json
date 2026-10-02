@@ -15,11 +15,13 @@
   "dependencies": {
     "@rswim/contracts": "workspace:*",
     "@rswim/db": "workspace:*",
+    "@rswim/domain-attendance": "workspace:*",
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-crm": "workspace:*",
+    "@rswim/domain-enrollment": "workspace:*",
+    "@rswim/domain-scheduling": "workspace:*",
     "@supabase/supabase-js": "^2.117.2",
-    "pg": "^8.23.1",
-    "@rswim/domain-scheduling": "workspace:*"
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@rswim/config": "workspace:*",

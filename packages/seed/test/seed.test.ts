@@ -19,7 +19,7 @@ describe('demo seed', () => {
   it('creates both orgs with the brief’s edge cases, and is re-runnable', async () => {
     const first = await seedDemo(t.pool, { masterKey });
     const second = await seedDemo(t.pool, { masterKey });
-    expect(second).toEqual(first);
+    expect(JSON.stringify(second, null, 1)).toEqual(JSON.stringify(first, null, 1));
     expect(first.orgs).toBe(2);
     expect(first.households).toBe(25 + 3);
     expect(first.memberships).toBe(6);
@@ -170,5 +170,46 @@ describe('demo seed', () => {
     expect(await rows(`select count(*)::int n from slot_bookings where status = 'booked'`)).toEqual(
       [{ n: 1 }],
     );
+  });
+
+  it('sets up Phase 3: forms, attendance, notices with credits, a makeup booking and a trial', async () => {
+    const rows = async (sql: string, params: unknown[] = []) =>
+      (await t.pool.query(sql, params)).rows;
+    const summary = await seedDemo(t.pool, { masterKey });
+    expect(summary.attendance).toMatchObject({
+      forms: 3,
+      notices: 3,
+      credits: 2,
+      makeups: 1,
+      trials: 1,
+    });
+    expect(summary.attendance?.marks).toBeGreaterThan(10);
+    expect(summary.attendance?.submissions).toBeGreaterThan(10);
+    expect(
+      await rows(
+        `select classification, count(*)::int n from absence_notices where organization_id = $1
+         group by classification order by classification`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([
+      { classification: 'late_notice', n: 1 },
+      { classification: 'timely', n: 2 },
+    ]);
+    expect(
+      await rows(
+        `select status, count(*)::int n from makeup_credits where organization_id = $1 group by status order by status`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([
+      { status: 'booked', n: 1 },
+      { status: 'open', n: 1 },
+    ]);
+    // The parent persona's household still has forms to accept in the portal.
+    expect(
+      await rows(
+        `select count(*)::int n from form_submissions f join households h on h.id = f.household_id
+         where h.display_name like '%כהן%'`,
+      ),
+    ).toEqual([{ n: 0 }]);
   });
 });
