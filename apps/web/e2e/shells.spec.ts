@@ -56,9 +56,13 @@ test.describe('role shells on mobile', () => {
     await loginAs(page, 'parent');
     await expect(page).toHaveURL(/\/parent$/);
     await expect(page.getByRole('heading', { level: 1, name: 'המשפחה שלי' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'דיווח היעדרות' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'דיווח היעדרות' })).toBeVisible();
     await expectRtlMobileShell(page);
-    await expect(page).toHaveScreenshot('parent-mobile.png', { fullPage: true });
+    // The next lesson and the counts move with the calendar.
+    await expect(page).toHaveScreenshot('parent-mobile.png', {
+      fullPage: true,
+      mask: [page.locator('main')],
+    });
   });
 
   test('bottom nav marks the current section', async ({ page }) => {

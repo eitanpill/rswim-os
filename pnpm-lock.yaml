@@ -32,12 +32,18 @@ importers:
       '@rswim/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@rswim/domain-attendance':
+        specifier: workspace:*
+        version: link:../../packages/domain/attendance
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../../packages/domain/core
       '@rswim/domain-crm':
         specifier: workspace:*
         version: link:../../packages/domain/crm
+      '@rswim/domain-enrollment':
+        specifier: workspace:*
+        version: link:../../packages/domain/enrollment
       '@rswim/domain-people':
         specifier: workspace:*
         version: link:../../packages/domain/people

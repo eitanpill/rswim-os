@@ -124,6 +124,26 @@
       "waitlist": {
         "title": "Waitlist",
         "hint": "Waiting families and new-group suggestions"
+      },
+      "attendance": {
+        "title": "Attendance and absences",
+        "hint": "Today's lessons, who's coming, notices"
+      },
+      "makeups": {
+        "title": "Makeups",
+        "hint": "Open credits, booking, goodwill"
+      },
+      "trials": {
+        "title": "Trial lessons",
+        "hint": "Book, verdict, enroll"
+      },
+      "closures": {
+        "title": "Closures",
+        "hint": "Mass cancellation, makeups, uptake report"
+      },
+      "forms": {
+        "title": "Forms and regulations",
+        "hint": "Versions, publishing, signatures"
       }
     }
   },
@@ -176,7 +196,43 @@
       "actions": "Quick actions",
       "reportAbsence": "Report an absence",
       "bookMakeup": "Book a makeup",
-      "payments": "Payments and receipts"
+      "payments": "Payments and receipts",
+      "makeups": "Makeups to book",
+      "noCredits": "No open makeups",
+      "credit": "Makeup for {name}, until {until}",
+      "forms": "Forms to sign",
+      "formsDue": "{n, plural, one {1 form is} other {# forms are}} waiting for your signature",
+      "signForms": "Sign"
+    },
+    "schedule": {
+      "title": "Upcoming lessons",
+      "subtitle": "Not coming? Report it here. Timely notice earns a makeup under the regulations",
+      "booked": "Makeup booked",
+      "makeups": "Booked makeups",
+      "cancelMakeup": "Cancel",
+      "cancelConfirm": "Cancel the makeup? The credit comes back to you",
+      "none": "No lessons in the next two weeks",
+      "pending": "Notice received",
+      "withCredit": "Earns a makeup",
+      "noCredit": "No makeup",
+      "comingAfterAll": "Coming after all",
+      "report": "We won't come",
+      "confirm": "Report that {name} won't come to this lesson?",
+      "reported": "Notice sent"
+    },
+    "makeup": {
+      "title": "Book a makeup",
+      "subtitle": "Lessons that fit with a free seat, until {until}",
+      "back": "Back",
+      "empty": "No fitting lesson with a free seat right now",
+      "emptyHint": "Check again later; seats free up when children report absences",
+      "book": "Book"
+    },
+    "documents": {
+      "title": "Documents",
+      "due": "To sign",
+      "allDone": "All signed, thank you!",
+      "accepted": "Thank you, saved"
     }
   },
   "platform": {
@@ -204,7 +260,8 @@
       "invalid": "Invalid value",
       "duplicate": "This already exists",
       "datesReversed": "The end date must be after the start date",
-      "timesReversed": "The end time must be after the start time"
+      "timesReversed": "The end time must be after the start time",
+      "dateTime": "Invalid date and time"
     }
   },
   "enums": {
@@ -396,6 +453,89 @@
       "venue_closure": "Venue closure",
       "before_group_start": "Before the group starts",
       "after_group_end": "After the group ends"
+    },
+    "attendanceKind": {
+      "member": "Member",
+      "makeup": "Makeup",
+      "trial": "Trial"
+    },
+    "attendanceStatus": {
+      "present": "Here",
+      "late": "Late",
+      "absent": "Away"
+    },
+    "absenceChannel": {
+      "parent_portal": "Parent portal",
+      "phone": "Phone",
+      "whatsapp": "WhatsApp",
+      "instructor": "Via instructor",
+      "other": "Other"
+    },
+    "absenceNoticeStatus": {
+      "pending": "Checking",
+      "processed": "Processed",
+      "withdrawn": "Withdrawn"
+    },
+    "absenceClassification": {
+      "timely": "On time",
+      "late_notice": "Late"
+    },
+    "creditReason": {
+      "notified_absence": "Absence",
+      "school_cancellation": "Our cancellation",
+      "external_closure": "External closure",
+      "goodwill": "Goodwill"
+    },
+    "creditStatus": {
+      "open": "Open",
+      "booked": "Booked",
+      "used": "Used",
+      "expired": "Expired",
+      "converted": "Converted",
+      "void": "Void"
+    },
+    "makeupBookingStatus": {
+      "booked": "Booked",
+      "attended": "Attended",
+      "missed": "Missed",
+      "cancelled": "Cancelled"
+    },
+    "trialStatus": {
+      "booked": "Booked",
+      "attended": "Attended",
+      "no_show": "No show",
+      "cancelled": "Cancelled"
+    },
+    "trialOutcome": {
+      "fit": "Fits",
+      "not_fit": "Not a fit yet"
+    },
+    "formKind": {
+      "registration": "Registration form",
+      "health_declaration": "Health declaration",
+      "regulations": "Regulations",
+      "photo_consent": "Photo consent"
+    },
+    "formChannel": {
+      "parent_portal": "Parent portal",
+      "owner_recorded": "By phone, recorded by the office",
+      "paper": "Paper form"
+    },
+    "closureEventStatus": {
+      "draft": "Draft",
+      "open": "Open, makeups running",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "closureEndRule": {
+      "expire": "Expire",
+      "convert_to_credit": "Become account credit",
+      "partial_refund": "Partial refund"
+    },
+    "makeupGuarantee": {
+      "guaranteed": "Guaranteed",
+      "best_effort": "If a seat is free",
+      "none": "None"
     }
   },
   "venues": {
@@ -782,6 +922,11 @@
       "b": "With",
       "type": "Relation",
       "add": "Add relation"
+    },
+    "forms": {
+      "title": "Forms and regulations",
+      "allDone": "Every form is signed",
+      "accepted": "Recorded signatures ({n})"
     }
   },
   "people": {
@@ -922,7 +1067,8 @@
       },
       "health": {
         "declaration_required": "Health declaration required",
-        "sick_children_allowed": "Sick children may attend"
+        "sick_children_allowed": "Sick children may attend",
+        "declaration_valid_months": "Health declaration valid for (months)"
       },
       "consent": {
         "photo_default": "Photos"
@@ -1293,6 +1439,274 @@
       "earliestAt": "Not before",
       "latestAt": "Not after",
       "notes": "Notes"
+    }
+  },
+  "attendance": {
+    "tabs": {
+      "label": "Lesson screens",
+      "day": "Lessons by day",
+      "makeups": "Makeups",
+      "trials": "Trials",
+      "closures": "Closures",
+      "forms": "Forms & regulations"
+    },
+    "day": {
+      "title": "Attendance and absences",
+      "subtitle": "Pick a lesson to see who is coming and record an absence notice",
+      "date": "Date",
+      "show": "Show",
+      "prev": "Previous day",
+      "next": "Next day",
+      "empty": "No lessons on this day",
+      "back": "Back to the day's lessons"
+    },
+    "lineup": {
+      "title": "Who's coming ({n})",
+      "empty": "No children in this lesson",
+      "notified": "Notified absence",
+      "unmarked": "Not marked",
+      "minutes": "{n} min",
+      "counts": "Here {present} · Away {absent} · of {total}",
+      "pending": "{n} marks waiting to send",
+      "synced": "All saved",
+      "lateBy": "Late by",
+      "skills": "Level skills: {done} of {total}",
+      "progressOffline": "No connection. The skill wasn't saved; try again when you're back online",
+      "back": "Back to my day"
+    },
+    "flags": {
+      "waterFear": "Afraid of water",
+      "femaleInstructor": "Female instructor only",
+      "noPhotos": "No photos",
+      "medical": "Medical note"
+    },
+    "absence": {
+      "notices": "Absence notices",
+      "none": "No notices for this lesson",
+      "withCredit": "Earns a makeup",
+      "noCredit": "No makeup",
+      "withdraw": "Withdraw notice",
+      "withdrawConfirm": "Withdraw this notice? An unbooked makeup it earned is cancelled.",
+      "record": "Record an absence notice",
+      "student": "Child",
+      "channel": "How they told us",
+      "receivedAt": "When the notice arrived",
+      "receivedAtHint": "Blank = now. The regulations decide by this time",
+      "note": "Note",
+      "submit": "Record and check the regulations",
+      "pending": "Notice received; it will be checked against the regulations"
+    },
+    "makeups": {
+      "title": "Makeups",
+      "subtitle": "Open credits, until when, and where they're booked",
+      "booked": "Makeup booked",
+      "live": "Live credits ({n})",
+      "empty": "No open credits",
+      "window": "Usable {from} to {until}",
+      "until": "Valid until {until}",
+      "bookedInto": "Booked into {group}, {when}",
+      "cancelBooking": "Cancel makeup",
+      "findLesson": "Find a makeup lesson",
+      "void": "Void credit",
+      "voidNote": "Why",
+      "voidSubmit": "Void credit",
+      "goodwill": "Goodwill credit",
+      "goodwillHint": "A makeup outside the regulations. It doesn't count toward the monthly cap",
+      "goodwillIssued": "Credit added",
+      "student": "Child",
+      "program": "Program",
+      "expiresOn": "Valid until",
+      "reason": "Reason",
+      "issue": "Add credit"
+    },
+    "offers": {
+      "title": "Makeup for {name}",
+      "subtitle": "Lessons that fit with a free seat, until {until}",
+      "back": "Back to makeups",
+      "lessons": "Possible lessons ({n})",
+      "empty": "No fitting lesson with a free seat right now",
+      "emptyHint": "Lessons appear here when someone notifies an absence or a seat frees up",
+      "seats": "{n, plural, one {1 free seat} other {# free seats}}",
+      "overrideNote": "Why book anyway",
+      "overrideHint": "This lesson breaks a soft rule. Your note is kept with the booking",
+      "book": "Book makeup",
+      "bookAnyway": "Book anyway"
+    },
+    "closures": {
+      "title": "Closures and mass cancellations",
+      "subtitle": "A pool closes for a few days: every lesson is cancelled, every child gets a makeup, a makeup window opens",
+      "list": "Closure events",
+      "empty": "No closures yet",
+      "allVenues": "All venues",
+      "new": "New closure",
+      "venue": "Venue",
+      "source": "Reason for closing",
+      "startsOn": "From",
+      "endsOn": "Until",
+      "reason": "Description (shown to parents)",
+      "makeupFrom": "Makeup window opens",
+      "makeupFromHint": "Blank = the day after the closure",
+      "makeupDeadline": "Last day for makeups",
+      "endRule": "What happens to unused credits at the end",
+      "endRuleDefault": "Per the regulations",
+      "preview": "Preview",
+      "back": "Back to closures",
+      "terms": "Event terms",
+      "makeupWindow": "Makeup window",
+      "guarantee": "Makeup guarantee",
+      "rule": "Per the regulations",
+      "previewTitle": "What opening the event will do",
+      "totals": "{sessions} lessons cancelled · {children} children · {credits} makeups opened · {guests} booked makeups cancelled",
+      "guests": "{n} makeup guests booked here get their credit back",
+      "open": "Open the event and cancel lessons",
+      "openConfirm": "Cancel every lesson in the range and open makeups for every child?",
+      "discard": "Discard draft",
+      "opened": "{sessions} lessons cancelled and {credits} makeups opened",
+      "report": "Makeup uptake report",
+      "sessionsCancelled": "{n} lessons cancelled",
+      "group": "Group",
+      "total": "Total",
+      "col": {
+        "issued": "Issued",
+        "booked": "Booked",
+        "used": "Used",
+        "missed": "Missed",
+        "expired": "Expired",
+        "converted": "Converted",
+        "outstanding": "Still open"
+      },
+      "close": "Close the event",
+      "closeConfirm": "Close the event? Unbooked credits follow the end rule."
+    },
+    "closure": {
+      "credit": "Gets a makeup",
+      "frozen": "Frozen, no makeup",
+      "trial": "Trial, to be rebooked",
+      "noMakeup": "The regulations give no makeup for this closure"
+    },
+    "decision": {
+      "timely": "Notice came {hours} h {minutes} min before the lesson (at least {min} h needed)",
+      "lateNotice": "Notice came only {hours} h {minutes} min before the lesson (at least {min} h needed)",
+      "afterStart": "Notice came after the lesson started",
+      "creditIssued": "Makeup opened",
+      "makeupsOff": "This program has no makeups",
+      "lateNoMakeup": "Late notice earns no makeup",
+      "timelyNoMakeup": "Under the regulations an absence earns no makeup",
+      "monthlyCap": "The monthly cap of {max, plural, one {1 makeup} other {# makeups}} is used up",
+      "present": "On time",
+      "late": "{minutes} min late (up to {max} counts as present)",
+      "tooLate": "{minutes} min late, over {max}: recorded as absent",
+      "closureBySchool": "Our cancellation: {guarantee, select, guaranteed {makeup guaranteed} best_effort {makeup if a seat is free} other {no makeup}}",
+      "closureExternal": "External closure: {guarantee, select, guaranteed {makeup guaranteed} best_effort {makeup if a seat is free} other {no makeup}}",
+      "beforeWindow": "The makeup window opens on {from}",
+      "afterExpiry": "After the credit expires ({until})",
+      "otherProgram": "Different program",
+      "ownGroup": "This is the child's own group",
+      "noSeat": "No free seat",
+      "genderUnknown": "{name} has no gender recorded, and this hour is for {window, select, female {women and girls} women {women} girls {girls} male {men and boys} men {men} boys {boys} other {everyone}}",
+      "windowGender": "The pool at this hour is open only to {window, select, female {women and girls} women {women} girls {girls} male {men and boys} men {men} boys {boys} other {everyone}}, and {name} doesn't fit",
+      "groupGender": "The group is for {admitted, select, female {girls} male {boys} other {everyone}}, and {name} doesn't fit",
+      "tooYoung": "{name} is younger than the group's age range",
+      "tooOld": "{name} is older than the group's age range",
+      "levelApart": "{name} is {levels} levels from the group (up to {max} allowed)",
+      "femaleInstructorRequired": "{name} needs a female instructor, and a man teaches this lesson",
+      "creditNotOpen": "The credit is no longer open",
+      "selfBookingOff": "Makeups are booked through the office",
+      "noActiveEnrollment": "The child has no active subscription",
+      "overrideNeeded": "Write a note to book anyway"
+    },
+    "errors": {
+      "alreadyReported": "A notice for this lesson was already received",
+      "notInSession": "The child isn't in this lesson",
+      "sessionNotScheduled": "The lesson is cancelled or not scheduled",
+      "cannotCancelBooking": "This makeup can't be cancelled (the lesson may have started)",
+      "creditNotOpen": "The credit is no longer open",
+      "creditNotYours": "The credit belongs to another child",
+      "afterExpiry": "The lesson is after the credit expires",
+      "sessionStarted": "The lesson has already started",
+      "noSeat": "The last seat was just taken. Pick another lesson",
+      "bookingStatus": "This makeup can't be changed",
+      "verdictOnly": "Instructors can only update the trial's verdict",
+      "deadlineBeforeWindow": "The deadline is before the makeup window opens",
+      "eventNotDraft": "The event is already open",
+      "eventNotOpen": "The event isn't open",
+      "expiryPast": "The expiry date has passed",
+      "notOffered": "This lesson doesn't fit this credit"
+    }
+  },
+  "enrollment": {
+    "decision": {
+      "offsetOff": "Under the regulations the trial fee isn't offset",
+      "noFee": "The trial was free",
+      "offsetExpired": "The offset window ended on {until}",
+      "offsetApplied": "The trial fee (₪{amount}) comes off the first payment",
+      "missing": "Not signed yet",
+      "newVersion": "A new version was published; sign again",
+      "renew": "Renew every {months} months"
+    },
+    "errors": {
+      "sessionNotBookable": "A trial can't be booked in this lesson (cancelled or started)",
+      "trialNotBooked": "The trial is no longer open",
+      "trialNotAttended": "Convert only after the child attended the trial",
+      "alreadyConverted": "This trial was already converted",
+      "formsMissing": "{count, plural, one {1 form is} other {# forms are}} missing before enrolling (regulations, health declaration). Record them on the family card",
+      "formNotPublished": "The form isn't published yet",
+      "studentRequired": "Pick a child for this form",
+      "answerAll": "Answer every question"
+    },
+    "trials": {
+      "title": "Trial lessons",
+      "subtitle": "Book a trial, record the instructor's verdict, enroll within the offset window",
+      "list": "Recent and upcoming trials",
+      "empty": "No trials",
+      "attended": "Attended?",
+      "yes": "Yes",
+      "no": "No",
+      "outcome": "Fit",
+      "recommendedGroup": "Recommended group",
+      "note": "Note",
+      "saveVerdict": "Save verdict",
+      "verdictSaved": "Verdict saved",
+      "verdictTitle": "Trial verdicts",
+      "cancel": "Cancel trial",
+      "cancelConfirm": "Cancel this trial?",
+      "isConverted": "Enrolled in a group",
+      "offerUntil": "The trial fee is offset when enrolling by {until}",
+      "group": "Group",
+      "startsOn": "Starting",
+      "convert": "Enroll in group",
+      "converted": "Enrolled",
+      "book": "Book a trial",
+      "student": "Child",
+      "session": "Lesson",
+      "bookSubmit": "Book trial",
+      "bookedOk": "Trial booked"
+    },
+    "forms": {
+      "title": "Forms and regulations",
+      "subtitle": "Each version is a fixed text. Publishing a new one asks every family to sign again",
+      "versions": "Versions",
+      "empty": "No forms yet",
+      "version": "Version {n}",
+      "from": "from {date}",
+      "published": "Published",
+      "publish": "Publish",
+      "publishConfirm": "Publish? The text can't change afterwards, and every family will be asked to sign",
+      "text": "Full text",
+      "newVersion": "New version",
+      "kind": "Kind",
+      "effectiveFrom": "Effective from",
+      "formTitle": "Title",
+      "body": "Text",
+      "questions": "Yes/no questions",
+      "questionsHint": "One question per line (e.g. for the health declaration)",
+      "saveDraft": "Save draft",
+      "draftSaved": "Draft saved. Publish it from the list",
+      "tickYes": "Tick the questions answered yes",
+      "channel": "How it was signed",
+      "record": "Record signature",
+      "accept": "I have read and accept",
+      "recorded": "Signature recorded"
     }
   }
 }
