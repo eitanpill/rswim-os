@@ -1,4 +1,15 @@
 import { attendanceNightly, attendanceProcessAbsence } from './attendance';
+import {
+  billingApplyGrowWebhook,
+  billingCancelMandate,
+  billingClosureCredits,
+  billingCollectRun,
+  billingCreateLink,
+  billingDailyDunning,
+  billingIssueReceipts,
+  billingProviderRefund,
+  billingTrialOffset,
+} from './billing';
 import { corePing } from './core-ping';
 import { crmApplyWebhook, crmImportContacts, crmPushGuardian } from './crm';
 import { outboxRelay } from './outbox-relay';
@@ -14,4 +25,13 @@ export const functions = [
   schedulingEscalateShiftChanges,
   attendanceProcessAbsence,
   attendanceNightly,
+  billingCollectRun,
+  billingCreateLink,
+  billingApplyGrowWebhook,
+  billingIssueReceipts,
+  billingProviderRefund,
+  billingCancelMandate,
+  billingTrialOffset,
+  billingClosureCredits,
+  billingDailyDunning,
 ];

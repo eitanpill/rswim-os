@@ -24,6 +24,7 @@ import {
   type ResolvedPolicy,
   type PriceListVersion,
   type PriceQuery,
+  type ResolvedPrice,
 } from './policies';
 
 const { programs, levels, policySets, priceLists, priceItems } = schema;
@@ -346,8 +347,13 @@ export async function deletePriceList(tx: Tx, id: string) {
   await tx.delete(priceLists).where(eq(priceLists.id, id));
 }
 
-/** "What does X cost at venue Y on date Z?" — the same resolution billing will use. */
+/** "What does X cost at venue Y on date Z?" — the same resolution billing uses. */
 export async function priceFor(tx: Tx, q: PriceQuery) {
+  return (await loadPriceResolver(tx))(q);
+}
+
+/** Loads every price list once and returns a resolver, for callers that price many lines (a billing run). */
+export async function loadPriceResolver(tx: Tx): Promise<(q: PriceQuery) => ResolvedPrice | null> {
   const lists = await tx.select().from(priceLists);
   const items = lists.length
     ? await tx
@@ -367,5 +373,5 @@ export async function priceFor(tx: Tx, q: PriceQuery) {
       .filter((i) => i.priceListId === l.id)
       .map((i) => ({ ...i, kind: i.kind as PriceItemKind })),
   }));
-  return resolvePrice(versions, q);
+  return (q) => resolvePrice(versions, q);
 }

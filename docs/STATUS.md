@@ -5,8 +5,25 @@
 | 0 Foundations | **Done**, merged | All three acceptance criteria pass |
 | 1 Core data | **Done**, merged (PR #2) | Both acceptance criteria pass |
 | 2 Scheduling engine | **Done**, merged (PR #3) | All three acceptance criteria pass |
-| 3 Attendance, makeups, trials, forms | **Done** (PR #4) | Both acceptance criteria pass (see below) |
-| 4–10 | Not started | |
+| 3 Attendance, makeups, trials, forms | **Done**, merged (PR #4) | Both acceptance criteria pass |
+| 4 Billing and collections | **Done** (PR #5) | All four acceptance criteria pass (see below) |
+| 5–10 | Not started | |
+
+## Phase 4 acceptance criteria
+
+| Criterion | Proof | Result |
+|---|---|---|
+| Property-based tests on the billing rules | `packages/domain/billing/test/policies.test.ts`: nine fast-check properties: the cancellation cut-off is decided by the Israel date; proration never exceeds the price and more lessons never cost less; a seat never costs more than the month's price or less than nothing; the sibling discount is never negative or above the charge, and the most expensive child pays in full; a statement totals its rounded lines; dunning never exceeds its retries and every open case escalates on time; the balance is the same in any order and equals unpaid minus paid ahead; a reversal restores the balance; receipts always add up to the payment. Unit cases cover every other branch. 100% statements and branches on `policies.ts` | Pass |
+| The pre-run review flags a charge without an enrollment, an enrollment without a charge, and a duplicate mandate | `apps/web/e2e/billing.spec.ts` AC2 (UI only): the owner opens the October draft and sees "חיוב בלי רישום · הוראת קבע פעילה בלי אף מקום בקבוצה", "רישום בלי חיוב · אין מחיר במחירון לתוכנית הזו" and "הוראת קבע כפולה · 2 הוראות קבע פעילות למשפחה אחת", each family's lines with their reasons next to last month's total. Service level: `services.test.ts` AC2 drafts September over fixtures with each case (plus proration by a freeze, the sibling discount, last month's therapy, a missing standing order), redrafts, posts and locks | Pass |
+| A failed charge triggers the dunning sequence | `services.test.ts` AC3: collection charges each standing order once (a family without one gets a payment link), the Grow webhook settles one charge and declines another, the declined family's case opens with the update-card step, retries on the policy's days, escalates to the owner after ten days and closes when paid. `billing.spec.ts` AC3: the seeded declined card sits on the debts dashboard with "תיק גבייה: פתוח" | Pass |
+| A reimbursement receipt contains the wording, ID, dates and payment method | `services.test.ts` AC4: the paid link's invoice-receipt sent to the fake Green Invoice carries the Ministry of Defense wording, "ת.ז. 000000018", each lesson date and "כרטיס אשראי", one document per month; the ID is stored encrypted (only the last four digits readable, parents can't select it). A profile that needs an ID with none on file stores a failed document saying why | Pass |
+
+Also through the UI: the office records a cash payment on a family card and the balance drops, and a parent sees
+their balance, standing order and history on **תשלומים**.
+
+Totals on 2026-10-02: 415 unit/integration tests + 24 browser tests, all green. `lint`, `typecheck`, `format:check`
+clean. Coverage stays 100% on the pure policy modules, now including `domain-billing` policies and the Grow and fake
+provider adapters.
 
 ## Phase 3 acceptance criteria
 
@@ -61,9 +78,13 @@ Coverage is 100% (statements and branches) on `money`, `contracts`, `calendar` a
 - Against a real Supabase project: the access-token hook, SMS OTP and password sign-in are tested at the SQL and unit level, and the shells via the local demo login, but no hosted Supabase project exists yet.
 - The Inngest worker has not run against Inngest Cloud or the Inngest dev server; relay and consumer logic is tested directly.
 
+- Against real Grow and Green Invoice accounts: payments, links, refunds, webhooks and receipts run against fakes
+  (`RSWIM_GROW_FAKE=1`, `RSWIM_INVOICING_FAKE=1`). Connecting them needs Pit's account details; the webhook needs
+  `GROW_WEBHOOK_SECRET`. Without a provider the worker leaves billing events unconsumed and logs it.
+
 - The parent's absence notice is classified by the worker (`attendance-process-absence`); without the worker running
   it stays "ההודעה התקבלה" until the nightly safety net or the next worker start.
 
 ## Next
-Phase 4: billing and money (ledger, standing orders, payment links, the trial-fee offset and converted closure
-credits arriving as ledger entries, private lesson absences).
+Phase 5: messaging (WhatsApp and SMS through the outbox: absence answers, makeup offers, payment links, the
+update-card step of dunning, schedule changes).

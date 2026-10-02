@@ -22,6 +22,7 @@ import {
   updateStudentAction,
 } from '../actions';
 import { GuardianFields, HouseholdFields, StudentFields } from '../fields';
+import { FamilyMoney, loadFamilyMoney } from './money';
 
 /** Age in years and months on the server's today, for the student card. */
 function age(dob: string | null): { years: number; months: number } | null {
@@ -38,16 +39,21 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
   const data = await withSession(async (tx) => {
     const family = await getHousehold(tx, id);
     if (!family) return null;
-    const [programs, staff, forms, accepted] = await Promise.all([
+    const [programs, staff, forms, accepted, money] = await Promise.all([
       listPrograms(tx),
       listStaff(tx),
       formsDueFor(tx, id),
       submissionsOfHousehold(tx, id),
+      loadFamilyMoney(
+        tx,
+        id,
+        family.students.map((s) => s.id),
+      ),
     ]);
-    return { family, programs, staff, forms, accepted };
+    return { family, programs, staff, forms, accepted, money };
   });
   if (!data) notFound();
-  const { family, programs, staff, forms, accepted } = data;
+  const { family, programs, staff, forms, accepted, money } = data;
   const { household, guardians, students, relations } = family;
   const t = await getTranslations('families');
   const tc = await getTranslations('common');
@@ -241,6 +247,8 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
             ) : null}
           </Card>
         ) : null}
+
+        <FamilyMoney householdId={household.id} students={students} data={money} />
 
         <Card data-testid="family-forms">
           <CardTitle>{t('forms.title')}</CardTitle>

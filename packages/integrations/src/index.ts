@@ -30,7 +30,18 @@ export interface PaymentLinkRequest {
   /** Printed on the link, e.g. how a trial fee is offset (brief §1.3). */
   termsText?: string;
 }
+export interface ChargeResult {
+  externalPaymentId: string;
+  /** Grow answers a token charge at once; `pending` means the result arrives by webhook. */
+  status: 'succeeded' | 'failed' | 'pending';
+  failureReason?: string;
+}
 export interface PaymentProvider {
+  /** Charges a standing order's card token for this month's statement. */
+  chargeStandingOrder(
+    ctx: ProviderContext,
+    req: { mandateId: string; amount: Agorot; description: string },
+  ): Promise<ChargeResult>;
   createPaymentLink(
     ctx: ProviderContext,
     req: PaymentLinkRequest,
@@ -86,3 +97,5 @@ export interface CrmProvider {
   ): Promise<void>;
 }
 export * from './ghl';
+export * from './grow';
+export * from './fakes';

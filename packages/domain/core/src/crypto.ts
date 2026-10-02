@@ -4,6 +4,7 @@
  * Format of every ciphertext: version (1 byte) | iv (12) | auth tag (16) | ciphertext.
  */
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
+import { sql, type Tx } from '@rswim/db';
 
 const VERSION = 1;
 const IV_LEN = 12;
@@ -63,3 +64,20 @@ export interface FieldContext {
 }
 
 const aadFor = (c: FieldContext) => `${c.table}.${c.column}:${c.rowId}`;
+
+/**
+ * The org's data key, for services that write or read encrypted fields as the office or the tenant's worker. The
+ * database hands out the wrapped key of the caller's own organization only (app.wrapped_dek); unwrapping it needs
+ * RSWIM_MASTER_KEY. Returns null when either is missing, and the caller refuses the operation.
+ */
+export async function orgDataKey(
+  tx: Tx,
+  orgId: string,
+  masterKeyBase64 = process.env.RSWIM_MASTER_KEY,
+): Promise<Buffer | null> {
+  if (!masterKeyBase64) return null;
+  const r = await tx.execute(sql`select app.wrapped_dek() as k`);
+  const wrapped = (r.rows[0] as { k: Buffer | null } | undefined)?.k;
+  if (!wrapped) return null;
+  return unwrapDataKey(parseMasterKey(masterKeyBase64), orgId, wrapped);
+}

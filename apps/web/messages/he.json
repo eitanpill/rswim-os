@@ -144,6 +144,10 @@
       "forms": {
         "title": "טפסים ותקנון",
         "hint": "גרסאות, פרסום וחתימות"
+      },
+      "reimbursement": {
+        "title": "פרופילי החזר",
+        "hint": "נוסח חשבוניות למשרד הביטחון וביטוחים"
       }
     }
   },
@@ -178,8 +182,10 @@
   },
   "accountant": {
     "home": {
-      "title": "פורטל רואה חשבון",
-      "empty": "ייצוא שכר וחשבוניות יופיע כאן"
+      "title": "כספים",
+      "empty": "אין חובות פתוחים",
+      "debts": "חובות פתוחים",
+      "runs": "חיובים חודשיים"
     }
   },
   "parent": {
@@ -261,7 +267,12 @@
       "duplicate": "כבר קיים פריט כזה",
       "datesReversed": "תאריך הסיום חייב להיות אחרי תאריך ההתחלה",
       "timesReversed": "שעת הסיום חייבת להיות אחרי שעת ההתחלה",
-      "dateTime": "תאריך ושעה לא תקינים"
+      "dateTime": "תאריך ושעה לא תקינים",
+      "amount": "סכום לא תקין",
+      "period": "חודש לא תקין (YYYY-MM)",
+      "last4": "4 ספרות",
+      "nationalId": "מספר ת.ז. לא תקין",
+      "dateOrder": "תאריך הסיום לפני תאריך ההתחלה"
     }
   },
   "enums": {
@@ -536,6 +547,115 @@
       "guaranteed": "מובטחת",
       "best_effort": "לפי מקום פנוי",
       "none": "אין"
+    },
+    "ledgerEntryType": {
+      "charge": "חיוב",
+      "discount": "הנחה",
+      "credit": "זיכוי",
+      "payment": "תשלום",
+      "refund": "החזר",
+      "write_off": "מחיקת חוב",
+      "adjustment": "תיקון"
+    },
+    "ledgerSource": {
+      "billing_run": "חיוב חודשי",
+      "manual": "ידני",
+      "trial_offset": "קיזוז שיעור ניסיון",
+      "closure_credit": "זיכוי ביטול",
+      "payment": "תשלום",
+      "refund": "החזר",
+      "reversal": "ביטול רישום"
+    },
+    "billingLineKind": {
+      "seat": "מקום בקבוצה",
+      "slots": "שיעורים פרטיים",
+      "package": "חבילה",
+      "trial": "שיעור ניסיון",
+      "sibling_discount": "הנחת אחים"
+    },
+    "billingRunStatus": {
+      "draft": "טיוטה",
+      "posted": "אושר",
+      "discarded": "בוטל"
+    },
+    "anomalyKind": {
+      "charge_without_enrollment": "חיוב בלי רישום",
+      "enrollment_without_charge": "רישום בלי חיוב",
+      "duplicate_mandate": "הוראת קבע כפולה",
+      "missing_mandate": "אין הוראת קבע",
+      "amount_changed": "שינוי חד בסכום"
+    },
+    "paymentMethod": {
+      "credit_card": "כרטיס אשראי",
+      "standing_order": "הוראת קבע",
+      "bit": "ביט",
+      "paybox": "פייבוקס",
+      "cash": "מזומן",
+      "bank_transfer": "העברה בנקאית",
+      "cheque": "צ׳ק",
+      "other": "אחר"
+    },
+    "paymentStatus": {
+      "pending": "ממתין",
+      "succeeded": "התקבל",
+      "failed": "נכשל",
+      "cancelled": "בוטל"
+    },
+    "paymentKind": {
+      "payment": "תשלום",
+      "refund": "החזר"
+    },
+    "standingOrderStatus": {
+      "active": "פעילה",
+      "failing": "נכשלה",
+      "cancelled": "בוטלה"
+    },
+    "paymentLinkStatus": {
+      "open": "פתוח",
+      "paid": "שולם",
+      "cancelled": "בוטל"
+    },
+    "fiscalDocumentKind": {
+      "invoice_receipt": "חשבונית-קבלה",
+      "credit_note": "חשבונית זיכוי"
+    },
+    "fiscalDocumentStatus": {
+      "pending": "בהפקה",
+      "issued": "הופקה",
+      "failed": "נכשלה"
+    },
+    "dunningStatus": {
+      "open": "פתוח",
+      "escalated": "אצל הבעלים",
+      "resolved": "נסגר",
+      "written_off": "נמחק"
+    },
+    "reimbursementKind": {
+      "ministry_of_defense": "משרד הביטחון",
+      "insurance": "ביטוח",
+      "reservists": "מילואים",
+      "employer": "מעסיק",
+      "other": "אחר"
+    },
+    "preferredMethod": {
+      "standing_order": "הוראת קבע",
+      "payment_link": "קישור תשלום",
+      "manual": "תשלום ידני"
+    },
+    "freezeStatus": {
+      "requested": "ממתינה לאישור",
+      "approved": "מאושרת",
+      "rejected": "נדחתה",
+      "cancelled": "בוטלה"
+    },
+    "freezeReason": {
+      "medical": "רפואית",
+      "vacation": "חופשה",
+      "other": "אחר"
+    },
+    "cancellationStatus": {
+      "active": "בתוקף",
+      "withdrawn": "בוטל"
     }
   },
   "venues": {
@@ -984,6 +1104,7 @@
   "policy": {
     "sections": {
       "billing": "חיוב ומנוי",
+      "dunning": "גבייה וחובות",
       "discount": "הנחות",
       "trial": "שיעור ניסיון",
       "attendance": "נוכחות",
@@ -1012,7 +1133,15 @@
         "freeze_charge": "חיוב בזמן הקפאה",
         "freeze_requires_approval": "הקפאה דורשת אישור",
         "annual_early_termination": "ביטול מנוי שנתי",
-        "closure_credit": "זיכוי על סגירה חיצונית"
+        "closure_credit": "זיכוי על סגירה חיצונית",
+        "anomaly_change_bp": "שינוי חריג מהחודש הקודם (סימון בבדיקה לפני חיוב)"
+      },
+      "dunning": {
+        "first_retry_days": "ימים עד ניסיון החיוב החוזר הראשון",
+        "retry_interval_days": "ימים בין ניסיונות חיוב",
+        "max_retries": "מספר ניסיונות חיוב חוזרים",
+        "escalate_after_days": "ימים עד העברה לטיפול הבעלים",
+        "pause_enrollment": "השהיית ההרשמה בחוב שלא נגבה"
       },
       "discount": {
         "sibling": {
@@ -1707,6 +1836,240 @@
       "record": "רישום חתימה",
       "accept": "קראתי ואני מאשר/ת",
       "recorded": "החתימה נרשמה"
+    }
+  },
+  "billing": {
+    "decision": {
+      "cancelBeforeCutoff": "הביטול התקבל ב-{requested}, עד ה-{cutoff} בחודש: החיוב האחרון הוא לחודש {last}",
+      "cancelAfterCutoff": "הביטול התקבל ב-{requested}, אחרי ה-{cutoff} בחודש: גם חודש {last} מחויב",
+      "noSessions": "אין שיעורים בחודש הזה",
+      "noBillableSessions": "אין שיעורים לחיוב בחודש הזה",
+      "belowMinSessions": "רק {billable} שיעורים לחיוב, פחות מהמינימום ({min}): אין חיוב",
+      "fullMonth": "חודש מלא ({sessions} שיעורים)",
+      "proratedDays": "חיוב יחסי: {days} מתוך {total} ימים",
+      "proratedSessions": "חיוב יחסי: {billable} מתוך {total} שיעורים",
+      "cancelled": "המקום בוטל, החיוב האחרון היה לחודש {last}",
+      "frozen": "הקפאה: {sessions} שיעורים לא חויבו",
+      "noPrice": "אין מחיר במחירון לתוכנית הזו",
+      "slotBooked": "שיעור שהתקיים",
+      "slotLateCancel": "בוטל {hours} שעות לפני השיעור (פחות מ-{min}): מחויב",
+      "slotCancelledInTime": "בוטל {hours} שעות לפני השיעור: לא מחויב",
+      "slotsMonth": "{lessons} שיעורים בחודש הקודם ({late} ביטולים מאוחרים)",
+      "package": "חבילה, חיוב חד-פעמי",
+      "trialFee": "דמי שיעור ניסיון",
+      "siblingPercent": "הנחת אחים {percent}%",
+      "siblingFlat": "הנחת אחים {amount}",
+      "annualNoRefund": "מנוי שנתי: אין החזר על יציאה מוקדמת",
+      "annualDifference": "מנוי שנתי: הפרש לפי מחיר חודשי על {months} חודשים",
+      "duplicateMandate": "{count} הוראות קבע פעילות למשפחה אחת",
+      "mandateWithoutSeat": "הוראת קבע פעילה בלי אף מקום בקבוצה",
+      "chargeWithoutSeat": "חיוב על מקום שאינו פעיל",
+      "seatWithoutLine": "מקום פעיל בלי שורת חיוב",
+      "noMandate": "חייבים {amount} ואין הוראת קבע: יישלח קישור תשלום",
+      "amountUp": "הסכום עלה מ-{from} ל-{to} ({percent}%)",
+      "amountDown": "הסכום ירד מ-{from} ל-{to} ({percent}%)",
+      "dunningEscalate": "עברו {days} ימים: התיק עובר לבעלים",
+      "dunningRetry": "ניסיון חיוב חוזר {attempt} מתוך {max}",
+      "dunningRemind": "תזכורת {attempt} מתוך {max}: קישור התשלום נשלח שוב",
+      "dunningWait": "הצעד הבא ב-{on}",
+      "dunningOwner": "ממתין להחלטת הבעלים",
+      "dunningPaid": "החוב שולם",
+      "chargeFailed": "החיוב נכשל ({reason})",
+      "closureCredit": "זיכוי על שיעור שבוטל ב-{date}",
+      "receiptNeedsNationalId": "לפרופיל ההחזר נדרש מספר ת.ז. של המשלם, ואין אחד בתיק"
+    },
+    "errors": {
+      "runLocked": "החיוב כבר אושר ואי אפשר לשנות אותו",
+      "alreadyPosted": "החיוב של החודש הזה כבר אושר",
+      "noMandate": "אין למשפחה הוראת קבע פעילה",
+      "refundTooMuch": "אי אפשר להחזיר יותר ממה ששולם",
+      "notRefundable": "את התשלום הזה אי אפשר להחזיר",
+      "notProviderPayment": "התשלום לא עבר דרך חברת הסליקה",
+      "linkNotOpen": "הקישור כבר שולם או בוטל",
+      "freezeNotOpen": "ההקפאה כבר טופלה",
+      "notCancellable": "אי אפשר לבטל את המקום הזה",
+      "noDataKey": "מפתח ההצפנה לא מוגדר, אי אפשר לשמור ת.ז.",
+      "cannotReverseReversal": "אי אפשר לבטל רישום ביטול",
+      "reverseViaRefund": "תשלום מבטלים דרך החזר",
+      "runNotPosted": "החיוב עוד לא אושר"
+    }
+  },
+  "money": {
+    "tabs": {
+      "overview": "חובות",
+      "runs": "חיובים חודשיים",
+      "cash": "מזומן",
+      "freezes": "הקפאות",
+      "label": "מסכי הכספים"
+    },
+    "overview": {
+      "title": "כספים",
+      "subtitle": "מי חייב, כמה זמן, ומה קורה עם זה",
+      "total": "סך החובות",
+      "current": "עד 30 יום",
+      "days31to60": "31-60 יום",
+      "days61to90": "61-90 יום",
+      "over90": "מעל 90 יום",
+      "empty": "אף משפחה לא חייבת כסף",
+      "since": "חוב מ-{date}",
+      "mandate": {
+        "active": "הוראת קבע פעילה",
+        "failing": "הוראת קבע נכשלה",
+        "none": "אין הוראת קבע"
+      },
+      "case": "תיק גבייה: {status}, {retries} ניסיונות",
+      "writeOff": "מחיקת החוב",
+      "writeOffNote": "סיבה",
+      "writeOffSubmit": "למחוק את החוב",
+      "writtenOff": "החוב נמחק"
+    },
+    "runs": {
+      "title": "חיובים חודשיים",
+      "subtitle": "טיוטה, בדיקה ואישור. אחרי האישור הגבייה יוצאת לבד",
+      "draft": "הכנת טיוטה לחודש",
+      "period": "חודש (YYYY-MM)",
+      "draftSubmit": "להכין טיוטה",
+      "empty": "עוד לא הוכנו חיובים",
+      "families": "{n} משפחות",
+      "flags": "{n} דגלים",
+      "open": "לפתוח"
+    },
+    "review": {
+      "title": "חיוב {period}",
+      "subtitle": "לבדוק את הדגלים לפני אישור. אפשר לתקן נתונים ולהכין טיוטה מחדש",
+      "totals": "{families} משפחות · {total} (בחודש הקודם {previous})",
+      "flags": "דגלים לבדיקה ({n})",
+      "noFlags": "אין דגלים, הכול נראה תקין",
+      "previous": "בחודש הקודם: {amount}",
+      "noPrevious": "לא חויבו בחודש הקודם",
+      "redraft": "להכין טיוטה מחדש",
+      "approve": "לאשר ולגבות",
+      "discard": "לבטל את הטיוטה",
+      "posted": "אושר ב-{at}. הגבייה יוצאת דרך הוראות הקבע וקישורי התשלום",
+      "discarded": "הטיוטה בוטלה",
+      "approved": "החיוב אושר, הגבייה התחילה",
+      "dates": "תאריכים: {dates}"
+    },
+    "cash": {
+      "title": "מזומן שלא הועבר",
+      "empty": "כל המזומן הועבר למשרד",
+      "handOver": "סימון שהועבר",
+      "receivedBy": "התקבל אצל {name}"
+    },
+    "freezes": {
+      "title": "בקשות הקפאה",
+      "empty": "אין בקשות שמחכות",
+      "approve": "לאשר",
+      "reject": "לדחות"
+    },
+    "family": {
+      "title": "כספים",
+      "balance": "יתרה",
+      "owes": "חייבים {amount}",
+      "credit": "בזכות {amount}",
+      "settled": "אין חוב",
+      "ledger": "תנועות",
+      "noEntries": "אין תנועות עדיין",
+      "reverse": "ביטול הרישום",
+      "reverseNote": "סיבה",
+      "reversed": "בוטל",
+      "payment": "רישום תשלום",
+      "method": "אמצעי תשלום",
+      "amount": "סכום (₪)",
+      "paidOn": "תאריך",
+      "note": "הערה",
+      "receivedBy": "התקבל אצל",
+      "record": "לרשום תשלום",
+      "adjust": "זיכוי, חיוב ידני או מחיקה",
+      "kind": "סוג",
+      "kinds": {
+        "credit": "זיכוי",
+        "charge": "חיוב ידני",
+        "write_off": "מחיקת חוב"
+      },
+      "description": "תיאור",
+      "periodOptional": "חודש (לא חובה)",
+      "studentOptional": "ילד (לא חובה)",
+      "post": "לרשום",
+      "payments": "תשלומים",
+      "noPayments": "אין תשלומים",
+      "refund": "החזר",
+      "refundVia": "איך מחזירים",
+      "refundProvider": "לכרטיס, דרך חברת הסליקה",
+      "refundSubmit": "להחזיר",
+      "mandates": "הוראות קבע",
+      "noMandates": "אין הוראת קבע",
+      "mandateId": "מזהה הוראת הקבע אצל חברת הסליקה",
+      "last4": "4 ספרות אחרונות",
+      "day": "יום חיוב בחודש",
+      "mandateAmount": "סכום קבוע (לא חובה)",
+      "addMandate": "להוסיף הוראת קבע",
+      "cancelMandate": "לבטל",
+      "links": "קישורי תשלום",
+      "noLinks": "אין קישורים",
+      "requestLink": "לשלוח קישור תשלום",
+      "linkDescription": "על מה",
+      "linkTerms": "תנאים (לא חובה)",
+      "cancelLink": "לבטל קישור",
+      "linkPending": "הקישור נוצר...",
+      "details": "פרטי חשבונית והחזרים",
+      "payerName": "שם המשלם בחשבונית",
+      "payerEmail": "אימייל לחשבונית",
+      "payerId": "ת.ז. המשלם",
+      "payerIdHint": "נשמר מוצפן. ריק משאיר את הקיים, מקף (-) מוחק",
+      "payerIdOnFile": "ת.ז. בתיק: ****{last4}",
+      "profile": "פרופיל החזר",
+      "noProfile": "ללא",
+      "preferred": "איך משלמים",
+      "notes": "הערות",
+      "documents": "חשבוניות וקבלות",
+      "noDocuments": "אין מסמכים",
+      "document": "חשבונית-קבלה {number}",
+      "documentFailed": "לא הופקה: {reason}",
+      "documentPending": "בהפקה",
+      "seats": "הקפאות וביטולים",
+      "noSeats": "אין מקומות פעילים",
+      "freeze": "הקפאה",
+      "from": "מתאריך",
+      "to": "עד תאריך",
+      "reason": "סיבה",
+      "requestFreeze": "לרשום הקפאה",
+      "cancelFreeze": "לבטל הקפאה",
+      "cancel": "ביטול מקום",
+      "requestedAt": "מתי ביקשו (ריק = עכשיו)",
+      "requestCancel": "לרשום ביטול",
+      "withdraw": "לבטל את הביטול",
+      "cancelInfo": "החיוב האחרון: {last}. המקום מסתיים ב-{ends}",
+      "freezeInfo": "{from} עד {to} · {status}"
+    },
+    "profiles": {
+      "title": "פרופילי החזר",
+      "subtitle": "משרד הביטחון, ביטוחים ומעסיקים: הנוסח שמופיע בחשבונית",
+      "name": "שם",
+      "kind": "סוג",
+      "wording": "נוסח בחשבונית",
+      "requiresNationalId": "חובה ת.ז. של המשלם",
+      "includeSessionDates": "לפרט תאריכי טיפולים",
+      "splitPerMonth": "חשבונית נפרדת לכל חודש",
+      "active": "פעיל",
+      "add": "להוסיף פרופיל",
+      "empty": "אין פרופילים",
+      "inactive": "לא פעיל"
+    },
+    "parent": {
+      "title": "תשלומים",
+      "balance": "היתרה שלכם",
+      "owes": "לתשלום: {amount}",
+      "credit": "זכות: {amount}",
+      "settled": "הכול שולם, תודה!",
+      "pay": "לתשלום",
+      "mandate": "הוראת קבע: כרטיס {last4}",
+      "mandateFailing": "החיוב האחרון בכרטיס נכשל. אפשר לשלם בקישור או לעדכן כרטיס מול המשרד",
+      "noMandate": "אין הוראת קבע",
+      "history": "תנועות",
+      "documents": "חשבוניות וקבלות",
+      "download": "להורדה",
+      "empty": "אין עדיין תנועות"
     }
   }
 }

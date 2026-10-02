@@ -212,4 +212,52 @@ describe('demo seed', () => {
       ),
     ).toEqual([{ n: 0 }]);
   });
+  it('sets up Phase 4: an approved September with payments and a declined card, October waiting for review', async () => {
+    const rows = async (sql: string, params: unknown[] = []) =>
+      (await t.pool.query(sql, params)).rows;
+    process.env.RSWIM_MASTER_KEY = masterKey.toString('base64');
+    try {
+      const summary = await seedDemo(t.pool, { masterKey });
+      expect(summary.billing).toMatchObject({ failedCharges: 1 });
+      expect(summary.billing?.payments).toBeGreaterThan(5);
+    } finally {
+      delete process.env.RSWIM_MASTER_KEY;
+    }
+    expect(
+      await rows(
+        `select period, status from billing_runs where organization_id = $1 order by period`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([
+      { period: '2026-09', status: 'posted' },
+      { period: '2026-10', status: 'draft' },
+    ]);
+    const [oct] = await rows(
+      `select anomalies from billing_runs where organization_id = $1 and period = '2026-10'`,
+      [DEMO_ORG.id],
+    );
+    const kinds = new Set((oct.anomalies as { kind: string }[]).map((a) => a.kind));
+    expect([...kinds].sort()).toEqual(
+      expect.arrayContaining([
+        'charge_without_enrollment',
+        'duplicate_mandate',
+        'enrollment_without_charge',
+        'missing_mandate',
+      ]),
+    );
+    expect(
+      await rows(
+        `select status, count(*)::int n from dunning_cases where organization_id = $1 group by status`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([{ status: 'open', n: 1 }]);
+    const [billing] = await rows(
+      `select payer_id_last4, enc_payer_national_id is not null as enc from household_billing where organization_id = $1`,
+      [DEMO_ORG.id],
+    );
+    expect(billing).toEqual({ payer_id_last4: '0018', enc: true });
+    expect(
+      await rows(`select count(*)::int n from enrollment_freezes where status = 'requested'`),
+    ).toEqual([{ n: 1 }]);
+  });
 });

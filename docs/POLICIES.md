@@ -20,6 +20,16 @@ Each rule lists: key · default · evaluated by · notes. "Override" means an ow
 | `billing.freeze_requires_approval` | `true` | freeze service | Reason + attachment (medical cert) required for medical freezes |
 | `billing.annual_early_termination` | `pay_difference_to_monthly` | `annualTermination` | Refund = paid − (months used × monthly price) |
 | `billing.closure_credit` | `none` | `closureTreatment` | External closure → no refund; per-event override (DECISIONS #4) |
+| `billing.anomaly_change_bp` | `3000` | `detectAnomalies` | The pre-run review flags a family whose total moved more than 30% from last month |
+
+### Dunning (גבייה) (Phase 4)
+| Key | Default | Rule | Notes |
+|---|---|---|---|
+| `dunning.first_retry_days` | `1` | `dunningNextStep` | Days after the failed charge before the first retry (or link resend when there is no standing order) |
+| `dunning.retry_interval_days` | `3` | `dunningNextStep` | Days between later retries |
+| `dunning.max_retries` | `3` | `dunningNextStep` | Automatic retries before only the owner can move the case |
+| `dunning.escalate_after_days` | `10` | `dunningNextStep` | Days after opening when the case goes to the owner (`billing.dunning_escalated`) |
+| `dunning.pause_enrollment` | `false` | `dunningNextStep` | Carried on the escalation event; pausing a seat stays the owner's decision |
 
 ## 2. Discounts
 
