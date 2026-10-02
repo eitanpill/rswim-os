@@ -1,0 +1,25 @@
+{
+  "name": "@rswim/calendar",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@hebcal/core": "^6.11.0"
+  },
+  "devDependencies": {
+    "@rswim/config": "workspace:*",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^9.39.5",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7",
+    "@types/node": "^22.0.0"
+  }
+}

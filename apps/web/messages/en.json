@@ -1,0 +1,100 @@
+{
+  "app": { "name": "R-SWIM OS", "tagline": "The swim school operating system" },
+  "common": {
+    "signOut": "Sign out",
+    "language": "עברית",
+    "switchOrg": "Switch organization",
+    "comingSoon": "Coming in a later phase",
+    "offline": "You're offline. Your changes are saved and will sync when you reconnect.",
+    "mainNav": "Main navigation",
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "instructor": "Instructor",
+      "escort": "Escort",
+      "accountant": "Accountant",
+      "parent": "Parent",
+      "institution_contact": "Institution contact"
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "staffTitle": "Staff sign in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "parentsLink": "Parents and students: sign in with your phone",
+    "phoneTitle": "Sign in with phone",
+    "phone": "Phone number",
+    "sendCode": "Send code",
+    "code": "Verification code",
+    "verify": "Verify and sign in",
+    "codeSent": "We sent an SMS code to {phone}",
+    "devTitle": "Demo sign in (development only)",
+    "devHint": "Fake data. These buttons do not exist in production.",
+    "errors": {
+      "invalid": "Those details are not correct",
+      "phone": "Invalid phone number",
+      "code": "The code is wrong or expired",
+      "no_membership": "This user isn't linked to any swim school yet. Ask an admin.",
+      "not_configured": "Sign-in isn't configured in this environment"
+    }
+  },
+  "admin": {
+    "nav": {
+      "today": "Today",
+      "families": "Families",
+      "board": "Group board",
+      "money": "Money",
+      "more": "More"
+    },
+    "home": {
+      "title": "Command center",
+      "today": "Today",
+      "todayEmpty": "No sessions scheduled yet",
+      "needsYou": "Needs you",
+      "needsYouEmpty": "Nothing needs your decision right now",
+      "money": "Money pulse",
+      "growth": "Growth",
+      "expected": "Expected this month",
+      "collected": "Collected"
+    },
+    "placeholder": "This screen arrives in Phase {phase}"
+  },
+  "instructor": {
+    "nav": { "day": "My day", "hours": "Hours", "swaps": "Swaps", "profile": "Profile" },
+    "home": {
+      "title": "My day",
+      "empty": "No sessions today",
+      "emptyHint": "When you have sessions, each one's kids list shows here"
+    }
+  },
+  "transport": { "home": { "title": "After-school transport", "empty": "No routes today" } },
+  "accountant": {
+    "home": {
+      "title": "Accountant portal",
+      "empty": "Payroll and invoice exports will appear here"
+    }
+  },
+  "parent": {
+    "nav": {
+      "family": "Family",
+      "schedule": "Schedule",
+      "payments": "Payments",
+      "documents": "Documents"
+    },
+    "home": {
+      "title": "My family",
+      "nextLesson": "Next lesson",
+      "nextLessonEmpty": "No upcoming lesson yet",
+      "actions": "Quick actions",
+      "reportAbsence": "Report an absence",
+      "bookMakeup": "Book a makeup",
+      "payments": "Payments and receipts"
+    }
+  },
+  "platform": {
+    "home": { "title": "Platform console", "empty": "Tenant management arrives in Phase 10" }
+  },
+  "calendar": { "noLessons": "No lessons today", "today": "Today" }
+}

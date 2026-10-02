@@ -1,0 +1,27 @@
+{
+  "name": "rswim-os",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:rls": "pnpm --filter @rswim/db test:rls",
+    "test:e2e": "pnpm --filter @rswim/web test:e2e",
+    "db:start": "supabase start",
+    "db:migrate": "pnpm --filter @rswim/db migrate",
+    "db:seed": "pnpm --filter @rswim/seed seed",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9",
+    "turbo": "^2.11.6",
+    "typescript": "~5.9.3"
+  }
+}

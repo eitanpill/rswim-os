@@ -9,14 +9,14 @@ GoHighLevel (white-labeled "LeadYourWay") stays the marketing and lead engine. R
 
 ## Stack (see docs/adr/0001)
 - pnpm workspaces + Turborepo
-- `apps/web`: Next.js 15 (App Router), TypeScript strict, Server Actions + tRPC. Route groups: `(admin)`, `(instructor)`, `(parent)`, `(platform)`
+- `apps/web`: Next.js 15 (App Router), TypeScript strict, Server Actions (tRPC joins in Phase 1 when client-side queries appear). Surfaces: `/admin`, `/instructor`, `/parent`, `/transport`, `/accountant`, `/platform`
 - `apps/worker`: Inngest functions (outbox relay, scheduled jobs)
 - PostgreSQL on Supabase, Drizzle ORM, SQL migrations + RLS policies in repo
 - Supabase Auth: email/password for staff, phone OTP for parents
-- Tailwind + shadcn/ui, logical CSS properties only (`ms-`, `pe-`, `start-`, never `ml-`/`right-`)
+- Tailwind 4 + shadcn-style components in `packages/ui`, logical CSS properties only (`ms-`, `pe-`, `start-`, never `ml-`/`right-`; ESLint blocks them)
 - `@hebcal/core` for the Hebrew calendar
 - Vitest (domain, 100% branch coverage on policies), Playwright (E2E + RTL screenshots)
-- Sentry, pino, OpenTelemetry
+- pino logs now; Sentry and OpenTelemetry are wired when staging exists
 
 ## Layout
 ```
@@ -24,9 +24,11 @@ apps/
   web/                 Next.js app (admin, instructor PWA, parent portal)
   worker/              Inngest worker
 packages/
-  db/                  Drizzle schema, migrations, RLS SQL, seed
-  contracts/           Zod schemas + shared types (API boundary)
-  domain/<module>/     schema.ts · policies.ts · services.ts · events.ts · api.ts
+  db/                  Drizzle schema, migrations (0001_security.sql = RLS, triggers, auth hook), test harness
+  seed/                Fake Hebrew demo data (two orgs, brief §10 edge cases)
+  contracts/           Zod schemas + shared types (roles, claims, events, phones)
+  domain/core/         outbox emit, relay + inbox guard (worker.ts), audit, envelope encryption
+  domain/<module>/     schema.ts · policies.ts · services.ts · events.ts · api.ts (from Phase 1)
   calendar/            Hebrew calendar service (hebcal wrapper)
   money/               Agorot type, formatting, rounding helpers
   integrations/        MessagingProvider, PaymentProvider, InvoicingProvider, CrmProvider adapters
@@ -36,19 +38,33 @@ docs/
   adr/  phases/  demos/  DOMAIN_GLOSSARY.md  ERD.md  POLICIES.md  DECISIONS.md  STATUS.md
 ```
 
-## Commands (Phase 0 target)
+## Commands
 ```
 pnpm i
-pnpm dev                 # web + worker + inngest dev server
-pnpm db:start            # supabase start (local Postgres)
-pnpm db:migrate          # drizzle migrations + RLS SQL
-pnpm db:seed             # fake Hebrew seed data
-pnpm lint | typecheck | test | test:e2e
-pnpm test:rls            # tenant & role isolation tests against local Postgres
+pnpm db:start            # supabase start (Docker); or use any Postgres 16 with RSWIM_PLAIN_POSTGRES=1
+pnpm db:migrate          # drizzle migrations incl. RLS (needs DATABASE_URL)
+pnpm db:seed             # fake Hebrew demo data (needs DATABASE_URL; RSWIM_MASTER_KEY to fill encrypted fields)
+pnpm dev                 # web on :3000 + worker on :3030 (run `npx inngest-cli dev` for the Inngest dev server)
+pnpm lint | typecheck | test | test:e2e | format:check
+pnpm test:rls            # tenant & role isolation suite only
 ```
+Tests that touch the database create a throwaway database through `TEST_DATABASE_ADMIN_URL`
+(default `postgresql://rswim:rswim@localhost:5432/postgres`, a superuser). On plain Postgres the harness applies
+`packages/db/sql/supabase-shim.sql` (roles + `auth.users`) first; never apply the shim to Supabase.
+
+Local demo login without Supabase: `RSWIM_DEV_AUTH=1 pnpm --filter @rswim/web dev`, then pick a persona on `/login`.
+It is refused on Vercel production deployments.
+
+## Database access, in one paragraph
+Signed-in requests run as `authenticated` with JWT claims (`asUser`). Background jobs for one tenant run as
+`rswim_system` with `app.org_id` set (`withOrg`, from `@rswim/db/service`): RLS still applies, so a job cannot touch
+another tenant. Only genuinely cross-tenant plumbing (the outbox relay, seeding, migrations) uses the owner
+connection (`asPlatform`). Role and permissions are read live from `memberships`, not trusted from the token.
+Every new table needs RLS policies plus rows in `packages/db/test/rls/isolation.test.ts`; the suite fails if a table
+has RLS disabled.
 
 ## Non-negotiable conventions
-1. **Multi-tenant**: every tenant table has `organization_id uuid not null` + RLS. No query bypasses RLS except the worker's service role, which always filters by org explicitly.
+1. **Multi-tenant**: every tenant table has `organization_id uuid not null`, composite FKs `(organization_id, id)`, and RLS. Nothing bypasses RLS except platform plumbing via `asPlatform`.
 2. **Money** is `integer` agorot (`amount_agorot`). Never floats. Currency ILS.
 3. **Time**: store `timestamptz`; business logic runs in `Asia/Jerusalem`. Local dates (`date`) for lesson days and billing periods.
 4. **Business rules are configuration**: prices, policies, cut-offs, makeup limits and pay rates live in versioned, effective-dated rows (`policy_sets`, `price_lists`, `pay_rules`). No literals in code.
