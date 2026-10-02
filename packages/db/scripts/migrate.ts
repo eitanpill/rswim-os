@@ -1,4 +1,5 @@
-import { applySupabaseShim, createPool, runMigrations } from '../src';
+import { createPool } from '../src';
+import { applySupabaseShim, runMigrations } from '../src/migrate';
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error('DATABASE_URL is not set');

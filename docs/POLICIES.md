@@ -2,6 +2,8 @@
 
 Every rule below is a **key in `policy_sets.rules`** (ADR-0004), resolved by scope `class_template > venue_program > program > venue > org` and effective date. Values shown are **R-SWIM defaults** from the current regulations and the conversation analysis. Nothing here is hard-coded.
 
+The keys are defined, typed and range-checked in `packages/contracts/src/policy.ts` (`PolicyRules`); the owner edits them in **עוד › מדיניות**. Keys this page lists that the schema does not have yet (`trial.fee_agorot`, which is a price list item, `absence.private.late_notice`, `health.medical_cert_required_for`, `gear.required`, `receipts.*`) are added by the phase that first uses them.
+
 Each rule lists: key · default · evaluated by · notes. "Override" means an owner can approve an exception, logged in `policy_overrides`.
 
 ## 1. Billing & subscription
@@ -51,15 +53,15 @@ Each rule lists: key · default · evaluated by · notes. "Override" means an ow
 | Key | Default | Function | Notes |
 |---|---|---|---|
 | `absence.notice_min_hours` | `12` (groups), `24` (private/pair/trio/therapy) | `classifyAbsenceNotice` | Measured from `received_at` to session `starts_at`. `≥` threshold = timely |
-| `absence.timely.earns_makeup` | `true` | `canEarnMakeup` | 13h → credit; 11h → none (Phase 3 AC) |
-| `absence.late_notice.charge` | `charged_no_makeup` | | |
-| `absence.no_show.charge` | `charged_no_makeup` | | |
+| `absence.timely_earns_makeup` | `true` | `canEarnMakeup` | 13h → credit; 11h → none (Phase 3 AC) |
+| `absence.late_notice_charge` | `charged_no_makeup` | | |
+| `absence.no_show_charge` | `charged_no_makeup` | | |
 | `absence.private.late_notice` | `charged_full` | | Private lessons: 24h cancellation |
 | `makeup.max_per_month` | `1` | `canEarnMakeup` | Counted per student per calendar month |
 | `makeup.expiry` | `end_of_source_month` | `makeupExpiry` | Same month only, no carry-over |
 | `makeup.requires_active_subscription` | `true` | `canBookMakeup` | |
 | `makeup.self_booking` | `true` | `canBookMakeup` | Within policy and capacity (DECISIONS #7) |
-| `makeup.compatibility` | `{age: true, level: ±1, gender_window: true, program: same, venue: any_active}` | makeup marketplace | |
+| `makeup.level_tolerance` | `1` | makeup marketplace | Levels apart a makeup group may be. Age, gender window and same program are always checked; venue is any active one |
 | `makeup.double_lesson_allowed` | `false` (groups), `true` (private) | | Configurable per program |
 | `makeup.enforcement` | `strict_with_override` | | DECISIONS #3 |
 
@@ -67,10 +69,10 @@ Each rule lists: key · default · evaluated by · notes. "Override" means an ow
 
 | Key | Default | Function | Notes |
 |---|---|---|---|
-| `closure.school.makeup` | `guaranteed` | `closureTreatment` | Makeup credit, no expiry cap beyond event deadline |
-| `closure.external.makeup` | `best_effort` | | Technical, water quality, fecal incident, venue decision, authorities. Credit issued with event deadline |
-| `closure.external.refund` | `none` | | Owner can change per mass-cancellation event |
-| `closure.event.end_rule` | `expire` | | `expire` / `convert_to_credit` / `partial_refund`, decided per event |
+| `closure.school_makeup` | `guaranteed` | `closureTreatment` | Makeup credit, no expiry cap beyond event deadline |
+| `closure.external_makeup` | `best_effort` | | Technical, water quality, fecal incident, venue decision, authorities. Credit issued with event deadline |
+| `closure.external_refund` | `none` | | Owner can change per mass-cancellation event |
+| `closure.event_end_rule` | `expire` | | `expire` / `convert_to_credit` / `partial_refund`, decided per event |
 | `closure.makeup_cap_bypass` | `true` | | Closure credits do not count against `makeup.max_per_month` *(assumption)* |
 
 ## 7. Calendar
@@ -88,7 +90,7 @@ Each rule lists: key · default · evaluated by · notes. "Override" means an ow
 |---|---|---|
 | `health.declaration_required` | `true` | Before first lesson; renew yearly |
 | `health.medical_cert_required_for` | `[declared_limitation]` | Owner may require |
-| `consent.photo.default` | `granted_unless_opt_out` | Opt-out in writing (form) |
+| `consent.photo_default` | `granted_unless_opt_out` | Opt-out in writing (form) |
 | `regulations.acceptance_required` | `true` | Versioned text + timestamp + phone/IP |
 
 ## 9. Venue entry
@@ -120,8 +122,8 @@ Each rule lists: key · default · evaluated by · notes. "Override" means an ow
 
 | Key | Default | Notes |
 |---|---|---|
-| `payroll.pension.threshold_months` | `3` | Continuous months; retro on eligibility (DECISIONS #6) |
-| `payroll.sick_leave.accrual_halfdays_per_month` | `3` (1.5 days) | Israeli statutory default *(verify with accountant)* |
+| `payroll.pension_threshold_months` | `3` | Continuous months; retro on eligibility (DECISIONS #6) |
+| `payroll.sick_leave_accrual_halfdays_per_month` | `3` (1.5 days) | Israeli statutory default *(verify with accountant)* |
 | `staffing.shift_change.requires_acceptance` | `true` | Parents notified only after instructor accepts |
 | `staffing.shift_change.escalate_after_hours` | `12` | |
 | `staffing.substitute.wave_size` | `3` | Offers go out in waves, first accept wins |

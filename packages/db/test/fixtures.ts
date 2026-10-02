@@ -13,6 +13,26 @@ export interface OrgFixture {
   households: { mine: string; other: string };
   students: { mine: string; other: string };
   guardians: { mine: string; other: string };
+  /** Phase 1 core data, one row per table. */
+  core: {
+    venue: string;
+    pool: string;
+    lane: string;
+    window: string;
+    closure: string;
+    contract: string;
+    program: string;
+    level: string;
+    policySet: string;
+    priceList: string;
+    priceItem: string;
+    certification: string;
+    availabilityRule: string;
+    availabilityException: string;
+    payRule: string;
+    invite: string;
+    importRun: string;
+  };
 }
 
 async function user(pool: pg.Pool, label: string): Promise<string> {
@@ -117,12 +137,128 @@ export async function createOrgFixture(pool: pg.Pool, slug: string): Promise<Org
   });
   await member(pool, orgId, users.parent, 'parent', { guardianId: gMine });
 
+  const core = await createCoreData(pool, orgId, instructorStaff, sMine, sOther);
+
   return {
     orgId,
     users,
+    core,
     staff: { instructor: instructorStaff, escort: escortStaff, admin: adminStaff },
     households: { mine: hMine, other: hOther },
     students: { mine: sMine, other: sOther },
     guardians: { mine: gMine, other: gOther },
+  };
+}
+
+async function createCoreData(
+  pool: pg.Pool,
+  orgId: string,
+  instructorStaff: string,
+  s1: string,
+  s2: string,
+): Promise<OrgFixture['core']> {
+  const q = async (text: string, params: unknown[]) =>
+    (await pool.query(text, params)).rows[0].id as string;
+  const venue = await q(
+    `insert into venues (organization_id, name, kind) values ($1, 'בריכת בדיקה', 'country_club') returning id`,
+    [orgId],
+  );
+  const poolId = await q(
+    `insert into pools (organization_id, venue_id, name) values ($1, $2, 'בריכה מקורה') returning id`,
+    [orgId, venue],
+  );
+  const lane = await q(
+    `insert into lanes (organization_id, pool_id, label, ordinal) values ($1, $2, '1', 1) returning id`,
+    [orgId, poolId],
+  );
+  const window = await q(
+    `insert into venue_operating_windows (organization_id, venue_id, pool_id, weekday, starts_at, ends_at, gender_restriction, effective_from)
+     values ($1, $2, $3, 1, '15:00', '19:00', 'female', '2026-09-01') returning id`,
+    [orgId, venue, poolId],
+  );
+  await pool.query(
+    `insert into operating_window_lanes (organization_id, pool_id, window_id, lane_id) values ($1, $2, $3, $4)`,
+    [orgId, poolId, window, lane],
+  );
+  const closure = await q(
+    `insert into venue_closures (organization_id, venue_id, starts_on, ends_on, source, reason)
+     values ($1, $2, '2026-12-01', '2026-12-03', 'technical', 'תקלה במערכת החימום') returning id`,
+    [orgId, venue],
+  );
+  const contract = await q(
+    `insert into venue_contracts (organization_id, venue_id, rent_model, amount_agorot) values ($1, $2, 'fixed_monthly', 1000000) returning id`,
+    [orgId, venue],
+  );
+  const program = await q(
+    `insert into programs (organization_id, code, kind, name_he, default_duration_min, default_capacity)
+     values ($1, 'group', 'group_kids', 'קבוצת ילדים', 40, 6) returning id`,
+    [orgId],
+  );
+  const level = await q(
+    `insert into levels (organization_id, program_id, code, name_he, ordinal) values ($1, $2, 'beginners', 'מתחילים', 1) returning id`,
+    [orgId, program],
+  );
+  const policySet = await q(
+    `insert into policy_sets (organization_id, scope_type, effective_from, rules) values ($1, 'org', '2026-01-01', '{"absence":{"notice_min_hours":12}}') returning id`,
+    [orgId],
+  );
+  const priceList = await q(
+    `insert into price_lists (organization_id, name, effective_from) values ($1, 'מחירון', '2026-09-01') returning id`,
+    [orgId],
+  );
+  const priceItem = await q(
+    `insert into price_items (organization_id, price_list_id, program_id, kind, amount_agorot) values ($1, $2, $3, 'monthly', 33000) returning id`,
+    [orgId, priceList, program],
+  );
+  await pool.query(`update price_lists set status = 'published' where id = $1`, [priceList]);
+  const certification = await q(
+    `insert into certifications (organization_id, staff_member_id, type, expires_on) values ($1, $2, 'lifeguard', '2027-06-30') returning id`,
+    [orgId, instructorStaff],
+  );
+  const availabilityRule = await q(
+    `insert into availability_rules (organization_id, staff_member_id, weekday, starts_at, ends_at, effective_from)
+     values ($1, $2, 0, '14:00', '19:00', '2026-09-01') returning id`,
+    [orgId, instructorStaff],
+  );
+  const availabilityException = await q(
+    `insert into availability_exceptions (organization_id, staff_member_id, kind, starts_on, ends_on) values ($1, $2, 'unavailable', '2026-11-01', '2026-11-07') returning id`,
+    [orgId, instructorStaff],
+  );
+  const payRule = await q(
+    `insert into pay_rules (organization_id, staff_member_id, basis, amount_agorot, effective_from) values ($1, $2, 'per_session', 8000, '2026-01-01') returning id`,
+    [orgId, instructorStaff],
+  );
+  const invite = await q(
+    `insert into staff_invites (organization_id, role, email, token_hash, expires_at)
+     values ($1, 'instructor', 'new@example.test', encode(sha256(convert_to($2, 'UTF8')), 'hex'), now() + interval '7 days') returning id`,
+    [orgId, `token-${orgId}`],
+  );
+  const [a, b] = [s1, s2].sort();
+  await pool.query(
+    `insert into student_relations (organization_id, student_id, related_student_id, type) values ($1, $2, $3, 'friend')`,
+    [orgId, a, b],
+  );
+  const importRun = await q(
+    `insert into import_runs (organization_id, provider, kind) values ($1, 'ghl', 'contacts') returning id`,
+    [orgId],
+  );
+  return {
+    venue,
+    pool: poolId,
+    lane,
+    window,
+    closure,
+    contract,
+    program,
+    level,
+    policySet,
+    priceList,
+    priceItem,
+    certification,
+    availabilityRule,
+    availabilityException,
+    payRule,
+    invite,
+    importRun,
   };
 }

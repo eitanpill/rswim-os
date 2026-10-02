@@ -1,5 +1,8 @@
 {
-  "app": { "name": "R-SWIM OS", "tagline": "מערכת ההפעלה של בית הספר לשחייה" },
+  "app": {
+    "name": "R-SWIM OS",
+    "tagline": "מערכת ההפעלה של בית הספר לשחייה"
+  },
   "common": {
     "signOut": "יציאה",
     "language": "English",
@@ -15,6 +18,22 @@
       "accountant": "רואה חשבון",
       "parent": "הורה",
       "institution_contact": "איש קשר מוסדי"
+    },
+    "save": "שמירה",
+    "delete": "מחיקה",
+    "edit": "עריכה",
+    "weekday": {
+      "0": "ראשון",
+      "1": "שני",
+      "2": "שלישי",
+      "3": "רביעי",
+      "4": "חמישי",
+      "5": "שישי",
+      "6": "שבת"
+    },
+    "errors": {
+      "notFound": "הרשומה לא נמצאה, אולי נמחקה",
+      "forbidden": "אין לך הרשאה לפעולה הזו"
     }
   },
   "login": {
@@ -59,22 +78,67 @@
       "expected": "צפוי החודש",
       "collected": "נגבה"
     },
-    "placeholder": "המסך הזה ייבנה בשלב {phase}"
+    "placeholder": "המסך הזה ייבנה בשלב {phase}",
+    "more": {
+      "title": "עוד",
+      "venues": {
+        "title": "מקומות ובריכות",
+        "hint": "חלונות זמן, מסלולים, סגירות וחוזים"
+      },
+      "programs": {
+        "title": "תוכניות ורמות",
+        "hint": "סוגי שיעורים, גילאים וסולם הרמות"
+      },
+      "prices": {
+        "title": "מחירונים",
+        "hint": "גרסאות מחיר לפי תאריך ומקום"
+      },
+      "policies": {
+        "title": "מדיניות",
+        "hint": "השלמות, היעדרויות, חיוב וכל הכללים"
+      },
+      "staff": {
+        "title": "צוות",
+        "hint": "מדריכים, תעודות, זמינות ותעריפים"
+      },
+      "ghl": {
+        "title": "חיבור ל-LeadYourWay",
+        "hint": "ייבוא אנשי קשר וסנכרון דו-כיווני"
+      }
+    }
   },
   "instructor": {
-    "nav": { "day": "היום שלי", "hours": "שעות", "swaps": "החלפות", "profile": "פרופיל" },
+    "nav": {
+      "day": "היום שלי",
+      "hours": "שעות",
+      "swaps": "החלפות",
+      "profile": "פרופיל"
+    },
     "home": {
       "title": "היום שלי",
       "empty": "אין לך שיעורים היום",
       "emptyHint": "כשיהיו, תראו כאן את רשימת הילדים לכל שיעור"
     }
   },
-  "transport": { "home": { "title": "הסעות צהרון", "empty": "אין מסלולים היום" } },
+  "transport": {
+    "home": {
+      "title": "הסעות צהרון",
+      "empty": "אין מסלולים היום"
+    }
+  },
   "accountant": {
-    "home": { "title": "פורטל רואה חשבון", "empty": "ייצוא שכר וחשבוניות יופיע כאן" }
+    "home": {
+      "title": "פורטל רואה חשבון",
+      "empty": "ייצוא שכר וחשבוניות יופיע כאן"
+    }
   },
   "parent": {
-    "nav": { "family": "המשפחה", "schedule": "לו״ז", "payments": "תשלומים", "documents": "מסמכים" },
+    "nav": {
+      "family": "המשפחה",
+      "schedule": "לו״ז",
+      "payments": "תשלומים",
+      "documents": "מסמכים"
+    },
     "home": {
       "title": "המשפחה שלי",
       "nextLesson": "השיעור הבא",
@@ -86,7 +150,766 @@
     }
   },
   "platform": {
-    "home": { "title": "קונסולת פלטפורמה", "empty": "ניהול לקוחות (טננטים) יגיע בשלב 10" }
+    "home": {
+      "title": "קונסולת פלטפורמה",
+      "empty": "ניהול לקוחות (טננטים) יגיע בשלב 10"
+    }
   },
-  "calendar": { "noLessons": "אין שיעורים היום", "today": "היום" }
+  "calendar": {
+    "noLessons": "אין שיעורים היום",
+    "today": "היום"
+  },
+  "forms": {
+    "saved": "נשמר",
+    "fixErrors": "יש לתקן את השדות המסומנים",
+    "errors": {
+      "required": "שדה חובה",
+      "tooLong": "ארוך מדי",
+      "number": "יש להזין מספר שלם",
+      "range": "מחוץ לטווח המותר",
+      "date": "תאריך לא תקין",
+      "time": "שעה לא תקינה",
+      "phone": "מספר טלפון לא תקין",
+      "email": "אימייל לא תקין",
+      "invalid": "ערך לא תקין",
+      "duplicate": "כבר קיים פריט כזה"
+    }
+  },
+  "enums": {
+    "venueKind": {
+      "country_club": "קאנטרי קלאב",
+      "hotel": "מלון",
+      "community_center": "מתנ״ס",
+      "municipal": "בריכה עירונית",
+      "other": "אחר"
+    },
+    "venueStatus": {
+      "prospect": "בבדיקה",
+      "active": "פעיל",
+      "renovation": "בשיפוץ",
+      "closing": "בסגירה",
+      "closed": "סגור"
+    },
+    "gender": {
+      "mixed": "מעורב",
+      "female": "נשים ובנות",
+      "male": "גברים ובנים",
+      "women": "נשים",
+      "men": "גברים",
+      "girls": "בנות",
+      "boys": "בנים"
+    },
+    "rentModel": {
+      "fixed_monthly": "סכום חודשי קבוע",
+      "per_hour": "לפי שעה",
+      "per_lane_hour": "לפי מסלול לשעה",
+      "revenue_share": "אחוז מההכנסות",
+      "none": "ללא תשלום"
+    },
+    "contractKind": {
+      "rent": "שכירות",
+      "tender": "מכרז",
+      "partnership": "שותפות"
+    },
+    "closureSource": {
+      "school": "בית הספר",
+      "venue": "המקום",
+      "authority": "רשות / פיקוד העורף",
+      "technical": "תקלה טכנית",
+      "water_quality": "איכות מים",
+      "holiday": "חג"
+    },
+    "programKind": {
+      "group_kids": "קבוצת ילדים",
+      "baby": "שחיית תינוקות",
+      "adult_beginner": "מבוגרים מתחילים",
+      "adult_style": "מבוגרים שיפור סגנון",
+      "private": "פרטני",
+      "pair": "זוגי",
+      "trio": "שלישייה",
+      "therapy": "הידרותרפיה",
+      "after_school": "צהרון",
+      "intensive_course": "קורס מרוכז",
+      "camp": "קייטנה",
+      "school_program": "תוכנית בית ספרית"
+    },
+    "priceKind": {
+      "monthly": "מנוי חודשי",
+      "trial": "שיעור ניסיון",
+      "single": "שיעור בודד",
+      "package": "כרטיסייה / קורס",
+      "entry_fee": "דמי כניסה"
+    },
+    "priceListStatus": {
+      "draft": "טיוטה",
+      "published": "פורסם",
+      "archived": "בארכיון"
+    },
+    "employmentType": {
+      "employee": "שכיר/ה",
+      "freelancer_exempt": "עוסק/ת פטור",
+      "freelancer_licensed": "עוסק/ת מורשה",
+      "hybrid": "משולב"
+    },
+    "certificationType": {
+      "swim_instructor": "מדריך/ת שחייה",
+      "lifeguard": "מציל/ה",
+      "hydrotherapy": "הידרותרפיה",
+      "baby_swim": "שחיית תינוקות",
+      "first_aid": "עזרה ראשונה",
+      "pool_operator": "מפעיל/ת בריכה"
+    },
+    "staffSkill": {
+      "babies": "תינוקות",
+      "water_fear": "פחד ממים",
+      "therapy": "טיפולי",
+      "adults": "מבוגרים",
+      "advanced": "מתקדמים",
+      "special_needs": "צרכים מיוחדים"
+    },
+    "staffStatus": {
+      "active": "פעיל/ה",
+      "inactive": "לא פעיל/ה"
+    },
+    "payBasis": {
+      "per_hour": "לשעה",
+      "per_session": "לשיעור",
+      "per_head": "לתלמיד"
+    },
+    "payRouting": {
+      "payslip": "תלוש שכר",
+      "transfer": "העברה מול חשבונית"
+    },
+    "availabilityKind": {
+      "unavailable": "לא זמין/ה",
+      "available": "זמין/ה במיוחד"
+    },
+    "personGender": {
+      "female": "נקבה",
+      "male": "זכר"
+    },
+    "relationType": {
+      "sibling": "אחים",
+      "friend": "חברים"
+    },
+    "locale": {
+      "he": "עברית",
+      "en": "אנגלית",
+      "ar": "ערבית",
+      "ru": "רוסית"
+    }
+  },
+  "venues": {
+    "title": "מקומות",
+    "subtitle": "כל בריכה שאנחנו עובדים בה, עם החלונות והכללים שלה",
+    "new": "מקום חדש",
+    "empty": "עוד לא הוגדרו מקומות",
+    "details": "פרטי המקום",
+    "policies": "מדיניות המקום",
+    "form": {
+      "name": "שם המקום",
+      "kind": "סוג",
+      "status": "סטטוס",
+      "address": "כתובת",
+      "city": "עיר",
+      "parking": "הוראות חניה",
+      "entry": "הוראות כניסה",
+      "entryHint": "נשלח להורים לפני השיעור הראשון",
+      "frontDesk": "מה לומר בקבלה",
+      "frontDeskHint": "למשל: ״אנחנו מקבוצת השחייה של רעות״",
+      "notes": "הערות"
+    },
+    "pool": {
+      "add": "הוספת בריכה",
+      "name": "שם הבריכה",
+      "laneCount": "מספר מסלולים",
+      "tempMin": "טמפ׳ מינימום",
+      "tempMax": "טמפ׳ מקסימום",
+      "depthMin": "עומק מינימום (ס״מ)",
+      "depthMax": "עומק מקסימום (ס״מ)",
+      "indoor": "מקורה",
+      "outdoor": "פתוחה",
+      "lanes": "{count, plural, one {מסלול אחד} other {# מסלולים}}",
+      "temp": "{min}–{max}°",
+      "confirmDelete": "למחוק את הבריכה וכל החלונות שלה?"
+    },
+    "window": {
+      "title": "חלונות זמן",
+      "empty": "אין עדיין חלונות זמן לבריכה הזו",
+      "add": "הוספת חלון זמן",
+      "weekday": "יום",
+      "gender": "מי נכנס/ת",
+      "startsAt": "משעה",
+      "endsAt": "עד שעה",
+      "lanesLegend": "המסלולים שלנו בחלון הזה",
+      "lane": "מסלול {label}",
+      "lanes": "מסלולים {lanes}",
+      "effectiveFrom": "בתוקף מ-",
+      "effectiveTo": "עד (לא כולל)",
+      "effectiveToHint": "ריק = ללא תאריך סיום",
+      "notes": "הערה",
+      "from": "מ-{from}",
+      "between": "{from} עד {to}",
+      "confirmDelete": "למחוק את חלון הזמן?"
+    },
+    "closure": {
+      "title": "סגירות",
+      "empty": "אין סגירות מתוכננות",
+      "add": "הוספת סגירה",
+      "startsOn": "מתאריך",
+      "endsOn": "עד תאריך",
+      "source": "מי סגר",
+      "reason": "סיבה",
+      "hint": "השלמות והודעות להורים על סגירה יגיעו בשלב 3"
+    },
+    "contract": {
+      "title": "חוזים",
+      "empty": "אין חוזים רשומים",
+      "add": "הוספת חוזה",
+      "kind": "סוג",
+      "rentModel": "מודל תשלום",
+      "amount": "סכום (₪)",
+      "startsOn": "התחלה",
+      "endsOn": "סיום",
+      "renewalOn": "מועד חידוש",
+      "renewal": "חידוש {date}",
+      "notes": "הערות"
+    },
+    "errors": {
+      "endBeforeStart": "שעת הסיום חייבת להיות אחרי שעת ההתחלה",
+      "datesReversed": "תאריך הסיום לפני תאריך ההתחלה",
+      "noLanes": "יש לבחור לפחות מסלול אחד",
+      "laneOverlap": "{lanes, plural, one {מסלול כבר תפוס} other {# מסלולים כבר תפוסים}} בחלון אחר באותו זמן"
+    }
+  },
+  "programs": {
+    "title": "תוכניות ורמות",
+    "subtitle": "סוגי השיעורים וסולם הרמות של כל אחד",
+    "empty": "עוד לא הוגדרו תוכניות",
+    "new": "תוכנית חדשה",
+    "edit": "עריכת התוכנית",
+    "inactive": "לא פעילה",
+    "facts": "{duration} דק׳ · עד {capacity} תלמידים",
+    "form": {
+      "nameHe": "שם",
+      "nameEn": "שם באנגלית",
+      "kind": "סוג",
+      "code": "קוד",
+      "codeHint": "אותיות לטיניות קטנות, ספרות, מקף",
+      "duration": "משך (דק׳)",
+      "capacity": "תלמידים בקבוצה",
+      "minAge": "גיל מינימום (חודשים)",
+      "maxAge": "גיל מקסימום (חודשים)",
+      "parentInWater": "הורה במים",
+      "active": "פעילה",
+      "create": "יצירת תוכנית"
+    },
+    "levels": {
+      "title": "סולם רמות",
+      "empty": "אין עדיין רמות",
+      "add": "הוספת רמה",
+      "nameHe": "שם הרמה",
+      "nameEn": "שם באנגלית",
+      "code": "קוד",
+      "codeHint": "למשל level-1",
+      "skills": "מיומנויות",
+      "skillsHint": "מיומנות אחת בכל שורה",
+      "up": "הזזה למעלה",
+      "down": "הזזה למטה",
+      "confirmDelete": "למחוק את הרמה?"
+    }
+  },
+  "prices": {
+    "title": "מחירונים",
+    "subtitle": "כל שינוי מחיר הוא גרסה חדשה מתאריך. מחירון שבתוקף לא משתנה.",
+    "lists": "גרסאות",
+    "empty": "עוד אין מחירונים",
+    "new": "מחירון חדש",
+    "create": "יצירת טיוטה",
+    "allVenues": "כל המקומות",
+    "from": "מ-{date}",
+    "until": "עד {date}",
+    "inEffect": "בתוקף היום",
+    "published": "המחירון פורסם",
+    "publish": "פרסום",
+    "confirmPublish": "לפרסם? מהתאריך שנבחר המחירים יחייבו ולא יהיה אפשר לשנות אותם.",
+    "delete": "מחיקת המחירון",
+    "confirmDelete": "למחוק את המחירון?",
+    "actions": "פעולות",
+    "lockedHint": "המחירון בתוקף ולכן נעול. לשינוי מחיר יוצרים גרסה חדשה מתאריך.",
+    "newVersion": "גרסה חדשה מתאריך",
+    "newVersionHint": "מעתיק את כל המחירים לטיוטה חדשה. משנים, ומפרסמים.",
+    "createVersion": "יצירת גרסה",
+    "form": {
+      "name": "שם המחירון",
+      "venue": "מקום",
+      "allVenues": "כל המקומות",
+      "effectiveFrom": "בתוקף מ-",
+      "notes": "הערות"
+    },
+    "items": {
+      "title": "מחירים",
+      "empty": "אין עדיין מחירים במחירון",
+      "add": "הוספה או עדכון של מחיר",
+      "program": "תוכנית",
+      "kind": "סוג",
+      "amount": "מחיר",
+      "amountShekels": "מחיר (₪)",
+      "duration": "משך (דק׳)",
+      "durationHint": "ריק = כל משך",
+      "sessions": "מספר שיעורים",
+      "sessionsHint": "לכרטיסייה או קורס",
+      "label": "תיאור",
+      "minutes": "{n} דק׳",
+      "sessionsN": "{n} שיעורים",
+      "upsertHint": "אותה תוכנית, סוג ומשך מעדכנים את המחיר הקיים",
+      "save": "שמירת מחיר"
+    },
+    "check": {
+      "title": "בדיקת מחיר",
+      "venue": "מקום",
+      "program": "תוכנית",
+      "kind": "סוג",
+      "date": "בתאריך",
+      "duration": "משך (דק׳)",
+      "sessions": "שיעורים",
+      "submit": "כמה זה עולה?",
+      "source": "לפי {list}, בתוקף מ-{from}",
+      "none": "אין מחיר מתאים בתאריך הזה"
+    }
+  },
+  "settings": {
+    "errors": {
+      "code": "קוד יכול להכיל רק אותיות לטיניות קטנות, ספרות ומקף",
+      "ageRange": "גיל המקסימום קטן מגיל המינימום",
+      "duplicateStart": "כבר יש גרסה שמתחילה בתאריך הזה",
+      "versionLocked": "הגרסה הזו כבר בתוקף ולכן לא משתנה. יש ליצור גרסה חדשה מתאריך.",
+      "emptyPriceList": "אי אפשר לפרסם מחירון ריק",
+      "packageSessions": "לכרטיסייה צריך מספר שיעורים"
+    }
+  },
+  "policies": {
+    "title": "מדיניות",
+    "subtitle": "הכללים שהמערכת מפעילה: השלמות, היעדרויות, חיוב ועוד",
+    "scopeTitle": "לאיזה תחום?",
+    "venue": "מקום",
+    "program": "תוכנית",
+    "allVenues": "כל המקומות",
+    "allPrograms": "כל התוכניות",
+    "show": "הצגה",
+    "orgHint": "ברירת המחדל של כל בית הספר. מקום או תוכנית יכולים לשנות כללים בודדים.",
+    "scopeHint": "{scope}: {name}. שדה ריק יורש מהרמה שמעל.",
+    "scope": {
+      "org": "כל בית הספר",
+      "venue": "מקום",
+      "program": "תוכנית",
+      "venue_program": "תוכנית במקום",
+      "class_template": "קבוצה"
+    },
+    "versions": "גרסאות",
+    "noVersions": "אין גרסאות לתחום הזה; הכול עובר בירושה",
+    "noVersionsOrg": "עוד לא נשמרה מדיניות. הטופס מציע ברירות מחדל לבדיקה.",
+    "versionFrom": "גרסה מ-{date}",
+    "inEffect": "בתוקף",
+    "future": "עתידית",
+    "changes": "{count, plural, one {כלל אחד} other {# כללים}}",
+    "newVersion": "גרסה חדשה",
+    "newVersionOrgHint": "נשמרת כגרסה חדשה מהתאריך שנבחר; הגרסה הקודמת ממשיכה לחול עד אז.",
+    "newVersionScopeHint": "ממלאים רק מה שצריך להיות שונה כאן. השאר עובר בירושה.",
+    "effectiveFrom": "בתוקף מ-",
+    "notes": "מה השתנה?",
+    "save": "שמירת גרסה",
+    "saved": "הגרסה נשמרה",
+    "inherit": "ירושה",
+    "yes": "כן",
+    "no": "לא",
+    "override": "לקבוע כאן",
+    "none": "אף אחד",
+    "notSet": "לא הוגדר",
+    "nowhere": "ברירת מחדל",
+    "inherited": "בירושה: {value} ({source})"
+  },
+  "staff": {
+    "title": "צוות",
+    "subtitle": "מדריכים, מלווים, תעודות וזמינות",
+    "empty": "עוד אין אנשי צוות",
+    "new": "איש/אשת צוות חדש/ה",
+    "details": "פרטים",
+    "anyVenue": "כל מקום",
+    "anyProgram": "כל תוכנית",
+    "form": {
+      "firstName": "שם פרטי",
+      "lastName": "שם משפחה",
+      "phone": "טלפון",
+      "email": "אימייל",
+      "gender": "מגדר",
+      "employmentType": "סוג העסקה",
+      "status": "סטטוס",
+      "startDate": "תחילת עבודה",
+      "endDate": "סיום עבודה",
+      "skills": "התמחויות",
+      "notes": "הערות",
+      "create": "הוספה"
+    },
+    "cert": {
+      "title": "תעודות",
+      "empty": "אין תעודות רשומות",
+      "add": "הוספת תעודה",
+      "type": "סוג",
+      "issuer": "גוף מנפיק",
+      "issuedOn": "הונפקה",
+      "expiresOn": "תוקף עד",
+      "expires": "בתוקף עד {date}",
+      "noExpiry": "ללא תאריך תפוגה",
+      "expiring": "{type}: פג בקרוב",
+      "expired": "{type}: פג תוקף",
+      "status": {
+        "valid": "בתוקף",
+        "expiring": "פג בקרוב",
+        "expired": "פג תוקף"
+      }
+    },
+    "availability": {
+      "title": "זמינות קבועה",
+      "empty": "לא הוגדרה זמינות",
+      "add": "הוספת זמינות",
+      "weekday": "יום",
+      "startsAt": "משעה",
+      "endsAt": "עד שעה",
+      "venue": "מקום",
+      "from": "מתאריך",
+      "to": "עד תאריך"
+    },
+    "exception": {
+      "title": "חריגים",
+      "add": "הוספת חריג",
+      "kind": "סוג",
+      "startsOn": "מתאריך",
+      "endsOn": "עד תאריך",
+      "reason": "סיבה"
+    },
+    "pay": {
+      "title": "תעריפים",
+      "empty": "לא הוגדרו תעריפים",
+      "add": "תעריף חדש",
+      "hint": "תעריף חדש מתאריך מסיים את הקודם באותו תחום. חישוב השכר עצמו מגיע בשלב 6.",
+      "amount": "סכום (₪)",
+      "basis": "לפי",
+      "routing": "אופן תשלום",
+      "program": "תוכנית",
+      "venue": "מקום",
+      "travelAmount": "החזר נסיעות לשיעור (₪)",
+      "travel": "נסיעות",
+      "effectiveFrom": "בתוקף מ-",
+      "notes": "הערות",
+      "from": "מ-{from}",
+      "between": "{from} עד {to}"
+    },
+    "invite": {
+      "title": "הזמנה למערכת",
+      "hint": "יוצרים קישור אישי ושולחים אותו לאיש הצוות. הקישור תקף 7 ימים ומוצג פעם אחת בלבד.",
+      "role": "תפקיד",
+      "staff": "כרטיס צוות",
+      "noStaff": "ללא",
+      "create": "יצירת קישור",
+      "created": "הקישור נוצר. העתיקו ושלחו אותו עכשיו.",
+      "link": "קישור ההזמנה",
+      "copy": "העתקה",
+      "accepted": "התקבלה",
+      "expired": "פג תוקף",
+      "pending": "ממתינה",
+      "revoke": "ביטול"
+    }
+  },
+  "families": {
+    "title": "משפחות",
+    "new": "משפחה חדשה",
+    "create": "יצירת משפחה",
+    "search": "חיפוש",
+    "searchPlaceholder": "שם, טלפון או שם ילד/ה",
+    "empty": "עוד אין משפחות",
+    "noMatch": "לא נמצאו משפחות",
+    "children": "ילדים: {names}",
+    "guardians": "הורים ואפוטרופסים",
+    "students": "תלמידים",
+    "noStudents": "עוד לא נוספו תלמידים",
+    "otherFamily": "ממשפחה אחרת",
+    "household": {
+      "title": "פרטי המשפחה",
+      "displayName": "שם המשפחה לתצוגה",
+      "displayNameHint": "למשל ״משפחת כהן״",
+      "locale": "שפה להודעות",
+      "notes": "הערות"
+    },
+    "guardian": {
+      "first": "הורה ראשון",
+      "add": "הוספת הורה",
+      "firstName": "שם פרטי",
+      "lastName": "שם משפחה",
+      "phone": "טלפון",
+      "email": "אימייל",
+      "relation": "קשר",
+      "whatsapp": "מסכים/ה לקבל WhatsApp",
+      "billing": "איש/אשת קשר לחיוב",
+      "billingBadge": "חיוב",
+      "inCrm": "מחובר ל-CRM",
+      "notInCrm": "עוד לא ב-CRM"
+    },
+    "student": {
+      "add": "הוספת תלמיד/ה",
+      "firstName": "שם פרטי",
+      "lastName": "שם משפחה",
+      "dob": "תאריך לידה",
+      "gender": "מגדר",
+      "school": "בית ספר / גן",
+      "grade": "כיתה",
+      "level": "רמה",
+      "noLevel": "טרם נקבעה",
+      "preferredStaff": "מדריך/ה מועדף/ת",
+      "noPreference": "ללא העדפה",
+      "waterFear": "פחד ממים",
+      "femaleInstructor": "רק מדריכה",
+      "photoConsent": "מותר לצלם",
+      "noPhotos": "לא לצלם",
+      "selfGuardian": "מתאמן/ת בוגר/ת (אחראי/ת על עצמו/ה)",
+      "custody": "הסדרי משמורת",
+      "custodyHint": "למשל: ימי ב׳ אצל האב",
+      "age": "{years, plural, one {שנה} other {# שנים}} ו-{months} חודשים"
+    },
+    "relations": {
+      "title": "קשרים בין תלמידים",
+      "hint": "אחים ייכנסו להנחת אחים; חברים יעזרו לשבץ יחד",
+      "a": "תלמיד/ה",
+      "b": "עם",
+      "type": "קשר",
+      "add": "הוספת קשר"
+    }
+  },
+  "people": {
+    "errors": {
+      "contactRequired": "צריך טלפון או אימייל",
+      "selfRelation": "אי אפשר לקשר תלמיד/ה לעצמו/ה"
+    }
+  },
+  "crm": {
+    "title": "חיבור ל-LeadYourWay",
+    "subtitle": "הלידים והשיווק נשארים ב-LeadYourWay; המשפחות מסונכרנות לכאן",
+    "location": "חשבון",
+    "connected": "מחובר",
+    "notConnected": "לא מחובר",
+    "locationHint": "מזהה ה-Location של החשבון. מפתח ה-API נשמר בשרת ולא כאן.",
+    "locationId": "Location ID",
+    "saveLocation": "שמירה",
+    "tagMap": "{count} תגיות ממופות לשדות במערכת",
+    "import": "ייבוא אנשי קשר",
+    "importHint": "מושך את כל אנשי הקשר, מקשר לפי טלפון ואז אימייל, ויוצר משפחות חדשות. אפשר להריץ שוב בלי כפילויות.",
+    "importNow": "ייבוא עכשיו",
+    "importQueued": "הייבוא התחיל. התוצאות יופיעו כאן.",
+    "connectFirst": "קודם מחברים חשבון",
+    "runs": "ייבואים אחרונים",
+    "noRuns": "עוד לא היו ייבואים",
+    "problems": "{count, plural, one {פריט אחד לבדיקה} other {# פריטים לבדיקה}}",
+    "status": {
+      "running": "רץ",
+      "succeeded": "הושלם",
+      "failed": "נכשל"
+    },
+    "stats": {
+      "create": "נוצרו",
+      "link": "קושרו",
+      "already_linked": "כבר מקושרים",
+      "duplicate_in_ghl": "כפולים ב-LeadYourWay",
+      "conflict": "התנגשויות",
+      "skipped": "דולגו"
+    },
+    "errors": {
+      "locationId": "מזהה לא תקין"
+    }
+  },
+  "invite": {
+    "title": "הצטרפות לצוות",
+    "body": "קיבלת הזמנה להצטרף לצוות בית הספר במערכת.",
+    "accept": "אישור והצטרפות",
+    "accepted": "הצטרפת! יש להתחבר מחדש כדי להיכנס.",
+    "afterAccept": "אחרי האישור:",
+    "signInAgain": "התחברות מחדש",
+    "signInFirst": "יש להתחבר קודם",
+    "invalid": "ההזמנה לא בתוקף (פגה, בוטלה או כבר נוצלה)",
+    "wrongPerson": "ההזמנה נשלחה לאימייל או טלפון אחר"
+  },
+  "policy": {
+    "sections": {
+      "billing": "חיוב ומנוי",
+      "discount": "הנחות",
+      "trial": "שיעור ניסיון",
+      "attendance": "נוכחות",
+      "absence": "הודעות היעדרות",
+      "makeup": "השלמות",
+      "closure": "ביטולים וסגירות",
+      "calendar": "לוח שנה",
+      "health": "בריאות",
+      "consent": "הסכמות",
+      "regulations": "תקנון",
+      "venue": "כניסה למקום",
+      "enrollment": "הרשמה",
+      "payroll": "שכר",
+      "staffing": "צוות",
+      "comms": "תקשורת"
+    },
+    "fields": {
+      "billing": {
+        "method_required": "אמצעי תשלום נדרש",
+        "run_day": "יום הרצת החיוב בחודש",
+        "cancellation_cutoff_day": "יום אחרון לביטול לחודש הבא",
+        "absence_refund": "החזר על היעדרות",
+        "proration": "חישוב יחסי בהצטרפות או עזיבה באמצע חודש",
+        "proration_min_sessions": "מינימום שיעורים לחיוב יחסי",
+        "freeze_charge": "חיוב בזמן הקפאה",
+        "freeze_requires_approval": "הקפאה דורשת אישור",
+        "annual_early_termination": "ביטול מנוי שנתי",
+        "closure_credit": "זיכוי על סגירה חיצונית"
+      },
+      "discount": {
+        "sibling": {
+          "kind": "סוג הנחת אחים",
+          "percent_bp": "הנחת אחים באחוזים",
+          "flat_agorot": "הנחת אחים קבועה",
+          "applies_to": "על מי חלה הנחת האחים"
+        },
+        "stacking": "צירוף הנחות"
+      },
+      "trial": {
+        "offset": {
+          "enabled": "קיזוז דמי ניסיון מהחודש הראשון",
+          "amount": "סכום הקיזוז",
+          "fixed_agorot": "סכום קיזוז קבוע",
+          "valid_days": "ימים להרשמה לקבלת הקיזוז"
+        }
+      },
+      "attendance": {
+        "late_threshold_min": "איחור שנחשב היעדרות",
+        "leave_early_counts_as": "יציאה מוקדמת נחשבת",
+        "no_water_counts_as": "הגעה בלי להיכנס למים נחשבת"
+      },
+      "absence": {
+        "notice_min_hours": "שעות הודעה מראש לזכאות להשלמה",
+        "timely_earns_makeup": "הודעה בזמן מזכה בהשלמה",
+        "late_notice_charge": "הודעה מאוחרת",
+        "no_show_charge": "לא הגיע ללא הודעה"
+      },
+      "makeup": {
+        "enabled": "השלמות פעילות",
+        "max_per_month": "מקסימום השלמות בחודש",
+        "expiry": "תוקף השלמה",
+        "requires_active_subscription": "רק עם מנוי פעיל",
+        "self_booking": "הורים קובעים השלמה בעצמם",
+        "double_lesson_allowed": "מותר שיעור כפול כהשלמה",
+        "enforcement": "אכיפה",
+        "level_tolerance": "הפרש רמות מותר בקבוצת השלמה"
+      },
+      "closure": {
+        "school_makeup": "ביטול מצד בית הספר",
+        "external_makeup": "סגירה חיצונית: השלמה",
+        "external_refund": "סגירה חיצונית: החזר",
+        "event_end_rule": "השלמות שלא נוצלו בסוף אירוע",
+        "makeup_cap_bypass": "השלמות מסגירה לא נספרות במכסה החודשית"
+      },
+      "calendar": {
+        "no_lessons_on": "אין שיעורים ב־",
+        "chol_hamoed": "חול המועד",
+        "holiday_makeup": "השלמה על חג",
+        "holiday_notice_days_before": "הודעת חג מראש"
+      },
+      "health": {
+        "declaration_required": "נדרשת הצהרת בריאות",
+        "sick_children_allowed": "ילדים חולים רשאים להגיע"
+      },
+      "consent": {
+        "photo_default": "צילום"
+      },
+      "regulations": {
+        "acceptance_required": "נדרש אישור תקנון"
+      },
+      "venue": {
+        "companions_per_child": "מלווים לכל ילד",
+        "extra_child_fee_agorot": "דמי כניסה לאח נוסף",
+        "entry_window": "שעות כניסה",
+        "father_escort_in_women_hours": "אבות מלווים בשעות נשים"
+      },
+      "enrollment": {
+        "transfers_allowed": "מותר לעבור קבוצה"
+      },
+      "payroll": {
+        "pension_threshold_months": "חודשים רצופים לזכאות לפנסיה",
+        "sick_leave_accrual_halfdays_per_month": "צבירת מחלה (חצאי ימים לחודש)"
+      },
+      "staffing": {
+        "shift_change_requires_acceptance": "שינוי משמרת דורש אישור המדריך",
+        "shift_change_escalate_after_hours": "הסלמה אחרי",
+        "substitute_wave_size": "מחליפים בכל גל פניות"
+      },
+      "comms": {
+        "block_shabbat_and_chag": "לא לשלוח בשבת ובחג",
+        "lead_followup_max_nudges": "מקסימום תזכורות לליד",
+        "reminder_before_lesson_hours": "תזכורת לפני שיעור"
+      }
+    },
+    "options": {
+      "standing_order": "הוראת קבע",
+      "any": "כל אמצעי",
+      "none": "ללא",
+      "credit": "זיכוי",
+      "refund": "החזר כספי",
+      "per_remaining_sessions": "לפי שיעורים שנותרו",
+      "per_remaining_days": "לפי ימים שנותרו",
+      "none_while_frozen": "ללא חיוב בהקפאה",
+      "full": "חיוב מלא",
+      "pay_difference_to_monthly": "משלמים את ההפרש למחיר חודשי",
+      "no_refund": "ללא החזר",
+      "percent": "אחוז",
+      "flat": "סכום קבוע",
+      "cheapest_first": "על המנוי הזול",
+      "youngest_first": "על הילד הצעיר",
+      "best_single": "ההנחה הגבוהה בלבד",
+      "additive": "מצטברות",
+      "full_trial_fee": "כל דמי הניסיון",
+      "fixed": "סכום קבוע",
+      "attended": "נוכחות",
+      "absent": "היעדרות",
+      "charged_no_makeup": "חיוב, ללא השלמה",
+      "charged_full": "חיוב מלא",
+      "end_of_source_month": "עד סוף החודש",
+      "end_of_next_month": "עד סוף החודש הבא",
+      "event_deadline": "עד תאריך האירוע",
+      "strict_with_override": "קפדנית, עם חריגה מתועדת",
+      "soft": "גמישה",
+      "guaranteed": "השלמה מובטחת",
+      "best_effort": "השלמה לפי מקום",
+      "expire": "פוקעות",
+      "convert_to_credit": "הופכות לזיכוי",
+      "partial_refund": "החזר חלקי",
+      "shabbat": "שבת",
+      "erev_chag": "ערב חג",
+      "yom_tov": "חג",
+      "yom_kippur": "יום כיפור",
+      "tisha_bav": "תשעה באב",
+      "yom_hazikaron_evening": "ערב יום הזיכרון",
+      "yom_hazikaron": "יום הזיכרון",
+      "yom_haatzmaut": "יום העצמאות",
+      "skip": "אין שיעורים",
+      "run": "מתקיימים שיעורים",
+      "makeup": "השלמה",
+      "granted_unless_opt_out": "מותר אלא אם ביקשו שלא",
+      "denied_unless_opt_in": "אסור אלא אם אישרו",
+      "lesson_time_only": "בזמן השיעור בלבד",
+      "open": "ללא הגבלה"
+    },
+    "units": {
+      "hours": "שעות",
+      "minutes": "דקות",
+      "days": "ימים",
+      "agorot": "₪",
+      "bp": "%"
+    }
+  }
 }

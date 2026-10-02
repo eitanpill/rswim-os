@@ -9,7 +9,15 @@ export const SURFACE_PATHS: Record<Surface, string> = {
   parent: '/parent',
 };
 
-export const PUBLIC_PREFIXES = ['/login', '/auth', '/dev', '/api/health', '/offline'];
+// Webhooks authenticate by signature, not by session.
+export const PUBLIC_PREFIXES = [
+  '/login',
+  '/auth',
+  '/dev',
+  '/api/health',
+  '/api/webhooks',
+  '/offline',
+];
 
 export function surfaceForPath(pathname: string): Surface | 'platform' | null {
   if (pathname === '/platform' || pathname.startsWith('/platform/')) return 'platform';

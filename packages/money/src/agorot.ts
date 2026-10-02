@@ -61,3 +61,14 @@ export function formatILS(amount: Agorot, locale: 'he' | 'en' = 'he'): string {
     maximumFractionDigits: 2,
   }).format(amount / 100);
 }
+
+/**
+ * Parses what a person types as a shekel amount ("330", "330.5", "1,000.25", "₪ 90") into agorot, without going
+ * through floating point. Returns null for anything else, including more than two decimals or negatives.
+ */
+export function parseShekels(input: string): Agorot | null {
+  const s = input.replace(/[₪,\s]/g, '');
+  const m = /^(\d{1,9})(?:\.(\d{1,2}))?$/.exec(s);
+  if (!m) return null;
+  return agorot(Number(m[1]) * 100 + Number((m[2] ?? '').padEnd(2, '0')));
+}

@@ -1,5 +1,8 @@
 {
-  "app": { "name": "R-SWIM OS", "tagline": "The swim school operating system" },
+  "app": {
+    "name": "R-SWIM OS",
+    "tagline": "The swim school operating system"
+  },
   "common": {
     "signOut": "Sign out",
     "language": "עברית",
@@ -15,6 +18,22 @@
       "accountant": "Accountant",
       "parent": "Parent",
       "institution_contact": "Institution contact"
+    },
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "weekday": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "errors": {
+      "notFound": "Not found; it may have been deleted",
+      "forbidden": "You don't have permission for this"
     }
   },
   "login": {
@@ -59,17 +78,54 @@
       "expected": "Expected this month",
       "collected": "Collected"
     },
-    "placeholder": "This screen arrives in Phase {phase}"
+    "placeholder": "This screen arrives in Phase {phase}",
+    "more": {
+      "title": "More",
+      "venues": {
+        "title": "Venues & pools",
+        "hint": "Time windows, lanes, closures and contracts"
+      },
+      "programs": {
+        "title": "Programs & levels",
+        "hint": "Lesson types, ages and the level ladder"
+      },
+      "prices": {
+        "title": "Price lists",
+        "hint": "Price versions by date and venue"
+      },
+      "policies": {
+        "title": "Policies",
+        "hint": "Makeups, absences, billing and every rule"
+      },
+      "staff": {
+        "title": "Staff",
+        "hint": "Instructors, certificates, availability and pay"
+      },
+      "ghl": {
+        "title": "LeadYourWay connection",
+        "hint": "Contact import and two-way sync"
+      }
+    }
   },
   "instructor": {
-    "nav": { "day": "My day", "hours": "Hours", "swaps": "Swaps", "profile": "Profile" },
+    "nav": {
+      "day": "My day",
+      "hours": "Hours",
+      "swaps": "Swaps",
+      "profile": "Profile"
+    },
     "home": {
       "title": "My day",
       "empty": "No sessions today",
       "emptyHint": "When you have sessions, each one's kids list shows here"
     }
   },
-  "transport": { "home": { "title": "After-school transport", "empty": "No routes today" } },
+  "transport": {
+    "home": {
+      "title": "After-school transport",
+      "empty": "No routes today"
+    }
+  },
   "accountant": {
     "home": {
       "title": "Accountant portal",
@@ -94,7 +150,766 @@
     }
   },
   "platform": {
-    "home": { "title": "Platform console", "empty": "Tenant management arrives in Phase 10" }
+    "home": {
+      "title": "Platform console",
+      "empty": "Tenant management arrives in Phase 10"
+    }
   },
-  "calendar": { "noLessons": "No lessons today", "today": "Today" }
+  "calendar": {
+    "noLessons": "No lessons today",
+    "today": "Today"
+  },
+  "forms": {
+    "saved": "Saved",
+    "fixErrors": "Please fix the marked fields",
+    "errors": {
+      "required": "Required",
+      "tooLong": "Too long",
+      "number": "Enter a whole number",
+      "range": "Out of range",
+      "date": "Invalid date",
+      "time": "Invalid time",
+      "phone": "Invalid phone number",
+      "email": "Invalid email",
+      "invalid": "Invalid value",
+      "duplicate": "This already exists"
+    }
+  },
+  "enums": {
+    "venueKind": {
+      "country_club": "Country club",
+      "hotel": "Hotel",
+      "community_center": "Community center",
+      "municipal": "Municipal pool",
+      "other": "Other"
+    },
+    "venueStatus": {
+      "prospect": "Prospect",
+      "active": "Active",
+      "renovation": "Renovation",
+      "closing": "Closing",
+      "closed": "Closed"
+    },
+    "gender": {
+      "mixed": "Mixed",
+      "female": "Women & girls",
+      "male": "Men & boys",
+      "women": "Women",
+      "men": "Men",
+      "girls": "Girls",
+      "boys": "Boys"
+    },
+    "rentModel": {
+      "fixed_monthly": "Fixed monthly",
+      "per_hour": "Per hour",
+      "per_lane_hour": "Per lane-hour",
+      "revenue_share": "Revenue share",
+      "none": "None"
+    },
+    "contractKind": {
+      "rent": "Rent",
+      "tender": "Tender",
+      "partnership": "Partnership"
+    },
+    "closureSource": {
+      "school": "School",
+      "venue": "Venue",
+      "authority": "Authority",
+      "technical": "Technical",
+      "water_quality": "Water quality",
+      "holiday": "Holiday"
+    },
+    "programKind": {
+      "group_kids": "Kids group",
+      "baby": "Baby swim",
+      "adult_beginner": "Adult beginners",
+      "adult_style": "Adult technique",
+      "private": "Private",
+      "pair": "Pair",
+      "trio": "Trio",
+      "therapy": "Hydrotherapy",
+      "after_school": "After-school",
+      "intensive_course": "Intensive course",
+      "camp": "Camp",
+      "school_program": "School program"
+    },
+    "priceKind": {
+      "monthly": "Monthly",
+      "trial": "Trial",
+      "single": "Single lesson",
+      "package": "Package",
+      "entry_fee": "Entry fee"
+    },
+    "priceListStatus": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "employmentType": {
+      "employee": "Employee",
+      "freelancer_exempt": "Exempt freelancer",
+      "freelancer_licensed": "Licensed freelancer",
+      "hybrid": "Hybrid"
+    },
+    "certificationType": {
+      "swim_instructor": "Swim instructor",
+      "lifeguard": "Lifeguard",
+      "hydrotherapy": "Hydrotherapy",
+      "baby_swim": "Baby swim",
+      "first_aid": "First aid",
+      "pool_operator": "Pool operator"
+    },
+    "staffSkill": {
+      "babies": "Babies",
+      "water_fear": "Water fear",
+      "therapy": "Therapy",
+      "adults": "Adults",
+      "advanced": "Advanced",
+      "special_needs": "Special needs"
+    },
+    "staffStatus": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "payBasis": {
+      "per_hour": "per hour",
+      "per_session": "per session",
+      "per_head": "per student"
+    },
+    "payRouting": {
+      "payslip": "Payslip",
+      "transfer": "Transfer against invoice"
+    },
+    "availabilityKind": {
+      "unavailable": "Unavailable",
+      "available": "Extra availability"
+    },
+    "personGender": {
+      "female": "Female",
+      "male": "Male"
+    },
+    "relationType": {
+      "sibling": "Siblings",
+      "friend": "Friends"
+    },
+    "locale": {
+      "he": "Hebrew",
+      "en": "English",
+      "ar": "Arabic",
+      "ru": "Russian"
+    }
+  },
+  "venues": {
+    "title": "Venues",
+    "subtitle": "Every pool we work in, with its windows and rules",
+    "new": "New venue",
+    "empty": "No venues yet",
+    "details": "Venue details",
+    "policies": "Venue policies",
+    "form": {
+      "name": "Name",
+      "kind": "Type",
+      "status": "Status",
+      "address": "Address",
+      "city": "City",
+      "parking": "Parking",
+      "entry": "Entry instructions",
+      "entryHint": "Sent to parents before the first lesson",
+      "frontDesk": "Front desk script",
+      "frontDeskHint": "What to say at reception",
+      "notes": "Notes"
+    },
+    "pool": {
+      "add": "Add pool",
+      "name": "Pool name",
+      "laneCount": "Lanes",
+      "tempMin": "Min temp",
+      "tempMax": "Max temp",
+      "depthMin": "Min depth (cm)",
+      "depthMax": "Max depth (cm)",
+      "indoor": "Indoor",
+      "outdoor": "Outdoor",
+      "lanes": "{count, plural, one {1 lane} other {# lanes}}",
+      "temp": "{min}–{max}°",
+      "confirmDelete": "Delete this pool and all its windows?"
+    },
+    "window": {
+      "title": "Time windows",
+      "empty": "No time windows for this pool yet",
+      "add": "Add time window",
+      "weekday": "Day",
+      "gender": "Admits",
+      "startsAt": "From",
+      "endsAt": "Until",
+      "lanesLegend": "Our lanes in this window",
+      "lane": "Lane {label}",
+      "lanes": "Lanes {lanes}",
+      "effectiveFrom": "Effective from",
+      "effectiveTo": "Until (exclusive)",
+      "effectiveToHint": "Empty = open-ended",
+      "notes": "Note",
+      "from": "From {from}",
+      "between": "{from} to {to}",
+      "confirmDelete": "Delete this window?"
+    },
+    "closure": {
+      "title": "Closures",
+      "empty": "No closures",
+      "add": "Add closure",
+      "startsOn": "From",
+      "endsOn": "To",
+      "source": "Caused by",
+      "reason": "Reason",
+      "hint": "Makeups and parent notices for closures arrive in Phase 3"
+    },
+    "contract": {
+      "title": "Contracts",
+      "empty": "No contracts",
+      "add": "Add contract",
+      "kind": "Type",
+      "rentModel": "Payment model",
+      "amount": "Amount (₪)",
+      "startsOn": "Start",
+      "endsOn": "End",
+      "renewalOn": "Renewal",
+      "renewal": "Renews {date}",
+      "notes": "Notes"
+    },
+    "errors": {
+      "endBeforeStart": "End time must be after the start",
+      "datesReversed": "End date is before the start",
+      "noLanes": "Pick at least one lane",
+      "laneOverlap": "{lanes, plural, one {A lane is} other {# lanes are}} already used by another window at that time"
+    }
+  },
+  "programs": {
+    "title": "Programs & levels",
+    "subtitle": "Lesson types and each one's level ladder",
+    "empty": "No programs yet",
+    "new": "New program",
+    "edit": "Edit program",
+    "inactive": "Inactive",
+    "facts": "{duration} min · up to {capacity} students",
+    "form": {
+      "nameHe": "Name (Hebrew)",
+      "nameEn": "Name (English)",
+      "kind": "Type",
+      "code": "Code",
+      "codeHint": "Lowercase latin letters, digits, dash",
+      "duration": "Duration (min)",
+      "capacity": "Group size",
+      "minAge": "Min age (months)",
+      "maxAge": "Max age (months)",
+      "parentInWater": "Parent in the water",
+      "active": "Active",
+      "create": "Create program"
+    },
+    "levels": {
+      "title": "Level ladder",
+      "empty": "No levels yet",
+      "add": "Add level",
+      "nameHe": "Level name",
+      "nameEn": "English name",
+      "code": "Code",
+      "codeHint": "e.g. level-1",
+      "skills": "Skills",
+      "skillsHint": "One skill per line",
+      "up": "Move up",
+      "down": "Move down",
+      "confirmDelete": "Delete this level?"
+    }
+  },
+  "prices": {
+    "title": "Price lists",
+    "subtitle": "Every price change is a new version from a date. A list in effect never changes.",
+    "lists": "Versions",
+    "empty": "No price lists yet",
+    "new": "New price list",
+    "create": "Create draft",
+    "allVenues": "All venues",
+    "from": "From {date}",
+    "until": "Until {date}",
+    "inEffect": "In effect today",
+    "published": "Price list published",
+    "publish": "Publish",
+    "confirmPublish": "Publish? From its start date these prices apply and can no longer change.",
+    "delete": "Delete list",
+    "confirmDelete": "Delete this price list?",
+    "actions": "Actions",
+    "lockedHint": "This list is in effect and locked. To change a price, create a new version from a date.",
+    "newVersion": "New version from a date",
+    "newVersionHint": "Copies every price into a new draft. Edit, then publish.",
+    "createVersion": "Create version",
+    "form": {
+      "name": "Name",
+      "venue": "Venue",
+      "allVenues": "All venues",
+      "effectiveFrom": "Effective from",
+      "notes": "Notes"
+    },
+    "items": {
+      "title": "Prices",
+      "empty": "No prices in this list yet",
+      "add": "Add or update a price",
+      "program": "Program",
+      "kind": "Type",
+      "amount": "Price",
+      "amountShekels": "Price (₪)",
+      "duration": "Duration (min)",
+      "durationHint": "Empty = any duration",
+      "sessions": "Sessions",
+      "sessionsHint": "For a package",
+      "label": "Label",
+      "minutes": "{n} min",
+      "sessionsN": "{n} sessions",
+      "upsertHint": "Same program, type and duration update the existing price",
+      "save": "Save price"
+    },
+    "check": {
+      "title": "Price check",
+      "venue": "Venue",
+      "program": "Program",
+      "kind": "Type",
+      "date": "On date",
+      "duration": "Duration (min)",
+      "sessions": "Sessions",
+      "submit": "What does it cost?",
+      "source": "From {list}, effective {from}",
+      "none": "No matching price on that date"
+    }
+  },
+  "settings": {
+    "errors": {
+      "code": "Code may only use lowercase latin letters, digits and dashes",
+      "ageRange": "Max age is below min age",
+      "duplicateStart": "A version already starts on that date",
+      "versionLocked": "This version is in effect and can't change. Create a new version from a date.",
+      "emptyPriceList": "Can't publish an empty price list",
+      "packageSessions": "A package needs a number of sessions"
+    }
+  },
+  "policies": {
+    "title": "Policies",
+    "subtitle": "The rules the system applies: makeups, absences, billing and more",
+    "scopeTitle": "Which scope?",
+    "venue": "Venue",
+    "program": "Program",
+    "allVenues": "All venues",
+    "allPrograms": "All programs",
+    "show": "Show",
+    "orgHint": "The school-wide default. A venue or program can override single rules.",
+    "scopeHint": "{scope}: {name}. A blank field inherits from above.",
+    "scope": {
+      "org": "Whole school",
+      "venue": "Venue",
+      "program": "Program",
+      "venue_program": "Program at venue",
+      "class_template": "Class"
+    },
+    "versions": "Versions",
+    "noVersions": "No versions here; everything is inherited",
+    "noVersionsOrg": "No policy saved yet. The form suggests defaults to review.",
+    "versionFrom": "Version from {date}",
+    "inEffect": "in effect",
+    "future": "upcoming",
+    "changes": "{count, plural, one {1 rule} other {# rules}}",
+    "newVersion": "New version",
+    "newVersionOrgHint": "Saved as a new version from the chosen date; the previous one applies until then.",
+    "newVersionScopeHint": "Fill in only what differs here. The rest is inherited.",
+    "effectiveFrom": "Effective from",
+    "notes": "What changed?",
+    "save": "Save version",
+    "saved": "Version saved",
+    "inherit": "Inherit",
+    "yes": "Yes",
+    "no": "No",
+    "override": "Set here",
+    "none": "None",
+    "notSet": "Not set",
+    "nowhere": "default",
+    "inherited": "Inherited: {value} ({source})"
+  },
+  "staff": {
+    "title": "Staff",
+    "subtitle": "Instructors, escorts, certificates and availability",
+    "empty": "No staff yet",
+    "new": "New staff member",
+    "details": "Details",
+    "anyVenue": "Any venue",
+    "anyProgram": "Any program",
+    "form": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone",
+      "email": "Email",
+      "gender": "Gender",
+      "employmentType": "Employment",
+      "status": "Status",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "skills": "Skills",
+      "notes": "Notes",
+      "create": "Add"
+    },
+    "cert": {
+      "title": "Certificates",
+      "empty": "No certificates",
+      "add": "Add certificate",
+      "type": "Type",
+      "issuer": "Issuer",
+      "issuedOn": "Issued",
+      "expiresOn": "Expires",
+      "expires": "Valid until {date}",
+      "noExpiry": "No expiry",
+      "expiring": "{type}: expiring",
+      "expired": "{type}: expired",
+      "status": {
+        "valid": "Valid",
+        "expiring": "Expiring",
+        "expired": "Expired"
+      }
+    },
+    "availability": {
+      "title": "Weekly availability",
+      "empty": "No availability set",
+      "add": "Add availability",
+      "weekday": "Day",
+      "startsAt": "From",
+      "endsAt": "Until",
+      "venue": "Venue",
+      "from": "From date",
+      "to": "To date"
+    },
+    "exception": {
+      "title": "Exceptions",
+      "add": "Add exception",
+      "kind": "Type",
+      "startsOn": "From",
+      "endsOn": "To",
+      "reason": "Reason"
+    },
+    "pay": {
+      "title": "Pay rules",
+      "empty": "No pay rules",
+      "add": "New pay rule",
+      "hint": "A new rule from a date ends the previous one in the same slot. Payroll itself arrives in Phase 6.",
+      "amount": "Amount (₪)",
+      "basis": "Basis",
+      "routing": "Paid via",
+      "program": "Program",
+      "venue": "Venue",
+      "travelAmount": "Travel per session (₪)",
+      "travel": "Travel",
+      "effectiveFrom": "Effective from",
+      "notes": "Notes",
+      "from": "From {from}",
+      "between": "{from} to {to}"
+    },
+    "invite": {
+      "title": "Invite to the system",
+      "hint": "Create a personal link and send it. It's valid for 7 days and shown only once.",
+      "role": "Role",
+      "staff": "Staff record",
+      "noStaff": "None",
+      "create": "Create link",
+      "created": "Link created. Copy and send it now.",
+      "link": "Invite link",
+      "copy": "Copy",
+      "accepted": "Accepted",
+      "expired": "Expired",
+      "pending": "Pending",
+      "revoke": "Revoke"
+    }
+  },
+  "families": {
+    "title": "Families",
+    "new": "New family",
+    "create": "Create family",
+    "search": "Search",
+    "searchPlaceholder": "Name, phone or child's name",
+    "empty": "No families yet",
+    "noMatch": "No families found",
+    "children": "Children: {names}",
+    "guardians": "Parents & guardians",
+    "students": "Students",
+    "noStudents": "No students yet",
+    "otherFamily": "another family",
+    "household": {
+      "title": "Family details",
+      "displayName": "Display name",
+      "displayNameHint": "e.g. “The Cohens”",
+      "locale": "Message language",
+      "notes": "Notes"
+    },
+    "guardian": {
+      "first": "First parent",
+      "add": "Add parent",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone",
+      "email": "Email",
+      "relation": "Relation",
+      "whatsapp": "Agrees to WhatsApp",
+      "billing": "Billing contact",
+      "billingBadge": "Billing",
+      "inCrm": "In CRM",
+      "notInCrm": "Not in CRM yet"
+    },
+    "student": {
+      "add": "Add student",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "dob": "Date of birth",
+      "gender": "Gender",
+      "school": "School",
+      "grade": "Grade",
+      "level": "Level",
+      "noLevel": "Not set",
+      "preferredStaff": "Preferred instructor",
+      "noPreference": "No preference",
+      "waterFear": "Water fear",
+      "femaleInstructor": "Female instructor only",
+      "photoConsent": "Photos allowed",
+      "noPhotos": "No photos",
+      "selfGuardian": "Adult student (own guardian)",
+      "custody": "Custody pattern",
+      "custodyHint": "e.g. Mondays with dad",
+      "age": "{years, plural, one {1 year} other {# years}}, {months} months"
+    },
+    "relations": {
+      "title": "Student relations",
+      "hint": "Siblings drive the sibling discount; friends help placement",
+      "a": "Student",
+      "b": "With",
+      "type": "Relation",
+      "add": "Add relation"
+    }
+  },
+  "people": {
+    "errors": {
+      "contactRequired": "A phone or email is required",
+      "selfRelation": "A student can't be related to themselves"
+    }
+  },
+  "crm": {
+    "title": "LeadYourWay connection",
+    "subtitle": "Leads and marketing stay in LeadYourWay; families sync here",
+    "location": "Account",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "locationHint": "The account's Location ID. The API key is kept on the server, not here.",
+    "locationId": "Location ID",
+    "saveLocation": "Save",
+    "tagMap": "{count} tags mapped to fields",
+    "import": "Contact import",
+    "importHint": "Pulls every contact, links by phone then email, and creates new families. Safe to run again.",
+    "importNow": "Import now",
+    "importQueued": "Import started. Results will appear here.",
+    "connectFirst": "Connect an account first",
+    "runs": "Recent imports",
+    "noRuns": "No imports yet",
+    "problems": "{count, plural, one {1 item to review} other {# items to review}}",
+    "status": {
+      "running": "Running",
+      "succeeded": "Done",
+      "failed": "Failed"
+    },
+    "stats": {
+      "create": "Created",
+      "link": "Linked",
+      "already_linked": "Already linked",
+      "duplicate_in_ghl": "Duplicates in LeadYourWay",
+      "conflict": "Conflicts",
+      "skipped": "Skipped"
+    },
+    "errors": {
+      "locationId": "Invalid ID"
+    }
+  },
+  "invite": {
+    "title": "Join the team",
+    "body": "You've been invited to join the school's team.",
+    "accept": "Accept and join",
+    "accepted": "You're in! Sign in again to enter.",
+    "afterAccept": "After accepting:",
+    "signInAgain": "Sign in again",
+    "signInFirst": "Sign in first",
+    "invalid": "This invite is no longer valid",
+    "wrongPerson": "This invite was sent to a different email or phone"
+  },
+  "policy": {
+    "sections": {
+      "billing": "Billing & subscription",
+      "discount": "Discounts",
+      "trial": "Trial lesson",
+      "attendance": "Attendance",
+      "absence": "Absence notices",
+      "makeup": "Makeups",
+      "closure": "Cancellations & closures",
+      "calendar": "Calendar",
+      "health": "Health",
+      "consent": "Consent",
+      "regulations": "Regulations",
+      "venue": "Venue entry",
+      "enrollment": "Enrollment",
+      "payroll": "Payroll",
+      "staffing": "Staffing",
+      "comms": "Communications"
+    },
+    "fields": {
+      "billing": {
+        "method_required": "Required payment method",
+        "run_day": "Billing run day of month",
+        "cancellation_cutoff_day": "Cancellation cut-off day",
+        "absence_refund": "Refund for absence",
+        "proration": "Mid-month proration",
+        "proration_min_sessions": "Minimum sessions to prorate",
+        "freeze_charge": "Charge while frozen",
+        "freeze_requires_approval": "Freeze needs approval",
+        "annual_early_termination": "Annual plan early termination",
+        "closure_credit": "Credit for external closure"
+      },
+      "discount": {
+        "sibling": {
+          "kind": "Sibling discount type",
+          "percent_bp": "Sibling discount",
+          "flat_agorot": "Flat sibling discount",
+          "applies_to": "Sibling discount applies to"
+        },
+        "stacking": "Discount stacking"
+      },
+      "trial": {
+        "offset": {
+          "enabled": "Offset trial fee",
+          "amount": "Offset amount",
+          "fixed_agorot": "Fixed offset",
+          "valid_days": "Days to enroll for the offset"
+        }
+      },
+      "attendance": {
+        "late_threshold_min": "Late counts as absent after",
+        "leave_early_counts_as": "Leaving early counts as",
+        "no_water_counts_as": "Came without entering the water"
+      },
+      "absence": {
+        "notice_min_hours": "Hours of notice for a makeup",
+        "timely_earns_makeup": "Timely notice earns a makeup",
+        "late_notice_charge": "Late notice",
+        "no_show_charge": "No-show"
+      },
+      "makeup": {
+        "enabled": "Makeups enabled",
+        "max_per_month": "Max makeups per month",
+        "expiry": "Makeup expiry",
+        "requires_active_subscription": "Only with an active subscription",
+        "self_booking": "Parents book makeups themselves",
+        "double_lesson_allowed": "Double lesson allowed as makeup",
+        "enforcement": "Enforcement",
+        "level_tolerance": "Allowed level difference"
+      },
+      "closure": {
+        "school_makeup": "School-initiated cancellation",
+        "external_makeup": "External closure: makeup",
+        "external_refund": "External closure: refund",
+        "event_end_rule": "Unused makeups at event end",
+        "makeup_cap_bypass": "Closure makeups skip the monthly cap"
+      },
+      "calendar": {
+        "no_lessons_on": "No lessons on",
+        "chol_hamoed": "Chol HaMoed",
+        "holiday_makeup": "Makeup for holidays",
+        "holiday_notice_days_before": "Holiday notice (days before)"
+      },
+      "health": {
+        "declaration_required": "Health declaration required",
+        "sick_children_allowed": "Sick children may attend"
+      },
+      "consent": {
+        "photo_default": "Photos"
+      },
+      "regulations": {
+        "acceptance_required": "Regulations acceptance required"
+      },
+      "venue": {
+        "companions_per_child": "Companions per child",
+        "extra_child_fee_agorot": "Extra sibling entry fee",
+        "entry_window": "Entry window",
+        "father_escort_in_women_hours": "Fathers escort during women's hours"
+      },
+      "enrollment": {
+        "transfers_allowed": "Group transfers allowed"
+      },
+      "payroll": {
+        "pension_threshold_months": "Months for pension eligibility",
+        "sick_leave_accrual_halfdays_per_month": "Sick leave accrual (half-days/month)"
+      },
+      "staffing": {
+        "shift_change_requires_acceptance": "Shift changes need instructor acceptance",
+        "shift_change_escalate_after_hours": "Escalate after",
+        "substitute_wave_size": "Substitutes per wave"
+      },
+      "comms": {
+        "block_shabbat_and_chag": "No messages on Shabbat and holidays",
+        "lead_followup_max_nudges": "Max lead follow-ups",
+        "reminder_before_lesson_hours": "Reminder before lesson"
+      }
+    },
+    "options": {
+      "standing_order": "Standing order",
+      "any": "Any",
+      "none": "None",
+      "credit": "Credit",
+      "refund": "Refund",
+      "per_remaining_sessions": "By remaining sessions",
+      "per_remaining_days": "By remaining days",
+      "none_while_frozen": "No charge while frozen",
+      "full": "Full charge",
+      "pay_difference_to_monthly": "Pay the difference to monthly",
+      "no_refund": "No refund",
+      "percent": "Percent",
+      "flat": "Flat amount",
+      "cheapest_first": "Cheapest enrollment",
+      "youngest_first": "Youngest child",
+      "best_single": "Best single discount",
+      "additive": "Additive",
+      "full_trial_fee": "Full trial fee",
+      "fixed": "Fixed amount",
+      "attended": "Attended",
+      "absent": "Absent",
+      "charged_no_makeup": "Charged, no makeup",
+      "charged_full": "Charged in full",
+      "end_of_source_month": "End of the month",
+      "end_of_next_month": "End of next month",
+      "event_deadline": "Event deadline",
+      "strict_with_override": "Strict, with logged override",
+      "soft": "Soft",
+      "guaranteed": "Guaranteed",
+      "best_effort": "Best effort",
+      "expire": "Expire",
+      "convert_to_credit": "Convert to credit",
+      "partial_refund": "Partial refund",
+      "shabbat": "Shabbat",
+      "erev_chag": "Holiday eve",
+      "yom_tov": "Yom Tov",
+      "yom_kippur": "Yom Kippur",
+      "tisha_bav": "Tisha B'Av",
+      "yom_hazikaron_evening": "Memorial Day eve",
+      "yom_hazikaron": "Memorial Day",
+      "yom_haatzmaut": "Independence Day",
+      "skip": "No lessons",
+      "run": "Lessons run",
+      "makeup": "Makeup",
+      "granted_unless_opt_out": "Allowed unless opted out",
+      "denied_unless_opt_in": "Not allowed unless opted in",
+      "lesson_time_only": "Lesson time only",
+      "open": "Open"
+    },
+    "units": {
+      "hours": "hours",
+      "minutes": "minutes",
+      "days": "days",
+      "agorot": "₪",
+      "bp": "%"
+    }
+  }
 }

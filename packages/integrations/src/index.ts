@@ -85,3 +85,4 @@ export interface CrmProvider {
     req: { contactExternalId: string; pipelineId: string; stageId: string },
   ): Promise<void>;
 }
+export * from './ghl';

@@ -1,0 +1,131 @@
+{
+  "_comment": "Recorded shape of POST /contacts/search results. Every name, phone and email is fake.",
+  "contacts": [
+    {
+      "id": "c-001",
+      "firstName": "מיכל",
+      "lastName": "כהן",
+      "phone": "050-000-0106",
+      "email": null,
+      "tags": ["ילדים ונוער", "5-7"],
+      "dateAdded": "2025-01-10T10:00:00.000Z"
+    },
+    {
+      "id": "c-002",
+      "firstName": "מיכל",
+      "lastName": "כהן",
+      "phone": "+972500000106",
+      "email": null,
+      "tags": [],
+      "dateAdded": "2025-03-02T10:00:00.000Z"
+    },
+    {
+      "id": "c-003",
+      "firstName": "דנה",
+      "lastName": "לוי",
+      "phone": "0500000201",
+      "email": null,
+      "tags": ["שחיית תינוקות", "3-9 חודשים", "יש פחד מים", "תג לא מוכר"],
+      "dateAdded": "2025-02-01T10:00:00.000Z"
+    },
+    {
+      "id": "c-004",
+      "firstName": null,
+      "lastName": null,
+      "contactName": "יוסי בן אברהם",
+      "phone": "972-50-000-0202",
+      "email": null,
+      "tags": ["שחיית מבוגרים"],
+      "dateAdded": "2025-02-02T10:00:00.000Z"
+    },
+    {
+      "id": "c-005",
+      "firstName": "רונית",
+      "lastName": "שמש",
+      "phone": null,
+      "email": "Ronit@Example.test",
+      "tags": [],
+      "dateAdded": "2025-02-03T10:00:00.000Z"
+    },
+    {
+      "id": "c-006",
+      "firstName": "ללא",
+      "lastName": "פרטים",
+      "phone": null,
+      "email": null,
+      "tags": [],
+      "dateAdded": "2025-02-04T10:00:00.000Z"
+    },
+    {
+      "id": "c-007",
+      "firstName": "טלפון",
+      "lastName": "שגוי",
+      "phone": "abc",
+      "email": null,
+      "tags": [],
+      "dateAdded": "2025-02-05T10:00:00.000Z"
+    },
+    {
+      "id": "c-008",
+      "firstName": "אורית",
+      "lastName": "",
+      "phone": null,
+      "email": "orit@example.test",
+      "tags": [],
+      "dateAdded": "2025-02-06T10:00:00.000Z"
+    },
+    {
+      "id": "c-009",
+      "firstName": "גיל",
+      "lastName": "מקושר",
+      "phone": "0500000203",
+      "email": null,
+      "tags": [],
+      "dateAdded": "2025-04-01T10:00:00.000Z"
+    },
+    {
+      "id": "c-010",
+      "firstName": "אורית",
+      "lastName": "כפולה",
+      "phone": null,
+      "email": "ORIT@example.test",
+      "tags": [],
+      "dateAdded": "2025-02-07T10:00:00.000Z"
+    },
+    {
+      "id": "c-011",
+      "firstName": "נטע",
+      "lastName": "קונפליקט",
+      "phone": "0500000204",
+      "email": null,
+      "tags": [],
+      "dateAdded": "2025-02-08T10:00:00.000Z"
+    },
+    {
+      "id": "c-012",
+      "firstName": "",
+      "lastName": "",
+      "phone": "0500000205",
+      "email": null,
+      "tags": [],
+      "dateAdded": "2025-02-09T10:00:00.000Z"
+    },
+    {
+      "id": "c-013",
+      "firstName": "",
+      "lastName": "",
+      "phone": "0500000206",
+      "email": null,
+      "tags": [],
+      "dateAdded": "2025-02-10T10:00:00.000Z"
+    },
+    {
+      "id": "c-014",
+      "firstName": "אבא",
+      "lastName": "כהן",
+      "phone": "0500000207",
+      "email": null,
+      "tags": ["ליד חם", "יש פחד מים", "אין פחד ממים", "שיעורי שחייה הר חומה"]
+    }
+  ]
+}
