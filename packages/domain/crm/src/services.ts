@@ -3,7 +3,7 @@
  * external API and must be retried safely.
  */
 import { z } from 'zod';
-import { eq, schema, type Tx } from '@rswim/db';
+import { desc, eq, schema, sql, type Tx } from '@rswim/db';
 import { emit, type ServiceContext } from '@rswim/domain-core';
 import { allContacts, type GhlClient, type GhlContact } from '@rswim/integrations';
 import {
@@ -36,6 +36,26 @@ export async function ghlSettings(
   return parsed.success
     ? { locationId: parsed.data.locationId, tagMap: parsed.data.tagMap as TagMap }
     : null;
+}
+
+/** Connects the org to a GHL location (the API token lives in the worker's environment, never in the database). */
+export async function saveGhlLocation(
+  tx: Tx,
+  ctx: ServiceContext,
+  locationId: string,
+  tagMap: TagMap,
+) {
+  const ghl = { locationId, tagMap };
+  await tx
+    .update(orgSettings)
+    .set({
+      integrations: sql`jsonb_set(${orgSettings.integrations}, '{ghl}', ${JSON.stringify(ghl)}::jsonb)`,
+    })
+    .where(eq(orgSettings.organizationId, ctx.orgId));
+}
+
+export async function listImportRuns(tx: Tx, limit = 10) {
+  return tx.select().from(importRuns).orderBy(desc(importRuns.startedAt)).limit(limit);
 }
 
 /** Asks the worker to run an import; the web request returns at once. */
