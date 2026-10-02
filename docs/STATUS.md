@@ -6,7 +6,7 @@
 | 1 Core data | **Done**, merged (PR #2) | Both acceptance criteria pass |
 | 2 Scheduling engine | **Done**, merged (PR #3) | All three acceptance criteria pass |
 | 3 Attendance, makeups, trials, forms | **Done**, merged (PR #4) | Both acceptance criteria pass |
-| 4 Billing and collections | **Done** (PR #5) | All four acceptance criteria pass (see below) |
+| 4 Billing and collections | **Done**, merged (PR #5) | All four acceptance criteria pass (see below) |
 | 5–10 | Not started | |
 
 ## Phase 4 acceptance criteria
