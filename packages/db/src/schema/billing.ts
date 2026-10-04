@@ -19,6 +19,8 @@ import {
   BILLING_LINE_KINDS,
   BILLING_RUN_STATUSES,
   CANCELLATION_STATUSES,
+  PORTAL_REQUEST_KINDS,
+  PORTAL_REQUEST_STATUSES,
   DUNNING_STATUSES,
   FISCAL_DOCUMENT_KINDS,
   FISCAL_DOCUMENT_STATUSES,
@@ -139,6 +141,60 @@ export const enrollmentFreezes = pgTable(
     check('enrollment_freezes_dates_check', sql`${t.toDate} >= ${t.fromDate}`),
     check('enrollment_freezes_reason_check', sql.raw(`reason in (${inList(FREEZE_REASONS)})`)),
     check('enrollment_freezes_status_check', sql.raw(`status in (${inList(FREEZE_STATUSES)})`)),
+  ],
+);
+
+/**
+ * A family's request from the portal to freeze a seat or to leave (Phase 7). The database stamps who asked and when;
+ * the worker decides it with the office's own rules and links the freeze or cancellation it produced.
+ */
+export const portalRequests = pgTable(
+  'portal_requests',
+  {
+    id: id(),
+    organizationId: orgId(),
+    enrollmentId: uuid('enrollment_id').notNull(),
+    kind: text('kind').notNull(),
+    /** Freeze only, inclusive. */
+    fromDate: date('from_date'),
+    toDate: date('to_date'),
+    reason: text('reason'),
+    note: text('note'),
+    requestedBy: uuid('requested_by'),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
+    status: text('status').notNull().default('pending'),
+    freezeId: uuid('freeze_id'),
+    cancellationId: uuid('cancellation_id'),
+    /** Why it was refused (an i18n code and params). */
+    error: jsonb('error'),
+    processedAt: timestamp('processed_at', { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('portal_requests_org_id').on(t.organizationId, t.id),
+    foreignKey({
+      name: 'portal_requests_enrollment_fk',
+      columns: [t.organizationId, t.enrollmentId],
+      foreignColumns: [enrollments.organizationId, enrollments.id],
+    }).onDelete('cascade'),
+    index('portal_requests_enrollment').on(t.enrollmentId),
+    index('portal_requests_pending')
+      .on(t.organizationId)
+      .where(sql`status = 'pending'`),
+    check('portal_requests_kind_check', sql.raw(`kind in (${inList(PORTAL_REQUEST_KINDS)})`)),
+    check(
+      'portal_requests_status_check',
+      sql.raw(`status in (${inList(PORTAL_REQUEST_STATUSES)})`),
+    ),
+    check(
+      'portal_requests_freeze_check',
+      sql`${t.kind} <> 'freeze' or (${t.fromDate} is not null and ${t.toDate} >= ${t.fromDate} and ${t.reason} is not null)`,
+    ),
+    check(
+      'portal_requests_reason_check',
+      sql.raw(`reason is null or reason in (${inList(FREEZE_REASONS)})`),
+    ),
   ],
 );
 

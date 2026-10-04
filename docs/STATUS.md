@@ -9,7 +9,23 @@
 | 4 Billing and collections | **Done**, merged (PR #5) | All four acceptance criteria pass (see below) |
 | 5 Communications hub | **Done**, merged (PR #6) | All three acceptance criteria pass |
 | 6 Staff ops and payroll | **Done**, merged (PR #7) | Both acceptance criteria pass (see below) |
-| 7–10 | Not started | |
+| 7 Parent portal | **Done** | The acceptance criterion passes (see below) |
+| 8–10 | Not started | |
+
+## Phase 7 acceptance criteria
+
+| Criterion | Proof | Result |
+|---|---|---|
+| A parent completes absence → makeup booking → receipt download on a phone in under 60 seconds total | `apps/web/e2e/portal.spec.ts` AC on a Pixel 7 viewport: the parent persona opens **לו״ז**, taps "לא נגיע" on a lesson two or more days out, the worker's step decides the notice by the regulations and issues the credit, the parent opens it from the family home, books the first offered makeup, opens **תשלומים**, opens a receipt and downloads it. The whole flow, sign-in included, is measured: 2.5 s locally, asserted under 60 s | Pass |
+
+Also: a child card (progress by level with the skills achieved, next lessons, freeze and leave requests with their
+outcome), the companion pass with a QR code checked by a public page (valid today, expired, forged), freeze and
+leave requests decided by the worker with the office's rules (`packages/domain/billing/test/portal.test.ts`: the
+database stamps who and when and refuses forged outcomes, another family sees nothing), and fake-provider receipts
+for September's payments in the seed.
+
+Totals on 2026-10-04: 536 unit/integration tests + 32 browser tests, all green. `lint`, `typecheck`, `format:check`
+clean.
 
 ## Phase 6 acceptance criteria
 

@@ -9,6 +9,13 @@ import {
   reportAbsence,
   withdrawNotice,
 } from '@rswim/domain-attendance';
+import {
+  askCancellation,
+  askFreeze,
+  PortalCancellationInput,
+  PortalFreezeInput,
+  withdrawPortalRequest,
+} from '@rswim/domain-billing';
 import { SubmissionInput, submitForm } from '@rswim/domain-enrollment';
 import { answersFrom } from '@/lib/answers';
 import type { FormState } from '@/lib/form-state';
@@ -59,5 +66,33 @@ export async function parentAcceptFormAction(_: FormState, fd: FormData) {
     (tx, ctx, input) => submitForm(tx, ctx, { ...input, channel: 'parent_portal' }),
     { revalidate: ['/parent', '/parent/documents'], success: 'parent.documents.accepted' },
     answersFrom,
+  );
+}
+
+const childPath = (fd: FormData) => `/parent/child/${String(fd.get('studentId') ?? '')}`;
+
+/** The family asks to freeze a seat; the worker decides with the regulations and the answer shows on the card. */
+export async function parentAskFreezeAction(_: FormState, fd: FormData) {
+  return runForm(fd, PortalFreezeInput, (tx, ctx, input) => askFreeze(tx, ctx, input), {
+    revalidate: childPath(fd),
+    success: 'parent.child.asked',
+  });
+}
+
+export async function parentAskLeaveAction(_: FormState, fd: FormData) {
+  return runForm(fd, PortalCancellationInput, (tx, ctx, input) => askCancellation(tx, ctx, input), {
+    revalidate: childPath(fd),
+    success: 'parent.child.asked',
+  });
+}
+
+export async function parentWithdrawRequestAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    z.object({ id: z.uuid() }),
+    (tx, _ctx, { id }) => withdrawPortalRequest(tx, id),
+    {
+      revalidate: childPath(fd),
+    },
   );
 }

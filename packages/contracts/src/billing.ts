@@ -135,6 +135,14 @@ export const FREEZE_REASONS = ['medical', 'vacation', 'other'] as const;
 export const FreezeReason = z.enum(FREEZE_REASONS);
 export type FreezeReason = z.infer<typeof FreezeReason>;
 
+/** A family's own request from the portal, processed by the worker with the office's rules (Phase 7). */
+export const PORTAL_REQUEST_KINDS = ['freeze', 'cancellation'] as const;
+export const PortalRequestKind = z.enum(PORTAL_REQUEST_KINDS);
+export type PortalRequestKind = z.infer<typeof PortalRequestKind>;
+export const PORTAL_REQUEST_STATUSES = ['pending', 'done', 'refused', 'withdrawn'] as const;
+export const PortalRequestStatus = z.enum(PORTAL_REQUEST_STATUSES);
+export type PortalRequestStatus = z.infer<typeof PortalRequestStatus>;
+
 export const CANCELLATION_STATUSES = ['active', 'withdrawn'] as const;
 export const CancellationStatus = z.enum(CANCELLATION_STATUSES);
 export type CancellationStatus = z.infer<typeof CancellationStatus>;

@@ -248,7 +248,8 @@
       "family": "Family",
       "schedule": "Schedule",
       "payments": "Payments",
-      "documents": "Documents"
+      "documents": "Documents",
+      "pass": "Pass"
     },
     "home": {
       "title": "My family",
@@ -263,7 +264,10 @@
       "credit": "Makeup for {name}, until {until}",
       "forms": "Forms to sign",
       "formsDue": "{n, plural, one {1 form is} other {# forms are}} waiting for your signature",
-      "signForms": "Sign"
+      "signForms": "Sign",
+      "children": "Children",
+      "childCard": "Progress, freeze and leaving",
+      "pass": "Companion pass"
     },
     "schedule": {
       "title": "Upcoming lessons",
@@ -294,6 +298,70 @@
       "due": "To sign",
       "allDone": "All signed, thank you!",
       "accepted": "Thank you, saved"
+    },
+    "child": {
+      "lessons": "Upcoming lessons",
+      "noLessons": "No lessons in the next two weeks",
+      "progress": "Progress",
+      "level": "{program} · {level}",
+      "nextLevel": "Next level: {level}",
+      "noLevel": "No level set yet",
+      "achieved": "Achieved on {date}",
+      "working": "Working on it",
+      "seats": "Groups",
+      "freeze": "Request a freeze",
+      "freezeHint": "Lessons during the freeze are not charged, per the regulations",
+      "from": "From",
+      "to": "Until",
+      "reason": "Reason",
+      "note": "Note (optional)",
+      "sendFreeze": "Send freeze request",
+      "leave": "Leave the group",
+      "leaveHint": "The last month you pay for follows the regulations and when you ask",
+      "leaveConfirm": "Send a request to leave {group}?",
+      "sendLeave": "Send leaving request",
+      "asked": "Request sent. The answer will appear here shortly",
+      "requests": "Your requests",
+      "requestFreeze": "Freeze {from}–{to}",
+      "requestLeave": "Leaving",
+      "requestedOn": "Sent on {date}",
+      "withdraw": "Withdraw request",
+      "freezeOutcome": "The freeze is {status}",
+      "leaveOutcome": "Last month charged: {period}. Last lesson before {date}",
+      "refused": "Not approved: {reason}",
+      "leaving": "Leaving the group"
+    },
+    "requests": {
+      "errors": {
+        "alreadyPending": "A request like this is already waiting",
+        "notPending": "This request was already handled and cannot be changed"
+      }
+    },
+    "pass": {
+      "title": "Companion pass",
+      "hint": "Show it at the pool entrance. Valid on the lesson day only",
+      "companions": "{n, plural, =0 {No companions} one {One companion} other {# companions}}",
+      "today": "Today, {date}",
+      "lesson": "{group} · {time}",
+      "empty": "No lesson today",
+      "next": "The pass appears on the next lesson day: {date}",
+      "noNext": "No upcoming lesson",
+      "unavailable": "The pass is not available right now; give the child's name at the entrance",
+      "scan": "To check: scan the code"
+    },
+    "receipt": {
+      "title": "{kind} {number}",
+      "copy": "A copy from the system. The signed document was emailed to you by Green Invoice",
+      "download": "Download",
+      "print": "Print",
+      "client": "To",
+      "date": "Date",
+      "method": "Payment method",
+      "total": "Total",
+      "item": "Item",
+      "amount": "Amount",
+      "back": "Back to payments",
+      "notes": "Notes"
     }
   },
   "platform": {
@@ -839,6 +907,16 @@
       "head": "children",
       "day": "days",
       "item": "item"
+    },
+    "portalRequestKind": {
+      "freeze": "Freeze",
+      "cancellation": "Leaving"
+    },
+    "portalRequestStatus": {
+      "pending": "In progress",
+      "done": "Handled",
+      "refused": "Not approved",
+      "withdrawn": "Withdrawn"
     }
   },
   "venues": {
@@ -2265,7 +2343,8 @@
       "history": "Entries",
       "documents": "Invoices and receipts",
       "download": "Download",
-      "empty": "No entries yet"
+      "empty": "No entries yet",
+      "open": "View"
     }
   },
   "comms": {
@@ -2574,5 +2653,18 @@
       "pensionYes": "Eligible",
       "pensionNo": "Not eligible yet ({months} months)"
     }
+  },
+  "pass": {
+    "title": "Companion pass check",
+    "valid": "Valid today",
+    "forged": "This pass is not valid",
+    "expired": "Expired: it was valid on {date}",
+    "early": "Not yet valid: valid on {date}",
+    "child": "Child",
+    "group": "Group",
+    "venue": "Venue",
+    "time": "Time",
+    "companions": "Companions",
+    "school": "School"
   }
 }

@@ -11,13 +11,15 @@ import {
   growWebhookBody,
   issueReceipts,
   markGrowWebhookProcessed,
+  pendingPortalRequests,
+  processPortalRequest,
   runDunning,
 } from '@rswim/domain-billing';
 import type { DomainEventEnvelope } from '@rswim/contracts';
 import type { Tx } from '@rswim/db';
 import { consumeOnce } from '@rswim/domain-core/worker';
 import { getDb, inngest, log } from '../client';
-import { invoicingProvider, paymentProvider } from '../providers';
+import { invoicingProvider, invoicingProviderName, paymentProvider } from '../providers';
 import { toEnvelope } from './core-ping';
 
 const sys = (envelope: DomainEventEnvelope) => ({ orgId: envelope.organizationId, userId: null });
@@ -106,7 +108,7 @@ export const billingIssueReceipts = inngest.createFunction(
     const { paymentId } = z.object({ paymentId: z.uuid() }).parse(envelope.payload);
     return step.run('issue', () =>
       withProvider('billing-issue-receipts', envelope, invoicingProvider(), (p, tx) =>
-        issueReceipts(tx, sys(envelope), p, paymentId),
+        issueReceipts(tx, sys(envelope), p, paymentId, invoicingProviderName()),
       ),
     );
   },
@@ -218,5 +220,62 @@ export const billingDailyDunning = inngest.createFunction(
     }
     log.info(totals, 'billing daily dunning');
     return totals;
+  },
+);
+
+/**
+ * A family asked from the portal to freeze a seat or to leave: decide it with the office's own services (the same
+ * regulations), once. The payload only names the request; the request row is the truth.
+ */
+export const billingPortalRequest = inngest.createFunction(
+  {
+    id: 'billing-portal-request',
+    triggers: [{ event: 'billing.portal_request_created' }],
+    retries: 5,
+  },
+  async ({ event, step }) => {
+    const envelope = toEnvelope(event);
+    const { requestId } = z.object({ requestId: z.uuid() }).parse(envelope.payload);
+    return step.run('decide', async () => {
+      let status: string | null = null;
+      await consumeOnce(getDb(), 'billing-portal-request', envelope, async (tx) => {
+        status = (await processPortalRequest(tx, sys(envelope), requestId))?.status ?? null;
+      });
+      return { status };
+    });
+  },
+);
+
+/** Every half hour: decide any family request whose event was lost, so nobody waits on a request forever. */
+export const billingPortalRequestSweep = inngest.createFunction(
+  {
+    id: 'billing-portal-request-sweep',
+    triggers: [{ cron: 'TZ=Asia/Jerusalem */30 * * * *' }],
+    concurrency: { limit: 1 },
+  },
+  async ({ step }) => {
+    const orgIds = await step.run('find-orgs', () =>
+      asPlatform(getDb(), async (tx) =>
+        (await tx.select({ id: schema.organizations.id }).from(schema.organizations)).map(
+          (r) => r.id,
+        ),
+      ),
+    );
+    let decided = 0;
+    for (const orgId of orgIds) {
+      decided += await step.run(`requests-${orgId}`, () =>
+        withOrg(getDb(), orgId, async (tx) => {
+          let n = 0;
+          // Only requests older than five minutes: newer ones are still in the event's hands.
+          const due = (await pendingPortalRequests(tx)).filter(
+            (r) => Date.now() - r.requestedAt.getTime() > 5 * 60_000,
+          );
+          for (const r of due)
+            if (await processPortalRequest(tx, { orgId, userId: null }, r.id)) n++;
+          return n;
+        }),
+      );
+    }
+    return { decided };
   },
 );

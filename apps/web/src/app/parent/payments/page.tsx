@@ -1,6 +1,7 @@
+import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { householdMoney } from '@rswim/domain-billing';
-import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import { Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import { explainer, money, periodLabel } from '@/lib/billing';
 import { withSession } from '@/lib/db';
 import { dmy, enumLabel } from '@/lib/options';
@@ -120,11 +121,13 @@ export default async function ParentPaymentsPage() {
                       {label('fiscalDocumentKind', d.kind)} {d.number}
                       {d.period ? ` · ${periodLabel(d.period)}` : ''} · {fmt(d.totalAgorot)}
                     </span>
-                    {d.pdfUrl ? (
-                      <a href={d.pdfUrl} className="text-brand-700 underline">
-                        <Badge>{t('download')}</Badge>
-                      </a>
-                    ) : null}
+                    <Link
+                      href={`/parent/receipts/${d.id}`}
+                      className="min-h-tap inline-flex items-center py-3 text-brand-700 underline"
+                      data-testid="open-receipt"
+                    >
+                      {t('open')}
+                    </Link>
                   </li>
                 ))}
             </ul>

@@ -76,6 +76,7 @@ export default async function ParentSchedule({
                       className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3"
                       data-testid="parent-lesson"
                       data-lesson={`${student.id}:${s.id}`}
+                      data-date={s.date}
                     >
                       <span>
                         <span className="font-medium">{s.groupName}</span>{' '}

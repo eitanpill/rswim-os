@@ -12,6 +12,7 @@ export default async function ParentLayout({ children }: { children: ReactNode }
     { href: '/parent/schedule', label: t('schedule'), icon: icons.calendar },
     { href: '/parent/payments', label: t('payments'), icon: icons.money },
     { href: '/parent/documents', label: t('documents'), icon: icons.file },
+    { href: '/parent/pass', label: t('pass'), icon: icons.user },
   ];
   return (
     <AppShell session={session} surface="parent" nav={nav}>

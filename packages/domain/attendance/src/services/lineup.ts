@@ -5,7 +5,7 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { ATTENDANCE_STATUSES, type AttendanceKind, type StaffGender } from '@rswim/contracts';
-import { and, eq, inArray, ne, schema, sql, type Tx } from '@rswim/db';
+import { and, asc, eq, inArray, ne, schema, sql, type Tx } from '@rswim/db';
 import { DomainError, emit, type ServiceContext } from '@rswim/domain-core';
 import { trialsInSessions } from '@rswim/domain-enrollment';
 import { studentsByIds } from '@rswim/domain-people';
@@ -248,5 +248,60 @@ export async function setProgress(
     type: 'attendance.progress_marked',
     payload: { studentId: input.studentId, levelId: input.levelId, skillCode: input.skillCode },
     idempotencyKey: `attendance.progress_marked:${input.studentId}:${input.levelId}:${input.skillCode}`,
+  });
+}
+
+/** The skills these children achieved, oldest first (RLS: a family reads only their own children's). */
+export async function progressMarksOf(tx: Tx, studentIds: readonly string[]) {
+  if (studentIds.length === 0) return [];
+  return tx
+    .select()
+    .from(progressMarks)
+    .where(inArray(progressMarks.studentId, [...studentIds]))
+    .orderBy(asc(progressMarks.achievedOn));
+}
+
+export interface ChildProgress {
+  studentId: string;
+  programName: string | null;
+  levelName: string | null;
+  /** The level's checklist, each skill with the day it was achieved (null while still working on it). */
+  skills: { code: string; name: string; achievedOn: string | null }[];
+  nextLevelName: string | null;
+}
+
+/** Each child's level, its skills ticked so far and the level after it (the family's progress card). */
+export async function childProgress(
+  tx: Tx,
+  children: readonly { id: string; levelId: string | null }[],
+): Promise<ChildProgress[]> {
+  const [programs, marks] = await Promise.all([
+    listPrograms(tx),
+    progressMarksOf(
+      tx,
+      children.map((c) => c.id),
+    ),
+  ]);
+  return children.map((c) => {
+    const program = programs.find((p) => p.levels.some((l) => l.id === c.levelId));
+    const index = program?.levels.findIndex((l) => l.id === c.levelId) ?? -1;
+    const level = program && index >= 0 ? program.levels[index] : undefined;
+    const skills = ((level?.skills ?? []) as { code: string; he?: string; name?: string }[]).map(
+      (s) => ({
+        code: s.code,
+        name: s.he ?? s.name ?? s.code,
+        achievedOn:
+          marks.find(
+            (m) => m.studentId === c.id && m.levelId === level?.id && m.skillCode === s.code,
+          )?.achievedOn ?? null,
+      }),
+    );
+    return {
+      studentId: c.id,
+      programName: program?.nameHe ?? null,
+      levelName: level?.nameHe ?? null,
+      skills,
+      nextLevelName: program && index >= 0 ? (program.levels[index + 1]?.nameHe ?? null) : null,
+    };
   });
 }

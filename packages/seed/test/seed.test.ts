@@ -224,6 +224,7 @@ describe('demo seed', () => {
       const summary = await seedDemo(t.pool, { masterKey });
       expect(summary.billing).toMatchObject({ failedCharges: 1 });
       expect(summary.billing?.payments).toBeGreaterThan(5);
+      expect(summary.billing?.receipts).toBeGreaterThan(0);
     } finally {
       delete process.env.RSWIM_MASTER_KEY;
     }
