@@ -9,3 +9,5 @@ export * from './services/sessions';
 export { todayIL } from './services/shared';
 export * from './services/billing-facts';
 export * from './services/messaging-facts';
+export * from './services/payroll-facts';
+export * from './services/substitutes';

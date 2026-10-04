@@ -20,7 +20,12 @@ import {
 import { corePing } from './core-ping';
 import { crmApplyWebhook, crmImportContacts, crmPushGuardian } from './crm';
 import { outboxRelay } from './outbox-relay';
-import { schedulingApplyShiftChange, schedulingEscalateShiftChanges } from './scheduling';
+import {
+  schedulingApplyShiftChange,
+  schedulingApplySubstitute,
+  schedulingEscalateShiftChanges,
+  schedulingSubstituteWaves,
+} from './scheduling';
 
 export const functions = [
   outboxRelay,
@@ -30,6 +35,8 @@ export const functions = [
   crmApplyWebhook,
   schedulingApplyShiftChange,
   schedulingEscalateShiftChanges,
+  schedulingApplySubstitute,
+  schedulingSubstituteWaves,
   attendanceProcessAbsence,
   attendanceNightly,
   billingCollectRun,

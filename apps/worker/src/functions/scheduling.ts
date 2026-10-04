@@ -2,7 +2,12 @@ import { z } from 'zod';
 import { and, eq, lte, schema, sql } from '@rswim/db';
 import { asPlatform, withOrg } from '@rswim/db/service';
 import { consumeOnce } from '@rswim/domain-core/worker';
-import { applyShiftChange, escalateDueShiftChanges } from '@rswim/domain-scheduling';
+import {
+  advanceSubstituteWaves,
+  applyShiftChange,
+  applySubstitute,
+  escalateDueShiftChanges,
+} from '@rswim/domain-scheduling';
 import { getDb, inngest, log } from '../client';
 import { toEnvelope } from './core-ping';
 
@@ -71,5 +76,72 @@ export const schedulingEscalateShiftChanges = inngest.createFunction(
     }
     if (escalated > 0) log.info({ escalated }, 'shift changes escalated to the owner');
     return { escalated };
+  },
+);
+
+/**
+ * An instructor accepted a substitute offer (the database already locked the request on first accept): put them on
+ * the lesson. Applying emits `scheduling.staff_changed`, which tells the parents who is teaching (Phase 5).
+ */
+export const schedulingApplySubstitute = inngest.createFunction(
+  {
+    id: 'scheduling-apply-substitute',
+    triggers: [{ event: 'staffing.substitute_accepted' }],
+    retries: 5,
+  },
+  async ({ event, step }) => {
+    const envelope = toEnvelope(event);
+    const { requestId } = z.object({ requestId: z.uuid() }).parse(envelope.payload);
+    return step.run('apply', async () => {
+      let applied = false;
+      await consumeOnce(getDb(), 'scheduling-apply-substitute', envelope, async (tx) => {
+        applied = await applySubstitute(
+          tx,
+          { orgId: envelope.organizationId, userId: null },
+          requestId,
+        );
+      });
+      return { applied };
+    });
+  },
+);
+
+/**
+ * Every five minutes: open substitute requests whose wave timed out offer the next wave, or become unfilled for the
+ * owner. Finding the tenants is cross-tenant plumbing; each step runs inside its tenant under RLS.
+ */
+export const schedulingSubstituteWaves = inngest.createFunction(
+  {
+    id: 'scheduling-substitute-waves',
+    triggers: [{ cron: '*/5 * * * *' }],
+    concurrency: { limit: 1 },
+  },
+  async ({ step }) => {
+    const orgIds = await step.run('find-orgs', () =>
+      asPlatform(getDb(), async (tx) =>
+        (
+          await tx
+            .selectDistinct({ id: schema.substituteRequests.organizationId })
+            .from(schema.substituteRequests)
+            .where(
+              and(
+                eq(schema.substituteRequests.status, 'open'),
+                lte(schema.substituteRequests.nextWaveAt, sql`now()`),
+              ),
+            )
+        ).map((r) => r.id),
+      ),
+    );
+    let advanced = 0;
+    let unfilled = 0;
+    for (const orgId of orgIds) {
+      const r = await step.run(`waves-${orgId}`, () =>
+        withOrg(getDb(), orgId, (tx) => advanceSubstituteWaves(tx, { orgId, userId: null })),
+      );
+      advanced += r.advanced;
+      unfilled += r.unfilled;
+    }
+    if (advanced + unfilled > 0) log.info({ advanced, unfilled }, 'substitute waves');
+    return { advanced, unfilled };
   },
 );

@@ -21,7 +21,9 @@
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-crm": "workspace:*",
     "@rswim/domain-enrollment": "workspace:*",
+    "@rswim/domain-payroll": "workspace:*",
     "@rswim/domain-scheduling": "workspace:*",
+    "@rswim/domain-staff": "workspace:*",
     "@supabase/supabase-js": "^2.117.2",
     "pg": "^8.23.1"
   },

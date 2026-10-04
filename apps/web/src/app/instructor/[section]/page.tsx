@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Card, EmptyState, PageHeader } from '@rswim/ui';
 
-const SECTIONS = { hours: '6', swaps: '6', profile: '1' } as const;
+const SECTIONS = { profile: '1' } as const;
 
 export default async function InstructorSection({
   params,

@@ -7,8 +7,23 @@
 | 2 Scheduling engine | **Done**, merged (PR #3) | All three acceptance criteria pass |
 | 3 Attendance, makeups, trials, forms | **Done**, merged (PR #4) | Both acceptance criteria pass |
 | 4 Billing and collections | **Done**, merged (PR #5) | All four acceptance criteria pass (see below) |
-| 5 Communications hub | **Done** | All three acceptance criteria pass (see below) |
-| 6–10 | Not started | |
+| 5 Communications hub | **Done**, merged (PR #6) | All three acceptance criteria pass |
+| 6 Staff ops and payroll | **Done** | Both acceptance criteria pass (see below) |
+| 7–10 | Not started | |
+
+## Phase 6 acceptance criteria
+
+| Criterion | Proof | Result |
+|---|---|---|
+| Payroll for a hybrid instructor produces a payslip part (groups) and a transfer part (privates) matching hand-calculated fixtures | `packages/domain/payroll/test/policies.test.ts`: the hand-worked month (per-hour groups at two venues, per-session privates, travel once per day and venue, a bonus) gives exactly 440.00 ₪ on the payslip and 360.00 ₪ by transfer, every line with its rule's explanation; rule specificity, per-head pay, pension streaks with retro and sick-leave accrual cover every branch (100% on `policies.ts`). `services.test.ts` AC1 drafts the same month from real sessions and private slots and gets the same agorot, then a dispute blocks approval, the owner's correction lands on the payslip, approval locks the month (database trigger) and accrues sick leave, the instructor sees only their own approved statement, and the XLSX totals match. `apps/web/e2e/staffops.spec.ts` AC1: the owner sees אסף's two parts on **שכר**, approval is refused while דני's dispute is open, closes it on **שעות**, approves, and the accountant downloads the spreadsheet | Pass |
+| Substitute offers go out in waves and lock on the first accept | `packages/domain/scheduling/test/substitutes.test.ts`: five qualified instructors are offered 2, 2 and 1 per wave as each wave times out, then the request is unfilled; two instructors accepting at the same moment on separate connections leave exactly one assignment (row lock plus a partial unique index), the others' offers are withdrawn, and the worker's apply puts the substitute on the lesson and emits `scheduling.staff_changed` once. `staffops.spec.ts` AC2: the instructor persona takes the seeded offer in the app and the office sees "מלמד/ת: נועה" | Pass |
+
+Also: instructors confirm or dispute their month in the app, statements show only approved months (adjustments
+stay hidden until then), next month's staffing gaps merged by venue, day and hours, and a recruiting pipeline with
+a scorecard, a talent pool and a ready job post.
+
+Totals on 2026-10-04: 527 unit/integration tests + 29 browser tests, all green. `lint`, `typecheck`, `format:check`
+clean. Coverage stays 100% on the pure policy modules, now including `domain-payroll`.
 
 ## Phase 5 acceptance criteria
 

@@ -13,7 +13,10 @@ import {
   planShiftChange,
   schedulingRulesFrom,
   scorePlacement,
+  rankSubstitutes,
+  staffingGaps,
   staffingRulesFrom,
+  substituteExclusion,
   toMinutes,
   waitlistClusters,
   windowFor,
@@ -23,6 +26,7 @@ import {
   type PlacementGroup,
   type PlacementStudent,
   type ScoreInput,
+  type SubstituteCandidate,
   type TemplateDraft,
   type WindowRow,
 } from '../src/policies';
@@ -69,12 +73,27 @@ describe('helpers', () => {
         scheduling: { travel_buffer_min: 10, window_instructor_gender: 'any_gender' },
       }),
     ).toEqual({ travelBufferMin: 10, windowInstructorGender: 'any_gender' });
-    expect(staffingRulesFrom({})).toEqual({ requiresAcceptance: true, escalateAfterHours: 12 });
+    expect(staffingRulesFrom({})).toEqual({
+      requiresAcceptance: true,
+      escalateAfterHours: 12,
+      substituteWaveSize: 3,
+      substituteWaveMinutes: 30,
+    });
     expect(
       staffingRulesFrom({
-        staffing: { shift_change_requires_acceptance: false, shift_change_escalate_after_hours: 4 },
+        staffing: {
+          shift_change_requires_acceptance: false,
+          shift_change_escalate_after_hours: 4,
+          substitute_wave_size: 2,
+          substitute_wave_minutes: 15,
+        },
       }),
-    ).toEqual({ requiresAcceptance: false, escalateAfterHours: 4 });
+    ).toEqual({
+      requiresAcceptance: false,
+      escalateAfterHours: 4,
+      substituteWaveSize: 2,
+      substituteWaveMinutes: 15,
+    });
   });
 
   it('maps windows to the gender they require', () => {
@@ -827,5 +846,131 @@ describe('waitlistClusters', () => {
     expect(ageBand(30)).toEqual([1, 2]);
     expect(ageBand(36)).toEqual([3, 4]);
     expect(ageBand(59)).toEqual([3, 4]);
+  });
+});
+
+describe('substitutes (Phase 6 acceptance criterion 2)', () => {
+  const cand = (over: Partial<SubstituteCandidate>): SubstituteCandidate => ({
+    staffId: over.name ?? 'x',
+    name: 'x',
+    violations: [],
+    certified: true,
+    busy: false,
+    knowsGroup: false,
+    atVenueThatDay: false,
+    lessonsThisWeek: 0,
+    ...over,
+  });
+  const pool = [
+    cand({ name: 'אסף', lessonsThisWeek: 2 }),
+    cand({ name: 'נועה', knowsGroup: true, lessonsThisWeek: 8 }),
+    cand({ name: 'ליה', atVenueThatDay: true, lessonsThisWeek: 12 }),
+    cand({ name: 'דני', lessonsThisWeek: 2 }),
+    cand({ name: 'רעות', certified: false }),
+    cand({ name: 'מיכל', busy: true }),
+    cand({ name: 'יעל', violations: [{ code: 'scheduling.rules.instructorGender', params: {} }] }),
+  ];
+
+  it('offers only qualified, free, rule-abiding instructors, best first, in waves', () => {
+    const ranked = rankSubstitutes(pool, 2);
+    expect(ranked.map((r) => [r.staffId, r.rank, r.wave])).toEqual([
+      ['נועה', 1, 1],
+      ['ליה', 2, 1],
+      ['אסף', 3, 2],
+      ['דני', 4, 2],
+    ]);
+    expect(ranked[0]?.reasons).toEqual(['knowsGroup', 'load:8']);
+    expect(ranked[1]?.reasons).toEqual(['atVenueThatDay', 'load:12']);
+  });
+  it('a wave is never empty', () => {
+    expect(rankSubstitutes(pool, 0).map((r) => r.wave)).toEqual([1, 2, 3, 4]);
+    expect(rankSubstitutes([], 3)).toEqual([]);
+  });
+  it('says why someone was left out', () => {
+    expect(substituteExclusion(cand({ certified: false }))).toBe(
+      'scheduling.substitute.notCertified',
+    );
+    expect(substituteExclusion(cand({ busy: true }))).toBe('scheduling.substitute.busy');
+    expect(
+      substituteExclusion(
+        cand({ violations: [{ code: 'scheduling.rules.instructorAway', params: {} }] }),
+      ),
+    ).toBe('scheduling.rules.instructorAway');
+    expect(substituteExclusion(cand({}))).toBeNull();
+  });
+});
+
+describe('staffingGaps', () => {
+  const lesson = (
+    date: string,
+    weekday: number,
+    venueId: string,
+    startsAt: string,
+    endsAt: string,
+    groupName: string,
+    hasLead = false,
+  ) => ({
+    date,
+    weekday,
+    venueId,
+    startsAt,
+    endsAt,
+    groupName,
+    hasLead,
+  });
+  it('merges back-to-back lessons without an instructor per venue and weekday', () => {
+    const gaps = staffingGaps([
+      lesson('2026-11-08', 0, 'efrat', '16:00', '16:45', 'דולפין'),
+      lesson('2026-11-08', 0, 'efrat', '16:45', '17:30', 'כריש'),
+      lesson('2026-11-08', 0, 'efrat', '17:00', '17:20', 'קצר'),
+      lesson('2026-11-15', 0, 'efrat', '18:00', '19:00', 'בוגרים'),
+      lesson('2026-11-01', 0, 'efrat', '16:00', '16:45', 'דולפין'),
+      lesson('2026-11-08', 0, 'efrat', '19:30', '20:00', 'ערב'),
+      lesson('2026-11-09', 1, 'efrat', '16:00', '17:00', 'שני'),
+      lesson('2026-11-08', 0, 'gush', '16:00', '17:00', 'גוש'),
+      lesson('2026-11-08', 0, 'efrat', '10:00', '11:00', 'בוקר', true),
+    ]);
+    expect(gaps).toEqual([
+      {
+        venueId: 'efrat',
+        weekday: 0,
+        from: '16:00',
+        to: '17:30',
+        dates: ['2026-11-01', '2026-11-08'],
+        groups: ['דולפין', 'כריש', 'קצר'],
+      },
+      {
+        venueId: 'gush',
+        weekday: 0,
+        from: '16:00',
+        to: '17:00',
+        dates: ['2026-11-08'],
+        groups: ['גוש'],
+      },
+      {
+        venueId: 'efrat',
+        weekday: 0,
+        from: '18:00',
+        to: '19:00',
+        dates: ['2026-11-15'],
+        groups: ['בוגרים'],
+      },
+      {
+        venueId: 'efrat',
+        weekday: 0,
+        from: '19:30',
+        to: '20:00',
+        dates: ['2026-11-08'],
+        groups: ['ערב'],
+      },
+      {
+        venueId: 'efrat',
+        weekday: 1,
+        from: '16:00',
+        to: '17:00',
+        dates: ['2026-11-09'],
+        groups: ['שני'],
+      },
+    ]);
   });
 });

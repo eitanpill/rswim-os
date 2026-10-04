@@ -9,6 +9,7 @@ import type pg from 'pg';
 import { seedAttendanceData, type AttendanceDataSummary } from './attendance-data';
 import { seedBillingData, type BillingDataSummary } from './billing-data';
 import { seedCommsData, type CommsDataSummary } from './comms-data';
+import { seedStaffOpsData, type StaffOpsDataSummary } from './staffops-data';
 import { seedCoreData, type CoreDataSummary } from './core-data';
 import { seedSchedulingData, type SchedulingDataSummary } from './scheduling-data';
 import { FIRST_BOYS, FIRST_GIRLS, LAST, PARENT_MEN, PARENT_WOMEN } from './names';
@@ -36,6 +37,8 @@ export interface SeedSummary {
   /** Phase 4 standing orders, September's approved run and payments, October's draft for review (demo org only). */
   billing?: BillingDataSummary;
   comms?: CommsDataSummary;
+  /** Phase 6 last month's payroll draft with a dispute, a substitute request and applicants (demo org only). */
+  staffops?: StaffOpsDataSummary;
 }
 
 /** Small deterministic PRNG so the demo data is the same on every run. */
@@ -349,6 +352,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         summary.attendance = await seedAttendanceData(client, org.id);
         summary.billing = await seedBillingData(client, org.id, staffIds);
         summary.comms = await seedCommsData(client, org.id, PERSONAS.parent.phone);
+        summary.staffops = await seedStaffOpsData(client, org.id, staffIds);
       }
 
       // Memberships (demo org only: the personas)

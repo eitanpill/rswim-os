@@ -20,6 +20,9 @@ const LINKS = [
   'policies',
   'reimbursement',
   'staff',
+  'payroll',
+  'substitutes',
+  'recruiting',
   'ghl',
 ] as const;
 const HREF: Record<(typeof LINKS)[number], string> = {
@@ -40,6 +43,9 @@ const HREF: Record<(typeof LINKS)[number], string> = {
   policies: '/admin/policies',
   reimbursement: '/admin/reimbursement',
   staff: '/admin/staff',
+  payroll: '/admin/staff/payroll',
+  substitutes: '/admin/staff/substitutes',
+  recruiting: '/admin/staff/recruiting',
   ghl: '/admin/integrations/ghl',
 };
 

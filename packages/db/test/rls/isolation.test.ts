@@ -102,6 +102,14 @@ const TENANT_TABLES = [
   'messages',
   'inbound_messages',
   'triage_actions',
+  'timesheets',
+  'payroll_runs',
+  'payroll_lines',
+  'payroll_adjustments',
+  'sick_leave_entries',
+  'substitute_requests',
+  'substitute_offers',
+  'applicants',
 ] as const;
 
 describe('schema guardrails', () => {

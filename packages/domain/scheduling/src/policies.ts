@@ -684,6 +684,8 @@ export function staffingRulesFrom(rules: PolicyRules) {
   return {
     requiresAcceptance: rules.staffing?.shift_change_requires_acceptance ?? true,
     escalateAfterHours: rules.staffing?.shift_change_escalate_after_hours ?? 12,
+    substituteWaveSize: rules.staffing?.substitute_wave_size ?? 3,
+    substituteWaveMinutes: rules.staffing?.substitute_wave_minutes ?? 30,
   };
 }
 
@@ -746,4 +748,132 @@ export function waitlistClusters(entries: readonly WaitingChild[], minWaiting: n
   return [...map.values()]
     .filter((c) => c.entryIds.length >= minWaiting)
     .sort((a, b) => b.entryIds.length - a.entryIds.length || a.weekday - b.weekday);
+}
+
+// ─── Substitutes ────────────────────────────────────────────────────────────
+
+/** One possible substitute for a lesson, with the hard checks already decided. */
+export interface SubstituteCandidate {
+  staffId: string;
+  name: string;
+  /** Violations from `checkInstructor` on the lesson's date and time (gender, skills, availability, travel). */
+  violations: readonly RuleIssue[];
+  /** Holds a valid swim-instructor certificate on the lesson's date. */
+  certified: boolean;
+  /** Already on another lesson that overlaps this one. */
+  busy: boolean;
+  /** Has taught this group before (the children know them). */
+  knowsGroup: boolean;
+  /** Teaches at the same venue that day (no extra trip). */
+  atVenueThatDay: boolean;
+  /** Lessons this week so far (spread the load). */
+  lessonsThisWeek: number;
+}
+
+export interface RankedSubstitute {
+  staffId: string;
+  rank: number;
+  wave: number;
+  reasons: string[];
+}
+
+/**
+ * Who to ask, in order (brief §6.8): only qualified, available, gender-appropriate instructors who are free then;
+ * first those the group knows, then those already at the venue that day, then the least loaded this week, then by
+ * name. Candidates go out in waves of `waveSize`.
+ */
+export function rankSubstitutes(
+  candidates: readonly SubstituteCandidate[],
+  waveSize: number,
+): RankedSubstitute[] {
+  const size = Math.max(1, waveSize);
+  return candidates
+    .filter((c) => c.certified && !c.busy && c.violations.length === 0)
+    .map((c) => ({
+      c,
+      score:
+        (c.knowsGroup ? 100 : 0) + (c.atVenueThatDay ? 10 : 0) - Math.min(c.lessonsThisWeek, 9),
+    }))
+    .sort((a, b) => b.score - a.score || a.c.name.localeCompare(b.c.name, 'he'))
+    .map(({ c }, i) => ({
+      staffId: c.staffId,
+      rank: i + 1,
+      wave: Math.floor(i / size) + 1,
+      reasons: [
+        ...(c.knowsGroup ? ['knowsGroup'] : []),
+        ...(c.atVenueThatDay ? ['atVenueThatDay'] : []),
+        `load:${c.lessonsThisWeek}`,
+      ],
+    }));
+}
+
+/** Why a candidate was left out, for the owner's view: the first hard reason, or null when they are offered. */
+export function substituteExclusion(c: SubstituteCandidate): string | null {
+  if (!c.certified) return 'scheduling.substitute.notCertified';
+  if (c.busy) return 'scheduling.substitute.busy';
+  return c.violations[0]?.code ?? null;
+}
+
+// ─── Staffing gaps ──────────────────────────────────────────────────────────
+
+export interface LessonSlot {
+  date: string;
+  /** 0 = Sunday. */
+  weekday: number;
+  venueId: string;
+  startsAt: string;
+  endsAt: string;
+  groupName: string;
+  hasLead: boolean;
+}
+
+export interface StaffingGap {
+  venueId: string;
+  weekday: number;
+  from: string;
+  to: string;
+  dates: string[];
+  groups: string[];
+}
+
+/**
+ * "Efrat Sunday 16:00–19:00 has no instructor for next month" (brief §6.8): lessons without a lead instructor,
+ * merged per venue and weekday into continuous stretches of the afternoon (back-to-back or overlapping lessons join).
+ */
+export function staffingGaps(lessons: readonly LessonSlot[]): StaffingGap[] {
+  const open = lessons.filter((l) => !l.hasLead);
+  const byDay = new Map<string, LessonSlot[]>();
+  for (const l of open) {
+    const key = `${l.venueId}|${l.weekday}`;
+    byDay.set(key, [...(byDay.get(key) ?? []), l]);
+  }
+  const gaps: StaffingGap[] = [];
+  for (const list of byDay.values()) {
+    list.sort((a, b) => toMinutes(a.startsAt) - toMinutes(b.startsAt));
+    let cur: StaffingGap | null = null;
+    for (const l of list) {
+      if (cur && toMinutes(l.startsAt) <= toMinutes(cur.to)) {
+        if (toMinutes(l.endsAt) > toMinutes(cur.to)) cur.to = l.endsAt;
+      } else {
+        cur = {
+          venueId: l.venueId,
+          weekday: l.weekday,
+          from: l.startsAt,
+          to: l.endsAt,
+          dates: [],
+          groups: [],
+        };
+        gaps.push(cur);
+      }
+      if (!cur.dates.includes(l.date)) cur.dates.push(l.date);
+      if (!cur.groups.includes(l.groupName)) cur.groups.push(l.groupName);
+    }
+  }
+  for (const g of gaps) g.dates.sort();
+  return gaps.sort(
+    (a, b) =>
+      a.weekday - b.weekday ||
+      toMinutes(a.from) - toMinutes(b.from) ||
+      a.venueId.localeCompare(b.venueId),
+  );
 }
