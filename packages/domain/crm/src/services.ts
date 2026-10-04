@@ -5,7 +5,12 @@
 import { z } from 'zod';
 import { desc, eq, schema, sql, type Tx } from '@rswim/db';
 import { emit, type ServiceContext } from '@rswim/domain-core';
-import { allContacts, type GhlClient, type GhlContact } from '@rswim/integrations';
+import {
+  allContacts,
+  type CrmProvider,
+  type GhlClient,
+  type GhlContact,
+} from '@rswim/integrations';
 import {
   inboundUpdate,
   planContactImport,
@@ -22,7 +27,52 @@ const { guardians, households, importRuns, orgSettings } = schema;
 export const GhlSettings = z.object({
   locationId: z.string().min(1),
   tagMap: z.record(z.string(), z.unknown()).default({}),
+  /** The sales pipeline a family moves along: a booked trial and a converted trial each have a stage. */
+  pipeline: z
+    .object({
+      pipelineId: z.string().min(1),
+      stages: z.object({
+        trial_booked: z.string().optional(),
+        trial_converted: z.string().optional(),
+      }),
+    })
+    .optional(),
 });
+
+export type PipelineStage = 'trial_booked' | 'trial_converted';
+
+/**
+ * OS → GHL pipeline: moves the opportunities of a child's guardians (those linked to a GHL contact) to the stage
+ * configured for this step. Without a configured pipeline or stage nothing happens. The event id keys retries.
+ */
+export async function syncPipelineStage(
+  tx: Tx,
+  ctx: ServiceContext,
+  client: CrmProvider,
+  q: { studentId: string; stage: PipelineStage; eventId: string },
+): Promise<'moved' | 'not_configured' | 'no_contact'> {
+  const [row] = await tx
+    .select({ integrations: orgSettings.integrations })
+    .from(orgSettings)
+    .where(eq(orgSettings.organizationId, ctx.orgId));
+  const settings = GhlSettings.safeParse((row?.integrations as { ghl?: unknown } | undefined)?.ghl);
+  const pipeline = settings.success ? settings.data.pipeline : undefined;
+  const stageId = pipeline?.stages[q.stage];
+  if (!pipeline || !stageId) return 'not_configured';
+  const contacts = await tx
+    .select({ id: guardians.id, ghl: guardians.ghlContactId })
+    .from(guardians)
+    .innerJoin(schema.students, eq(schema.students.householdId, guardians.householdId))
+    .where(eq(schema.students.id, q.studentId));
+  const linked = contacts.filter((c) => c.ghl);
+  for (const c of linked) {
+    await client.moveOpportunity(
+      { organizationId: ctx.orgId, idempotencyKey: `${q.eventId}:${c.id}` },
+      { contactExternalId: c.ghl as string, pipelineId: pipeline.pipelineId, stageId },
+    );
+  }
+  return linked.length > 0 ? 'moved' : 'no_contact';
+}
 
 export async function ghlSettings(
   tx: Tx,

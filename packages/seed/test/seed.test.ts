@@ -260,4 +260,29 @@ describe('demo seed', () => {
       await rows(`select count(*)::int n from enrollment_freezes where status = 'requested'`),
     ).toEqual([{ n: 1 }]);
   });
+  it('sets up Phase 5: templates, a WhatsApp inbox, a message held for Shabbat and a scheduled broadcast', async () => {
+    const rows = async (sql: string, params: unknown[] = []) =>
+      (await t.pool.query(sql, params)).rows;
+    const summary = await seedDemo(t.pool);
+    expect(summary.comms).toMatchObject({ inbound: 3, held: 1, broadcasts: 1 });
+    expect(summary.comms?.templates).toBeGreaterThan(30);
+    const inbox = await rows(
+      `select intent, guardian_id is not null as known from inbound_messages where organization_id = $1
+       order by received_at desc`,
+      [DEMO_ORG.id],
+    );
+    expect(inbox).toEqual([
+      { intent: 'absence_notice', known: true },
+      { intent: 'payment_question', known: true },
+      { intent: 'lead', known: false },
+    ]);
+    expect(
+      await rows(`select status, hold_reason from messages where organization_id = $1`, [
+        DEMO_ORG.id,
+      ]),
+    ).toEqual([{ status: 'held', hold_reason: 'rest_window' }]);
+    expect(
+      await rows(`select status from broadcasts where organization_id = $1`, [DEMO_ORG.id]),
+    ).toEqual([{ status: 'scheduled' }]);
+  });
 });

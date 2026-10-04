@@ -76,7 +76,8 @@
       "money": "Money pulse",
       "growth": "Growth",
       "expected": "Expected this month",
-      "collected": "Collected"
+      "collected": "Collected",
+      "inboxWaiting": "{n} WhatsApp messages waiting in the inbox"
     },
     "placeholder": "This screen arrives in Phase {phase}",
     "more": {
@@ -148,6 +149,10 @@
       "reimbursement": {
         "title": "Reimbursement profiles",
         "hint": "Invoice wording for the MoD and insurers"
+      },
+      "messages": {
+        "title": "Messages",
+        "hint": "Inbox, log, templates and broadcasts"
       }
     }
   },
@@ -656,6 +661,77 @@
     "cancellationStatus": {
       "active": "In effect",
       "withdrawn": "Withdrawn"
+    },
+    "templateKey": {
+      "trial_confirmation": "Trial confirmation",
+      "private_confirmation": "Private lesson confirmation",
+      "enrollment_welcome": "Welcome",
+      "lesson_reminder": "Lesson reminder",
+      "absence_received": "Absence received (makeup due)",
+      "absence_received_no_makeup": "Absence received (no makeup)",
+      "makeup_confirmed": "Makeup confirmed",
+      "instructor_change": "Instructor change",
+      "closure_notice": "Closure notice",
+      "reopening_makeups": "Reopening",
+      "last_call_makeups": "Last call for makeups",
+      "payment_link": "Payment link",
+      "payment_failed": "Payment failed",
+      "receipt_ready": "Receipt ready",
+      "progress_card": "Progress card",
+      "freeze_approved": "Freeze approved",
+      "cancellation_confirmed": "Cancellation confirmed",
+      "holiday_schedule": "Holiday notice",
+      "free_text": "Free text"
+    },
+    "messageStatus": {
+      "queued": "Queued",
+      "held": "Waiting for send window",
+      "sent": "Sent",
+      "failed": "Failed",
+      "blocked": "Blocked"
+    },
+    "holdReason": {
+      "quiet_hours": "Quiet hours",
+      "rest_window": "Shabbat / holiday"
+    },
+    "blockReason": {
+      "opted_out": "Not opted in to WhatsApp",
+      "no_phone": "No phone",
+      "missing_variable": "Template detail missing",
+      "template_inactive": "Template switched off",
+      "no_provider": "No messaging provider"
+    },
+    "inboundIntent": {
+      "absence_notice": "Absence notice",
+      "makeup_request": "Makeup request",
+      "schedule_question": "Schedule question",
+      "payment_question": "Payment question",
+      "receipt_request": "Receipt request",
+      "cancellation_request": "Cancellation request",
+      "freeze_request": "Freeze request",
+      "lead": "New lead",
+      "complaint": "Complaint",
+      "instructor_message": "Instructor message",
+      "personal_other": "Personal / other"
+    },
+    "inboundStatus": {
+      "new": "New",
+      "actioned": "Handled",
+      "dismissed": "Closed",
+      "needs_human": "Needs you"
+    },
+    "triageActionKind": {
+      "absence_notice": "Record absence",
+      "makeup_request": "Book makeup",
+      "freeze_request": "Freeze request",
+      "cancellation_request": "Cancellation request",
+      "receipt_request": "Send receipt"
+    },
+    "broadcastStatus": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "sent": "Sent",
+      "cancelled": "Cancelled"
     }
   },
   "venues": {
@@ -1226,7 +1302,11 @@
       "comms": {
         "block_shabbat_and_chag": "No messages on Shabbat and holidays",
         "lead_followup_max_nudges": "Max lead follow-ups",
-        "reminder_before_lesson_hours": "Reminder before lesson"
+        "reminder_before_lesson_hours": "Reminder before lesson",
+        "rate_per_minute": "Messages per minute (max)",
+        "holiday_notice_days_before": "Holiday notice, days before",
+        "ai_triage": "AI triage of inbound messages",
+        "triage_min_confidence_pct": "Minimum confidence for a draft action (%)"
       },
       "scheduling": {
         "travel_buffer_min": "Travel time between venues",
@@ -2070,6 +2150,146 @@
       "documents": "Invoices and receipts",
       "download": "Download",
       "empty": "No entries yet"
+    }
+  },
+  "comms": {
+    "tabs": {
+      "label": "Messaging screens",
+      "inbox": "Inbox",
+      "log": "Log",
+      "templates": "Templates & automations",
+      "broadcast": "Broadcast"
+    },
+    "inbox": {
+      "title": "Messages",
+      "empty": "No messages waiting for you",
+      "open": "Open",
+      "closed": "Closed",
+      "unknownSender": "Unknown number",
+      "staffSender": "From staff",
+      "confidence": "{n}% confidence",
+      "lessons": "Lessons to mark",
+      "approveAbsence": "Approve absence",
+      "approve": "Approve",
+      "markDone": "Mark handled",
+      "dismiss": "Close without action",
+      "reply": "Reply",
+      "replyHint": "Sent on WhatsApp; respects quiet hours and Shabbat",
+      "send": "Send",
+      "approved": "Recorded. The message is marked handled.",
+      "sent": "Reply queued",
+      "done": "Marked handled",
+      "familyCard": "Family card",
+      "actionResult": "Created: {n} absence notices"
+    },
+    "log": {
+      "title": "Message log",
+      "empty": "No messages in the log",
+      "all": "All",
+      "to": "To",
+      "at": "Created",
+      "sentAt": "Sent",
+      "notBefore": "Not before",
+      "source": "Source"
+    },
+    "templates": {
+      "title": "Templates",
+      "hint": "The words families receive. Variables in curly braces are filled automatically.",
+      "body": "Text",
+      "active": "Active",
+      "ghlTemplateId": "GHL WhatsApp template id",
+      "ghlHint": "For sending outside WhatsApp’s 24-hour window",
+      "save": "Save",
+      "variables": "Variables: {list}",
+      "automations": "Automations",
+      "automationsHint": "Which event sends which template",
+      "on": "On",
+      "off": "Off",
+      "turnOn": "Turn on",
+      "turnOff": "Turn off"
+    },
+    "broadcast": {
+      "title": "Broadcast",
+      "hint": "Choose who receives it. With no choice, every active family does.",
+      "name": "Internal name",
+      "body": "Message",
+      "venues": "Venues",
+      "groups": "Groups",
+      "programs": "Programs",
+      "owing": "Only families who owe",
+      "scheduledFor": "Send at",
+      "scheduledHint": "Empty = now (subject to quiet hours and Shabbat)",
+      "preview": "Audience: {households} families · {reachable} of {guardians} guardians receive WhatsApp",
+      "send": "Send",
+      "sent": "Sent to {households} families: {queued} queued, {blocked} blocked",
+      "scheduled": "Saved for its time",
+      "history": "Previous broadcasts",
+      "empty": "No broadcasts yet",
+      "cancel": "Cancel"
+    },
+    "events": {
+      "enrollment_trial_booked": "Trial booked",
+      "scheduling_slot_booked": "Private lesson booked",
+      "enrollment_trial_converted": "Trial converted",
+      "attendance_absence_processed": "Absence notice decided",
+      "attendance_makeup_booked": "Makeup booked",
+      "scheduling_staff_changed": "Instructor change accepted",
+      "attendance_closure_opened": "Venue closure",
+      "billing_payment_link_created": "Payment link created",
+      "billing_dunning_step": "Failed charge / collection reminder",
+      "billing_freeze_decided": "Freeze decided",
+      "billing_cancellation_requested": "Cancellation requested",
+      "calendar_holiday_ahead": "Holiday ahead (daily check)"
+    },
+    "decision": {
+      "send": "Sent now",
+      "queued": "Queued",
+      "hold": {
+        "quiet_hours": "Waiting for quiet hours to end",
+        "rest_window": "Waiting for Shabbat / holiday to end"
+      },
+      "blocked": {
+        "opted_out": "Guardian has not opted in to WhatsApp",
+        "no_phone": "No phone number",
+        "missing_variable": "Template detail missing: {missing}",
+        "template_inactive": "Template switched off",
+        "no_provider": "No messaging provider"
+      },
+      "triage": {
+        "always_human": {
+          "complaint": "Complaint: always yours",
+          "cancellation_request": "Cancellation: always yours"
+        },
+        "review": {
+          "absence_notice": "Absence notice · read and answer",
+          "makeup_request": "Makeup request · read and answer",
+          "schedule_question": "Schedule question · read and answer",
+          "payment_question": "Payment question · read and answer",
+          "receipt_request": "Receipt request · read and answer",
+          "cancellation_request": "Cancellation request · read and answer",
+          "freeze_request": "Freeze request · read and answer",
+          "lead": "New lead · read and answer",
+          "complaint": "Complaint · read and answer",
+          "instructor_message": "Instructor message · read and answer",
+          "personal_other": "Personal / other · read and answer"
+        },
+        "low_confidence": "Not sure ({confidence}% of {min}% required)",
+        "no_student": "Unclear which child",
+        "action": {
+          "absence_notice": "Absence ready to approve",
+          "makeup_request": "Makeup request",
+          "freeze_request": "Freeze request",
+          "cancellation_request": "Cancellation request",
+          "receipt_request": "Receipt request"
+        }
+      }
+    },
+    "errors": {
+      "actionClosed": "This action was already handled",
+      "unknownSender": "The sender is not a known guardian, so you cannot reply from here",
+      "unknownVariable": "Variables the system does not fill: {names}",
+      "broadcastClosed": "Already sent or cancelled",
+      "logLocked": "A sent message stays in the log"
     }
   }
 }

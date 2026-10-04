@@ -71,6 +71,20 @@
       "when": 1790966547458,
       "tag": "0009_billing_security",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791112159891,
+      "tag": "0010_comms",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791112161013,
+      "tag": "0011_comms_security",
+      "breakpoints": true
     }
   ]
 }

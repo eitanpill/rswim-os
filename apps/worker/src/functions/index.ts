@@ -10,6 +10,13 @@ import {
   billingProviderRefund,
   billingTrialOffset,
 } from './billing';
+import {
+  commsAiTriage,
+  commsAutomation,
+  commsDispatch,
+  commsHolidayNotice,
+  crmPipelineSync,
+} from './comms';
 import { corePing } from './core-ping';
 import { crmApplyWebhook, crmImportContacts, crmPushGuardian } from './crm';
 import { outboxRelay } from './outbox-relay';
@@ -34,4 +41,9 @@ export const functions = [
   billingTrialOffset,
   billingClosureCredits,
   billingDailyDunning,
+  commsAutomation,
+  commsDispatch,
+  commsHolidayNotice,
+  commsAiTriage,
+  crmPipelineSync,
 ];

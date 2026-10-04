@@ -64,6 +64,12 @@ Grow (payments) and Green Invoice (receipts) run on fakes only until Pit's accou
 `RSWIM_GROW_FAKE=1 RSWIM_INVOICING_FAKE=1` (a mandate id containing "fail" is declined). The Grow webhook route needs
 `GROW_WEBHOOK_SECRET`. Saving a payer's ID number needs `RSWIM_MASTER_KEY` in the web app's environment too.
 
+WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, or to an in-memory fake with
+`RSWIM_MESSAGING_FAKE=1` (a phone containing 0000000 fails). Inbound WhatsApp arrives on the same GHL webhook route
+(`InboundMessage`). With the `comms.ai_triage` policy on, the worker re-classifies inbound messages with Claude using
+`ANTHROPIC_API_KEY`; without it the rules classifier decides alone. Trial pipeline moves need
+`integrations.ghl.pipeline` (pipeline id + stage ids) in the org settings.
+
 ## Database access, in one paragraph
 Signed-in requests run as `authenticated` with JWT claims (`asUser`). Background jobs for one tenant run as
 `rswim_system` with `app.org_id` set (`withOrg`, from `@rswim/db/service`): RLS still applies, so a job cannot touch

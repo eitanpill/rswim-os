@@ -8,3 +8,4 @@ export * from './integrations';
 export * from './scheduling';
 export * from './attendance';
 export * from './billing';
+export * from './comms';

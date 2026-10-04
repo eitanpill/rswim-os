@@ -1,8 +1,10 @@
 import {
+  ClaudeTriageClassifier,
   FakeInvoicingProvider,
   FakePaymentProvider,
   type InvoicingProvider,
   type PaymentProvider,
+  type TriageClassifier,
 } from '@rswim/integrations';
 
 let payments: FakePaymentProvider | undefined;
@@ -25,4 +27,15 @@ export function paymentProvider(): PaymentProvider | null {
 export function invoicingProvider(): InvoicingProvider | null {
   if (process.env.RSWIM_INVOICING_FAKE === '1') return (invoicing ??= new FakeInvoicingProvider());
   return null;
+}
+
+let classifier: ClaudeTriageClassifier | undefined;
+
+/**
+ * The AI triage classifier, or null. Used only when the owner turns on `comms.ai_triage` and the worker has
+ * ANTHROPIC_API_KEY; the rules classifier's verdict stands otherwise.
+ */
+export function triageClassifier(): TriageClassifier | null {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  return (classifier ??= new ClaudeTriageClassifier({ apiKey: process.env.ANTHROPIC_API_KEY }));
 }

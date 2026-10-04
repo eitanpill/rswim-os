@@ -181,6 +181,10 @@ export const PolicyRules = z
         block_shabbat_and_chag: z.boolean(),
         lead_followup_max_nudges: int(0, 20),
         reminder_before_lesson_hours: int(0, 72),
+        rate_per_minute: int(1, 600),
+        holiday_notice_days_before: int(0, 14),
+        ai_triage: z.boolean(),
+        triage_min_confidence_pct: int(50, 100),
       })
       .partial()
       .strict(),
@@ -376,5 +380,9 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
     block_shabbat_and_chag: true,
     lead_followup_max_nudges: 3,
     reminder_before_lesson_hours: 2,
+    rate_per_minute: 20,
+    holiday_notice_days_before: 2,
+    ai_triage: false,
+    triage_min_confidence_pct: 80,
   },
 };

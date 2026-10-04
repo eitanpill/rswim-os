@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { e2eGhlKey } from './e2e/ghl-key';
 
 const PORT = 3100;
 const ADMIN_URL =
@@ -38,6 +39,7 @@ export default defineConfig({
       NEXT_TELEMETRY_DISABLED: '1',
       DATABASE_URL: E2E_DATABASE_URL,
       RSWIM_MASTER_KEY: E2E_MASTER_KEY,
+      GHL_WEBHOOK_PUBLIC_KEY: e2eGhlKey().publicKey,
     },
   },
 });

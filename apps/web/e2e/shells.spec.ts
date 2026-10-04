@@ -37,7 +37,8 @@ test.describe('role shells on mobile', () => {
     await expect(page.getByTestId('today-line')).toBeVisible();
     await expectRtlMobileShell(page);
     await expect(page).toHaveScreenshot('admin-mobile.png', {
-      mask: [page.getByTestId('today-line')],
+      // The date and the inbox count change from run to run (other tests post WhatsApp messages).
+      mask: [page.getByTestId('today-line'), page.getByTestId('home-inbox')],
       fullPage: true,
     });
   });

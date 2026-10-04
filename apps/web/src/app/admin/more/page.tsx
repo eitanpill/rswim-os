@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { Card, PageHeader } from '@rswim/ui';
 
 const LINKS = [
+  'messages',
   'attendance',
   'makeups',
   'trials',
@@ -22,6 +23,7 @@ const LINKS = [
   'ghl',
 ] as const;
 const HREF: Record<(typeof LINKS)[number], string> = {
+  messages: '/admin/messages',
   attendance: '/admin/attendance',
   makeups: '/admin/makeups',
   trials: '/admin/trials',

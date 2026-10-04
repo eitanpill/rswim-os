@@ -7,7 +7,21 @@
 | 2 Scheduling engine | **Done**, merged (PR #3) | All three acceptance criteria pass |
 | 3 Attendance, makeups, trials, forms | **Done**, merged (PR #4) | Both acceptance criteria pass |
 | 4 Billing and collections | **Done**, merged (PR #5) | All four acceptance criteria pass (see below) |
-| 5–10 | Not started | |
+| 5 Communications hub | **Done** | All three acceptance criteria pass (see below) |
+| 6–10 | Not started | |
+
+## Phase 5 acceptance criteria
+
+| Criterion | Proof | Result |
+|---|---|---|
+| "דניאל לא יגיע היום" from a known guardian becomes a pre-filled absence action in under 5 seconds | `apps/web/e2e/messaging.spec.ts`: a signed GHL InboundMessage webhook from a fake guardian's phone ("‹name› לא יגיע ב-‹date›") is answered with the draft action already created, measured under 5 s; the owner sees it in **הודעות › תיבה נכנסת** with the child, group, date and time filled in, taps approve once, and the absence is recorded on the WhatsApp channel. Service level: `packages/domain/comms/test/services.test.ts` AC1 (intake to draft time, approval through the attendance rules, the confirmation automation, duplicate webhooks dropped), plus every triage route (two children, no lesson, complaint, unknown sender, staff) | Pass |
+| Nothing is sent on Shabbat | `packages/domain/comms/test/policies.test.ts`: a fast-check property over random instants in 2026–2027 shows `sendDecision` never sends inside a rest window (candle lighting − 30 min to havdalah + 30 min, Yom Tov included), and unit cases for quiet hours, a window running into quiet hours, and Rosh Hashana into Shabbat. `services.test.ts` AC2: a message queued Friday 9.10.2026 at 17:30 is held with the reason and sent only at the window's end; the dispatcher re-checks at send time | Pass |
+| Every outbound message is logged | `services.test.ts` AC3: opted out, no phone, a missing variable and a switched-off template are each a blocked row with the reason; a provider failure retries three times then is marked failed; every provider call has a row with the provider's id; the database refuses to change a sent or blocked row's text, phone or status | Pass |
+
+Also: automations for the Phase 2–4 events (trial booked, makeup booked, instructor change, closure, payment link,
+dunning, freeze approved, cancellation), the holiday notice before Pesach's Chol HaMoed, broadcasts by venue, group,
+program or families who owe, editable templates, and RLS (a parent reads only their household's messages; an
+instructor reads none).
 
 ## Phase 4 acceptance criteria
 

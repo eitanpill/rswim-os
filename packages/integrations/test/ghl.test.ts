@@ -116,13 +116,26 @@ describe('HttpGhlClient', () => {
     ]);
   });
 
-  it('raises the status and body on API errors, and opportunities wait for Phase 5', async () => {
+  it('raises the status and body on API errors', async () => {
     const { fetchImpl } = recorder([{ status: 422, body: { message: 'bad phone' } }]);
     const client = new HttpGhlClient({ token: 't', locationId: 'l', fetch: fetchImpl });
     const err = await client.searchContacts(ctx, null, 10).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(GhlApiError);
     expect(err).toMatchObject({ status: 422 });
-    await expect(client.moveOpportunity()).rejects.toThrow(/Phase 5/);
+  });
+
+  it('moves an opportunity with /opportunities/upsert', async () => {
+    const { requests, fetchImpl } = recorder([{ body: { opportunity: { id: 'o1' } } }]);
+    const client = new HttpGhlClient({ token: 't', locationId: 'l', fetch: fetchImpl });
+    await client.moveOpportunity(ctx, { contactExternalId: 'c1', pipelineId: 'p1', stageId: 's1' });
+    expect(requests[0]?.url).toBe('https://services.leadconnectorhq.com/opportunities/upsert');
+    expect(JSON.parse(String(requests[0]?.init.body))).toEqual({
+      locationId: 'l',
+      contactId: 'c1',
+      pipelineId: 'p1',
+      pipelineStageId: 's1',
+      status: 'open',
+    });
   });
 
   it('defaults to the global fetch', () => {
@@ -170,7 +183,10 @@ describe('FakeGhlClient', () => {
         .externalId,
     ).toBe('fake-ghl-1');
     expect(fake.calls).toHaveLength(3);
-    await expect(fake.moveOpportunity()).resolves.toBeUndefined();
+    const move = { contactExternalId: 'c', pipelineId: 'p', stageId: 's' };
+    await fake.moveOpportunity(ctx, move);
+    await fake.moveOpportunity(ctx, move);
+    expect(fake.moves).toHaveLength(1);
     expect(new FakeGhlClient().contacts.size).toBe(0);
   });
 });
