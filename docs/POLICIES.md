@@ -144,15 +144,25 @@ suggestion order, not business rules, so they live in code (DECISIONS 2026-10-02
 ### Therapy
 - `receipts.reimbursement_wording` → `"טיפולי הידרותרפיה"`; receipts list session dates, client ID, payment method.
 
-## 11. Staff & payroll (Phase 6, listed for completeness)
+## 11. Staff & payroll (Phase 6)
 
 | Key | Default | Notes |
 |---|---|---|
-| `payroll.pension_threshold_months` | `3` | Continuous months; retro on eligibility (DECISIONS #6) |
-| `payroll.sick_leave_accrual_halfdays_per_month` | `3` (1.5 days) | Israeli statutory default *(verify with accountant)* |
+| `payroll.pension_threshold_months` | `3` | Continuous months with payslip work; retro to the streak's first month on eligibility (DECISIONS #6) |
+| `payroll.sick_leave_accrual_halfdays_per_month` | `3` (1.5 days) | Accrued when a month is approved, for employees and the payslip side of a hybrid *(verify with accountant)* |
 | `staffing.shift_change.requires_acceptance` | `true` | Parents notified only after instructor accepts |
 | `staffing.shift_change.escalate_after_hours` | `12` | |
-| `staffing.substitute.wave_size` | `3` | Offers go out in waves, first accept wins |
+| `staffing.substitute_wave_size` | `3` | Offers go out in waves, first accept wins |
+| `staffing.substitute_wave_minutes` | `30` | With no taker, the next wave opens after this many minutes; with no one left the request shows as unfilled on **מחליפים** |
+
+Pay comes from each instructor's pay rules (per hour by the minute, per session, per head), the most specific
+effective rule for the lesson (program and venue > program > venue > any). Each rule names its routing: payslip or
+transfer against an invoice, so a hybrid instructor's groups and privates split by their rules. Travel is paid once
+per working day and venue. A lesson no rule prices is listed on the draft and pays nothing until a rule exists.
+
+Substitutes are ranked: knows the group first, then already at that venue that day, then the lighter week. Not
+offered: no valid swim-instructor certificate, teaching at the same time, outside their availability, or the wrong
+gender for a group that requires one.
 
 ## 12. Communications
 

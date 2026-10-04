@@ -167,9 +167,13 @@ describe('demo seed', () => {
         [DEMO_ORG.id],
       ),
     ).toEqual([{ status: 'pending', first_name: 'נועה' }]);
-    expect(await rows(`select count(*)::int n from slot_bookings where status = 'booked'`)).toEqual(
-      [{ n: 1 }],
-    );
+    // Upcoming only: Phase 6 adds two of Asaf's privates last month.
+    expect(
+      await rows(
+        `select count(*)::int n from slot_bookings b join private_slots p on p.id = b.slot_id
+         where b.status = 'booked' and p.date >= app.today()`,
+      ),
+    ).toEqual([{ n: 1 }]);
   });
 
   it('sets up Phase 3: forms, attendance, notices with credits, a makeup booking and a trial', async () => {
@@ -284,5 +288,37 @@ describe('demo seed', () => {
     expect(
       await rows(`select status from broadcasts where organization_id = $1`, [DEMO_ORG.id]),
     ).toEqual([{ status: 'scheduled' }]);
+  });
+
+  it('sets up Phase 6: last month drafted with a dispute, a substitute offer for Noa and applicants', async () => {
+    const rows = async (sql: string, params: unknown[] = []) =>
+      (await t.pool.query(sql, params)).rows;
+    const summary = await seedDemo(t.pool);
+    expect(summary.staffops).toMatchObject({ substituteRequests: 1, applicants: 4 });
+    expect(summary.staffops?.payrollStaff).toBeGreaterThan(1);
+    expect(
+      await rows(`select status from payroll_runs where organization_id = $1`, [DEMO_ORG.id]),
+    ).toEqual([{ status: 'draft' }]);
+    expect(
+      await rows(
+        `select t.status from timesheets t join staff_members s on s.id = t.staff_member_id
+         where t.organization_id = $1 order by s.first_name`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([{ status: 'confirmed' }, { status: 'disputed' }]); // אסף, דני
+    const [hybrid] = await rows(
+      `select bool_or(l.routing = 'payslip') payslip, bool_or(l.routing = 'transfer') transfer
+       from payroll_lines l join staff_members s on s.id = l.staff_member_id
+       where l.organization_id = $1 and s.first_name = 'אסף' and l.kind = 'work'`,
+      [DEMO_ORG.id],
+    );
+    expect(hybrid).toEqual({ payslip: true, transfer: true });
+    expect(
+      await rows(
+        `select o.status from substitute_offers o join staff_members s on s.id = o.staff_member_id
+         where o.organization_id = $1 and s.first_name = 'נועה'`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([{ status: 'offered' }]);
   });
 });

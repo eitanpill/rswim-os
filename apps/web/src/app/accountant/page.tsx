@@ -1,16 +1,21 @@
 import { getTranslations } from 'next-intl/server';
 import { debtsDashboard } from '@rswim/domain-billing';
+import { listPayrollRuns, type RunTotals } from '@rswim/domain-payroll';
 import { Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
-import { money } from '@/lib/billing';
+import { money, periodLabel } from '@/lib/billing';
 import { withSession } from '@/lib/db';
 import { dmy } from '@/lib/options';
 
-/** The accountant's read-only view: open debts with their age. */
+/** The accountant's read-only view: open debts with their age, and approved payroll months to export. */
 export default async function Page() {
   const t = await getTranslations('accountant.home');
   const tm = await getTranslations('money.overview');
   const fmt = await money();
-  const { rows, totals } = await withSession((tx) => debtsDashboard(tx));
+  const { debts, runs } = await withSession(async (tx) => {
+    const [debts, runs] = await Promise.all([debtsDashboard(tx), listPayrollRuns(tx)]);
+    return { debts, runs: runs.filter((r) => r.status === 'approved') };
+  });
+  const { rows, totals } = debts;
   return (
     <>
       <PageHeader title={t('title')} />
@@ -39,6 +44,38 @@ export default async function Page() {
                 <span>{fmt(r.balance)}</span>
               </li>
             ))}
+          </ul>
+        )}
+      </Card>
+      <Card className="mt-4" data-testid="accountant-payroll">
+        <CardTitle>{t('payroll')}</CardTitle>
+        {runs.length === 0 ? (
+          <EmptyState title={t('payrollEmpty')} />
+        ) : (
+          <ul className="flex flex-col text-sm">
+            {runs.map((r) => {
+              const sums = r.totals as RunTotals;
+              return (
+                <li
+                  key={r.id}
+                  className="flex flex-wrap items-center justify-between gap-2 border-t border-line py-2"
+                >
+                  <span>
+                    {t('payrollLine', {
+                      period: periodLabel(r.period),
+                      payslip: fmt(sums.payslip),
+                      transfer: fmt(sums.transfer),
+                    })}
+                  </span>
+                  <a
+                    href={`/api/payroll/${r.id}`}
+                    className="min-h-tap inline-flex items-center text-brand-700 underline"
+                  >
+                    {t('export')}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         )}
       </Card>

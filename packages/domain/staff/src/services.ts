@@ -19,7 +19,7 @@ import {
   STAFF_SKILLS,
   TimeOfDay,
 } from '@rswim/contracts';
-import { asc, desc, eq, isNull, schema, type Tx } from '@rswim/db';
+import { asc, desc, eq, isNull, schema, sql, type Tx } from '@rswim/db';
 import { DomainError, type ServiceContext } from '@rswim/domain-core';
 
 export { certificationStatus } from './policies';
@@ -320,4 +320,18 @@ export async function staffAccounts(tx: Tx) {
       status: memberships.status,
     })
     .from(memberships);
+}
+
+/** Every pay rule version (payroll prices lessons with them), optionally for some staff only. */
+export async function payRulesOf(tx: Tx, staffIds?: readonly string[]) {
+  const rows = await tx.select().from(payRules);
+  return staffIds ? rows.filter((r) => staffIds.includes(r.staffMemberId)) : rows;
+}
+
+/** The signed-in user's own staff record in this organization, or null (an owner who doesn't teach). */
+export async function myStaffId(tx: Tx): Promise<string | null> {
+  const r = await tx.execute<{ id: string | null }>(
+    sql`select app.current_staff_member_id() as id`,
+  );
+  return r.rows[0]?.id ?? null;
 }

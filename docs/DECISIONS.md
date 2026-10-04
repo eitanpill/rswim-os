@@ -106,3 +106,12 @@ Architecture decisions live in `docs/adr/`. This file holds product defaults and
 | 2026-10-04 | `closure_closed`, `receipt_ready` and lesson reminders are not automated yet: closures message on opening, receipts are emailed by Green Invoice, and reminders wait for the parents' own preference setting |
 | 2026-10-04 | Broadcasts are free text (no per-family variables) to every guardian of the segment's households; a scheduled broadcast is expanded by the worker at its time, and opted-out guardians are logged as blocked |
 | 2026-10-04 | The outbound log is append-only in practice: a sent or blocked message keeps its status, text and phone (database trigger), and rows are deleted only with their organization |
+| 2026-10-04 | Phase 6: hours come from the lessons taught (group sessions held, private and therapy slots with a booking), never from free-text reports. Each instructor confirms the month or disputes it with a note; an open dispute blocks approving payroll until the owner closes it, with a correction when needed |
+| 2026-10-04 | A group lesson's per-head pay counts the children holding a seat that day (active, frozen, cancel requested, trial booked); attendance does not change pay |
+| 2026-10-04 | Travel is paid once per working day and venue: the largest allowance among that day's rules there, routed with that rule (payslip first on a tie) |
+| 2026-10-04 | Payroll runs are draft → approved. Drafting again replaces the draft; an approved month is locked by the database, and a later correction is an adjustment in the next month |
+| 2026-10-04 | An instructor sees their hours at any time but money only for approved months; bonuses and corrections stay hidden until approval |
+| 2026-10-04 | The instructor's statement is a breakdown of what the school pays, not a legal payslip: the accountant issues the payslip from the XLSX export (payslip sheet with pension status and sick-leave balance, transfers sheet) |
+| 2026-10-04 | Substitute offers reach instructors in the app (החלפות), not by WhatsApp: staff messaging joins when the instructors' WhatsApp opt-in is collected. The first accept wins under a database lock; the worker then changes the lesson's lead and parents hear who is teaching |
+| 2026-10-04 | Only instructors with a valid swim-instructor certificate are offered substitutions |
+| 2026-10-04 | Applicants are a pipeline only: hiring one does not create a staff member (the owner adds them on צוות, with their certificates and pay rules) |

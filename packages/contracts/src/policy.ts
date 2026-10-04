@@ -171,6 +171,7 @@ export const PolicyRules = z
         shift_change_requires_acceptance: z.boolean(),
         shift_change_escalate_after_hours: hours,
         substitute_wave_size: int(1, 50),
+        substitute_wave_minutes: int(5, 1440),
       })
       .partial()
       .strict(),
@@ -373,6 +374,7 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
     shift_change_requires_acceptance: true,
     shift_change_escalate_after_hours: 12,
     substitute_wave_size: 3,
+    substitute_wave_minutes: 30,
   },
   comms: {
     quiet_hours_start: '21:30',

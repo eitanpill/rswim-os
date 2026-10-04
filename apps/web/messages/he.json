@@ -153,6 +153,18 @@
       "messages": {
         "title": "הודעות",
         "hint": "תיבה נכנסת, יומן, תבניות והודעה לקבוצה"
+      },
+      "payroll": {
+        "title": "שכר ושעות",
+        "hint": "שעות מהשיעורים, משכורת חודשית ויצוא לרו״ח"
+      },
+      "substitutes": {
+        "title": "מחליפים וחוסרים",
+        "hint": "מציאת מחליף/ה בגלים וחוסרים בחודש הבא"
+      },
+      "recruiting": {
+        "title": "גיוס",
+        "hint": "מועמדים, ימי ניסיון ומאגר מחליפים"
       }
     }
   },
@@ -177,6 +189,40 @@
       "answered": "התשובה נשלחה",
       "week": "השיעורים שלי השבוע",
       "sendDecline": "שליחת סירוב"
+    },
+    "hours": {
+      "title": "שעות ושכר",
+      "month": "החודש",
+      "lessons": "{n} שיעורים · {hours} שעות",
+      "empty": "עוד אין שיעורים בחודש הזה",
+      "confirm": "השעות נכונות",
+      "dispute": "משהו לא נכון",
+      "note": "מה לא נכון?",
+      "sendDispute": "שליחה לבירור",
+      "confirmed": "אישרת את החודש. תודה!",
+      "disputed": "נשלח לבירור: {note}",
+      "resolved": "הבירור נסגר: {resolution}",
+      "answered": "נשמר",
+      "statements": "פירוט משכורת",
+      "noStatements": "עוד אין חודשים מאושרים",
+      "payslip": "בתלוש",
+      "transfer": "בהעברה",
+      "sick": "ימי מחלה",
+      "sickBalance": "יתרה: {days} ימים",
+      "travel": "נסיעות",
+      "previous": "החודש הקודם"
+    },
+    "swaps": {
+      "title": "החלפות",
+      "hint": "שיעורים שמחפשים להם מחליף/ה. הראשון/ה שמאשר/ת מקבל/ת.",
+      "empty": "אין כרגע שיעורים שמחפשים להם מחליף/ה",
+      "accept": "אני לוקח/ת",
+      "decline": "לא מתאים לי",
+      "accepted": "השיעור שלך! ההורים יקבלו הודעה",
+      "declined": "תודה, עדכנו",
+      "lesson": "{group} · {venue}",
+      "when": "{date} {from}–{to}",
+      "taken": "מישהו אחר כבר תפס"
     }
   },
   "transport": {
@@ -190,7 +236,11 @@
       "title": "כספים",
       "empty": "אין חובות פתוחים",
       "debts": "חובות פתוחים",
-      "runs": "חיובים חודשיים"
+      "runs": "חיובים חודשיים",
+      "payroll": "משכורות",
+      "payrollEmpty": "עוד אין משכורות מאושרות",
+      "export": "אקסל",
+      "payrollLine": "{period}: בתלוש {payslip} · בהעברה {transfer}"
     }
   },
   "parent": {
@@ -732,6 +782,63 @@
       "scheduled": "מתוזמן",
       "sent": "נשלח",
       "cancelled": "בוטל"
+    },
+    "timesheetStatus": {
+      "open": "פתוח",
+      "confirmed": "אושר",
+      "disputed": "בבירור",
+      "resolved": "טופל"
+    },
+    "payrollRunStatus": {
+      "draft": "טיוטה",
+      "approved": "מאושר"
+    },
+    "payrollLineKind": {
+      "work": "שיעור",
+      "travel": "נסיעות",
+      "adjustment": "תוספת/תיקון"
+    },
+    "adjustmentKind": {
+      "bonus": "בונוס",
+      "correction": "תיקון",
+      "expense": "החזר הוצאה"
+    },
+    "substituteRequestStatus": {
+      "open": "מחפשים מחליף/ה",
+      "filled": "נמצא/ה מחליף/ה",
+      "unfilled": "לא נמצא/ה מחליף/ה",
+      "cancelled": "בוטל"
+    },
+    "substituteOfferStatus": {
+      "queued": "בגל הבא",
+      "offered": "נשלחה הצעה",
+      "accepted": "קיבל/ה",
+      "declined": "סירב/ה",
+      "withdrawn": "בוטלה"
+    },
+    "applicantStage": {
+      "new": "חדש/ה",
+      "screening": "שיחת היכרות",
+      "trial_day": "יום ניסיון",
+      "offer": "הצעה",
+      "hired": "גויס/ה",
+      "talent_pool": "מאגר מחליפים",
+      "rejected": "לא מתאים/ה"
+    },
+    "applicantSource": {
+      "facebook": "קבוצות פייסבוק",
+      "college": "מכללה",
+      "referral": "המלצה",
+      "swim_club": "מועדון שחייה",
+      "website": "אתר",
+      "other": "אחר"
+    },
+    "payUnit": {
+      "hour": "שעות",
+      "session": "שיעורים",
+      "head": "ילדים",
+      "day": "ימים",
+      "item": "פריט"
     }
   },
   "venues": {
@@ -1297,7 +1404,8 @@
       "staffing": {
         "shift_change_requires_acceptance": "שינוי משמרת דורש אישור המדריך",
         "shift_change_escalate_after_hours": "הסלמה אחרי",
-        "substitute_wave_size": "מחליפים בכל גל פניות"
+        "substitute_wave_size": "מחליפים בכל גל פניות",
+        "substitute_wave_minutes": "דקות עד הגל הבא של מחליפים"
       },
       "comms": {
         "block_shabbat_and_chag": "לא לשלוח בשבת ובחג",
@@ -1648,6 +1756,14 @@
       "earliestAt": "לא לפני",
       "latestAt": "לא אחרי",
       "notes": "הערות"
+    },
+    "substitute": {
+      "notCertified": "אין תעודת מדריך/ת שחייה בתוקף",
+      "busy": "מלמד/ת שיעור אחר באותה שעה",
+      "notUpcoming": "אפשר לבקש מחליף/ה רק לשיעור שעוד לא התקיים",
+      "alreadyOpen": "כבר מחפשים מחליף/ה לשיעור הזה",
+      "offerClosed": "ההצעה הזו כבר לא פתוחה",
+      "notOpen": "הבקשה כבר לא פתוחה"
     }
   },
   "attendance": {
@@ -2290,6 +2406,173 @@
       "unknownVariable": "משתנה שהמערכת לא ממלאת: {names}",
       "broadcastClosed": "ההודעה כבר נשלחה או בוטלה",
       "logLocked": "הודעה שנשלחה נשארת ביומן"
+    }
+  },
+  "payroll": {
+    "errors": {
+      "runLocked": "משכורות החודש הזה כבר אושרו ונעולות. תיקון נכנס כתוספת בחודש הבא",
+      "periodLocked": "משכורות החודש הזה כבר אושרו, אי אפשר להוסיף לו. אפשר להוסיף לחודש הבא",
+      "sickLeaveAppendOnly": "ימי מחלה לא נמחקים ולא משתנים, רק נרשמים",
+      "timesheetNotYours": "אפשר לאשר רק את החודש שלך, וכל עוד המשכורות שלו לא אושרו",
+      "disputesOpen": "{count, plural, one {יש בירור שעות אחד פתוח} other {יש # בירורי שעות פתוחים}}. צריך לסגור אותם לפני אישור המשכורות",
+      "disputeNote": "כתבו מה לא נכון בחודש",
+      "notDisputed": "החודש הזה לא בבירור"
+    },
+    "decision": {
+      "perHour": "{minutes} דק׳ לפי {rate} לשעה",
+      "perSession": "{rate} לשיעור",
+      "perHead": "{heads} ילדים × {rate}",
+      "travel": "נסיעות {rate} ליום עבודה",
+      "adjustment": {
+        "bonus": "בונוס",
+        "correction": "תיקון",
+        "expense": "החזר הוצאה"
+      },
+      "pension": {
+        "newlyEligible": "זכאות לפנסיה מהחודש ({months} חודשים רצופים), רטרו מ-{from}",
+        "eligible": "זכאי/ת לפנסיה ({months} חודשים רצופים)",
+        "notYet": "עדיין לא זכאי/ת לפנסיה ({months} מתוך {threshold} חודשים רצופים)"
+      }
+    }
+  },
+  "staffing": {
+    "errors": {
+      "substituteTaken": "מישהו כבר תפס את השיעור הזה. תודה שהיית זמין/ה!",
+      "offerClosed": "ההצעה הזו כבר לא פתוחה"
+    }
+  },
+  "staffops": {
+    "tabs": {
+      "label": "צוות",
+      "payroll": "שכר",
+      "timesheets": "שעות",
+      "substitutes": "מחליפים",
+      "gaps": "חוסרים",
+      "recruiting": "גיוס"
+    },
+    "period": "חודש",
+    "show": "הצגה",
+    "payroll": {
+      "title": "שכר",
+      "hint": "השעות מגיעות מהשיעורים שהתקיימו. כל מדריך/ה מאשר/ת את החודש, ואז מכינים טיוטה, בודקים ומאשרים.",
+      "noRun": "עוד אין טיוטה לחודש הזה",
+      "draft": "להכין טיוטה",
+      "redraft": "להכין טיוטה מחדש",
+      "approve": "לאשר משכורות",
+      "approveConfirm": "אחרי האישור החודש ננעל ואי אפשר לשנות אותו. לאשר?",
+      "drafted": "הטיוטה מוכנה",
+      "approvedOk": "המשכורות אושרו. כל מדריך/ה רואה את הפירוט שלו/ה",
+      "approvedAt": "אושר ב-{date}",
+      "payslip": "בתלוש",
+      "transfer": "בהעברה",
+      "totals": "בתלוש {payslip} · בהעברה {transfer}",
+      "lessons": "{n} שיעורים · {hours} שעות",
+      "unpriced": "{n, plural, one {שיעור אחד בלי תעריף} other {# שיעורים בלי תעריף}}: הוסיפו תעריף בכרטיס המדריך/ה",
+      "timesheet": "שעות: {status}",
+      "lines": "פירוט",
+      "empty": "אין שיעורים או תוספות בחודש הזה",
+      "export": "יצוא לאקסל לרו״ח",
+      "adjustments": "תוספות ותיקונים",
+      "addAdjustment": "הוספה",
+      "adjustmentAdded": "נוסף",
+      "staff": "מדריך/ה",
+      "kind": "סוג",
+      "routing": "לאן",
+      "amount": "סכום (₪, מינוס להפחתה)",
+      "note": "פירוט",
+      "remove": "הסרה",
+      "sickTitle": "ימי מחלה",
+      "sickHint": "נצברים אוטומטית כשמאשרים משכורות לעובדים בתלוש",
+      "sickRecord": "רישום יום מחלה",
+      "sickRecorded": "נרשם",
+      "date": "תאריך",
+      "halfDays": "חצאי ימים",
+      "sickBalance": "יתרה: {days} ימים",
+      "travel": "נסיעות"
+    },
+    "timesheets": {
+      "title": "אישורי שעות",
+      "hint": "כל מדריך/ה רואה באפליקציה את השיעורים שלו/ה ומאשר/ת או מבקש/ת בירור.",
+      "empty": "אין שיעורים בחודש הזה",
+      "line": "{n} שיעורים · {hours} שעות",
+      "dispute": "מה לא נכון: {note}",
+      "resolution": "איך נסגר",
+      "correction": "תיקון בתלוש (₪, לא חובה)",
+      "resolve": "סגירת הבירור",
+      "resolved": "הבירור נסגר"
+    },
+    "substitutes": {
+      "title": "מחליפים",
+      "hint": "כשמדריך/ה לא יכול/ה להגיע: בוחרים שיעור, והמערכת שולחת הצעה בגלים למדריכים מתאימים וזמינים. הראשון/ה שמאשר/ת מקבל/ת, וההורים מקבלים הודעה מי מלמד.",
+      "request": "חיפוש מחליף/ה",
+      "lesson": "שיעור",
+      "reason": "סיבה (לא חובה)",
+      "requested": "{n, plural, =0 {אין מדריכים מתאימים ופנויים} one {נשלחה הצעה למדריך/ה אחד/ת} other {נשלחה הצעה ל-# מדריכים}}",
+      "noLessons": "אין שיעורים בשבועיים הקרובים",
+      "list": "בקשות",
+      "empty": "אין בקשות",
+      "from": "במקום {name}",
+      "filledBy": "מלמד/ת: {name}",
+      "wave": "גל {n}",
+      "nextWave": "הגל הבא: {time}",
+      "cancel": "ביטול הבקשה",
+      "reason_knowsGroup": "מכיר/ה את הקבוצה",
+      "reason_atVenueThatDay": "בבריכה באותו יום"
+    },
+    "gaps": {
+      "title": "חוסרים בחודש הבא",
+      "hint": "שיעורים בלי מדריך/ה, מאוחדים לפי בריכה, יום ושעות.",
+      "empty": "אין חוסרים: לכל השיעורים יש מדריך/ה",
+      "line": "{venue} · יום {weekday} {from}–{to}",
+      "dates": "{n, plural, one {תאריך אחד} other {# תאריכים}}",
+      "recruit": "לגיוס"
+    },
+    "recruiting": {
+      "title": "גיוס",
+      "hint": "מועמדים לפי שלב. \"מאגר מחליפים\" הם אנשים שאפשר לפנות אליהם כשאין מחליף/ה.",
+      "add": "מועמד/ת חדש/ה",
+      "added": "נוסף/ה",
+      "firstName": "שם פרטי",
+      "lastName": "שם משפחה",
+      "phone": "טלפון",
+      "email": "אימייל",
+      "gender": "מגדר",
+      "source": "מקור",
+      "certifications": "תעודות",
+      "rate": "ציפיית שכר לשעה (₪)",
+      "availability": "זמינות",
+      "notes": "הערות",
+      "stage": "שלב",
+      "trialDay": "יום ניסיון",
+      "water": "מיומנות במים (1–5)",
+      "kids": "עבודה עם ילדים (1–5)",
+      "reliability": "אמינות (1–5)",
+      "update": "עדכון",
+      "updated": "עודכן",
+      "empty": "אין מועמדים בשלב הזה",
+      "jobPost": "מודעת דרושים",
+      "jobPostHint": "לבחור בריכה ויום, ולהעתיק לקבוצות",
+      "jobPostVenue": "בריכה",
+      "jobPostDay": "יום",
+      "jobPostText": "דרושים/ות מדריכי/ות שחייה לבית הספר לשחייה {school} 🏊\nבריכת {venue}, ימי {weekday} אחר הצהריים.\nדרישות: תעודת מדריך/ת שחייה בתוקף, אהבה לילדים ואחריות.\nמשכורת הוגנת, צוות חם ואפשרות להחלפות.\nלפרטים: שלחו הודעה עם קורות חיים קצרים 🙂",
+      "score": "ציון"
+    },
+    "export": {
+      "payslipSheet": "תלושים",
+      "transferSheet": "העברות",
+      "staff": "עובד/ת",
+      "employment": "סוג העסקה",
+      "date": "תאריך",
+      "item": "פריט",
+      "quantity": "כמות",
+      "amount": "סכום",
+      "total": "סה״כ",
+      "pension": "פנסיה",
+      "sick": "יתרת מחלה",
+      "sickDays": "{days} ימים",
+      "pensionNew": "זכאי/ת מהחודש, רטרו מ-{from}",
+      "pensionYes": "זכאי/ת",
+      "pensionNo": "לא זכאי/ת עדיין ({months} חודשים)"
     }
   }
 }

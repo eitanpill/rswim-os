@@ -153,6 +153,18 @@
       "messages": {
         "title": "Messages",
         "hint": "Inbox, log, templates and broadcasts"
+      },
+      "payroll": {
+        "title": "Payroll and hours",
+        "hint": "Hours from lessons, monthly payroll and the accountant export"
+      },
+      "substitutes": {
+        "title": "Substitutes and gaps",
+        "hint": "Find a substitute in waves; next month's gaps"
+      },
+      "recruiting": {
+        "title": "Recruiting",
+        "hint": "Applicants, trial days and the substitute pool"
       }
     }
   },
@@ -177,6 +189,40 @@
       "answered": "Your answer was sent",
       "week": "My lessons this week",
       "sendDecline": "Send decline"
+    },
+    "hours": {
+      "title": "Hours and pay",
+      "month": "This month",
+      "lessons": "{n} lessons · {hours} hours",
+      "empty": "No lessons this month yet",
+      "confirm": "The hours are right",
+      "dispute": "Something is wrong",
+      "note": "What is wrong?",
+      "sendDispute": "Send for a check",
+      "confirmed": "You confirmed the month. Thanks!",
+      "disputed": "Sent for a check: {note}",
+      "resolved": "The check is closed: {resolution}",
+      "answered": "Saved",
+      "statements": "Pay breakdown",
+      "noStatements": "No approved months yet",
+      "payslip": "Payslip",
+      "transfer": "Transfer",
+      "sick": "Sick leave",
+      "sickBalance": "Balance: {days} days",
+      "travel": "Travel",
+      "previous": "Last month"
+    },
+    "swaps": {
+      "title": "Swaps",
+      "hint": "Lessons looking for a substitute. The first to accept gets it.",
+      "empty": "No lessons are looking for a substitute right now",
+      "accept": "I'll take it",
+      "decline": "Not for me",
+      "accepted": "It's yours! Parents will be told",
+      "declined": "Thanks, noted",
+      "lesson": "{group} · {venue}",
+      "when": "{date} {from}–{to}",
+      "taken": "Someone else took it"
     }
   },
   "transport": {
@@ -190,7 +236,11 @@
       "title": "Money",
       "empty": "No open debts",
       "debts": "Open debts",
-      "runs": "Monthly runs"
+      "runs": "Monthly runs",
+      "payroll": "Payroll",
+      "payrollEmpty": "No approved payroll yet",
+      "export": "Excel",
+      "payrollLine": "{period}: payslip {payslip} · transfer {transfer}"
     }
   },
   "parent": {
@@ -732,6 +782,63 @@
       "scheduled": "Scheduled",
       "sent": "Sent",
       "cancelled": "Cancelled"
+    },
+    "timesheetStatus": {
+      "open": "Open",
+      "confirmed": "Confirmed",
+      "disputed": "Disputed",
+      "resolved": "Resolved"
+    },
+    "payrollRunStatus": {
+      "draft": "Draft",
+      "approved": "Approved"
+    },
+    "payrollLineKind": {
+      "work": "Lesson",
+      "travel": "Travel",
+      "adjustment": "Adjustment"
+    },
+    "adjustmentKind": {
+      "bonus": "Bonus",
+      "correction": "Correction",
+      "expense": "Expense refund"
+    },
+    "substituteRequestStatus": {
+      "open": "Looking for a substitute",
+      "filled": "Substitute found",
+      "unfilled": "No substitute found",
+      "cancelled": "Cancelled"
+    },
+    "substituteOfferStatus": {
+      "queued": "Next wave",
+      "offered": "Offered",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn"
+    },
+    "applicantStage": {
+      "new": "New",
+      "screening": "Screening call",
+      "trial_day": "Trial day",
+      "offer": "Offer",
+      "hired": "Hired",
+      "talent_pool": "Substitute pool",
+      "rejected": "Not a fit"
+    },
+    "applicantSource": {
+      "facebook": "Facebook groups",
+      "college": "College",
+      "referral": "Referral",
+      "swim_club": "Swim club",
+      "website": "Website",
+      "other": "Other"
+    },
+    "payUnit": {
+      "hour": "hours",
+      "session": "lessons",
+      "head": "children",
+      "day": "days",
+      "item": "item"
     }
   },
   "venues": {
@@ -1297,7 +1404,8 @@
       "staffing": {
         "shift_change_requires_acceptance": "Shift changes need instructor acceptance",
         "shift_change_escalate_after_hours": "Escalate after",
-        "substitute_wave_size": "Substitutes per wave"
+        "substitute_wave_size": "Substitutes per wave",
+        "substitute_wave_minutes": "Minutes before the next substitute wave"
       },
       "comms": {
         "block_shabbat_and_chag": "No messages on Shabbat and holidays",
@@ -1648,6 +1756,14 @@
       "earliestAt": "Not before",
       "latestAt": "Not after",
       "notes": "Notes"
+    },
+    "substitute": {
+      "notCertified": "No valid swim instructor certificate",
+      "busy": "Teaching another lesson at the same time",
+      "notUpcoming": "You can only look for a substitute for a lesson that has not happened yet",
+      "alreadyOpen": "Already looking for a substitute for this lesson",
+      "offerClosed": "This offer is no longer open",
+      "notOpen": "The request is no longer open"
     }
   },
   "attendance": {
@@ -2290,6 +2406,173 @@
       "unknownVariable": "Variables the system does not fill: {names}",
       "broadcastClosed": "Already sent or cancelled",
       "logLocked": "A sent message stays in the log"
+    }
+  },
+  "payroll": {
+    "errors": {
+      "runLocked": "This month's payroll is approved and locked. Corrections go into next month as adjustments",
+      "periodLocked": "This month's payroll is approved; add it to next month instead",
+      "sickLeaveAppendOnly": "Sick-leave entries are only added, never changed or deleted",
+      "timesheetNotYours": "You can only answer for your own month, and only before its payroll is approved",
+      "disputesOpen": "{count, plural, one {One timesheet dispute is open} other {# timesheet disputes are open}}. Resolve them before approving payroll",
+      "disputeNote": "Write what is wrong with the month",
+      "notDisputed": "This month is not disputed"
+    },
+    "decision": {
+      "perHour": "{minutes} min at {rate} an hour",
+      "perSession": "{rate} a lesson",
+      "perHead": "{heads} children × {rate}",
+      "travel": "Travel {rate} a working day",
+      "adjustment": {
+        "bonus": "Bonus",
+        "correction": "Correction",
+        "expense": "Expense refund"
+      },
+      "pension": {
+        "newlyEligible": "Pension from this month ({months} months in a row), retro from {from}",
+        "eligible": "Pension eligible ({months} months in a row)",
+        "notYet": "Not pension eligible yet ({months} of {threshold} months in a row)"
+      }
+    }
+  },
+  "staffing": {
+    "errors": {
+      "substituteTaken": "Someone already took this lesson. Thanks for being available!",
+      "offerClosed": "This offer is no longer open"
+    }
+  },
+  "staffops": {
+    "tabs": {
+      "label": "Staff",
+      "payroll": "Payroll",
+      "timesheets": "Hours",
+      "substitutes": "Substitutes",
+      "gaps": "Gaps",
+      "recruiting": "Recruiting"
+    },
+    "period": "Month",
+    "show": "Show",
+    "payroll": {
+      "title": "Payroll",
+      "hint": "Hours come from the lessons that took place. Each instructor confirms their month; then draft, check and approve.",
+      "noRun": "No draft for this month yet",
+      "draft": "Draft payroll",
+      "redraft": "Draft again",
+      "approve": "Approve payroll",
+      "approveConfirm": "Approving locks the month for good. Approve?",
+      "drafted": "The draft is ready",
+      "approvedOk": "Payroll approved. Each instructor can see their breakdown",
+      "approvedAt": "Approved on {date}",
+      "payslip": "Payslip",
+      "transfer": "Transfer",
+      "totals": "Payslip {payslip} · Transfer {transfer}",
+      "lessons": "{n} lessons · {hours} hours",
+      "unpriced": "{n, plural, one {One lesson has no rate} other {# lessons have no rate}}: add a pay rule on the instructor card",
+      "timesheet": "Hours: {status}",
+      "lines": "Breakdown",
+      "empty": "No lessons or adjustments this month",
+      "export": "Export to Excel for the accountant",
+      "adjustments": "Adjustments",
+      "addAdjustment": "Add",
+      "adjustmentAdded": "Added",
+      "staff": "Instructor",
+      "kind": "Kind",
+      "routing": "Paid by",
+      "amount": "Amount (₪, minus to deduct)",
+      "note": "Details",
+      "remove": "Remove",
+      "sickTitle": "Sick leave",
+      "sickHint": "Accrues automatically when payroll is approved for payslip employees",
+      "sickRecord": "Record a sick day",
+      "sickRecorded": "Recorded",
+      "date": "Date",
+      "halfDays": "Half days",
+      "sickBalance": "Balance: {days} days",
+      "travel": "Travel"
+    },
+    "timesheets": {
+      "title": "Timesheets",
+      "hint": "Each instructor sees their lessons in the app and confirms them or asks for a check.",
+      "empty": "No lessons this month",
+      "line": "{n} lessons · {hours} hours",
+      "dispute": "What is wrong: {note}",
+      "resolution": "How it was settled",
+      "correction": "Payslip correction (₪, optional)",
+      "resolve": "Close the dispute",
+      "resolved": "Dispute closed"
+    },
+    "substitutes": {
+      "title": "Substitutes",
+      "hint": "When an instructor can't make it: pick the lesson and the system offers it in waves to suitable, free instructors. The first to accept gets it, and parents are told who is teaching.",
+      "request": "Find a substitute",
+      "lesson": "Lesson",
+      "reason": "Reason (optional)",
+      "requested": "{n, plural, =0 {No suitable instructor is free} one {Offered to one instructor} other {Offered to # instructors}}",
+      "noLessons": "No lessons in the next two weeks",
+      "list": "Requests",
+      "empty": "No requests",
+      "from": "Instead of {name}",
+      "filledBy": "Teaching: {name}",
+      "wave": "Wave {n}",
+      "nextWave": "Next wave: {time}",
+      "cancel": "Cancel the request",
+      "reason_knowsGroup": "Knows the group",
+      "reason_atVenueThatDay": "At the pool that day"
+    },
+    "gaps": {
+      "title": "Next month's gaps",
+      "hint": "Lessons without an instructor, merged by pool, day and hours.",
+      "empty": "No gaps: every lesson has an instructor",
+      "line": "{venue} · {weekday} {from}–{to}",
+      "dates": "{n, plural, one {one date} other {# dates}}",
+      "recruit": "To recruiting"
+    },
+    "recruiting": {
+      "title": "Recruiting",
+      "hint": "Applicants by stage. The \"substitute pool\" are people to call when no substitute is free.",
+      "add": "New applicant",
+      "added": "Added",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone",
+      "email": "Email",
+      "gender": "Gender",
+      "source": "Source",
+      "certifications": "Certificates",
+      "rate": "Expected hourly rate (₪)",
+      "availability": "Availability",
+      "notes": "Notes",
+      "stage": "Stage",
+      "trialDay": "Trial day",
+      "water": "Water skills (1–5)",
+      "kids": "With children (1–5)",
+      "reliability": "Reliability (1–5)",
+      "update": "Update",
+      "updated": "Updated",
+      "empty": "No applicants at this stage",
+      "jobPost": "Job post",
+      "jobPostHint": "Pick a pool and a day, then copy it to the groups",
+      "jobPostVenue": "Pool",
+      "jobPostDay": "Day",
+      "jobPostText": "Swim instructors wanted at {school} swim school 🏊\n{venue} pool, {weekday} afternoons.\nRequirements: a valid swim instructor certificate, love for children and responsibility.\nFair pay, a warm team and room for swaps.\nSend us a message with a short CV 🙂",
+      "score": "Score"
+    },
+    "export": {
+      "payslipSheet": "Payslips",
+      "transferSheet": "Transfers",
+      "staff": "Employee",
+      "employment": "Employment",
+      "date": "Date",
+      "item": "Item",
+      "quantity": "Quantity",
+      "amount": "Amount",
+      "total": "Total",
+      "pension": "Pension",
+      "sick": "Sick balance",
+      "sickDays": "{days} days",
+      "pensionNew": "Eligible from this month, retro from {from}",
+      "pensionYes": "Eligible",
+      "pensionNo": "Not eligible yet ({months} months)"
     }
   }
 }

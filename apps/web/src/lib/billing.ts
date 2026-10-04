@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { agorot, formatILS } from '@rswim/money';
 
 /** Explanation params that hold agorot; they are shown as shekels. */
-const MONEY_PARAMS = new Set(['amount', 'from', 'to']);
+const MONEY_PARAMS = new Set(['amount', 'from', 'to', 'rate']);
 
 /** Agorot as the viewer's currency text ("‏330 ₪"). */
 export async function money() {

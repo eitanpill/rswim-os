@@ -314,7 +314,7 @@ export async function applyShiftChange(
   return true;
 }
 
-async function setLead(
+export async function setLead(
   tx: Tx,
   ctx: ServiceContext,
   sessionIds: readonly string[],
