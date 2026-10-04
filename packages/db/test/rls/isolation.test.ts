@@ -96,6 +96,12 @@ const TENANT_TABLES = [
   'ledger_entries',
   'fiscal_documents',
   'dunning_cases',
+  'message_templates',
+  'automation_rules',
+  'broadcasts',
+  'messages',
+  'inbound_messages',
+  'triage_actions',
 ] as const;
 
 describe('schema guardrails', () => {

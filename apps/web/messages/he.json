@@ -76,7 +76,8 @@
       "money": "דופק כספי",
       "growth": "צמיחה",
       "expected": "צפוי החודש",
-      "collected": "נגבה"
+      "collected": "נגבה",
+      "inboxWaiting": "{n} הודעות וואטסאפ מחכות בתיבה"
     },
     "placeholder": "המסך הזה ייבנה בשלב {phase}",
     "more": {
@@ -148,6 +149,10 @@
       "reimbursement": {
         "title": "פרופילי החזר",
         "hint": "נוסח חשבוניות למשרד הביטחון וביטוחים"
+      },
+      "messages": {
+        "title": "הודעות",
+        "hint": "תיבה נכנסת, יומן, תבניות והודעה לקבוצה"
       }
     }
   },
@@ -656,6 +661,77 @@
     "cancellationStatus": {
       "active": "בתוקף",
       "withdrawn": "בוטל"
+    },
+    "templateKey": {
+      "trial_confirmation": "אישור שיעור ניסיון",
+      "private_confirmation": "אישור שיעור פרטי",
+      "enrollment_welcome": "ברוכים הבאים",
+      "lesson_reminder": "תזכורת לשיעור",
+      "absence_received": "היעדרות התקבלה (עם השלמה)",
+      "absence_received_no_makeup": "היעדרות התקבלה (בלי השלמה)",
+      "makeup_confirmed": "אישור השלמה",
+      "instructor_change": "החלפת מדריך",
+      "closure_notice": "הודעת סגירה",
+      "reopening_makeups": "חזרה לפעילות",
+      "last_call_makeups": "תזכורת השלמה אחרונה",
+      "payment_link": "קישור לתשלום",
+      "payment_failed": "חיוב נכשל",
+      "receipt_ready": "קבלה מוכנה",
+      "progress_card": "כרטיס התקדמות",
+      "freeze_approved": "הקפאה אושרה",
+      "cancellation_confirmed": "אישור ביטול",
+      "holiday_schedule": "הודעת חג",
+      "free_text": "טקסט חופשי"
+    },
+    "messageStatus": {
+      "queued": "בתור",
+      "held": "ממתין לחלון שליחה",
+      "sent": "נשלח",
+      "failed": "נכשל",
+      "blocked": "חסום"
+    },
+    "holdReason": {
+      "quiet_hours": "שעות שקט",
+      "rest_window": "שבת / חג"
+    },
+    "blockReason": {
+      "opted_out": "לא הסכים/ה לוואטסאפ",
+      "no_phone": "אין טלפון",
+      "missing_variable": "חסר פרט בתבנית",
+      "template_inactive": "התבנית כבויה",
+      "no_provider": "אין ספק שליחה"
+    },
+    "inboundIntent": {
+      "absence_notice": "הודעת היעדרות",
+      "makeup_request": "בקשת השלמה",
+      "schedule_question": "שאלה על לו״ז",
+      "payment_question": "שאלה על תשלום",
+      "receipt_request": "בקשת קבלה",
+      "cancellation_request": "בקשת ביטול",
+      "freeze_request": "בקשת הקפאה",
+      "lead": "ליד חדש",
+      "complaint": "תלונה",
+      "instructor_message": "הודעה ממדריך/ה",
+      "personal_other": "אישי / אחר"
+    },
+    "inboundStatus": {
+      "new": "חדש",
+      "actioned": "טופל",
+      "dismissed": "נסגר",
+      "needs_human": "לטיפולך"
+    },
+    "triageActionKind": {
+      "absence_notice": "רישום היעדרות",
+      "makeup_request": "קביעת השלמה",
+      "freeze_request": "בקשת הקפאה",
+      "cancellation_request": "בקשת ביטול",
+      "receipt_request": "שליחת קבלה"
+    },
+    "broadcastStatus": {
+      "draft": "טיוטה",
+      "scheduled": "מתוזמן",
+      "sent": "נשלח",
+      "cancelled": "בוטל"
     }
   },
   "venues": {
@@ -1226,7 +1302,11 @@
       "comms": {
         "block_shabbat_and_chag": "לא לשלוח בשבת ובחג",
         "lead_followup_max_nudges": "מקסימום תזכורות לליד",
-        "reminder_before_lesson_hours": "תזכורת לפני שיעור"
+        "reminder_before_lesson_hours": "תזכורת לפני שיעור",
+        "rate_per_minute": "הודעות לדקה (מקסימום)",
+        "holiday_notice_days_before": "הודעת חג, ימים לפני",
+        "ai_triage": "מיון הודעות נכנסות בעזרת AI",
+        "triage_min_confidence_pct": "ביטחון מינימלי לטיוטה אוטומטית (%)"
       },
       "scheduling": {
         "travel_buffer_min": "זמן נסיעה בין מקומות",
@@ -2070,6 +2150,146 @@
       "documents": "חשבוניות וקבלות",
       "download": "להורדה",
       "empty": "אין עדיין תנועות"
+    }
+  },
+  "comms": {
+    "tabs": {
+      "label": "מסכי ההודעות",
+      "inbox": "תיבה נכנסת",
+      "log": "יומן",
+      "templates": "תבניות ואוטומציות",
+      "broadcast": "הודעה לקבוצה"
+    },
+    "inbox": {
+      "title": "הודעות",
+      "empty": "אין הודעות שמחכות לך",
+      "open": "פתוחות",
+      "closed": "סגורות",
+      "unknownSender": "מספר לא מוכר",
+      "staffSender": "מהצוות",
+      "confidence": "{n}% ביטחון",
+      "lessons": "השיעורים שיסומנו",
+      "approveAbsence": "אשר/י היעדרות",
+      "approve": "אשר/י",
+      "markDone": "סמן/י כטופל",
+      "dismiss": "סגור/י בלי פעולה",
+      "reply": "תשובה",
+      "replyHint": "נשלחת בוואטסאפ, מכבדת שעות שקט ושבת",
+      "send": "שליחה",
+      "approved": "נרשם. ההודעה סומנה כטופלה.",
+      "sent": "התשובה בתור לשליחה",
+      "done": "סומן כטופל",
+      "familyCard": "לכרטיס המשפחה",
+      "actionResult": "נוצר: {n} רישומי היעדרות"
+    },
+    "log": {
+      "title": "יומן הודעות",
+      "empty": "אין הודעות ביומן",
+      "all": "הכל",
+      "to": "אל",
+      "at": "נוצר",
+      "sentAt": "נשלח",
+      "notBefore": "יישלח אחרי",
+      "source": "מקור"
+    },
+    "templates": {
+      "title": "תבניות",
+      "hint": "המילים שנשלחות למשפחות. משתנים בסוגריים מסולסלים ממולאים אוטומטית.",
+      "body": "נוסח",
+      "active": "פעילה",
+      "ghlTemplateId": "מזהה תבנית WhatsApp ב-GHL",
+      "ghlHint": "לשליחה מחוץ לחלון 24 השעות של וואטסאפ",
+      "save": "שמירה",
+      "variables": "משתנים: {list}",
+      "automations": "אוטומציות",
+      "automationsHint": "איזה אירוע שולח איזו תבנית",
+      "on": "פעילה",
+      "off": "כבויה",
+      "turnOn": "הפעלה",
+      "turnOff": "כיבוי"
+    },
+    "broadcast": {
+      "title": "הודעה לקבוצה",
+      "hint": "בחר/י למי לשלוח. בלי בחירה, ההודעה תגיע לכל המשפחות הפעילות.",
+      "name": "שם פנימי",
+      "body": "נוסח ההודעה",
+      "venues": "בריכות",
+      "groups": "קבוצות",
+      "programs": "תוכניות",
+      "owing": "רק משפחות עם חוב",
+      "scheduledFor": "מועד שליחה",
+      "scheduledHint": "ריק = עכשיו (בכפוף לשעות שקט ושבת)",
+      "preview": "קהל: {households} משפחות · {reachable} מתוך {guardians} הורים מקבלים וואטסאפ",
+      "send": "שליחה",
+      "sent": "נשלח ל-{households} משפחות: {queued} בתור, {blocked} חסומים",
+      "scheduled": "נשמר לשליחה במועד",
+      "history": "הודעות קודמות",
+      "empty": "עוד לא נשלחו הודעות לקבוצה",
+      "cancel": "ביטול"
+    },
+    "events": {
+      "enrollment_trial_booked": "שיעור ניסיון נקבע",
+      "scheduling_slot_booked": "שיעור פרטי נקבע",
+      "enrollment_trial_converted": "ניסיון הפך להרשמה",
+      "attendance_absence_processed": "הודעת היעדרות טופלה",
+      "attendance_makeup_booked": "השלמה נקבעה",
+      "scheduling_staff_changed": "החלפת מדריך אושרה",
+      "attendance_closure_opened": "סגירת בריכה",
+      "billing_payment_link_created": "נוצר קישור תשלום",
+      "billing_dunning_step": "חיוב נכשל / תזכורת גבייה",
+      "billing_freeze_decided": "הקפאה הוחלטה",
+      "billing_cancellation_requested": "בקשת ביטול",
+      "calendar_holiday_ahead": "חג מתקרב (בדיקה יומית)"
+    },
+    "decision": {
+      "send": "נשלח מיד",
+      "queued": "בתור לשליחה",
+      "hold": {
+        "quiet_hours": "ממתין לסוף שעות השקט",
+        "rest_window": "ממתין לצאת שבת / חג"
+      },
+      "blocked": {
+        "opted_out": "ההורה לא אישר/ה וואטסאפ",
+        "no_phone": "אין מספר טלפון",
+        "missing_variable": "חסר פרט בתבנית: {missing}",
+        "template_inactive": "התבנית כבויה",
+        "no_provider": "אין ספק שליחה"
+      },
+      "triage": {
+        "always_human": {
+          "complaint": "תלונה, תמיד אצלך",
+          "cancellation_request": "ביטול, תמיד אצלך"
+        },
+        "review": {
+          "absence_notice": "הודעת היעדרות · לקריאה ומענה",
+          "makeup_request": "בקשת השלמה · לקריאה ומענה",
+          "schedule_question": "שאלה על לו״ז · לקריאה ומענה",
+          "payment_question": "שאלה על תשלום · לקריאה ומענה",
+          "receipt_request": "בקשת קבלה · לקריאה ומענה",
+          "cancellation_request": "בקשת ביטול · לקריאה ומענה",
+          "freeze_request": "בקשת הקפאה · לקריאה ומענה",
+          "lead": "ליד חדש · לקריאה ומענה",
+          "complaint": "תלונה · לקריאה ומענה",
+          "instructor_message": "הודעה ממדריך/ה · לקריאה ומענה",
+          "personal_other": "אישי / אחר · לקריאה ומענה"
+        },
+        "low_confidence": "לא בטוח ({confidence}% מתוך {min}% נדרשים)",
+        "no_student": "לא ברור על איזה ילד/ה מדובר",
+        "action": {
+          "absence_notice": "היעדרות מוכנה לאישור",
+          "makeup_request": "בקשת השלמה",
+          "freeze_request": "בקשת הקפאה",
+          "cancellation_request": "בקשת ביטול",
+          "receipt_request": "בקשת קבלה"
+        }
+      }
+    },
+    "errors": {
+      "actionClosed": "הפעולה כבר טופלה",
+      "unknownSender": "השולח לא מזוהה כהורה, אי אפשר לענות מכאן",
+      "unknownVariable": "משתנה שהמערכת לא ממלאת: {names}",
+      "broadcastClosed": "ההודעה כבר נשלחה או בוטלה",
+      "logLocked": "הודעה שנשלחה נשארת ביומן"
     }
   }
 }

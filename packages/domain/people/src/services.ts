@@ -338,3 +338,89 @@ export async function unrelateStudents(tx: Tx, a: string, b: string, type: Stude
       ),
     );
 }
+
+// ─── What the communications hub needs (Phase 5) ────────────────────────────
+
+/** The guardians of these households, the addressees of a family message. */
+export async function guardiansOfHouseholds(tx: Tx, householdIds: readonly string[]) {
+  if (householdIds.length === 0) return [];
+  return tx
+    .select({
+      id: guardians.id,
+      householdId: guardians.householdId,
+      firstName: guardians.firstName,
+      lastName: guardians.lastName,
+      phoneE164: guardians.phoneE164,
+      whatsappOptIn: guardians.whatsappOptIn,
+      locale: guardians.locale,
+      ghlContactId: guardians.ghlContactId,
+    })
+    .from(guardians)
+    .where(inArray(guardians.householdId, [...householdIds]))
+    .orderBy(asc(guardians.createdAt));
+}
+
+/** Who wrote from a phone (or a GHL contact): a guardian with their household's children, or a staff member. */
+export async function senderOf(
+  tx: Tx,
+  q: { phoneE164: string | null; ghlContactId: string | null },
+): Promise<
+  | {
+      kind: 'guardian';
+      guardianId: string;
+      householdId: string;
+      firstName: string;
+      students: { id: string; firstName: string }[];
+    }
+  | { kind: 'staff'; staffMemberId: string }
+  | null
+> {
+  const match = or(
+    q.phoneE164 ? eq(guardians.phoneE164, q.phoneE164) : undefined,
+    q.ghlContactId ? eq(guardians.ghlContactId, q.ghlContactId) : undefined,
+  );
+  const [g] =
+    q.phoneE164 || q.ghlContactId
+      ? await tx
+          .select({
+            id: guardians.id,
+            householdId: guardians.householdId,
+            firstName: guardians.firstName,
+          })
+          .from(guardians)
+          .where(match)
+          .orderBy(asc(guardians.createdAt))
+          .limit(1)
+      : [];
+  if (g) {
+    const ss = await tx
+      .select({ id: students.id, firstName: students.firstName })
+      .from(students)
+      .where(eq(students.householdId, g.householdId))
+      .orderBy(asc(students.dob));
+    return {
+      kind: 'guardian',
+      guardianId: g.id,
+      householdId: g.householdId,
+      firstName: g.firstName,
+      students: ss,
+    };
+  }
+  if (!q.phoneE164) return null;
+  const [s] = await tx
+    .select({ id: schema.staffMembers.id })
+    .from(schema.staffMembers)
+    .where(eq(schema.staffMembers.phoneE164, q.phoneE164))
+    .limit(1);
+  return s ? { kind: 'staff', staffMemberId: s.id } : null;
+}
+
+/** Staff first names by id (an instructor change message). */
+export async function staffNames(tx: Tx, ids: readonly string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const rows = await tx
+    .select({ id: schema.staffMembers.id, firstName: schema.staffMembers.firstName })
+    .from(schema.staffMembers)
+    .where(inArray(schema.staffMembers.id, [...ids]));
+  return new Map(rows.map((r) => [r.id, r.firstName]));
+}

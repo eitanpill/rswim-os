@@ -8,6 +8,7 @@ import { createDataKey, encryptField } from '@rswim/domain-core';
 import type pg from 'pg';
 import { seedAttendanceData, type AttendanceDataSummary } from './attendance-data';
 import { seedBillingData, type BillingDataSummary } from './billing-data';
+import { seedCommsData, type CommsDataSummary } from './comms-data';
 import { seedCoreData, type CoreDataSummary } from './core-data';
 import { seedSchedulingData, type SchedulingDataSummary } from './scheduling-data';
 import { FIRST_BOYS, FIRST_GIRLS, LAST, PARENT_MEN, PARENT_WOMEN } from './names';
@@ -34,6 +35,7 @@ export interface SeedSummary {
   attendance?: AttendanceDataSummary;
   /** Phase 4 standing orders, September's approved run and payments, October's draft for review (demo org only). */
   billing?: BillingDataSummary;
+  comms?: CommsDataSummary;
 }
 
 /** Small deterministic PRNG so the demo data is the same on every run. */
@@ -346,6 +348,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         summary.scheduling = await seedSchedulingData(client, org.id, staffIds, fakePhone);
         summary.attendance = await seedAttendanceData(client, org.id);
         summary.billing = await seedBillingData(client, org.id, staffIds);
+        summary.comms = await seedCommsData(client, org.id, PERSONAS.parent.phone);
       }
 
       // Memberships (demo org only: the personas)

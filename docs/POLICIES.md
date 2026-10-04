@@ -92,7 +92,7 @@ Each rule lists: key · default · evaluated by · notes. "Override" means an ow
 | `calendar.no_lessons_on` | `[shabbat, erev_chag, yom_tov, yom_kippur, tisha_bav, yom_hazikaron_evening]` | session generator | |
 | `calendar.chol_hamoed` | `skip` | | Camps/summer courses may set `run` |
 | `calendar.holiday_makeup` | `none` | | No refund/makeup unless stated |
-| `calendar.holiday_notice_days_before` | `3` | comms automation | Auto "no lessons / back to routine" message |
+| `calendar.holiday_notice_days_before` | `3` | (unused) | Superseded in Phase 5 by `comms.holiday_notice_days_before` |
 
 Also available for `calendar.no_lessons_on` (off by default): `yom_hazikaron` (the day itself) and `yom_haatzmaut`.
 The school's own exceptions (a closed day, or open despite a holiday) are `hebrew_calendar_overrides` rows, org-wide or
@@ -163,6 +163,10 @@ suggestion order, not business rules, so they live in code (DECISIONS 2026-10-02
 | `comms.lead_followup.max_nudges` | `3` | |
 | `comms.reminder_before_lesson_hours` | `2` | |
 | `comms.auto_reply_personal` | `false` | Never auto-reply to personal/other |
+| `comms.rate_per_minute` | `20` | At most this many messages leave per organization per minute |
+| `comms.holiday_notice_days_before` | `2` | The "no lessons over the holiday" notice goes out this many days before the stretch |
+| `comms.ai_triage` | `false` | Re-classify inbound WhatsApp with Claude (needs `ANTHROPIC_API_KEY` in the worker); the rules classifier stays the fallback |
+| `comms.triage_min_confidence_pct` | `80` | Below this a message goes to a person instead of getting a draft action |
 
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.

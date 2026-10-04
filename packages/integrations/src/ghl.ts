@@ -131,8 +131,18 @@ export class HttpGhlClient implements GhlClient {
     return { externalId: res.contact.id };
   }
 
-  async moveOpportunity(): Promise<void> {
-    throw new Error('GHL opportunities arrive in Phase 5');
+  /** Puts the contact's opportunity in a pipeline stage (creates it when missing): POST /opportunities/upsert. */
+  async moveOpportunity(
+    _ctx: ProviderContext,
+    req: { contactExternalId: string; pipelineId: string; stageId: string },
+  ): Promise<void> {
+    await this.call('POST', '/opportunities/upsert', {
+      locationId: this.opts.locationId,
+      contactId: req.contactExternalId,
+      pipelineId: req.pipelineId,
+      pipelineStageId: req.stageId,
+      status: 'open',
+    });
   }
 }
 
@@ -178,7 +188,20 @@ export class FakeGhlClient implements GhlClient {
     return { externalId: id };
   }
 
-  async moveOpportunity(): Promise<void> {}
+  readonly moves: {
+    idempotencyKey: string;
+    contactExternalId: string;
+    pipelineId: string;
+    stageId: string;
+  }[] = [];
+
+  async moveOpportunity(
+    ctx: ProviderContext,
+    req: { contactExternalId: string; pipelineId: string; stageId: string },
+  ): Promise<void> {
+    if (this.moves.some((m) => m.idempotencyKey === ctx.idempotencyKey)) return;
+    this.moves.push({ idempotencyKey: ctx.idempotencyKey, ...req });
+  }
 }
 
 /**

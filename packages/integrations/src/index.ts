@@ -99,3 +99,4 @@ export interface CrmProvider {
 export * from './ghl';
 export * from './grow';
 export * from './fakes';
+export * from './messaging';

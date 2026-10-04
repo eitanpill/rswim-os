@@ -19,6 +19,7 @@
     "@rswim/db": "workspace:*",
     "@rswim/domain-attendance": "workspace:*",
     "@rswim/domain-billing": "workspace:*",
+    "@rswim/domain-comms": "workspace:*",
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-crm": "workspace:*",
     "@rswim/domain-enrollment": "workspace:*",

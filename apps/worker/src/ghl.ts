@@ -1,7 +1,15 @@
 import { readFileSync } from 'node:fs';
 import type { Tx } from '@rswim/db';
 import { ghlSettings, type TagMap } from '@rswim/domain-crm';
-import { FakeGhlClient, HttpGhlClient, type GhlClient, type GhlContact } from '@rswim/integrations';
+import {
+  FakeGhlClient,
+  FakeMessagingProvider,
+  GhlMessagingProvider,
+  HttpGhlClient,
+  type GhlClient,
+  type GhlContact,
+  type MessagingProvider,
+} from '@rswim/integrations';
 
 let fake: FakeGhlClient | undefined;
 
@@ -33,4 +41,20 @@ function fakeContacts(): GhlContact[] {
   const file = process.env.RSWIM_GHL_FAKE_CONTACTS;
   if (!file) return [];
   return (JSON.parse(readFileSync(file, 'utf8')) as { contacts: GhlContact[] }).contacts;
+}
+
+let fakeMessaging: FakeMessagingProvider | undefined;
+
+/**
+ * The messaging provider for an org, or null when none is set up.
+ * - RSWIM_MESSAGING_FAKE=1: an in-memory WhatsApp for local demos and CI. Never touches the real account.
+ * - Otherwise WhatsApp through the org's GHL location with GHL_API_TOKEN.
+ */
+export async function messagingFor(tx: Tx, orgId: string): Promise<MessagingProvider | null> {
+  if (process.env.RSWIM_MESSAGING_FAKE === '1')
+    return (fakeMessaging ??= new FakeMessagingProvider());
+  const settings = await ghlSettings(tx, orgId);
+  const token = process.env.GHL_API_TOKEN;
+  if (!settings || !token) return null;
+  return new GhlMessagingProvider({ token, locationId: settings.locationId });
 }
