@@ -248,7 +248,8 @@
       "family": "המשפחה",
       "schedule": "לו״ז",
       "payments": "תשלומים",
-      "documents": "מסמכים"
+      "documents": "מסמכים",
+      "pass": "כרטיס"
     },
     "home": {
       "title": "המשפחה שלי",
@@ -263,7 +264,10 @@
       "credit": "השלמה ל{name}, עד {until}",
       "forms": "טפסים לחתימה",
       "formsDue": "{n, plural, one {טופס אחד מחכה} other {# טפסים מחכים}} לחתימה שלכם",
-      "signForms": "לחתימה"
+      "signForms": "לחתימה",
+      "children": "הילדים",
+      "childCard": "התקדמות, הקפאה ועזיבה",
+      "pass": "כרטיס כניסה למלווה"
     },
     "schedule": {
       "title": "השיעורים הקרובים",
@@ -294,6 +298,70 @@
       "due": "לחתימה",
       "allDone": "הכול חתום, תודה!",
       "accepted": "תודה, נשמר"
+    },
+    "child": {
+      "lessons": "השיעורים הקרובים",
+      "noLessons": "אין שיעורים בשבועיים הקרובים",
+      "progress": "התקדמות",
+      "level": "{program} · {level}",
+      "nextLevel": "הרמה הבאה: {level}",
+      "noLevel": "עוד לא נקבעה רמה",
+      "achieved": "הושג ב-{date}",
+      "working": "בעבודה",
+      "seats": "הקבוצות",
+      "freeze": "בקשת הקפאה",
+      "freezeHint": "השיעורים בתקופת ההקפאה לא מחויבים, לפי התקנון",
+      "from": "מתאריך",
+      "to": "עד תאריך",
+      "reason": "סיבה",
+      "note": "הערה (לא חובה)",
+      "sendFreeze": "שליחת בקשת הקפאה",
+      "leave": "עזיבת הקבוצה",
+      "leaveHint": "החודש האחרון לתשלום נקבע לפי התקנון ולפי מועד הבקשה",
+      "leaveConfirm": "לשלוח בקשה לעזוב את {group}?",
+      "sendLeave": "שליחת בקשת עזיבה",
+      "asked": "הבקשה נשלחה. התשובה תופיע כאן בעוד רגע",
+      "requests": "הבקשות שלכם",
+      "requestFreeze": "הקפאה {from}–{to}",
+      "requestLeave": "עזיבה",
+      "requestedOn": "נשלחה ב-{date}",
+      "withdraw": "ביטול הבקשה",
+      "freezeOutcome": "ההקפאה {status}",
+      "leaveOutcome": "החודש האחרון לתשלום: {period}. השיעור האחרון לפני {date}",
+      "refused": "לא אושר: {reason}",
+      "leaving": "עוזב/ת את הקבוצה"
+    },
+    "requests": {
+      "errors": {
+        "alreadyPending": "כבר יש בקשה כזו שמחכה לטיפול",
+        "notPending": "הבקשה כבר טופלה ואי אפשר לשנות אותה"
+      }
+    },
+    "pass": {
+      "title": "כרטיס כניסה למלווה",
+      "hint": "מציגים בכניסה לבריכה. הכרטיס בתוקף רק ביום השיעור",
+      "companions": "{n, plural, =0 {בלי מלווים} one {מלווה אחד/ת} other {# מלווים}}",
+      "today": "היום, {date}",
+      "lesson": "{group} · {time}",
+      "empty": "אין היום שיעור",
+      "next": "הכרטיס יופיע ביום השיעור הבא: {date}",
+      "noNext": "אין שיעור קרוב",
+      "unavailable": "הכרטיס לא זמין כרגע, אפשר להזדהות בכניסה בשם הילד/ה",
+      "scan": "לבדיקה: סריקת הקוד"
+    },
+    "receipt": {
+      "title": "{kind} {number}",
+      "copy": "העתק מהמערכת. המסמך החתום נשלח אליכם במייל מחשבונית ירוקה",
+      "download": "הורדה",
+      "print": "הדפסה",
+      "client": "לכבוד",
+      "date": "תאריך",
+      "method": "אמצעי תשלום",
+      "total": "סה״כ",
+      "item": "פריט",
+      "amount": "סכום",
+      "back": "חזרה לתשלומים",
+      "notes": "הערות"
     }
   },
   "platform": {
@@ -839,6 +907,16 @@
       "head": "ילדים",
       "day": "ימים",
       "item": "פריט"
+    },
+    "portalRequestKind": {
+      "freeze": "הקפאה",
+      "cancellation": "עזיבה"
+    },
+    "portalRequestStatus": {
+      "pending": "בטיפול",
+      "done": "טופל",
+      "refused": "לא אושר",
+      "withdrawn": "בוטל"
     }
   },
   "venues": {
@@ -2265,7 +2343,8 @@
       "history": "תנועות",
       "documents": "חשבוניות וקבלות",
       "download": "להורדה",
-      "empty": "אין עדיין תנועות"
+      "empty": "אין עדיין תנועות",
+      "open": "צפייה"
     }
   },
   "comms": {
@@ -2574,5 +2653,18 @@
       "pensionYes": "זכאי/ת",
       "pensionNo": "לא זכאי/ת עדיין ({months} חודשים)"
     }
+  },
+  "pass": {
+    "title": "בדיקת כרטיס מלווה",
+    "valid": "בתוקף להיום",
+    "forged": "הכרטיס לא תקין",
+    "expired": "פג תוקף: היה בתוקף ב-{date}",
+    "early": "עוד לא בתוקף: בתוקף ב-{date}",
+    "child": "ילד/ה",
+    "group": "קבוצה",
+    "venue": "בריכה",
+    "time": "שעה",
+    "companions": "מלווים",
+    "school": "בית הספר"
   }
 }

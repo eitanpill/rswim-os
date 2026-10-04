@@ -65,6 +65,28 @@ export default async function ParentHome() {
             </ul>
           )}
         </Card>
+        <Card data-testid="parent-children">
+          <CardTitle>{t('children')}</CardTitle>
+          <ul className="flex flex-col gap-2">
+            {data?.family.students.map((s) => (
+              <li key={s.id}>
+                <Link
+                  href={`/parent/child/${s.id}`}
+                  className="flex min-h-tap flex-col justify-center rounded-xl border border-line p-3 hover:border-brand-500"
+                >
+                  <span className="font-medium">{s.firstName}</span>
+                  <span className="text-sm text-ink-muted">{t('childCard')}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/parent/pass"
+            className="mt-2 inline-block min-h-tap py-3 font-medium text-brand-700 underline"
+          >
+            {t('pass')}
+          </Link>
+        </Card>
         {due > 0 ? (
           <Card>
             <CardTitle>{t('forms')}</CardTitle>

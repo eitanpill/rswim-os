@@ -209,3 +209,9 @@ export async function documentsOf(tx: Tx, householdId: string) {
     .where(eq(fiscalDocuments.householdId, householdId))
     .orderBy(desc(fiscalDocuments.createdAt));
 }
+
+/** One document (RLS: a family reads only their own household's). */
+export async function fiscalDocument(tx: Tx, id: string) {
+  const [row] = await tx.select().from(fiscalDocuments).where(eq(fiscalDocuments.id, id));
+  return row ?? null;
+}

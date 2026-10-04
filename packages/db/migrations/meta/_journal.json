@@ -99,6 +99,20 @@
       "when": 1791113898742,
       "tag": "0013_staff_ops_security",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791129446951,
+      "tag": "0014_portal",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791129448153,
+      "tag": "0015_portal_security",
+      "breakpoints": true
     }
   ]
 }

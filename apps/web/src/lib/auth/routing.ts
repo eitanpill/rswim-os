@@ -9,7 +9,7 @@ export const SURFACE_PATHS: Record<Surface, string> = {
   parent: '/parent',
 };
 
-// Webhooks authenticate by signature, not by session.
+// Webhooks authenticate by signature, not by session; a companion pass by its own signature (lib/pass.ts).
 export const PUBLIC_PREFIXES = [
   '/login',
   '/auth',
@@ -17,6 +17,7 @@ export const PUBLIC_PREFIXES = [
   '/api/health',
   '/api/webhooks',
   '/offline',
+  '/pass',
 ];
 
 export function surfaceForPath(pathname: string): Surface | 'platform' | null {

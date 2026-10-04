@@ -10,3 +10,4 @@ export * from './services/receipts';
 export * from './services/runs';
 export * from './services/seats';
 export { applyGrowWebhook, growWebhookBody, markGrowWebhookProcessed } from './services/webhook';
+export * from './services/portal';

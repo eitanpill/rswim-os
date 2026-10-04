@@ -7,6 +7,7 @@
  *   families with no standing order, and a sharp change in a family's total.
  * - A Ministry of Defense reimbursement profile on the family with private lessons (with an ID number when the
  *   master key is set), and a freeze waiting for approval.
+ * - Phase 7: invoice-receipts for September's payments from the fake invoicing provider (stored as provider 'fake').
  */
 import { randomUUID } from 'node:crypto';
 import { createDb, type Tx } from '@rswim/db';
@@ -15,6 +16,7 @@ import {
   createPendingPayment,
   draftRun,
   failPayment,
+  issueReceipts,
   postRun,
   recordManualPayment,
   requestFreeze,
@@ -24,11 +26,13 @@ import {
   settlePayment,
 } from '@rswim/domain-billing';
 import type { ServiceContext } from '@rswim/domain-core';
+import { FakeInvoicingProvider } from '@rswim/integrations';
 import type pg from 'pg';
 
 export interface BillingDataSummary {
   mandates: number;
   payments: number;
+  receipts: number;
   failedCharges: number;
   septemberPosted: number;
   octoberFlags: number;
@@ -51,6 +55,7 @@ export async function seedBillingData(
   const summary: BillingDataSummary = {
     mandates: 0,
     payments: 0,
+    receipts: 0,
     failedCharges: 0,
     septemberPosted: 0,
     octoberFlags: 0,
@@ -189,6 +194,17 @@ export async function seedBillingData(
       });
       summary.payments++;
     }
+  }
+
+  // ─── Receipts for September's payments (Phase 7), from the fake provider: the portal shows a rendered copy ─────
+  const invoicing = new FakeInvoicingProvider();
+  const paid = await rows<{ id: string }>(
+    `select id from payments where organization_id = $1 and kind = 'payment' and status = 'succeeded'
+     order by created_at, id`,
+    [orgId],
+  );
+  for (const p of paid) {
+    summary.receipts += (await issueReceipts(tx, ctx, invoicing, p.id, 'fake')).length;
   }
 
   // ─── A freeze waiting for the owner (a family trip in October) ──────────────

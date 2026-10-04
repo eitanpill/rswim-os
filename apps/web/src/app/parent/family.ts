@@ -1,10 +1,16 @@
 import 'server-only';
 import { addDays } from '@rswim/calendar';
 import type { Tx } from '@rswim/db';
-import { bookingsOfCredits, listCredits, listNotices } from '@rswim/domain-attendance';
+import {
+  bookingsOfCredits,
+  childProgress,
+  listCredits,
+  listNotices,
+} from '@rswim/domain-attendance';
+import { portalRequestsOf, seatChangesOf } from '@rswim/domain-billing';
 import { formsDueFor } from '@rswim/domain-enrollment';
 import { getHousehold, searchHouseholds } from '@rswim/domain-people';
-import { upcomingSessionsOfStudent } from '@rswim/domain-scheduling';
+import { placesByIds, seatsOfStudent, upcomingSessionsOfStudent } from '@rswim/domain-scheduling';
 import { todayIL } from '@/lib/options';
 
 /** The signed-in parent's household (RLS shows them only their own). */
@@ -40,4 +46,27 @@ export async function familyOverview(tx: Tx) {
     credits.map((c) => c.id),
   );
   return { family, lessons, notices, credits, bookings, forms };
+}
+
+/**
+ * One child's card: the coming lessons, their groups with any freeze or leaving decision, the family's own requests
+ * and the progress on their level. Null when the child is not in the signed-in parent's family.
+ */
+export async function childOverview(tx: Tx, studentId: string) {
+  const family = await myHousehold(tx);
+  const student = family?.students.find((s) => s.id === studentId);
+  if (!family || !student) return null;
+  const today = todayIL();
+  const [sessions, seats, [progress]] = await Promise.all([
+    upcomingSessionsOfStudent(tx, student.id, addDays(today, 14)),
+    seatsOfStudent(tx, student.id, today),
+    childProgress(tx, [{ id: student.id, levelId: student.levelId }]),
+  ]);
+  const ids = seats.map((s) => s.enrollmentId);
+  const [places, changes, requests] = await Promise.all([
+    placesByIds(tx, ids),
+    seatChangesOf(tx, ids),
+    portalRequestsOf(tx, ids),
+  ]);
+  return { family, student, sessions, places, changes, requests, progress };
 }

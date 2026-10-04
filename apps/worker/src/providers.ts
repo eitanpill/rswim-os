@@ -24,6 +24,11 @@ export function paymentProvider(): PaymentProvider | null {
  * The invoicing provider (Green Invoice), or null while none is set up.
  * - RSWIM_INVOICING_FAKE=1: an in-memory Green Invoice that numbers documents from 10001.
  */
+/** The name stored on each document, so the portal knows a fake document has no real PDF behind it. */
+export function invoicingProviderName(): string {
+  return process.env.RSWIM_INVOICING_FAKE === '1' ? 'fake' : 'green_invoice';
+}
+
 export function invoicingProvider(): InvoicingProvider | null {
   if (process.env.RSWIM_INVOICING_FAKE === '1') return (invoicing ??= new FakeInvoicingProvider());
   return null;
