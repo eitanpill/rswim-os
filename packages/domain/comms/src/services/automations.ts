@@ -16,6 +16,7 @@ import {
   studentsInLessons,
   studentsOfClosure,
 } from '@rswim/domain-scheduling';
+import { dropAudience, stageAudience } from '@rswim/domain-transport';
 import { agorot, formatILS } from '@rswim/money';
 import { messageDate, messagePeriod } from '../policies';
 import { enqueueMessage, type Vars } from './outbound';
@@ -57,6 +58,29 @@ async function lessonOf(tx: Tx, sessionId: string) {
   const [l] = await lessonTexts(tx, [sessionId]);
   return l ?? null;
 }
+
+/** "16:05" in Israel. */
+const clock = (at: Date) =>
+  new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Jerusalem',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(at);
+
+/** A stage the escort tapped: the children on board hear it (nothing for an old tap). */
+const transportStage: Resolver = async (tx, raw) => {
+  const p = z.looseObject({ eventId: uuid }).parse(raw);
+  const a = await stageAudience(tx, p.eventId);
+  if (!a) return [];
+  return forStudents(tx, a.studentIds, () => ({
+    pickup: a.school,
+    venue: a.venue,
+    group: a.group,
+    minutes: a.rideMinutes,
+    time: clock(a.at),
+  }));
+};
 
 const lessonVars =
   (l: { date: string; time: string; groupName: string; venueName: string }) =>
@@ -163,6 +187,14 @@ export const RESOLVERS: Record<string, Resolver> = {
     if (p.decision !== 'approved') return [];
     const [place] = await placesByIds(tx, [p.enrollmentId]);
     return place ? forStudents(tx, [place.studentId], () => ({ group: place.groupName })) : [];
+  },
+  'transport.left_school': transportStage,
+  'transport.arrived_pool': transportStage,
+  'transport.left_pool': transportStage,
+  'transport.rider_dropped': async (tx, raw) => {
+    const p = z.looseObject({ eventId: uuid }).parse(raw);
+    const a = await dropAudience(tx, p.eventId);
+    return a ? forStudents(tx, [a.studentId], () => ({ point: a.point, time: clock(a.at) })) : [];
   },
   'billing.cancellation_requested': async (tx, raw) => {
     const p = z

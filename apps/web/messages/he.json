@@ -165,6 +165,10 @@
       "recruiting": {
         "title": "גיוס",
         "hint": "מועמדים, ימי ניסיון ומאגר מחליפים"
+      },
+      "transport": {
+        "title": "הסעות צהרון",
+        "hint": "מסלולים, נסיעות היום וזמן במים"
       }
     }
   },
@@ -228,7 +232,154 @@
   "transport": {
     "home": {
       "title": "הסעות צהרון",
-      "empty": "אין מסלולים היום"
+      "empty": "אין היום נסיעות במסלולים שלך",
+      "today": "היום, {date}"
+    },
+    "tabs": {
+      "label": "מסכי הסעות",
+      "today": "נסיעות",
+      "routes": "מסלולים",
+      "schools": "בתי ספר",
+      "report": "זמן במים"
+    },
+    "stage": {
+      "left_school": "יצאו מבית הספר",
+      "arrived_pool": "הגיעו לבריכה",
+      "in_water": "נכנסו למים",
+      "out_of_water": "יצאו מהמים",
+      "left_pool": "יצאו מהבריכה",
+      "run_done": "הנסיעה הסתיימה"
+    },
+    "tap": {
+      "left_school": "יצאנו מבית הספר",
+      "arrived_pool": "הגענו לבריכה",
+      "in_water": "נכנסים למים",
+      "out_of_water": "יצאו מהמים",
+      "left_pool": "יצאנו מהבריכה",
+      "run_done": "סיום נסיעה"
+    },
+    "mark": {
+      "boarded": "עלה/תה",
+      "missing": "לא הגיע/ה",
+      "dropped_off": "ירד/ה"
+    },
+    "markTap": {
+      "boarded": "עלה/תה",
+      "missing": "לא הגיע/ה",
+      "dropped_off": "ירד/ה"
+    },
+    "card": {
+      "line": "{school} ← {leaves} · {group}, {venue} {lesson}",
+      "escort": "מלווה: {name}",
+      "otherStage": "שלב אחר",
+      "riders": "הילדים בהסעה",
+      "dropoff": "ירידה: {point}",
+      "remove": "מחיקה",
+      "cancel": "ביטול הנסיעה",
+      "cancelConfirm": "לבטל את הנסיעה של היום?"
+    },
+    "decision": {
+      "waterUnknown": "זמן במים: עוד לא נמדד",
+      "water": "{minutes} דקות במים",
+      "waterFull": "{minutes} דקות במים מתוך {planned}",
+      "waterShort": "רק {minutes} דקות במים מתוך {planned} (הגיעו {late} דק׳ אחרי תחילת השיעור)"
+    },
+    "errors": {
+      "stageDone": "השלב הזה כבר נרשם",
+      "stageOrder": "כבר נרשם שלב מאוחר יותר",
+      "notInWater": "קודם צריך לסמן כניסה למים",
+      "riderMarked": "הילד/ה כבר סומן/ה",
+      "notLeftPool": "אפשר לסמן ירידה רק אחרי היציאה מהבריכה",
+      "notBoarded": "הילד/ה לא סומן/ה כעולה להסעה",
+      "pickupOver": "האיסוף כבר הסתיים",
+      "notRider": "הילד/ה לא רשום/ה למסלול הזה",
+      "alreadyRiding": "הילד/ה כבר במסלול הזה",
+      "cancelled": "הנסיעה בוטלה",
+      "alreadyLeft": "הנסיעה כבר יצאה",
+      "weekdays": "צריך לבחור לפחות יום אחד"
+    },
+    "admin": {
+      "title": "הסעות צהרון",
+      "hint": "איפה כל קבוצה עכשיו, מי עלה להסעה, וכמה זמן היו במים",
+      "date": "תאריך",
+      "show": "הצגה",
+      "noRuns": "אין נסיעות ב-{date}",
+      "openTitle": "פתיחת נסיעות",
+      "planHint": "הנסיעות של כל יום נפתחות אוטומטית בבוקר, לפי ימי המסלול ושיעורי הקבוצה",
+      "plan": "פתיחת הנסיעות של היום הזה",
+      "planned": "{n, plural, =0 {לא נפתחו נסיעות חדשות} one {נפתחה נסיעה אחת} other {נפתחו # נסיעות}}",
+      "route": "מסלול",
+      "open": "פתיחת נסיעה במסלול",
+      "opened": "הנסיעה נפתחה",
+      "riderAdded": "הילד/ה נוסף/ה למסלול"
+    },
+    "routes": {
+      "title": "מסלולי הסעה",
+      "hint": "מבית הספר לקבוצת הצהרון ובחזרה לנקודות ההורדה",
+      "empty": "עוד אין מסלולים",
+      "inactive": "לא פעיל",
+      "line": "{school} · {group} · {days} · יציאה {leaves}",
+      "riders": "{n, plural, =0 {אין ילדים} one {ילד/ה אחד/ת} other {# ילדים}}",
+      "add": "מסלול חדש",
+      "needSchool": "קודם צריך להוסיף בית ספר",
+      "create": "יצירת מסלול",
+      "name": "שם המסלול",
+      "school": "בית ספר",
+      "group": "קבוצת הצהרון",
+      "groupHint": "השיעור שההסעה מביאה אליו",
+      "escort": "מלווה",
+      "noEscort": "בלי מלווה קבוע",
+      "leaves": "יציאה מבית הספר",
+      "ride": "משך הנסיעה (דקות)",
+      "rideHint": "נכנס להודעה \"בדרך, בעוד כ-X דק׳\"",
+      "vehicle": "רכב",
+      "driver": "נהג/ת",
+      "driverPhone": "טלפון נהג/ת",
+      "weekdays": "ימים",
+      "notes": "הערות",
+      "ridersTitle": "הילדים במסלול ({n})",
+      "noRiders": "עוד אין ילדים במסלול",
+      "since": "מ-{date}",
+      "dropoff": "נקודת הורדה",
+      "dropoffHint": "ריק: חזרה לבית הספר",
+      "dropoffNote": "הערה להורדה",
+      "savePoint": "שמירת הנקודה",
+      "end": "הוצאה מהמסלול",
+      "endConfirm": "להוציא את {name} מהמסלול מהיום?",
+      "student": "ילד/ה",
+      "startsOn": "מתאריך",
+      "addRider": "הוספה למסלול",
+      "details": "פרטי המסלול",
+      "save": "שמירה",
+      "deactivate": "השבתת המסלול",
+      "activate": "הפעלת המסלול"
+    },
+    "schools": {
+      "title": "בתי ספר",
+      "hint": "בתי הספר שההסעות אוספות מהם",
+      "empty": "עוד אין בתי ספר",
+      "edit": "עריכה",
+      "save": "שמירה",
+      "add": "בית ספר חדש",
+      "create": "הוספה",
+      "name": "שם",
+      "address": "כתובת",
+      "contact": "איש/אשת קשר",
+      "phone": "טלפון",
+      "notes": "הערות"
+    },
+    "report": {
+      "title": "זמן במים",
+      "hint": "כמה זמן הילדים היו באמת במים, לפי מה שהמלווה סימן",
+      "noData": "עוד אין מדידות החודש",
+      "totals": "{runs} נסיעות נמדדו · בממוצע {avg} דקות במים · {short} קצרות",
+      "empty": "אין נסיעות החודש",
+      "short": "זמן קצר"
+    },
+    "parent": {
+      "title": "ההסעה היום: {route}",
+      "now": "{stage} ב-{time}",
+      "notYet": "ההסעה יוצאת מבית הספר ב-{time}"
     }
   },
   "accountant": {
@@ -799,7 +950,11 @@
       "freeze_approved": "הקפאה אושרה",
       "cancellation_confirmed": "אישור ביטול",
       "holiday_schedule": "הודעת חג",
-      "free_text": "טקסט חופשי"
+      "free_text": "טקסט חופשי",
+      "transport_left_school": "הסעה יצאה מבית הספר",
+      "transport_arrived_pool": "הגענו לבריכה",
+      "transport_left_pool": "יצאנו מהבריכה",
+      "transport_dropped_off": "ירד/ה מההסעה"
     },
     "messageStatus": {
       "queued": "בתור",
@@ -917,6 +1072,12 @@
       "done": "טופל",
       "refused": "לא אושר",
       "withdrawn": "בוטל"
+    },
+    "runStatus": {
+      "planned": "מתוכננת",
+      "underway": "בדרך",
+      "done": "הסתיימה",
+      "cancelled": "בוטלה"
     }
   },
   "venues": {
@@ -1381,7 +1542,9 @@
       "payroll": "שכר",
       "staffing": "צוות",
       "comms": "תקשורת",
-      "scheduling": "שיבוץ"
+      "scheduling": "שיבוץ",
+      "transport": "הסעות",
+      "camp": "קייטנות"
     },
     "fields": {
       "billing": {
@@ -1498,6 +1661,13 @@
         "travel_buffer_min": "זמן נסיעה בין מקומות",
         "window_instructor_gender": "מי מלמד/ת בשעות נפרדות",
         "open_group_min_waiting": "ממתינים להצעת קבוצה חדשה"
+      },
+      "transport": {
+        "stale_after_min": "לא לשלוח עדכון הסעה שנרשם לפני יותר מ-",
+        "short_water_warn_min": "סימון נסיעה שבה זמן במים קצר מהשיעור ביותר מ-"
+      },
+      "camp": {
+        "children_per_staff": "מקסימום ילדים לאיש צוות"
       }
     },
     "options": {
@@ -2434,7 +2604,11 @@
       "billing_dunning_step": "חיוב נכשל / תזכורת גבייה",
       "billing_freeze_decided": "הקפאה הוחלטה",
       "billing_cancellation_requested": "בקשת ביטול",
-      "calendar_holiday_ahead": "חג מתקרב (בדיקה יומית)"
+      "calendar_holiday_ahead": "חג מתקרב (בדיקה יומית)",
+      "transport_left_school": "ההסעה יצאה מבית הספר",
+      "transport_arrived_pool": "ההסעה הגיעה לבריכה",
+      "transport_left_pool": "ההסעה יצאה מהבריכה",
+      "transport_rider_dropped": "ילד/ה ירד/ה בנקודת ההורדה"
     },
     "decision": {
       "send": "נשלח מיד",

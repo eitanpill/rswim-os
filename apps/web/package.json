@@ -28,6 +28,7 @@
     "@rswim/domain-scheduling": "workspace:*",
     "@rswim/domain-settings": "workspace:*",
     "@rswim/domain-staff": "workspace:*",
+    "@rswim/domain-transport": "workspace:*",
     "@rswim/domain-venues": "workspace:*",
     "@rswim/integrations": "workspace:*",
     "@rswim/money": "workspace:*",

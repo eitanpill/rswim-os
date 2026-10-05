@@ -11,3 +11,4 @@ export * from './services/billing-facts';
 export * from './services/messaging-facts';
 export * from './services/payroll-facts';
 export * from './services/substitutes';
+export * from './services/transport-facts';

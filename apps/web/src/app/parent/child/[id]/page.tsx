@@ -13,9 +13,10 @@ import {
   TextareaField,
 } from '@/components/form';
 import { sessionWhen } from '@/lib/attendance';
-import { periodLabel } from '@/lib/billing';
+import { explainer, periodLabel } from '@/lib/billing';
 import { withSession } from '@/lib/db';
 import { dmy, enumLabel, enumOptions, todayIL } from '@/lib/options';
+import { clockIL } from '@/lib/scheduling';
 import {
   parentAskFreezeAction,
   parentAskLeaveAction,
@@ -34,9 +35,13 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
   const t = await getTranslations('parent.child');
   const tAll = await getTranslations();
   const label = await enumLabel();
+  const explain = await explainer();
   const data = await withSession((tx) => childOverview(tx, id));
   if (!data) notFound();
-  const { student, sessions, places, changes, requests, progress } = data;
+  const { student, sessions, places, changes, requests, progress, ride } = data;
+  const tr = await getTranslations('transport');
+  const lastStage = ride?.stages.at(-1) ?? null;
+  const myMarks = ride?.riders.find((r) => r.studentId === student.id)?.marks ?? [];
   const today = todayIL();
   const reasons = await enumOptions('freezeReason', FREEZE_REASONS);
   const groupOf = (enrollmentId: string) =>
@@ -50,6 +55,27 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
     <>
       <PageHeader title={`${student.firstName} ${student.lastName}`} />
       <div className="flex flex-col gap-4">
+        {ride ? (
+          <Card data-testid="child-transport">
+            <CardTitle>{tr('parent.title', { route: ride.route.name })}</CardTitle>
+            <p className="text-lg font-medium">
+              {lastStage
+                ? tr('parent.now', {
+                    stage: tr(`stage.${lastStage.stage}`),
+                    time: clockIL(lastStage.at),
+                  })
+                : tr('parent.notYet', { time: ride.route.leavesSchoolAt.slice(0, 5) })}
+            </p>
+            {myMarks.length > 0 ? (
+              <p className="text-sm text-ink-muted">
+                {myMarks.map((m) => `${tr(`mark.${m.mark}`)} ${clockIL(m.at)}`).join(' · ')}
+              </p>
+            ) : null}
+            {ride.summary.inWaterMin !== null ? (
+              <p className="text-sm text-ink-muted">{explain(ride.summary.explanation)}</p>
+            ) : null}
+          </Card>
+        ) : null}
         <Card data-testid="child-progress">
           <CardTitle>{t('progress')}</CardTitle>
           {progress?.levelName ? (

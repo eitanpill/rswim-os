@@ -175,6 +175,17 @@ export const PolicyRules = z
       })
       .partial()
       .strict(),
+    transport: z
+      .object({
+        stale_after_min: int(5, 240),
+        short_water_warn_min: int(0, 60),
+      })
+      .partial()
+      .strict(),
+    camp: z
+      .object({ children_per_staff: int(1, 30) })
+      .partial()
+      .strict(),
     comms: z
       .object({
         quiet_hours_start: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -376,6 +387,8 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
     substitute_wave_size: 3,
     substitute_wave_minutes: 30,
   },
+  transport: { stale_after_min: 30, short_water_warn_min: 5 },
+  camp: { children_per_staff: 8 },
   comms: {
     quiet_hours_start: '21:30',
     quiet_hours_end: '08:00',

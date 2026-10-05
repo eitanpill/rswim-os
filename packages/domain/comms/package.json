@@ -25,6 +25,7 @@
     "@rswim/domain-people": "workspace:*",
     "@rswim/domain-scheduling": "workspace:*",
     "@rswim/domain-settings": "workspace:*",
+    "@rswim/domain-transport": "workspace:*",
     "@rswim/integrations": "workspace:*",
     "@rswim/money": "workspace:*",
     "zod": "^4.6.5"

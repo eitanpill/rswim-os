@@ -24,6 +24,10 @@ export const TEMPLATE_KEYS = [
   'freeze_approved',
   'cancellation_confirmed',
   'holiday_schedule',
+  'transport_left_school',
+  'transport_arrived_pool',
+  'transport_left_pool',
+  'transport_dropped_off',
   'free_text',
 ] as const;
 export const TemplateKey = z.enum(TEMPLATE_KEYS);
