@@ -1017,6 +1017,9 @@ importers:
       '@rswim/domain-staff':
         specifier: workspace:*
         version: link:../domain/staff
+      '@rswim/domain-transport':
+        specifier: workspace:*
+        version: link:../domain/transport
       '@rswim/integrations':
         specifier: workspace:*
         version: link:../integrations

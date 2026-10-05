@@ -21,15 +21,16 @@ import {
 } from 'drizzle-orm/pg-core';
 import { RUN_EVENT_KINDS, RUN_STAGES, RUN_STATUSES } from '@rswim/contracts';
 import { createdAt, id, inList, orgId, updatedAt } from './_helpers';
-import { staffMembers, students } from './people';
-import { classTemplates, sessions } from './scheduling';
+import { students } from './people';
+import { classTemplates } from './scheduling';
+import { organizations } from './tenancy';
 
 /** A partner school children are picked up from. */
 export const schools = pgTable(
   'schools',
   {
     id: id(),
-    organizationId: orgId(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     address: text('address'),
     contactName: text('contact_name'),
@@ -50,7 +51,7 @@ export const transportRoutes = pgTable(
   'transport_routes',
   {
     id: id(),
-    organizationId: orgId(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     schoolId: uuid('school_id').notNull(),
     classTemplateId: uuid('class_template_id').notNull(),
@@ -81,11 +82,6 @@ export const transportRoutes = pgTable(
       columns: [t.organizationId, t.classTemplateId],
       foreignColumns: [classTemplates.organizationId, classTemplates.id],
     }).onDelete('cascade'),
-    foreignKey({
-      name: 'transport_routes_escort_fk',
-      columns: [t.organizationId, t.escortStaffId],
-      foreignColumns: [staffMembers.organizationId, staffMembers.id],
-    }),
     check('transport_routes_ride_check', sql`${t.rideMinutes} between 0 and 180`),
     check(
       'transport_routes_weekdays_check',
@@ -99,7 +95,7 @@ export const routeRiders = pgTable(
   'route_riders',
   {
     id: id(),
-    organizationId: orgId(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
     routeId: uuid('route_id').notNull(),
     studentId: uuid('student_id').notNull(),
     dropoffPoint: text('dropoff_point'),
@@ -134,7 +130,7 @@ export const routeRuns = pgTable(
   'route_runs',
   {
     id: id(),
-    organizationId: orgId(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
     routeId: uuid('route_id').notNull(),
     date: date('date').notNull(),
     escortStaffId: uuid('escort_staff_id'),
@@ -151,16 +147,6 @@ export const routeRuns = pgTable(
       columns: [t.organizationId, t.routeId],
       foreignColumns: [transportRoutes.organizationId, transportRoutes.id],
     }).onDelete('cascade'),
-    foreignKey({
-      name: 'route_runs_escort_fk',
-      columns: [t.organizationId, t.escortStaffId],
-      foreignColumns: [staffMembers.organizationId, staffMembers.id],
-    }),
-    foreignKey({
-      name: 'route_runs_session_fk',
-      columns: [t.organizationId, t.sessionId],
-      foreignColumns: [sessions.organizationId, sessions.id],
-    }).onDelete('set null'),
     index('route_runs_date').on(t.organizationId, t.date),
     check('route_runs_status_check', sql.raw(`status in (${inList(RUN_STATUSES)})`)),
   ],
@@ -171,7 +157,7 @@ export const runEvents = pgTable(
   'run_events',
   {
     id: id(),
-    organizationId: orgId(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
     runId: uuid('run_id').notNull(),
     kind: text('kind').notNull(),
     studentId: uuid('student_id'),

@@ -84,16 +84,18 @@ CREATE TABLE "transport_routes" (
 ALTER TABLE "automation_rules" DROP CONSTRAINT "automation_rules_template_check";--> statement-breakpoint
 ALTER TABLE "message_templates" DROP CONSTRAINT "message_templates_key_check";--> statement-breakpoint
 ALTER TABLE "messages" DROP CONSTRAINT "messages_template_check";--> statement-breakpoint
+ALTER TABLE "route_riders" ADD CONSTRAINT "route_riders_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "route_riders" ADD CONSTRAINT "route_riders_route_fk" FOREIGN KEY ("organization_id","route_id") REFERENCES "public"."transport_routes"("organization_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "route_riders" ADD CONSTRAINT "route_riders_student_fk" FOREIGN KEY ("organization_id","student_id") REFERENCES "public"."students"("organization_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "route_runs" ADD CONSTRAINT "route_runs_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "route_runs" ADD CONSTRAINT "route_runs_route_fk" FOREIGN KEY ("organization_id","route_id") REFERENCES "public"."transport_routes"("organization_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "route_runs" ADD CONSTRAINT "route_runs_escort_fk" FOREIGN KEY ("organization_id","escort_staff_id") REFERENCES "public"."staff_members"("organization_id","id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "route_runs" ADD CONSTRAINT "route_runs_session_fk" FOREIGN KEY ("organization_id","session_id") REFERENCES "public"."sessions"("organization_id","id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "run_events" ADD CONSTRAINT "run_events_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "run_events" ADD CONSTRAINT "run_events_run_fk" FOREIGN KEY ("organization_id","run_id") REFERENCES "public"."route_runs"("organization_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "run_events" ADD CONSTRAINT "run_events_student_fk" FOREIGN KEY ("organization_id","student_id") REFERENCES "public"."students"("organization_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "schools" ADD CONSTRAINT "schools_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "transport_routes" ADD CONSTRAINT "transport_routes_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "transport_routes" ADD CONSTRAINT "transport_routes_school_fk" FOREIGN KEY ("organization_id","school_id") REFERENCES "public"."schools"("organization_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "transport_routes" ADD CONSTRAINT "transport_routes_template_fk" FOREIGN KEY ("organization_id","class_template_id") REFERENCES "public"."class_templates"("organization_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "transport_routes" ADD CONSTRAINT "transport_routes_escort_fk" FOREIGN KEY ("organization_id","escort_staff_id") REFERENCES "public"."staff_members"("organization_id","id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "route_riders_open" ON "route_riders" USING btree ("organization_id","route_id","student_id") WHERE "route_riders"."ends_on" is null;--> statement-breakpoint
 CREATE INDEX "route_riders_student" ON "route_riders" USING btree ("organization_id","student_id");--> statement-breakpoint
 CREATE INDEX "route_runs_date" ON "route_runs" USING btree ("organization_id","date");--> statement-breakpoint

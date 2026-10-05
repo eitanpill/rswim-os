@@ -322,4 +322,24 @@ describe('demo seed', () => {
       ),
     ).toEqual([{ status: 'offered' }]);
   });
+  it('sets up Phase 8: a route with Dani escorting Yoav Cohen, and last week’s run tapped end to end', async () => {
+    const rows = async (sql: string, params: unknown[] = []) =>
+      (await t.pool.query(sql, params)).rows;
+    expect(
+      await rows(
+        `select s.first_name, s.last_name from route_riders r join students s on s.id = r.student_id
+         join transport_routes t on t.id = r.route_id
+         join staff_members e on e.id = t.escort_staff_id
+         where r.organization_id = $1 and e.first_name = 'דני' order by (s.first_name = 'יואב') desc limit 1`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([{ first_name: 'יואב', last_name: 'כהן' }]);
+    expect(
+      await rows(
+        `select r.status, count(e.*)::int events from route_runs r join run_events e on e.run_id = r.id
+         where r.organization_id = $1 group by r.status`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([{ status: 'done', events: 12 }]);
+  });
 });

@@ -1,6 +1,18 @@
 -- Phase 8 security layer for after-school transport: who sees routes and runs, what an escort may record, and the
 -- trigger that keeps a run's status in step with its events.
 
+-- ─── FKs drizzle cannot express (composite with SET NULL on one column) ─────
+alter table transport_routes
+  add constraint transport_routes_escort_fk foreign key (organization_id, escort_staff_id)
+    references staff_members (organization_id, id) on delete set null (escort_staff_id);
+alter table route_runs
+  add constraint route_runs_escort_fk foreign key (organization_id, escort_staff_id)
+    references staff_members (organization_id, id) on delete set null (escort_staff_id),
+  add constraint route_runs_session_fk foreign key (organization_id, session_id)
+    references sessions (organization_id, id) on delete set null (session_id);
+--> statement-breakpoint
+
+
 -- ─── Helpers ────────────────────────────────────────────────────────────────
 -- Routes the signed-in escort works: their own routes, and any route with a run they escort.
 create or replace function app.escort_route_ids() returns setof uuid

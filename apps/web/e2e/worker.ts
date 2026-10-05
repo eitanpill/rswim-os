@@ -6,6 +6,7 @@ import pg from 'pg';
 import { createDb, type Tx } from '@rswim/db';
 import { processAbsenceNotice } from '@rswim/domain-attendance';
 import { processPortalRequest } from '@rswim/domain-billing';
+import { runAutomation } from '@rswim/domain-comms';
 
 const ADMIN_URL =
   process.env.TEST_DATABASE_ADMIN_URL ?? 'postgresql://rswim:rswim@localhost:5432/postgres';
@@ -67,5 +68,32 @@ export function processRequests(studentId: string) {
     );
     for (const r of rows) await processPortalRequest(tx, { orgId, userId: null }, r.id);
     return rows.length;
+  });
+}
+
+/**
+ * Turns the escort's taps into family messages (the worker's `comms-automation` step for transport events not yet
+ * handled). Returns how many messages were queued.
+ */
+export function runTransportAutomations(eventType: string) {
+  return asWorker(async (tx, orgId, client) => {
+    // The outbox is platform plumbing (the relay reads it as the owner); the automation itself runs as the worker.
+    await client.query('reset role');
+    const { rows } = await client.query<{ id: string; event_type: string; payload: unknown }>(
+      `select o.id, o.event_type, o.payload from outbox o
+       where o.event_type = $1 and not exists (select 1 from messages m where m.source_event_id = o.id)`,
+      [eventType],
+    );
+    await client.query('set local role rswim_system');
+    let queued = 0;
+    for (const r of rows) {
+      const out = await runAutomation(
+        tx,
+        { orgId, userId: null },
+        { id: r.id, type: r.event_type, payload: r.payload },
+      );
+      queued += out.queued;
+    }
+    return queued;
   });
 }
