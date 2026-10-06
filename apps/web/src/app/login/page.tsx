@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@rswim/ui';
-import { PERSONAS } from '@rswim/db/personas';
+import { ACCOUNT_PERSONAS, PERSONAS } from '@rswim/db/personas';
 import { isDevAuthEnabled } from '@/lib/auth/dev';
 import { signInWithPassword } from './actions';
 import { inputClass, LoginFrame } from './login-frame';
@@ -63,6 +63,16 @@ export default async function LoginPage({
                 className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-surface"
               >
                 <span className="block font-medium">{tRole(p.role)}</span>
+                <span className="text-ink-muted">{p.name}</span>
+              </a>
+            ))}
+            {Object.entries(ACCOUNT_PERSONAS).map(([key, p]) => (
+              <a
+                key={key}
+                href={`/dev/login?as=${key}`}
+                className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-surface"
+              >
+                <span className="block font-medium">{t(`devAccount.${key}`)}</span>
                 <span className="text-ink-muted">{p.name}</span>
               </a>
             ))}

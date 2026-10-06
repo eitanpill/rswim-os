@@ -1049,6 +1049,12 @@ erDiagram
   }
 ```
 
+## Platform (Phase 10)
+Not tenant data, but RLS is on: `plans` (read by everyone), `platform_admins`, and `templates` (published ones are
+read by everyone, a school sees its own submissions). Per school: `org_subscriptions` (one row, keyed by the school),
+`platform_invoices` (unique per school and month), `org_domains` (host unique across the platform) and
+`template_installs`. Branding lives in `org_settings.branding`.
+
 ## Key integrity rules
 - `attendance (session_id, student_id)` unique.
 - `makeup_bookings`: seat count per session ≤ capacity, enforced with `SELECT … FOR UPDATE` on the session row in the booking service.

@@ -1,8 +1,15 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import type { PlanFeature } from '@rswim/contracts';
+import { myFeatures } from '@rswim/domain-platform';
 import { Card, PageHeader } from '@rswim/ui';
+import { withSession } from '@/lib/db';
 
 const LINKS = [
+  'onboarding',
+  'plan',
+  'branding',
+  'templates',
   'reports',
   'copilot',
   'messages',
@@ -31,6 +38,10 @@ const LINKS = [
   'ghl',
 ] as const;
 const HREF: Record<(typeof LINKS)[number], string> = {
+  onboarding: '/admin/onboarding',
+  plan: '/admin/plan',
+  branding: '/admin/branding',
+  templates: '/admin/templates',
   reports: '/admin/reports',
   copilot: '/admin/copilot',
   messages: '/admin/messages',
@@ -59,14 +70,28 @@ const HREF: Record<(typeof LINKS)[number], string> = {
   ghl: '/admin/integrations/ghl',
 };
 
+/** Screens that exist only on plans that include them. */
+const FEATURE: Partial<Record<(typeof LINKS)[number], PlanFeature>> = {
+  reports: 'reports',
+  copilot: 'copilot',
+  transport: 'transport',
+  cohorts: 'courses',
+  institutions: 'institutions',
+};
+
 /** Settings and back-office screens that don't earn a place in the bottom bar. */
 export default async function MorePage() {
   const t = await getTranslations('admin.more');
+  const features = await withSession((tx) => myFeatures(tx));
+  const links = LINKS.filter((k) => {
+    const f = FEATURE[k];
+    return !f || features[f];
+  });
   return (
     <>
       <PageHeader title={t('title')} />
       <ul className="grid gap-3 sm:grid-cols-2">
-        {LINKS.map((k) => (
+        {links.map((k) => (
           <li key={k}>
             <Link href={HREF[k]} className="block" data-testid={`more-${k}`}>
               <Card className="hover:border-brand-500">

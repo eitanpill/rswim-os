@@ -240,6 +240,30 @@ only propose three actions: move or add a child to a group, message a family, op
 before it is stored (a move runs the placement preview), and nothing happens until the owner confirms; the action then
 runs through the ordinary service as the owner. A confirmed move can be undone; a message cannot.
 
+## 18. Plans, limits and platform billing (Phase 10)
+
+These are platform rules, not a school's own: they live in the `plans` rows (price, limits, features, trial and grace
+days) and each school's `org_subscriptions` row. The demo plans (fake prices, not an offer):
+
+| Plan | Price / month | Students | Active staff | Venues (not closed) | Features |
+|---|---|---|---|---|---|
+| `starter` | ₪149 | 60 | 3 | 1 | none |
+| `growth` | ₪349 | 300 | 15 | 5 | reports, courses, transport |
+| `pro` | ₪749 | unlimited | unlimited | unlimited | all, plus institutions and copilot |
+
+- Limits are checked by a database trigger when a student, staff member or venue is added (`platform.errors.limit.*`),
+  whichever path adds it. A school without a subscription has no limits and every feature.
+- A school's own feature flags (`feature.<name>`) override its plan's features, for pilots and custom deals.
+- A new school starts `trialing` for the plan's `trial_days` (14). The day after the trial ends it becomes `active`.
+- Billing is monthly in advance, on the 1st at 06:00 (Israel), for the plan's full price (no proration). Trialing,
+  suspended, cancelled and free schools are not billed. A month has at most one invoice; a failed one is charged again
+  on the next run, each attempt with its own idempotency key (`platform:<org>:<month>:<attempt>`).
+- A declined charge (or no mandate) makes the school `past_due` from that day, with a banner in its office. After the
+  plan's `grace_days` (10) it is `suspended`: the office sees only its plan page, while parents, instructors and
+  escorts keep working. A paid invoice makes it `active` again.
+- A plan change (by a platform admin) is refused when the school already uses more than the new plan allows.
+- One user may own at most 3 schools.
+
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.
 - Proration rounds per line; statement total = sum of rounded lines.

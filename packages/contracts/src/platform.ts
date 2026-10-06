@@ -6,7 +6,13 @@ import { TEMPLATE_KEYS } from './comms';
 /** Phase 10: what a school pays for (plans), its subscription, its domains and the shared template marketplace. */
 
 /** Surfaces a plan may include (the brief's per-tenant feature flags). */
-export const PLAN_FEATURES = ['reports', 'courses', 'transport', 'institutions', 'copilot'] as const;
+export const PLAN_FEATURES = [
+  'reports',
+  'courses',
+  'transport',
+  'institutions',
+  'copilot',
+] as const;
 export const PlanFeature = z.enum(PLAN_FEATURES);
 export type PlanFeature = z.infer<typeof PlanFeature>;
 

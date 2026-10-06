@@ -53,10 +53,7 @@ export const plans = pgTable(
   },
   (t) => [
     check('plans_price_check', sql`${t.priceAgorot} >= 0`),
-    check(
-      'plans_features_check',
-      sql.raw(`features <@ array[${inList(PLAN_FEATURES)}]::text[]`),
-    ),
+    check('plans_features_check', sql.raw(`features <@ array[${inList(PLAN_FEATURES)}]::text[]`)),
   ],
 );
 
@@ -77,7 +74,7 @@ export const orgSubscriptions = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [
+  () => [
     check(
       'org_subscriptions_status_check',
       sql.raw(`status in (${inList(SUBSCRIPTION_STATUSES)})`),
@@ -130,7 +127,10 @@ export const orgDomains = pgTable(
   (t) => [
     unique('org_domains_org_id').on(t.organizationId, t.id),
     check('org_domains_status_check', sql.raw(`status in (${inList(DOMAIN_STATUSES)})`)),
-    check('org_domains_host_check', sql`${t.host} ~ '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$'`),
+    check(
+      'org_domains_host_check',
+      sql`${t.host} ~ '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$'`,
+    ),
   ],
 );
 

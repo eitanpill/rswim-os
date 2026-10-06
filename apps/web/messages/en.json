@@ -57,6 +57,11 @@
       "code": "The code is wrong or expired",
       "no_membership": "This user isn't linked to any swim school yet. Ask an admin.",
       "not_configured": "Sign-in isn't configured in this environment"
+    },
+    "poweredBy": "Powered by R-SWIM OS",
+    "devAccount": {
+      "newcomer": "New school (sign-up)",
+      "platform": "Platform admin"
     }
   },
   "admin": {
@@ -185,6 +190,22 @@
       "copilot": {
         "title": "AI copilot",
         "hint": "Ask in plain words, get proposals, confirm before anything happens"
+      },
+      "onboarding": {
+        "title": "First steps",
+        "hint": "The school's setup checklist"
+      },
+      "plan": {
+        "title": "My plan",
+        "hint": "Plan, usage against limits and invoices"
+      },
+      "branding": {
+        "title": "Branding and domain",
+        "hint": "Name, colour and your own domain"
+      },
+      "templates": {
+        "title": "Template marketplace",
+        "hint": "Ready-made regulations, catalog and messages"
       }
     }
   },
@@ -533,9 +554,189 @@
     }
   },
   "platform": {
-    "home": {
-      "title": "Platform console",
-      "empty": "Tenant management arrives in Phase 10"
+    "nav": {
+      "console": "Platform console",
+      "schools": "Schools",
+      "templates": "Templates to review"
+    },
+    "account": {
+      "pastDue": "The last subscription charge failed. Update the payment method before office access is suspended.",
+      "toPlan": "Plan details",
+      "trial": "Your trial runs until {date}."
+    },
+    "plan": {
+      "title": "My plan",
+      "subtitle": "The school's plan, usage against its limits, and R-SWIM OS charges",
+      "locked": "Office access is suspended until payment is settled. Parents, instructors and escorts keep working as usual.",
+      "featureMissing": "{feature} is not in your current plan. Contact us to upgrade.",
+      "current": "Current plan",
+      "price": "Monthly price:",
+      "trialEnds": "Trial ends on {date}",
+      "pastDueSince": "Past due since {date}",
+      "mandateOk": "Payment method on file",
+      "mandateMissing": "No payment method yet",
+      "noPlan": "The school has no subscription and no limits.",
+      "usage": "Usage",
+      "usedUnlimited": "{used} (unlimited)",
+      "usedOf": "{used} of {max}",
+      "plans": "Plans",
+      "perMonth": "per month",
+      "unlimited": "Unlimited",
+      "changeHint": "Plan changes go through us for now. Write to us and we'll update it.",
+      "invoices": "R-SWIM OS invoices",
+      "noInvoices": "No invoices yet."
+    },
+    "branding": {
+      "title": "Branding and domain",
+      "subtitle": "The name and colour parents and staff see, and your own address",
+      "look": "Look",
+      "displayName": "Display name",
+      "hue": "Colour",
+      "save": "Save",
+      "domains": "Your own domain",
+      "domainsHint": "Add an address, create a TXT record at your domain provider, and we check it.",
+      "noDomains": "No domain yet.",
+      "recordHint": "Create a DNS TXT record:",
+      "recordName": "Name:",
+      "recordValue": "Value:",
+      "check": "Check now",
+      "remove": "Remove",
+      "removeConfirm": "Remove this domain?",
+      "host": "Address",
+      "addDomain": "Add domain",
+      "domainAdded": "Domain added. The check runs in the background.",
+      "checkRequested": "The check runs in the background. Refresh in a moment."
+    },
+    "templates": {
+      "title": "Template marketplace",
+      "subtitle": "Ready-made regulations, catalog and message wording, installed in one tap",
+      "empty": "No templates yet.",
+      "effect": {
+        "regulations": "Creates a new regulations version from today (or the next free day).",
+        "catalog": "Adds missing programs and levels and a draft price list to review and publish.",
+        "messages": "Replaces the wording of matching messages."
+      },
+      "installConfirm": "Install this template in your school?",
+      "install": "Install",
+      "installAgain": "Install again",
+      "installedBadge": "Installed",
+      "installed": "Template installed.",
+      "share": "Share your own",
+      "shareHint": "Your current setup is sent for review. Other schools see it only once approved.",
+      "kind": "Kind",
+      "name": "Template name",
+      "description": "Description",
+      "submit": "Send for review",
+      "shared": "Sent for review. Thank you!",
+      "mine": "Templates you sent"
+    },
+    "onboarding": {
+      "title": "First steps",
+      "ready": "The school is ready to work. You can finish the optional steps too.",
+      "progress": "{done} of {total} steps done",
+      "done": "Done",
+      "optional": "Optional",
+      "steps": {
+        "regulations": {
+          "title": "Regulations",
+          "hint": "Install the regulations template or set your policies"
+        },
+        "venue": {
+          "title": "Venue",
+          "hint": "Add the pool you teach in"
+        },
+        "catalog": {
+          "title": "Programs and prices",
+          "hint": "Install a sample catalog and publish a price list"
+        },
+        "branding": {
+          "title": "Branding",
+          "hint": "Pick a display name and colour"
+        },
+        "messages": {
+          "title": "Message wording",
+          "hint": "Install WhatsApp wording or edit your own"
+        },
+        "domain": {
+          "title": "Your own domain",
+          "hint": "A sign-in address with your name"
+        },
+        "staff": {
+          "title": "Staff",
+          "hint": "Invite instructors and office staff"
+        }
+      }
+    },
+    "signup": {
+      "title": "Open a swim school",
+      "subtitle": "A few details and you're in. No card during the trial.",
+      "parentHint": "Parents: if you landed here and don't see your children, ask your school to send you an invite.",
+      "name": "School name",
+      "namePlaceholder": "e.g. Galim",
+      "slug": "Short English id",
+      "slugHint": "Lowercase letters, digits and hyphens",
+      "plan": "Plan",
+      "perMonth": "per month",
+      "unlimited": "Unlimited",
+      "trial": "{days}-day free trial",
+      "submit": "Open the school"
+    },
+    "console": {
+      "title": "Schools",
+      "subtitle": "{count, plural, one {One school} other {# schools}} on the platform",
+      "billing": "Monthly billing",
+      "month": "Month",
+      "runBilling": "Run billing",
+      "billingQueued": "{count, plural, =0 {No schools to bill} one {One school sent for billing} other {# schools sent for billing}}",
+      "empty": "No schools yet.",
+      "usage": "{students} students · {staff} staff · {venues} venues",
+      "trialEnds": "Trial until {date}",
+      "lastInvoice": "Last invoice {month}: {status}",
+      "noInvoice": "Not billed yet",
+      "manage": "Manage",
+      "endTrial": "End trial",
+      "reactivate": "Reactivate",
+      "suspend": "Suspend",
+      "suspendConfirm": "Suspend this school's office?",
+      "plan": "Plan",
+      "changePlan": "Change plan",
+      "mandate": "Standing order (id)",
+      "mandateHint": "The authorisation id at the payment provider",
+      "saveMandate": "Save standing order"
+    },
+    "review": {
+      "title": "Templates to review",
+      "subtitle": "Templates schools shared. Only approved ones are shown to others.",
+      "empty": "Nothing waiting.",
+      "payload": "Template content",
+      "publish": "Approve and publish",
+      "reject": "Reject"
+    },
+    "errors": {
+      "badTemplate": "The template is not valid",
+      "declined": "The charge was declined",
+      "displayName": "The display name needs 2 to 60 characters",
+      "host": "Not a valid address. Write e.g. swim.example.co.il",
+      "hostReserved": "That is a platform address and can't be claimed",
+      "hostTaken": "That address belongs to another school",
+      "noMandate": "No payment method",
+      "noProvider": "The payment provider is not connected yet",
+      "noSubscription": "The school has no subscription",
+      "notSubmitted": "The template was already reviewed",
+      "notTrialing": "The school is not in a trial",
+      "period": "Not a valid month",
+      "plan": "No such plan",
+      "schoolName": "The school name needs 2 to 80 characters",
+      "slug": "3 to 40 characters: lowercase English letters, digits and hyphens",
+      "slugTaken": "That id is taken. Try another",
+      "templateName": "The template name needs at least 2 characters",
+      "tooBigForPlan": "The school uses {used} {limit, select, students {students} staff {staff} other {venues}}, more than the {max} that plan allows",
+      "tooManySchools": "One account can open up to 3 schools",
+      "limit": {
+        "students": "You've reached the number of students your plan allows. Contact us to upgrade.",
+        "staff": "You've reached the number of staff your plan allows. Contact us to upgrade.",
+        "venues": "Your plan includes one venue only. Upgrade to add another."
+      }
     }
   },
   "calendar": {
@@ -1159,6 +1360,56 @@
       "failed": "Not done",
       "dismissed": "Dismissed",
       "undone": "Undone"
+    },
+    "planFeature": {
+      "reports": "Reports",
+      "courses": "Courses and cohorts",
+      "transport": "Transport",
+      "institutions": "Institutions",
+      "copilot": "AI copilot"
+    },
+    "planLimit": {
+      "students": "Students",
+      "staff": "Active staff",
+      "venues": "Venues"
+    },
+    "subscriptionStatus": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "suspended": "Suspended",
+      "cancelled": "Cancelled"
+    },
+    "platformInvoiceStatus": {
+      "open": "Open",
+      "paid": "Paid",
+      "failed": "Charge failed",
+      "void": "Void"
+    },
+    "brandHue": {
+      "sea": "Sea blue",
+      "turquoise": "Turquoise",
+      "green": "Green",
+      "orange": "Orange",
+      "coral": "Coral",
+      "pink": "Pink",
+      "purple": "Purple"
+    },
+    "domainStatus": {
+      "pending": "Pending",
+      "verified": "Verified",
+      "failed": "Check failed"
+    },
+    "templateKind": {
+      "regulations": "Regulations",
+      "catalog": "Catalog and prices",
+      "messages": "Message wording"
+    },
+    "templateStatus": {
+      "draft": "Draft",
+      "submitted": "In review",
+      "published": "Published",
+      "rejected": "Rejected"
     }
   },
   "venues": {

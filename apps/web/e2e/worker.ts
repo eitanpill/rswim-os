@@ -7,6 +7,9 @@ import { createDb, type Tx } from '@rswim/db';
 import { processAbsenceNotice } from '@rswim/domain-attendance';
 import { processPortalRequest } from '@rswim/domain-billing';
 import { runAutomation } from '@rswim/domain-comms';
+import { billingPeriod, billSchool, pendingDomainIds, verifyDomain } from '@rswim/domain-platform';
+import { FakeDnsResolver, FakePaymentProvider } from '@rswim/integrations';
+import { ACCOUNT_PERSONAS } from '@rswim/db/personas';
 
 const ADMIN_URL =
   process.env.TEST_DATABASE_ADMIN_URL ?? 'postgresql://rswim:rswim@localhost:5432/postgres';
@@ -14,13 +17,15 @@ export const E2E_DB_URL = Object.assign(new URL(ADMIN_URL), { pathname: '/rswim_
 
 async function asWorker<T>(
   fn: (tx: Tx, orgId: string, client: pg.Client) => Promise<T>,
+  slug = 'rswim-demo',
 ): Promise<T> {
   const client = new pg.Client({ connectionString: E2E_DB_URL });
   await client.connect();
   try {
     await client.query('begin');
     const { rows } = await client.query<{ id: string }>(
-      `select id from organizations where slug = 'rswim-demo'`,
+      `select id from organizations where slug = $1`,
+      [slug],
     );
     const orgId = rows[0]!.id;
     await client.query(
@@ -96,4 +101,60 @@ export function runAutomations(eventType: string) {
     }
     return queued;
   });
+}
+
+/** Removes the schools the newcomer persona opened in an earlier run (the seed does the same). */
+export async function resetNewcomer(): Promise<void> {
+  const client = new pg.Client({ connectionString: E2E_DB_URL });
+  await client.connect();
+  try {
+    await client.query(
+      `delete from organizations where id in (select organization_id from memberships where user_id = $1)`,
+      [ACCOUNT_PERSONAS.newcomer.userId],
+    );
+  } finally {
+    await client.end();
+  }
+}
+
+/** The id of a school by its slug. */
+export function orgIdOf(slug: string): Promise<string> {
+  return asWorker(async (_tx, orgId) => orgId, slug);
+}
+
+/**
+ * Checks a school's pending domains (the worker's `platform-check-domain` step) with the demo DNS: a `*.localhost`
+ * host answers with its own token, as under RSWIM_DNS_FAKE=1.
+ */
+export function checkDomains(slug: string): Promise<(string | null)[]> {
+  return asWorker(async (tx, _orgId, client) => {
+    const dns = new FakeDnsResolver(async (name) => {
+      const host = name.replace(/^_rswim\./, '');
+      if (!host.endsWith('.localhost')) return [];
+      const { rows } = await client.query<{ token: string }>(
+        `select token from org_domains where host = $1`,
+        [host],
+      );
+      return rows.map((r) => [`rswim-verify=${r.token}`]);
+    });
+    const out: (string | null)[] = [];
+    for (const id of await pendingDomainIds(tx)) out.push(await verifyDomain(tx, id, dns));
+    return out;
+  }, slug);
+}
+
+/** Bills a school for this month on the fake Grow (the worker's `platform-bill-school` step). */
+export function billSchoolNow(slug: string) {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(new Date());
+  return asWorker(
+    (tx, orgId) =>
+      billSchool(
+        tx,
+        { orgId, userId: null },
+        billingPeriod(today),
+        new FakePaymentProvider(),
+        today,
+      ),
+    slug,
+  );
 }

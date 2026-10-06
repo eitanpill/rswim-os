@@ -49,7 +49,10 @@ export const platformSchoolCreated = inngest.createFunction(
     const envelope = toEnvelope(event);
     const raw = process.env.RSWIM_MASTER_KEY;
     if (!raw) {
-      log.warn({ orgId: envelope.organizationId }, 'no RSWIM_MASTER_KEY; school has no data key yet');
+      log.warn(
+        { orgId: envelope.organizationId },
+        'no RSWIM_MASTER_KEY; school has no data key yet',
+      );
       return { keyed: false };
     }
     return step.run('data-key', () =>
@@ -113,9 +116,9 @@ export const platformBillSchool = inngest.createFunction(
 
 const subscribedOrgs = () =>
   asPlatform(getDb(), async (tx) =>
-    (await tx.select({ id: schema.orgSubscriptions.organizationId }).from(schema.orgSubscriptions)).map(
-      (r) => r.id,
-    ),
+    (
+      await tx.select({ id: schema.orgSubscriptions.organizationId }).from(schema.orgSubscriptions)
+    ).map((r) => r.id),
   );
 
 /** On the 1st at 06:00: bill every school for the month. */
@@ -152,7 +155,9 @@ export const platformDaily = inngest.createFunction(
     const today = todayIL();
     const orgIds = await step.run('find-orgs', () =>
       asPlatform(getDb(), async (tx) =>
-        (await tx.select({ id: schema.organizations.id }).from(schema.organizations)).map((r) => r.id),
+        (await tx.select({ id: schema.organizations.id }).from(schema.organizations)).map(
+          (r) => r.id,
+        ),
       ),
     );
     let changed = 0;

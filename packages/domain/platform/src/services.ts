@@ -163,7 +163,11 @@ export async function accountState(tx: Tx): Promise<{
 // ─── Sign-up and onboarding ─────────────────────────────────────────────────
 
 export const CreateSchoolInput = z.object({
-  name: z.string().trim().min(2, 'platform.errors.schoolName').max(80, 'platform.errors.schoolName'),
+  name: z
+    .string()
+    .trim()
+    .min(2, 'platform.errors.schoolName')
+    .max(80, 'platform.errors.schoolName'),
   slug: z
     .string()
     .trim()
@@ -200,6 +204,7 @@ export async function onboardingStatus(tx: Tx) {
     versions: number;
     regulations: number;
     messages: number;
+    edited: number;
   }>(
     tx,
     sql`select (select count(*)::int from venues where status <> 'closed') venues,
@@ -212,7 +217,8 @@ export async function onboardingStatus(tx: Tx) {
                (select count(*)::int from template_installs i join templates t on t.id = i.template_id
                  where t.kind = 'regulations') regulations,
                (select count(*)::int from template_installs i join templates t on t.id = i.template_id
-                 where t.kind = 'messages') messages`,
+                 where t.kind = 'messages') messages,
+               (select count(*)::int from message_templates where updated_by is not null) edited`,
   );
   const branding = await myBranding(tx);
   const facts = f as NonNullable<typeof f>;
@@ -223,14 +229,7 @@ export async function onboardingStatus(tx: Tx) {
     publishedPriceLists: facts.lists,
     branded: Boolean(branding.hue),
     verifiedDomains: facts.domains,
-    messages:
-      facts.messages > 0 ||
-      (
-        await rows<{ n: number }>(
-          tx,
-          sql`select count(*)::int n from message_templates where updated_by is not null`,
-        )
-      )[0]!.n > 0,
+    messages: facts.messages > 0 || facts.edited > 0,
     staff: facts.staff + facts.invites,
   });
 }
@@ -276,7 +275,11 @@ export async function saveBranding(tx: Tx, ctx: ServiceContext, raw: BrandingInp
 
 export async function listDomains(tx: Tx) {
   const list = await tx.select().from(orgDomains).orderBy(asc(orgDomains.createdAt));
-  return list.map((d) => ({ ...d, record: verificationRecord(d.host), value: `rswim-verify=${d.token}` }));
+  return list.map((d) => ({
+    ...d,
+    record: verificationRecord(d.host),
+    value: `rswim-verify=${d.token}`,
+  }));
 }
 
 /** Hosts schools may not claim (the platform's own), from RSWIM_PLATFORM_HOSTS. */
@@ -298,7 +301,10 @@ export async function addDomain(tx: Tx, ctx: ServiceContext, input: string) {
     }
     throw e;
   }
-  const [d] = await tx.select({ id: orgDomains.id }).from(orgDomains).where(eq(orgDomains.host, n.host));
+  const [d] = await tx
+    .select({ id: orgDomains.id })
+    .from(orgDomains)
+    .where(eq(orgDomains.host, n.host));
   await requestDomainCheck(tx, ctx, (d as { id: string }).id);
   return (d as { id: string }).id;
 }
@@ -362,10 +368,7 @@ async function setSubscription(
   orgId: string,
   change: { status: SubscriptionStatus; pastDueSince: string | null },
 ) {
-  await tx
-    .update(orgSubscriptions)
-    .set(change)
-    .where(eq(orgSubscriptions.organizationId, orgId));
+  await tx.update(orgSubscriptions).set(change).where(eq(orgSubscriptions.organizationId, orgId));
 }
 
 /** Worker, daily: ends trials and suspends schools past their grace days. */
@@ -427,7 +430,8 @@ export async function billSchool(
     }
     return { billed: true, invoiceId: inv.id, status: inv.status as 'paid', code: null };
   }
-  if (!payments) return { billed: true, invoiceId: inv.id, status: 'open', code: 'platform.errors.noProvider' };
+  if (!payments)
+    return { billed: true, invoiceId: inv.id, status: 'open', code: 'platform.errors.noProvider' };
   const attempt = inv.attempts + 1;
   const result = await payments.chargeStandingOrder(
     { organizationId: ctx.orgId, idempotencyKey: `platform:${ctx.orgId}:${period}:${attempt}` },
@@ -437,7 +441,8 @@ export async function billSchool(
       description: `R-SWIM OS ${s.plan.nameHe} ${period.slice(0, 7)}`,
     },
   );
-  const status = result.status === 'succeeded' ? 'paid' : result.status === 'failed' ? 'failed' : 'open';
+  const status =
+    result.status === 'succeeded' ? 'paid' : result.status === 'failed' ? 'failed' : 'open';
   await tx
     .update(platformInvoices)
     .set({
@@ -464,10 +469,7 @@ export async function billSchool(
 
 /** Published templates plus the school's own submissions. */
 export async function listTemplates(tx: Tx) {
-  const list = await tx
-    .select()
-    .from(templates)
-    .orderBy(asc(templates.kind), asc(templates.name));
+  const list = await tx.select().from(templates).orderBy(asc(templates.kind), asc(templates.name));
   const installs = await tx
     .select({ templateId: templateInstalls.templateId, at: templateInstalls.createdAt })
     .from(templateInstalls)
@@ -495,9 +497,21 @@ export async function installTemplate(tx: Tx, ctx: ServiceContext, templateId: s
   const today = await todayIL(tx);
   let result: Record<string, unknown>;
   if (kind === 'regulations') {
-    result = await installRegulations(tx, ctx, parsed.payload as TemplatePayload['regulations'], t.name, today);
+    result = await installRegulations(
+      tx,
+      ctx,
+      parsed.payload as TemplatePayload['regulations'],
+      t.name,
+      today,
+    );
   } else if (kind === 'catalog') {
-    result = await installCatalog(tx, ctx, parsed.payload as TemplatePayload['catalog'], t.name, today);
+    result = await installCatalog(
+      tx,
+      ctx,
+      parsed.payload as TemplatePayload['catalog'],
+      t.name,
+      today,
+    );
   } else {
     result = await installMessages(tx, ctx, parsed.payload as TemplatePayload['messages']);
   }
@@ -634,12 +648,21 @@ export async function currentAsTemplate(tx: Tx, kind: TemplateKindT): Promise<un
     const list = await tx.select().from(messageTemplates).where(eq(messageTemplates.active, true));
     return { messages: list.map((m) => ({ key: m.key, locale: m.locale, body: m.body })) };
   }
-  const progs = await tx.select().from(programs).where(eq(programs.active, true)).orderBy(asc(programs.sortOrder));
+  const progs = await tx
+    .select()
+    .from(programs)
+    .where(eq(programs.active, true))
+    .orderBy(asc(programs.sortOrder));
   const lvls = progs.length
     ? await tx
         .select()
         .from(schema.levels)
-        .where(inArray(schema.levels.programId, progs.map((x) => x.id)))
+        .where(
+          inArray(
+            schema.levels.programId,
+            progs.map((x) => x.id),
+          ),
+        )
         .orderBy(asc(schema.levels.ordinal))
     : [];
   const [list] = await tx
@@ -663,7 +686,9 @@ export async function currentAsTemplate(tx: Tx, kind: TemplateKindT): Promise<un
       minAgeMonths: x.minAgeMonths,
       maxAgeMonths: x.maxAgeMonths,
       parentInWater: x.parentInWater,
-      levels: lvls.filter((l) => l.programId === x.id).map((l) => ({ code: l.code, nameHe: l.nameHe })),
+      levels: lvls
+        .filter((l) => l.programId === x.id)
+        .map((l) => ({ code: l.code, nameHe: l.nameHe })),
     })),
     prices: items
       .filter((i) => code.has(i.programId))
@@ -763,7 +788,10 @@ export async function updateSchool(tx: Tx, raw: SchoolUpdateInput, today: string
   if (!sub) throw new DomainError('platform.errors.noSubscription');
   switch (input.action) {
     case 'plan': {
-      const [plan] = await tx.select().from(plans).where(eq(plans.code, input.planCode ?? ''));
+      const [plan] = await tx
+        .select()
+        .from(plans)
+        .where(eq(plans.code, input.planCode ?? ''));
       if (!plan) throw new DomainError('platform.errors.plan');
       const usage = (await listSchools(tx)).find((s) => s.organizationId === input.organizationId);
       const check = planChangeCheck(
@@ -776,10 +804,7 @@ export async function updateSchool(tx: Tx, raw: SchoolUpdateInput, today: string
     }
     case 'endTrial':
       if (sub.status !== 'trialing') throw new DomainError('platform.errors.notTrialing');
-      await tx
-        .update(orgSubscriptions)
-        .set({ status: 'active', trialEndsOn: today })
-        .where(where);
+      await tx.update(orgSubscriptions).set({ status: 'active', trialEndsOn: today }).where(where);
       return;
     case 'suspend':
       await tx
@@ -788,10 +813,7 @@ export async function updateSchool(tx: Tx, raw: SchoolUpdateInput, today: string
         .where(where);
       return;
     case 'reactivate':
-      await tx
-        .update(orgSubscriptions)
-        .set({ status: 'active', pastDueSince: null })
-        .where(where);
+      await tx.update(orgSubscriptions).set({ status: 'active', pastDueSince: null }).where(where);
       return;
     default:
       await tx
@@ -803,7 +825,10 @@ export async function updateSchool(tx: Tx, raw: SchoolUpdateInput, today: string
 
 /** A platform admin asks the worker to bill every school due this month. Returns how many schools were queued. */
 export async function requestBilling(tx: Tx, period: string) {
-  const [r] = await rows<{ n: number }>(tx, sql`select public.platform_request_billing(${period}::date) n`);
+  const [r] = await rows<{ n: number }>(
+    tx,
+    sql`select public.platform_request_billing(${period}::date) n`,
+  );
   return (r as { n: number }).n;
 }
 
