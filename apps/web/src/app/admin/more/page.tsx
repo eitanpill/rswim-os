@@ -5,6 +5,8 @@ import { Card, PageHeader } from '@rswim/ui';
 const LINKS = [
   'messages',
   'transport',
+  'cohorts',
+  'institutions',
   'attendance',
   'makeups',
   'trials',
@@ -29,6 +31,8 @@ const LINKS = [
 const HREF: Record<(typeof LINKS)[number], string> = {
   messages: '/admin/messages',
   transport: '/admin/transport',
+  cohorts: '/admin/cohorts',
+  institutions: '/admin/institutions',
   attendance: '/admin/attendance',
   makeups: '/admin/makeups',
   trials: '/admin/trials',

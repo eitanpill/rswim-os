@@ -49,7 +49,7 @@ describe('the monthly invoice', () => {
       ],
       explanation: {
         code: 'institutions.decision.per_child_month',
-        params: { count: 14, price: 12_000, total: 168_000, cancelled: 1 },
+        params: { count: 14, rate: 12_000, amount: 168_000, cancelled: 1 },
       },
     });
   });

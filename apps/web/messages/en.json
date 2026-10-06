@@ -169,7 +169,9 @@
       "transport": {
         "title": "After-school transport",
         "hint": "Routes, today's runs and time in the water"
-      }
+      },
+      "cohorts": "Courses & camps",
+      "institutions": "Institutions"
     }
   },
   "instructor": {
@@ -1078,6 +1080,38 @@
       "underway": "Underway",
       "done": "Done",
       "cancelled": "Cancelled"
+    },
+    "cohortStatus": {
+      "open": "Open",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "institutionKind": {
+      "school": "School",
+      "municipality": "Local authority",
+      "after_school": "After-school",
+      "community_center": "Community center",
+      "other": "Other"
+    },
+    "contractPricing": {
+      "per_child_month": "Per child per month",
+      "per_session": "Per lesson",
+      "fixed_month": "Fixed monthly sum"
+    },
+    "institutionInvoiceState": {
+      "draft": "Draft",
+      "issuing": "Issuing",
+      "open": "Open",
+      "partial": "Partly paid",
+      "overdue": "Overdue",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "institutionPaymentMethod": {
+      "bank_transfer": "Bank transfer",
+      "cheque": "Cheque",
+      "cash": "Cash",
+      "other": "Other"
     }
   },
   "venues": {
@@ -2012,6 +2046,23 @@
       "alreadyOpen": "Already looking for a substitute for this lesson",
       "offerClosed": "This offer is no longer open",
       "notOpen": "The request is no longer open"
+    },
+    "cohort": {
+      "closed": "Registration is closed",
+      "cancelled": "This cohort was cancelled",
+      "open": "Open",
+      "noGroups": "No groups are attached to this cohort yet",
+      "registrationOver": "Registration has closed",
+      "full": "The cohort is full ({capacity} places)",
+      "ratio": "Not enough staff: {staff} staff can take up to {max} children ({ratio} per staff member). It needs {needed}",
+      "noRatio": "Courses have no staff ratio",
+      "ratioShort": "Short of staff: {staff} on, {needed} needed (up to {ratio} children each)",
+      "ratioOk": "Staff ratio OK: {staff} staff, up to {max} children ({ratio} each)",
+      "programMismatch": "The group belongs to another program",
+      "otherCohort": "The group already belongs to another cohort",
+      "hasMembers": "Children are registered; the groups can no longer change",
+      "alreadyRegistered": "Already registered",
+      "notRegistered": "Not registered in this cohort"
     }
   },
   "attendance": {
@@ -2840,5 +2891,157 @@
     "time": "Time",
     "companions": "Companions",
     "school": "School"
+  },
+  "cohorts": {
+    "title": "Courses & camps",
+    "hint": "Fixed cohorts over set dates, with their own regulations, places and a camp staff ratio",
+    "empty": "No cohorts yet",
+    "line": "{program} · {from}–{to} · {registered}/{capacity} registered · {groups} groups",
+    "add": "New cohort",
+    "noPrograms": "Create an intensive course or camp program first",
+    "create": "Create cohort",
+    "registered": "Registered",
+    "form": {
+      "name": "Cohort name",
+      "program": "Program",
+      "startsOn": "From",
+      "endsOn": "To",
+      "capacity": "Places",
+      "closesOn": "Registration closes",
+      "closesOnHint": "Blank = until the cohort's last day",
+      "notes": "Notes"
+    },
+    "detail": {
+      "rules": "Regulations & registration",
+      "ownPolicy": "The program has its own regulations from {from}.",
+      "orgPolicy": "The school's general regulations apply.",
+      "policyLink": "Regulations",
+      "closes": "Registration closes on {date}",
+      "closesAtEnd": "Registration is open until the cohort ends",
+      "status": "Status",
+      "saveStatus": "Update status",
+      "print": "Printable roster",
+      "groups": "Meetings",
+      "noGroups": "No groups yet. Create groups for the program and attach them here.",
+      "group": "{name} · {day} {time} · {venue} · instructor: {lead} · {lessons} lessons",
+      "detach": "Remove",
+      "attach": "Attach a group",
+      "attachHint": "A twice-weekly course = two groups; a camp week = a group per day",
+      "attachButton": "Attach",
+      "staff": "Additional staff",
+      "noStaff": "No staff besides the instructors",
+      "remove": "Remove",
+      "staffMember": "Staff member",
+      "role": "Role",
+      "addStaff": "Add to staff",
+      "roster": "Registered ({n} of {capacity})",
+      "noMembers": "Nobody registered yet",
+      "waterFear": "Afraid of water",
+      "cancelConfirm": "Cancel the registration? Before the cohort starts nothing is charged.",
+      "cancel": "Cancel registration",
+      "student": "Child",
+      "register": "Register",
+      "edit": "Edit cohort details",
+      "save": "Save"
+    },
+    "print": {
+      "dates": "{program} · {from}–{to}",
+      "print": "Print / PDF",
+      "groups": "Meetings",
+      "group": "{name} · {day} {time} · {venue} · instructor: {lead}",
+      "staff": "Staff: {names}",
+      "child": "Child",
+      "born": "Born",
+      "parents": "Parents",
+      "notes": "Notes",
+      "waterFear": "Afraid of water",
+      "medical": "Medical info at the office",
+      "count": "{n} participants"
+    }
+  },
+  "institutions": {
+    "title": "Institutions",
+    "hint": "Schools and authorities that pay for their children's swimming by contract",
+    "empty": "No institutions yet",
+    "add": "New institution",
+    "create": "Add",
+    "edit": "Edit institution details",
+    "save": "Save",
+    "debts": {
+      "title": "Open balances",
+      "line": "Owed {owed} · overdue {overdue}"
+    },
+    "form": {
+      "name": "Name",
+      "kind": "Type",
+      "taxId": "Company / VAT no.",
+      "contact": "Contact person",
+      "phone": "Phone",
+      "email": "Invoice email",
+      "address": "Address",
+      "notes": "Notes"
+    },
+    "contract": {
+      "name": "Contract name",
+      "pricing": "Pricing",
+      "amount": "Price (₪)",
+      "amountHint": "Per child per month, per lesson or per month, by pricing",
+      "terms": "Payment days",
+      "startsOn": "From",
+      "endsOn": "To",
+      "notes": "Notes",
+      "line": "{from}–{to} · {pricing} {amount} · pay within {days} days",
+      "groups": "Groups on the contract",
+      "noGroups": "No groups attached yet",
+      "detach": "Remove",
+      "attach": "Group the institution pays for",
+      "attachButton": "Attach",
+      "edit": "Edit contract",
+      "save": "Save",
+      "add": "New contract",
+      "create": "Create contract"
+    },
+    "invoices": {
+      "drafted": "The invoice draft is ready",
+      "issuing": "The invoice is being issued",
+      "paymentSaved": "Payment recorded",
+      "period": "Month",
+      "draft": "Prepare monthly invoice",
+      "report": "Attendance report for the month",
+      "title": "Invoices",
+      "empty": "No invoices yet",
+      "document": "Tax invoice {number} · due {due} · paid {paid} · left {left}",
+      "payment": "{date}: {amount} by {method} · receipt {receipt}",
+      "issue": "Approve & issue",
+      "cancel": "Cancel draft",
+      "amount": "Amount (₪)",
+      "paidOn": "Paid on",
+      "method": "Method",
+      "reference": "Reference",
+      "record": "Record payment"
+    },
+    "report": {
+      "title": "Attendance · {institution} · {month}",
+      "print": "Print / PDF",
+      "empty": "No lessons this month",
+      "child": "Child",
+      "cancelled": "cancelled",
+      "present": "Came",
+      "legend": "{children} children · {lessons} lessons · ✓ came ◐ late ✗ absent"
+    },
+    "errors": {
+      "groupTaken": "Another institution's contract already covers this group on those dates",
+      "outsideContract": "The contract does not run that month",
+      "issued": "This month's invoice was already issued",
+      "notDraft": "Only a draft can do that",
+      "overpaid": "More than the invoice's balance",
+      "alreadyPaid": "The invoice is already paid",
+      "notIssued": "Payments go against an issued invoice"
+    },
+    "decision": {
+      "per_child_month": "{count} children × {rate} = {amount}",
+      "per_session": "{count} lessons held × {rate} = {amount} (cancelled: {cancelled})",
+      "fixed_month": "Fixed monthly sum: {amount}"
+    }
   }
 }

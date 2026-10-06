@@ -375,7 +375,7 @@ describe('an institution pays for a group by contract', () => {
     expect(inv).toMatchObject({ amountAgorot: 36000, status: 'draft' });
     expect(inv?.explanation).toEqual({
       code: 'institutions.decision.per_child_month',
-      params: { count: 3, price: 12000, total: 36000, cancelled: 1 },
+      params: { count: 3, rate: 12000, amount: 36000, cancelled: 1 },
     });
   });
 

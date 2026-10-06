@@ -100,8 +100,8 @@ export function invoiceFor(terms: ContractTerms, facts: MonthFacts): InvoiceDraf
       code: `institutions.decision.${terms.pricing}`,
       params: {
         count: quantity,
-        price: terms.amountAgorot,
-        total: amountAgorot,
+        rate: terms.amountAgorot,
+        amount: amountAgorot,
         cancelled: facts.lessons.length - lessonsHeld,
       },
     },

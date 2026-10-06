@@ -342,4 +342,30 @@ describe('demo seed', () => {
       ),
     ).toEqual([{ status: 'done', events: 12 }]);
   });
+  it('sets up Phase 8 courses: a course with its own regulations, a camp week in ratio, a school paying by contract', async () => {
+    const rows = async (sql: string, params: unknown[] = []) =>
+      (await t.pool.query(sql, params)).rows;
+    expect(
+      await rows(
+        `select c.name, count(distinct e.student_id)::int n from cohorts c
+         join class_templates g on g.cohort_id = c.id join enrollments e on e.class_template_id = g.id
+         where c.organization_id = $1 group by c.name order by c.name`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([
+      { name: 'קורס חנוכה מרוכז', n: 4 },
+      { name: 'קייטנת קיץ – שבוע 1', n: 12 },
+    ]);
+    expect(
+      await rows(
+        `select i.period, i.status, i.amount_agorot, coalesce(sum(p.amount_agorot), 0)::int paid
+         from institution_invoices i left join institution_payments p on p.invoice_id = i.id
+         where i.organization_id = $1 group by i.id order by i.period`,
+        [DEMO_ORG.id],
+      ),
+    ).toEqual([
+      { period: '2026-09', status: 'issued', amount_agorot: 72000, paid: 36000 },
+      { period: '2026-10', status: 'draft', amount_agorot: 72000, paid: 0 },
+    ]);
+  });
 });

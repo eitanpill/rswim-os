@@ -12,6 +12,9 @@ create index class_templates_cohort on class_templates (cohort_id) where cohort_
 create or replace function app.guard_institution_payment() returns trigger
 language plpgsql as $$
 begin
+  if app.org_deleted(old.organization_id) then
+    return new;
+  end if;
   if (new.invoice_id, new.amount_agorot, new.paid_on, new.method, coalesce(new.reference, ''))
      is distinct from (old.invoice_id, old.amount_agorot, old.paid_on, old.method, coalesce(old.reference, '')) then
     raise exception 'institution payments are append-only' using errcode = '55000';
@@ -22,7 +25,7 @@ end $$;
 create trigger guard_institution_payment before update on institution_payments
   for each row execute function app.guard_institution_payment();
 create trigger forbid_delete before delete on institution_payments
-  for each row execute function app.forbid_mutation();
+  for each row execute function app.forbid_mutation_unless_org_deleted();
 create trigger audit_row after insert or update or delete on institution_payments
   for each row execute function app.audit_row();
 create trigger audit_row after insert or update or delete on cohort_staff

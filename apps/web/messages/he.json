@@ -169,7 +169,9 @@
       "transport": {
         "title": "הסעות צהרון",
         "hint": "מסלולים, נסיעות היום וזמן במים"
-      }
+      },
+      "cohorts": "קורסים וקייטנות",
+      "institutions": "מוסדות"
     }
   },
   "instructor": {
@@ -1078,6 +1080,38 @@
       "underway": "בדרך",
       "done": "הסתיימה",
       "cancelled": "בוטלה"
+    },
+    "cohortStatus": {
+      "open": "פתוח להרשמה",
+      "closed": "סגור",
+      "cancelled": "בוטל"
+    },
+    "institutionKind": {
+      "school": "בית ספר",
+      "municipality": "רשות מקומית",
+      "after_school": "צהרון",
+      "community_center": "מתנ״ס",
+      "other": "אחר"
+    },
+    "contractPricing": {
+      "per_child_month": "לילד לחודש",
+      "per_session": "לשיעור",
+      "fixed_month": "סכום חודשי קבוע"
+    },
+    "institutionInvoiceState": {
+      "draft": "טיוטה",
+      "issuing": "בהפקה",
+      "open": "פתוחה",
+      "partial": "שולמה חלקית",
+      "overdue": "באיחור",
+      "paid": "שולמה",
+      "cancelled": "בוטלה"
+    },
+    "institutionPaymentMethod": {
+      "bank_transfer": "העברה בנקאית",
+      "cheque": "המחאה",
+      "cash": "מזומן",
+      "other": "אחר"
     }
   },
   "venues": {
@@ -2012,6 +2046,23 @@
       "alreadyOpen": "כבר מחפשים מחליף/ה לשיעור הזה",
       "offerClosed": "ההצעה הזו כבר לא פתוחה",
       "notOpen": "הבקשה כבר לא פתוחה"
+    },
+    "cohort": {
+      "closed": "ההרשמה סגורה",
+      "cancelled": "המחזור בוטל",
+      "open": "פתוח",
+      "noGroups": "עדיין לא שויכו קבוצות למחזור",
+      "registrationOver": "מועד ההרשמה עבר",
+      "full": "המחזור מלא ({capacity} מקומות)",
+      "ratio": "אין מספיק צוות: עם {staff} אנשי צוות אפשר עד {max} ילדים (עד {ratio} ילדים לכל איש צוות). צריך {needed} אנשי צוות",
+      "noRatio": "בקורס אין יחס צוות",
+      "ratioShort": "חסר צוות: יש {staff}, צריך {needed} (עד {ratio} ילדים לאיש צוות)",
+      "ratioOk": "יחס צוות תקין: {staff} אנשי צוות, אפשר עד {max} ילדים ({ratio} לאיש צוות)",
+      "programMismatch": "הקבוצה שייכת לתוכנית אחרת",
+      "otherCohort": "הקבוצה כבר שייכת למחזור אחר",
+      "hasMembers": "כבר יש נרשמים, אי אפשר לשנות את הקבוצות",
+      "alreadyRegistered": "הילד/ה כבר רשום/ה למחזור",
+      "notRegistered": "הילד/ה לא רשום/ה למחזור"
     }
   },
   "attendance": {
@@ -2840,5 +2891,157 @@
     "time": "שעה",
     "companions": "מלווים",
     "school": "בית הספר"
+  },
+  "cohorts": {
+    "title": "קורסים וקייטנות",
+    "hint": "מחזורים קבועים בתאריכים, עם תקנון משלהם, מקומות ויחס צוות בקייטנה",
+    "empty": "אין עדיין מחזורים",
+    "line": "{program} · {from}–{to} · {registered}/{capacity} רשומים · {groups} קבוצות",
+    "add": "מחזור חדש",
+    "noPrograms": "כדי לפתוח מחזור צריך תוכנית מסוג קורס מרוכז או קייטנה",
+    "create": "יצירת מחזור",
+    "registered": "הילד/ה נרשם/ה",
+    "form": {
+      "name": "שם המחזור",
+      "program": "תוכנית",
+      "startsOn": "מתאריך",
+      "endsOn": "עד תאריך",
+      "capacity": "מקומות",
+      "closesOn": "ההרשמה נסגרת",
+      "closesOnHint": "ריק = עד היום האחרון של המחזור",
+      "notes": "הערות"
+    },
+    "detail": {
+      "rules": "תקנון והרשמה",
+      "ownPolicy": "לתוכנית יש תקנון משלה מ-{from}.",
+      "orgPolicy": "חל התקנון הכללי של בית הספר.",
+      "policyLink": "לתקנונים",
+      "closes": "ההרשמה נסגרת ב-{date}",
+      "closesAtEnd": "ההרשמה פתוחה עד סוף המחזור",
+      "status": "מצב",
+      "saveStatus": "עדכון מצב",
+      "print": "רשימת משתתפים להדפסה",
+      "groups": "מפגשים",
+      "noGroups": "עוד לא שויכו קבוצות. צרו קבוצות של התוכנית ושייכו אותן כאן.",
+      "group": "{name} · {day} {time} · {venue} · מדריך/ה: {lead} · {lessons} שיעורים",
+      "detach": "הסרה",
+      "attach": "שיוך קבוצה",
+      "attachHint": "קורס פעמיים בשבוע = שתי קבוצות; שבוע קייטנה = קבוצה לכל יום",
+      "attachButton": "שיוך",
+      "staff": "צוות נוסף",
+      "noStaff": "אין צוות נוסף מלבד המדריכים",
+      "remove": "הסרה",
+      "staffMember": "איש/אשת צוות",
+      "role": "תפקיד",
+      "addStaff": "הוספה לצוות",
+      "roster": "רשומים ({n} מתוך {capacity})",
+      "noMembers": "אין עדיין נרשמים",
+      "waterFear": "פחד ממים",
+      "cancelConfirm": "לבטל את ההרשמה? לפני תחילת המחזור לא יהיה חיוב.",
+      "cancel": "ביטול הרשמה",
+      "student": "ילד/ה",
+      "register": "רישום",
+      "edit": "עריכת פרטי המחזור",
+      "save": "שמירה"
+    },
+    "print": {
+      "dates": "{program} · {from}–{to}",
+      "print": "הדפסה / PDF",
+      "groups": "מפגשים",
+      "group": "{name} · {day} {time} · {venue} · מדריך/ה: {lead}",
+      "staff": "צוות: {names}",
+      "child": "ילד/ה",
+      "born": "תאריך לידה",
+      "parents": "הורים",
+      "notes": "לתשומת לב",
+      "waterFear": "פחד ממים",
+      "medical": "מידע רפואי במשרד",
+      "count": "{n} משתתפים"
+    }
+  },
+  "institutions": {
+    "title": "מוסדות",
+    "hint": "בתי ספר ורשויות שמשלמים על השחייה של הילדים לפי חוזה",
+    "empty": "אין עדיין מוסדות",
+    "add": "מוסד חדש",
+    "create": "הוספה",
+    "edit": "עריכת פרטי המוסד",
+    "save": "שמירה",
+    "debts": {
+      "title": "יתרות פתוחות",
+      "line": "פתוח לגבייה {owed} · מזה באיחור {overdue}"
+    },
+    "form": {
+      "name": "שם המוסד",
+      "kind": "סוג",
+      "taxId": "ח.פ. / ע.מ.",
+      "contact": "איש/אשת קשר",
+      "phone": "טלפון",
+      "email": "אימייל לחשבוניות",
+      "address": "כתובת",
+      "notes": "הערות"
+    },
+    "contract": {
+      "name": "שם החוזה",
+      "pricing": "תמחור",
+      "amount": "מחיר (₪)",
+      "amountHint": "לילד לחודש, לשיעור או לחודש, לפי התמחור",
+      "terms": "ימי תשלום",
+      "startsOn": "מתאריך",
+      "endsOn": "עד תאריך",
+      "notes": "הערות",
+      "line": "{from}–{to} · {pricing} {amount} · תשלום תוך {days} ימים",
+      "groups": "הקבוצות בחוזה",
+      "noGroups": "עוד לא שויכו קבוצות",
+      "detach": "הסרה",
+      "attach": "קבוצה שהמוסד משלם עליה",
+      "attachButton": "שיוך",
+      "edit": "עריכת החוזה",
+      "save": "שמירה",
+      "add": "חוזה חדש",
+      "create": "יצירת חוזה"
+    },
+    "invoices": {
+      "drafted": "טיוטת החשבונית מוכנה",
+      "issuing": "החשבונית נשלחת להפקה",
+      "paymentSaved": "התשלום נרשם",
+      "period": "חודש",
+      "draft": "הכנת חשבונית חודשית",
+      "report": "דוח נוכחות לחודש",
+      "title": "חשבוניות",
+      "empty": "אין עדיין חשבוניות",
+      "document": "חשבונית מס {number} · לתשלום עד {due} · שולם {paid} · נותר {left}",
+      "payment": "{date}: {amount} ב{method} · קבלה {receipt}",
+      "issue": "אישור והפקה",
+      "cancel": "ביטול טיוטה",
+      "amount": "סכום (₪)",
+      "paidOn": "תאריך התשלום",
+      "method": "אמצעי",
+      "reference": "אסמכתא",
+      "record": "רישום תשלום"
+    },
+    "report": {
+      "title": "דוח נוכחות · {institution} · {month}",
+      "print": "הדפסה / PDF",
+      "empty": "אין שיעורים בחודש הזה",
+      "child": "ילד/ה",
+      "cancelled": "בוטל",
+      "present": "הגיע/ה",
+      "legend": "{children} ילדים · {lessons} שיעורים · ✓ הגיע/ה ◐ איחר/ה ✗ לא הגיע/ה"
+    },
+    "errors": {
+      "groupTaken": "הקבוצה כבר בחוזה של מוסד אחר באותם תאריכים",
+      "outsideContract": "החוזה לא בתוקף בחודש הזה",
+      "issued": "החשבונית לחודש הזה כבר הופקה",
+      "notDraft": "אפשר לעשות את זה רק בטיוטה",
+      "overpaid": "הסכום גבוה מהיתרה בחשבונית",
+      "alreadyPaid": "החשבונית כבר שולמה",
+      "notIssued": "אפשר לרשום תשלום רק על חשבונית שהופקה"
+    },
+    "decision": {
+      "per_child_month": "{count} ילדים × {rate} = {amount}",
+      "per_session": "{count} שיעורים שהתקיימו × {rate} = {amount} (שיעורים שבוטלו: {cancelled})",
+      "fixed_month": "סכום חודשי קבוע: {amount}"
+    }
   }
 }
