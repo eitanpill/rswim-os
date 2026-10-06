@@ -4,7 +4,7 @@
  * family pays for. Both are decided under the policy of the seat's group and keep its version.
  */
 import { z } from 'zod';
-import { FREEZE_REASONS, optionalText, requiredDate } from '@rswim/contracts';
+import { CHURN_REASONS, FREEZE_REASONS, optionalText, requiredDate } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
 import { DomainError, emit, type ServiceContext } from '@rswim/domain-core';
 import {
@@ -102,6 +102,8 @@ const localDateTime = z.preprocess(
 export const CancellationInput = z.object({
   enrollmentId: z.uuid(),
   requestedAt: localDateTime,
+  /** Why the family leaves (the churn report groups by it). */
+  reason: z.enum(CHURN_REASONS),
   note: optionalText(500),
 });
 export type CancellationInput = z.input<typeof CancellationInput>;
@@ -135,6 +137,7 @@ export async function requestCancellation(tx: Tx, ctx: ServiceContext, raw: Canc
         endsOn: decision.endsOn,
         explanation: decision.explanation,
         policyVersionKey: versionKey,
+        reason: input.reason,
         note: input.note,
         recordedBy: ctx.userId,
       })

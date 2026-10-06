@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { getTranslations } from 'next-intl/server';
-import { FREEZE_REASONS, MANUAL_PAYMENT_METHODS, PREFERRED_METHODS } from '@rswim/contracts';
+import {
+  CHURN_REASONS,
+  FREEZE_REASONS,
+  MANUAL_PAYMENT_METHODS,
+  PREFERRED_METHODS,
+} from '@rswim/contracts';
 import type { Tx } from '@rswim/db';
 import { householdMoney, seatsOfStudents } from '@rswim/domain-billing';
 import { listStaff } from '@rswim/domain-staff';
@@ -60,6 +65,7 @@ export async function FamilyMoney({
     fn.bind(null, householdId) as (...a: A) => R;
   const manualMethods = await enumOptions('paymentMethod', MANUAL_PAYMENT_METHODS);
   const freezeReasons = await enumOptions('freezeReason', FREEZE_REASONS);
+  const churnReasons = await enumOptions('churnReason', CHURN_REASONS);
   const preferredMethods = await enumOptions('preferredMethod', PREFERRED_METHODS);
   const refunded = (paymentId: string) =>
     data.payments
@@ -555,6 +561,12 @@ export async function FamilyMoney({
                             name="requestedAt"
                             type="datetime-local"
                             label={t('requestedAt')}
+                          />
+                          <SelectField
+                            name="reason"
+                            label={t('churnReason')}
+                            includeEmpty="—"
+                            options={churnReasons}
                           />
                           <Field name="note" label={t('note')} />
                           <div>

@@ -28,6 +28,9 @@ import {
   SLOT_STATUSES,
   TERM_KINDS,
   COHORT_STATUSES,
+  MIGRATION_LEAD_CHOICES,
+  MIGRATION_MODES,
+  MIGRATION_STATUSES,
   WAITLIST_STATUSES,
 } from '@rswim/contracts';
 import { createdAt, id, inList, orgId, updatedAt } from './_helpers';
@@ -588,5 +591,126 @@ export const cohortStaff = pgTable(
       columns: [t.organizationId, t.staffMemberId],
       foreignColumns: [staffMembers.organizationId, staffMembers.id],
     }).onDelete('cascade'),
+  ],
+);
+
+/**
+ * Venue Migration Wizard (brief §6.2): every group of a closing venue mapped to its new home, previewed, executed in
+ * one transaction and revertible until `revert_until`.
+ */
+export const venueMigrations = pgTable(
+  'venue_migrations',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    sourceVenueId: uuid('source_venue_id').notNull(),
+    /** The first day the groups meet in their new home. */
+    effectiveOn: date('effective_on').notNull(),
+    reason: text('reason'),
+    status: text('status').notNull().default('draft'),
+    executedAt: timestamp('executed_at', { withTimezone: true }),
+    executedBy: uuid('executed_by'),
+    revertUntil: timestamp('revert_until', { withTimezone: true }),
+    revertedAt: timestamp('reverted_at', { withTimezone: true }),
+    revertedBy: uuid('reverted_by'),
+    policyVersionKey: text('policy_version_key'),
+    createdBy: uuid('created_by'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('venue_migrations_org_id').on(t.organizationId, t.id),
+    foreignKey({
+      name: 'venue_migrations_venue_fk',
+      columns: [t.organizationId, t.sourceVenueId],
+      foreignColumns: [venues.organizationId, venues.id],
+    }).onDelete('cascade'),
+    uniqueIndex('venue_migrations_one_draft')
+      .on(t.sourceVenueId)
+      .where(sql`status = 'draft'`),
+    check('venue_migrations_status_check', sql.raw(`status in (${inList(MIGRATION_STATUSES)})`)),
+    check(
+      'venue_migrations_executed_check',
+      sql`${t.status} = 'draft' or (${t.executedAt} is not null and ${t.revertUntil} is not null)`,
+    ),
+  ],
+);
+
+/**
+ * One source group in a migration: relocated as it is (venue, pool, lanes, time) or merged into an existing group.
+ * `snapshot` records what execution changed, so a revert can put it back exactly.
+ */
+export const venueMigrationItems = pgTable(
+  'venue_migration_items',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    migrationId: uuid('migration_id').notNull(),
+    sourceTemplateId: uuid('source_template_id').notNull(),
+    mode: text('mode').notNull(),
+    targetVenueId: uuid('target_venue_id'),
+    targetPoolId: uuid('target_pool_id'),
+    targetLaneIds: uuid('target_lane_ids')
+      .array()
+      .notNull()
+      .default(sql`'{}'::uuid[]`),
+    targetStartsAt: time('target_starts_at'),
+    targetTemplateId: uuid('target_template_id'),
+    /** relocate: keep the lead, hand the group to another instructor (a shift change they accept), or none yet. */
+    leadChoice: text('lead_choice').notNull().default('keep'),
+    newLeadStaffId: uuid('new_lead_staff_id'),
+    snapshot: jsonb('snapshot'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('venue_migration_items_org_id').on(t.organizationId, t.id),
+    unique('venue_migration_items_once').on(t.migrationId, t.sourceTemplateId),
+    foreignKey({
+      name: 'venue_migration_items_migration_fk',
+      columns: [t.organizationId, t.migrationId],
+      foreignColumns: [venueMigrations.organizationId, venueMigrations.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'venue_migration_items_source_fk',
+      columns: [t.organizationId, t.sourceTemplateId],
+      foreignColumns: [classTemplates.organizationId, classTemplates.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'venue_migration_items_target_fk',
+      columns: [t.organizationId, t.targetTemplateId],
+      foreignColumns: [classTemplates.organizationId, classTemplates.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'venue_migration_items_venue_fk',
+      columns: [t.organizationId, t.targetVenueId],
+      foreignColumns: [venues.organizationId, venues.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'venue_migration_items_pool_fk',
+      columns: [t.organizationId, t.targetPoolId],
+      foreignColumns: [pools.organizationId, pools.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'venue_migration_items_lead_fk',
+      columns: [t.organizationId, t.newLeadStaffId],
+      foreignColumns: [staffMembers.organizationId, staffMembers.id],
+    }).onDelete('cascade'),
+    check('venue_migration_items_mode_check', sql.raw(`mode in (${inList(MIGRATION_MODES)})`)),
+    check(
+      'venue_migration_items_lead_check',
+      sql.raw(
+        `lead_choice in (${inList(MIGRATION_LEAD_CHOICES)}) and (lead_choice = 'other') = (new_lead_staff_id is not null)`,
+      ),
+    ),
+    check(
+      'venue_migration_items_shape_check',
+      sql`case ${t.mode}
+        when 'relocate' then ${t.targetVenueId} is not null and ${t.targetPoolId} is not null
+          and ${t.targetStartsAt} is not null and cardinality(${t.targetLaneIds}) > 0
+          and ${t.targetTemplateId} is null
+        when 'merge' then ${t.targetTemplateId} is not null
+      end`,
+    ),
   ],
 );

@@ -465,3 +465,59 @@ export function messagePeriod(period: string): string {
 export function israelLocalDateTime(instant: Date): string {
   return `${todayInIsrael(instant)}T${israelClock(instant)}`;
 }
+
+/** "יום שלישי" / "Tuesday" for a weekday number (0 = Sunday). */
+export function weekdayWord(weekday: number, locale: 'he' | 'en'): string {
+  // 2026-10-04 is a Sunday.
+  return new Intl.DateTimeFormat(locale === 'he' ? 'he-IL' : 'en-GB', {
+    weekday: 'long',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(2026, 9, 4 + weekday, 12)));
+}
+
+/** One child's venue move, as the family's message tells it. */
+export interface MigrationNoticeFacts {
+  firstName: string;
+  from: { group: string; venue: string; weekday: number; time: string };
+  to: { group: string; venue: string; weekday: number; time: string };
+  effectiveOn: LocalDate;
+  price:
+    | { kind: 'same'; before: number; after: number }
+    | { kind: 'up' | 'down'; before: number; after: number; delta: number }
+    | { kind: 'unknown' };
+}
+
+const shekels = (agorot: number) => `₪${(agorot / 100).toLocaleString('en-US')}`;
+
+/** The variables of the `venue_migration` and `venue_migration_reverted` templates for one child. */
+export function migrationNoticeVars(
+  n: MigrationNoticeFacts,
+  locale: 'he' | 'en',
+): Record<string, string> {
+  const he = locale === 'he';
+  const price =
+    n.price.kind === 'unknown'
+      ? he
+        ? 'נעדכן לגבי המחיר בהמשך.'
+        : 'We will update you about the price.'
+      : n.price.kind === 'same'
+        ? he
+          ? 'המחיר החודשי לא משתנה.'
+          : 'The monthly price stays the same.'
+        : he
+          ? `המחיר החודשי יהיה ${shekels(n.price.after)} במקום ${shekels(n.price.before)}.`
+          : `The monthly price will be ${shekels(n.price.after)} instead of ${shekels(n.price.before)}.`;
+  return {
+    student_name: n.firstName,
+    from_group: n.from.group,
+    from_venue: n.from.venue,
+    from_day: weekdayWord(n.from.weekday, locale),
+    from_time: n.from.time,
+    to_group: n.to.group,
+    to_venue: n.to.venue,
+    to_day: weekdayWord(n.to.weekday, locale),
+    to_time: n.to.time,
+    date: messageDate(n.effectiveOn, locale),
+    price_note: price,
+  };
+}

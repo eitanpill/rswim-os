@@ -41,6 +41,9 @@ importers:
       '@rswim/domain-comms':
         specifier: workspace:*
         version: link:../../packages/domain/comms
+      '@rswim/domain-copilot':
+        specifier: workspace:*
+        version: link:../../packages/domain/copilot
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../../packages/domain/core
@@ -59,6 +62,9 @@ importers:
       '@rswim/domain-people':
         specifier: workspace:*
         version: link:../../packages/domain/people
+      '@rswim/domain-reports':
+        specifier: workspace:*
+        version: link:../../packages/domain/reports
       '@rswim/domain-scheduling':
         specifier: workspace:*
         version: link:../../packages/domain/scheduling
@@ -183,6 +189,9 @@ importers:
       '@rswim/domain-institutions':
         specifier: workspace:*
         version: link:../../packages/domain/institutions
+      '@rswim/domain-reports':
+        specifier: workspace:*
+        version: link:../../packages/domain/reports
       '@rswim/domain-scheduling':
         specifier: workspace:*
         version: link:../../packages/domain/scheduling
@@ -518,6 +527,55 @@ importers:
         specifier: ^3.2.7
         version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  packages/domain/copilot:
+    dependencies:
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
+      '@rswim/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@rswim/domain-billing':
+        specifier: workspace:*
+        version: link:../billing
+      '@rswim/domain-comms':
+        specifier: workspace:*
+        version: link:../comms
+      '@rswim/domain-core':
+        specifier: workspace:*
+        version: link:../core
+      '@rswim/domain-scheduling':
+        specifier: workspace:*
+        version: link:../scheduling
+      '@rswim/domain-settings':
+        specifier: workspace:*
+        version: link:../settings
+      '@rswim/integrations':
+        specifier: workspace:*
+        version: link:../../integrations
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@rswim/config':
+        specifier: workspace:*
+        version: link:../../config
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
   packages/domain/core:
     dependencies:
       '@rswim/contracts':
@@ -759,6 +817,49 @@ importers:
       '@rswim/money':
         specifier: workspace:*
         version: link:../../money
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@rswim/config':
+        specifier: workspace:*
+        version: link:../../config
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/domain/reports:
+    dependencies:
+      '@rswim/calendar':
+        specifier: workspace:*
+        version: link:../../calendar
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
+      '@rswim/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@rswim/domain-billing':
+        specifier: workspace:*
+        version: link:../billing
+      '@rswim/domain-core':
+        specifier: workspace:*
+        version: link:../core
+      '@rswim/domain-settings':
+        specifier: workspace:*
+        version: link:../settings
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -1060,6 +1161,9 @@ importers:
       '@rswim/domain-comms':
         specifier: workspace:*
         version: link:../domain/comms
+      '@rswim/domain-copilot':
+        specifier: workspace:*
+        version: link:../domain/copilot
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../domain/core
@@ -1075,6 +1179,9 @@ importers:
       '@rswim/domain-payroll':
         specifier: workspace:*
         version: link:../domain/payroll
+      '@rswim/domain-reports':
+        specifier: workspace:*
+        version: link:../domain/reports
       '@rswim/domain-scheduling':
         specifier: workspace:*
         version: link:../domain/scheduling

@@ -4,7 +4,7 @@
  * the stages, and the worker's step turns the tap into a WhatsApp message to Yoav's mother. Every person is fake.
  */
 import { expect, test } from '@playwright/test';
-import { runTransportAutomations } from './worker';
+import { runAutomations } from './worker';
 
 test('AC: the escort taps "arrived at the pool" and the families on board get a message', async ({
   page,
@@ -37,7 +37,7 @@ test('AC: the escort taps "arrived at the pool" and the families on board get a 
   await expect(card.getByTestId('stage-in_water')).toBeVisible();
 
   // The worker's step: the tap becomes messages, only to the children on board.
-  expect(await runTransportAutomations('transport.arrived_pool')).toBe(1);
+  expect(await runAutomations('transport.arrived_pool')).toBe(1);
 
   // The office sees the message waiting to go out to Yoav's mother.
   await page.goto('/dev/login?as=owner');

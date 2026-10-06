@@ -960,3 +960,154 @@ export function cohortRatio(c: CohortFacts, rules: CohortRules): CohortRatio {
     },
   };
 }
+
+// ─── Venue Migration Wizard (brief §6.2) ────────────────────────────────────
+
+export interface MigrationRules {
+  /** How long after execution a migration may still be reverted. */
+  revertHours: number;
+}
+
+export function migrationRulesFrom(rules: PolicyRules): MigrationRules {
+  return { revertHours: rules.migration?.revert_hours ?? 24 };
+}
+
+/** A group as the migration compares it: its slot, who it admits, its level and age band, and its seats. */
+export interface MigrationGroupFacts {
+  id: string;
+  venueId: string;
+  programId: string;
+  weekday: number;
+  startsAt: string;
+  admittedGender: AdmittedGender;
+  ageMinMonths: number | null;
+  ageMaxMonths: number | null;
+  levelMinOrdinal: number | null;
+  levelMaxOrdinal: number | null;
+  capacity: number;
+  /** Seats held on the migration date. */
+  seated: number;
+}
+
+export interface MergeSuggestion {
+  id: string;
+  score: number;
+  /** Room for every child of the source group. */
+  fits: boolean;
+  reasons: RuleIssue[];
+}
+
+const rangesOverlap = (aMin: number, aMax: number, bMin: number, bMax: number) =>
+  aMin <= bMax && bMin <= aMax;
+
+/**
+ * Existing groups at other venues that a closing group could fold into, best first. A group that admits fewer people
+ * than the source (girls only for a mixed group) is never suggested. The rest score on the same program (30), the
+ * same weekday (20) and a close start (20 within 15 minutes, 10 within an hour), an overlapping age band and level
+ * range (10 each; an open range counts as overlapping), and room for every child (10). Ties keep the earlier slot.
+ */
+export function rankMergeTargets(
+  source: MigrationGroupFacts,
+  candidates: readonly MigrationGroupFacts[],
+): MergeSuggestion[] {
+  const out: (MergeSuggestion & { order: string })[] = [];
+  for (const c of candidates) {
+    if (c.venueId === source.venueId || c.id === source.id) continue;
+    if (c.admittedGender !== 'mixed' && c.admittedGender !== source.admittedGender) continue;
+    const reasons: RuleIssue[] = [];
+    let score = 0;
+    if (c.programId === source.programId) {
+      score += 30;
+      reasons.push({ code: 'scheduling.migration.why.sameProgram', params: {} });
+    }
+    if (c.weekday === source.weekday) {
+      score += 20;
+      const gap = Math.abs(toMinutes(c.startsAt) - toMinutes(source.startsAt));
+      if (gap <= 15) score += 20;
+      else if (gap <= 60) score += 10;
+      reasons.push(
+        gap === 0
+          ? { code: 'scheduling.migration.why.sameSlot', params: {} }
+          : { code: 'scheduling.migration.why.sameDay', params: { minutes: gap } },
+      );
+    } else {
+      reasons.push({ code: 'scheduling.migration.why.otherDay', params: { day: c.weekday } });
+    }
+    const ages =
+      source.ageMinMonths === null ||
+      source.ageMaxMonths === null ||
+      c.ageMinMonths === null ||
+      c.ageMaxMonths === null ||
+      rangesOverlap(source.ageMinMonths, source.ageMaxMonths, c.ageMinMonths, c.ageMaxMonths);
+    if (ages) {
+      score += 10;
+      reasons.push({ code: 'scheduling.migration.why.ageOverlap', params: {} });
+    } else {
+      reasons.push({ code: 'scheduling.migration.why.ageApart', params: {} });
+    }
+    const levels =
+      source.levelMinOrdinal === null ||
+      source.levelMaxOrdinal === null ||
+      c.levelMinOrdinal === null ||
+      c.levelMaxOrdinal === null ||
+      rangesOverlap(
+        source.levelMinOrdinal,
+        source.levelMaxOrdinal,
+        c.levelMinOrdinal,
+        c.levelMaxOrdinal,
+      );
+    if (levels) {
+      score += 10;
+      reasons.push({ code: 'scheduling.migration.why.levelOverlap', params: {} });
+    }
+    const free = Math.max(0, c.capacity - c.seated);
+    const fits = free >= source.seated;
+    if (fits) score += 10;
+    reasons.push({
+      code: fits ? 'scheduling.migration.why.room' : 'scheduling.migration.why.noRoom',
+      params: { free, needed: source.seated },
+    });
+    out.push({ id: c.id, score, fits, reasons, order: `${c.weekday}${c.startsAt}` });
+  }
+  return out
+    .sort((a, b) => b.score - a.score || a.order.localeCompare(b.order))
+    .map(({ order: _o, ...s }) => s);
+}
+
+/**
+ * Lanes for a relocated group: as many as it had, the lowest-numbered free ones in the target pool at that time.
+ * Empty when the pool does not have enough free lanes.
+ */
+export function pickFreeLanes(
+  poolLaneIds: readonly string[],
+  busyLaneIds: readonly string[],
+  count: number,
+): string[] {
+  const free = poolLaneIds.filter((l) => !busyLaneIds.includes(l));
+  return free.length >= count ? free.slice(0, count) : [];
+}
+
+export type PriceChange =
+  | { kind: 'same'; before: number; after: number }
+  | { kind: 'up' | 'down'; before: number; after: number; delta: number }
+  | { kind: 'unknown' };
+
+/** The monthly price before and after the move (null when no price list covers one side). */
+export function priceChange(before: number | null, after: number | null): PriceChange {
+  if (before === null || after === null) return { kind: 'unknown' };
+  if (before === after) return { kind: 'same', before, after };
+  return { kind: after > before ? 'up' : 'down', before, after, delta: Math.abs(after - before) };
+}
+
+/** Whether a migration may still be reverted at `now`: executed, and inside its window. */
+export function migrationRevertCheck(
+  m: { status: 'draft' | 'executed' | 'reverted'; revertUntil: Date | null },
+  now: Date,
+): { ok: true } | { ok: false; code: string } {
+  if (m.status !== 'executed')
+    return { ok: false, code: 'scheduling.migration.errors.notExecuted' };
+  if (!m.revertUntil || now > m.revertUntil) {
+    return { ok: false, code: 'scheduling.migration.errors.revertClosed' };
+  }
+  return { ok: true };
+}

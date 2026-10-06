@@ -186,6 +186,20 @@ export const PolicyRules = z
       .object({ children_per_staff: int(1, 30) })
       .partial()
       .strict(),
+    migration: z
+      .object({ revert_hours: int(1, 168) })
+      .partial()
+      .strict(),
+    copilot: z.object({ enabled: z.boolean() }).partial().strict(),
+    digest: z
+      .object({
+        enabled: z.boolean(),
+        high_occupancy_pct: int(50, 100),
+        low_occupancy_pct: int(0, 80),
+        debt_attention_days: int(7, 365),
+      })
+      .partial()
+      .strict(),
     comms: z
       .object({
         quiet_hours_start: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -389,6 +403,14 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
   },
   transport: { stale_after_min: 30, short_water_warn_min: 5 },
   camp: { children_per_staff: 8 },
+  migration: { revert_hours: 24 },
+  copilot: { enabled: false },
+  digest: {
+    enabled: true,
+    high_occupancy_pct: 90,
+    low_occupancy_pct: 40,
+    debt_attention_days: 60,
+  },
   comms: {
     quiet_hours_start: '21:30',
     quiet_hours_end: '08:00',

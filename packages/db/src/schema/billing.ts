@@ -24,6 +24,7 @@ import {
   DUNNING_STATUSES,
   FISCAL_DOCUMENT_KINDS,
   FISCAL_DOCUMENT_STATUSES,
+  CHURN_REASONS,
   FREEZE_REASONS,
   FREEZE_STATUSES,
   LEDGER_ENTRY_TYPES,
@@ -193,7 +194,9 @@ export const portalRequests = pgTable(
     ),
     check(
       'portal_requests_reason_check',
-      sql.raw(`reason is null or reason in (${inList(FREEZE_REASONS)})`),
+      sql.raw(
+        `reason is null or reason in (${inList([...new Set([...FREEZE_REASONS, ...CHURN_REASONS])])})`,
+      ),
     ),
   ],
 );
@@ -207,6 +210,8 @@ export const cancellationRequests = pgTable(
     enrollmentId: uuid('enrollment_id').notNull(),
     requestedAt: timestamp('requested_at', { withTimezone: true }).notNull(),
     lastChargedPeriod: text('last_charged_period').notNull(),
+    /** Why the family leaves (reports' churn); older rows have none. */
+    reason: text('reason'),
     /** The seat's exclusive end the decision set. */
     endsOn: date('ends_on').notNull(),
     explanation: jsonb('explanation').notNull(),
@@ -229,6 +234,10 @@ export const cancellationRequests = pgTable(
       .on(t.enrollmentId)
       .where(sql`status = 'active'`),
     check('cancellation_requests_period_check', sql.raw(`last_charged_period ~ ${PERIOD}`)),
+    check(
+      'cancellation_requests_reason_check',
+      sql.raw(`reason is null or reason in (${inList(CHURN_REASONS)})`),
+    ),
     check(
       'cancellation_requests_status_check',
       sql.raw(`status in (${inList(CANCELLATION_STATUSES)})`),

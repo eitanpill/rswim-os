@@ -29,11 +29,13 @@ import {
   schedulingSubstituteWaves,
 } from './scheduling';
 import { institutionsPrintInvoice, institutionsPrintReceipt } from './institutions';
+import { reportsWeeklyDigest } from './reports';
 import { transportPlanRuns } from './transport';
 
 export const functions = [
   outboxRelay,
   transportPlanRuns,
+  reportsWeeklyDigest,
   institutionsPrintInvoice,
   institutionsPrintReceipt,
   corePing,

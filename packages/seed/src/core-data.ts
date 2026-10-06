@@ -40,6 +40,9 @@ export async function seedCoreData(
         { weekday: 1, startsAt: '16:00', endsAt: '19:00', gender: 'female', lanes: [1, 2, 3, 4] },
         { weekday: 3, startsAt: '16:00', endsAt: '19:00', gender: 'male', lanes: [1, 2, 3, 4] },
         { weekday: 0, startsAt: '15:00', endsAt: '18:00', gender: 'mixed', lanes: [3, 4] },
+        // Mixed afternoons where the Gush Etzion groups can move if that pool closes (Phase 9 migration demo).
+        { weekday: 2, startsAt: '15:30', endsAt: '19:30', gender: 'mixed', lanes: [1, 2, 3, 4] },
+        { weekday: 4, startsAt: '15:30', endsAt: '19:30', gender: 'mixed', lanes: [1, 2, 3, 4] },
       ],
     },
     {
@@ -96,6 +99,12 @@ export async function seedCoreData(
     `insert into venue_contracts (organization_id, venue_id, kind, rent_model, amount_agorot, starts_on, ends_on, renewal_on)
      values ($1, $2, 'rent', 'per_lane_hour', 9000, '2026-09-01', '2027-08-31', '2027-06-01')`,
     [orgId, jerusalem],
+  );
+  // The council runs the Gush Etzion pool on a fixed monthly fee, and the contract ends at the end of the year.
+  await client.query(
+    `insert into venue_contracts (organization_id, venue_id, kind, rent_model, amount_agorot, starts_on, ends_on, notes)
+     values ($1, $2, 'rent', 'fixed_monthly', 450000, '2026-09-01', '2026-12-31', 'המועצה סוגרת את הבריכה לשיפוץ (דמו)')`,
+    [orgId, gush],
   );
   await client.query(
     `insert into venue_closures (organization_id, venue_id, starts_on, ends_on, source, reason)
@@ -244,9 +253,10 @@ export async function seedCoreData(
   await priceList('טיוטת מחירון קיץ', null, '2027-07-01', [['kids-group', 'monthly', 360]], false);
 
   // ─── Policy: the documented defaults from the start of the season, plus one venue override ──
+  // The demo turns the owner's copilot on (it still needs RSWIM_COPILOT_FAKE=1 or ANTHROPIC_API_KEY to run).
   await client.query(
     `insert into policy_sets (organization_id, scope_type, effective_from, rules, notes) values ($1, 'org', $2, $3, 'ברירות מחדל (דמו)')`,
-    [orgId, SEASON_START, JSON.stringify(DEFAULT_ORG_RULES)],
+    [orgId, SEASON_START, JSON.stringify({ ...DEFAULT_ORG_RULES, copilot: { enabled: true } })],
   );
   await client.query(
     `insert into policy_sets (organization_id, scope_type, venue_id, effective_from, rules, notes)

@@ -72,10 +72,10 @@ export function processRequests(studentId: string) {
 }
 
 /**
- * Turns the escort's taps into family messages (the worker's `comms-automation` step for transport events not yet
- * handled). Returns how many messages were queued.
+ * Turns events of one type into family messages (the worker's `comms-automation` step for those not yet handled),
+ * e.g. the escort's taps or a venue move. Returns how many messages were queued.
  */
-export function runTransportAutomations(eventType: string) {
+export function runAutomations(eventType: string) {
   return asWorker(async (tx, orgId, client) => {
     // The outbox is platform plumbing (the relay reads it as the owner); the automation itself runs as the worker.
     await client.query('reset role');

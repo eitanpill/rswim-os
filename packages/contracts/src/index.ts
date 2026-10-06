@@ -12,3 +12,4 @@ export * from './comms';
 export * from './payroll';
 export * from './transport';
 export * from './institutions';
+export * from './copilot';

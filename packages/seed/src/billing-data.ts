@@ -7,6 +7,7 @@
  *   families with no standing order, and a sharp change in a family's total.
  * - A Ministry of Defense reimbursement profile on the family with private lessons (with an ID number when the
  *   master key is set), and a freeze waiting for approval.
+ * - Phase 9: three children leaving at the end of October, each with its reason (the churn report).
  * - Phase 7: invoice-receipts for September's payments from the fake invoicing provider (stored as provider 'fake').
  */
 import { randomUUID } from 'node:crypto';
@@ -19,6 +20,7 @@ import {
   issueReceipts,
   postRun,
   recordManualPayment,
+  requestCancellation,
   requestFreeze,
   runTotalsByHousehold,
   saveBillingDetails,
@@ -36,6 +38,7 @@ export interface BillingDataSummary {
   failedCharges: number;
   septemberPosted: number;
   octoberFlags: number;
+  leaving: number;
 }
 
 export async function seedBillingData(
@@ -59,6 +62,7 @@ export async function seedBillingData(
     failedCharges: 0,
     septemberPosted: 0,
     octoberFlags: 0,
+    leaving: 0,
   };
 
   // Families with a group seat (most children per family first), and one family with no seat at all.
@@ -226,6 +230,28 @@ export async function seedBillingData(
   // ─── October: drafted, waiting for review ───────────────────────────────────
   const oct = await draftRun(tx, ctx, '2026-10');
   summary.octoberFlags = oct.anomalies.length;
+
+  // ─── Leaving after October, with their reasons (Jerusalem groups, families at the end of the list) ──
+  const leaving = await rows<{ id: string }>(
+    `select distinct on (s.household_id) e.id from enrollments e
+     join students s on s.id = e.student_id
+     join class_templates t on t.id = e.class_template_id
+     join venues v on v.id = t.venue_id
+     where e.organization_id = $1 and e.status = 'active' and t.cohort_id is null and v.name like '%ירושלים%'
+       and s.household_id = any($2::uuid[])
+     order by s.household_id, e.created_at`,
+    [orgId, seated.slice(-9, -3).map((f) => f.household_id)],
+  );
+  const reasons = ['cold_water', 'schedule', 'cost'] as const;
+  for (const [i, seat] of leaving.slice(0, 3).entries()) {
+    await requestCancellation(tx, ctx, {
+      enrollmentId: seat.id,
+      requestedAt: '2026-10-06T10:00',
+      reason: reasons[i % reasons.length] as (typeof reasons)[number],
+      note: 'דמו',
+    });
+    summary.leaving++;
+  }
   await client.query('reset role');
   return summary;
 }

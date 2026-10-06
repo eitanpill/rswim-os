@@ -170,8 +170,22 @@
         "title": "After-school transport",
         "hint": "Routes, today's runs and time in the water"
       },
-      "cohorts": "Courses & camps",
-      "institutions": "Institutions"
+      "cohorts": {
+        "title": "Courses & camps",
+        "hint": "Runs, registration, staff and ratios"
+      },
+      "institutions": {
+        "title": "Institutions",
+        "hint": "School and council contracts, attendance reports and invoices"
+      },
+      "reports": {
+        "title": "Reports",
+        "hint": "Revenue, venue margins, occupancy, churn, funnel and the weekly digest"
+      },
+      "copilot": {
+        "title": "AI copilot",
+        "hint": "Ask in plain words, get proposals, confirm before anything happens"
+      }
     }
   },
   "instructor": {
@@ -482,7 +496,8 @@
       "freezeOutcome": "The freeze is {status}",
       "leaveOutcome": "Last month charged: {period}. Last lesson before {date}",
       "refused": "Not approved: {reason}",
-      "leaving": "Leaving the group"
+      "leaving": "Leaving the group",
+      "leaveReason": "Why are you leaving?"
     },
     "requests": {
       "errors": {
@@ -956,7 +971,9 @@
       "transport_left_school": "Left the school",
       "transport_arrived_pool": "Arrived at the pool",
       "transport_left_pool": "Left the pool",
-      "transport_dropped_off": "Dropped off"
+      "transport_dropped_off": "Dropped off",
+      "venue_migration": "Venue move",
+      "venue_migration_reverted": "Venue move cancelled"
     },
     "messageStatus": {
       "queued": "Queued",
@@ -1112,6 +1129,36 @@
       "cheque": "Cheque",
       "cash": "Cash",
       "other": "Other"
+    },
+    "churnReason": {
+      "cold_water": "Cold water",
+      "schedule": "Schedule conflict",
+      "fear": "Fear",
+      "moving": "Moving away",
+      "cost": "Price",
+      "level_done": "Finished the level",
+      "other": "Other"
+    },
+    "migrationStatus": {
+      "draft": "Draft",
+      "executed": "Done",
+      "reverted": "Reverted"
+    },
+    "migrationMode": {
+      "relocate": "The group moves as it is",
+      "merge": "Join an existing group"
+    },
+    "migrationLead": {
+      "keep": "Same instructor",
+      "other": "Another instructor",
+      "none": "No instructor for now"
+    },
+    "copilotActionStatus": {
+      "proposed": "Waiting for you",
+      "confirmed": "Done",
+      "failed": "Not done",
+      "dismissed": "Dismissed",
+      "undone": "Undone"
     }
   },
   "venues": {
@@ -1195,7 +1242,8 @@
       "datesReversed": "End date is before the start",
       "noLanes": "Pick at least one lane",
       "laneOverlap": "{lanes, plural, one {A lane is} other {# lanes are}} already used by another window at that time"
-    }
+    },
+    "migrations": "Venue moves"
   },
   "programs": {
     "title": "Programs & levels",
@@ -1578,7 +1626,10 @@
       "comms": "Communications",
       "scheduling": "Scheduling",
       "transport": "Transport",
-      "camp": "Camps"
+      "camp": "Camps",
+      "migration": "Venue moves",
+      "copilot": "AI copilot",
+      "digest": "Weekly digest"
     },
     "fields": {
       "billing": {
@@ -1702,6 +1753,18 @@
       },
       "camp": {
         "children_per_staff": "Most children per staff member"
+      },
+      "migration": {
+        "revert_hours": "A venue move can be reverted for (hours)"
+      },
+      "copilot": {
+        "enabled": "Owner AI copilot on"
+      },
+      "digest": {
+        "enabled": "Weekly digest on",
+        "high_occupancy_pct": "High occupancy (%) to suggest a price raise",
+        "low_occupancy_pct": "Low occupancy (%) to flag a group",
+        "debt_attention_days": "Old debt after (days)"
       }
     },
     "options": {
@@ -2063,6 +2126,41 @@
       "hasMembers": "Children are registered; the groups can no longer change",
       "alreadyRegistered": "Already registered",
       "notRegistered": "Not registered in this cohort"
+    },
+    "migration": {
+      "why": {
+        "sameProgram": "Same program",
+        "sameSlot": "Same day and time",
+        "sameDay": "Same day, {minutes} minutes apart",
+        "otherDay": "On {day}",
+        "ageOverlap": "Ages fit",
+        "ageApart": "Different ages",
+        "levelOverlap": "Level fits",
+        "room": "{free} free places, {needed} needed",
+        "noRoom": "Only {free} free places, {needed} needed"
+      },
+      "unmapped": "Not decided where this group goes yet",
+      "targetGone": "The target group no longer exists",
+      "noRoom": "The target group has {free} free places and {needed} are needed",
+      "frozen": "Frozen",
+      "trialBooked": "Booked a trial in this group",
+      "leaving": "Already leaving the group",
+      "bookedLessons": "{count} lessons from the date have makeups, trials or attendance. Move them first",
+      "noLeadYet": "The group has no instructor at the new venue yet; the shift waits for staffing",
+      "errors": {
+        "leadMissing": "Pick the new instructor",
+        "targetMissing": "Pick where the group goes",
+        "notDraft": "This move was already done and can't be changed",
+        "pastDate": "The move date must be today or later",
+        "draftExists": "There is already a draft move for this venue",
+        "notSource": "The group isn't at the closing venue",
+        "badTarget": "That target doesn't fit: pick another venue or an active group",
+        "noLanes": "No free lanes at that pool and time",
+        "notReady": "The move still has open issues. Fix them and try again",
+        "billed": "Places in the new groups were already charged, so this can't be reverted",
+        "notExecuted": "The move hasn't been done yet",
+        "revertClosed": "The revert window has closed"
+      }
     }
   },
   "attendance": {
@@ -2535,7 +2633,8 @@
       "requestCancel": "Record cancellation",
       "withdraw": "Withdraw cancellation",
       "cancelInfo": "Last charge: {last}. Seat ends on {ends}",
-      "freezeInfo": "{from} to {to} · {status}"
+      "freezeInfo": "{from} to {to} · {status}",
+      "churnReason": "Why they leave"
     },
     "profiles": {
       "title": "Reimbursement profiles",
@@ -2659,7 +2758,9 @@
       "transport_left_school": "The ride left the school",
       "transport_arrived_pool": "The ride arrived at the pool",
       "transport_left_pool": "The ride left the pool",
-      "transport_rider_dropped": "A child got off at their point"
+      "transport_rider_dropped": "A child got off at their point",
+      "scheduling_venue_migrated": "Venue move done",
+      "scheduling_venue_migration_reverted": "Venue move reverted"
     },
     "decision": {
       "send": "Sent now",
@@ -3042,6 +3143,256 @@
       "per_child_month": "{count} children × {rate} = {amount}",
       "per_session": "{count} lessons held × {rate} = {amount} (cancelled: {cancelled})",
       "fixed_month": "Fixed monthly sum: {amount}"
+    }
+  },
+  "migrations": {
+    "saved": "Saved",
+    "executed": "Move done; families are being messaged",
+    "reverted": "The move was reverted. Everything is back as it was",
+    "title": "Venue moves",
+    "hint": "When a pool closes: choose where each group goes, preview everything with a personal message per family, then execute. You can revert within the window.",
+    "empty": "No venue moves yet",
+    "line": "{venue} · from {date} · {groups, plural, one {one group} other {# groups}}",
+    "new": "New move",
+    "form": {
+      "source": "Closing venue",
+      "effectiveOn": "From date",
+      "effectiveOnHint": "Lessons from this date move",
+      "reason": "Reason (optional)",
+      "create": "Open the move wizard"
+    },
+    "wizardTitle": "Moving out of {venue}",
+    "wizardLine": "From {date} · {groups, plural, one {one group} other {# groups}}",
+    "done": {
+      "title": "Move done",
+      "line": "{children, plural, one {One child} other {# children}} in {groups, plural, one {one group} other {# groups}} moved",
+      "revertUntil": "Can be reverted until {at}",
+      "revertConfirm": "Revert the move? Groups, places and lessons go back as they were and families are told",
+      "revert": "Revert the move",
+      "final": "The revert window has closed. The move is final",
+      "messages": "See sent messages"
+    },
+    "quick": {
+      "title": "All groups to one venue",
+      "venue": "Target venue",
+      "hint": "Each group moves as it is, same day and time, into free lanes",
+      "button": "Move all groups"
+    },
+    "messages": {
+      "title": "Messages to families ({n})",
+      "none": "Messages show up once you choose where groups go",
+      "to": "To {guardian}, about {child}",
+      "noGuardian": "No guardian with a phone",
+      "missing": "Missing details for the message: {vars}"
+    },
+    "execute": {
+      "title": "Execute",
+      "ready": "All set. After executing, families get a message and you can revert for {hours} hours",
+      "confirm": "Execute the move and message every family?",
+      "button": "Execute the move",
+      "noGroups": "This venue has no active groups",
+      "blocked": "{n, plural, one {One open issue} other {# open issues}}. Fix before executing",
+      "deleteConfirm": "Delete the draft?",
+      "delete": "Delete draft"
+    },
+    "group": {
+      "unmapped": "Not set",
+      "source": "Now: {slot} · instructor: {lead} · {children} children",
+      "relocateTo": "Moves to {venue}, {pool}, lane {lanes} · {slot} · instructor: {lead}",
+      "mergeInto": "Joins {group} at {venue} · {slot} · instructor: {lead}",
+      "noLead": "not set yet",
+      "relocate": "The group moves as it is",
+      "targetPool": "Pool",
+      "startsAt": "Start time",
+      "lead": "Instructor",
+      "newLead": "New instructor",
+      "newLeadHint": "Only if you chose another instructor",
+      "save": "Save",
+      "merge": "Or: the children join an existing group",
+      "noSuggestions": "No matching groups at other venues",
+      "suggestions": "Matching groups",
+      "suggestion": "{group} · {venue} · {slot} · {seated}/{capacity}",
+      "clear": "Clear the choice"
+    },
+    "price": {
+      "unknown": "No price list for the new venue",
+      "same": "Price stays the same ({amount} a month)",
+      "up": "Price goes up from {before} to {after} a month",
+      "down": "Price goes down from {before} to {after} a month"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Charged and collected, by month, venue and program",
+    "tabs": {
+      "label": "Reports",
+      "revenue": "Revenue",
+      "venues": "Venue margins",
+      "occupancy": "Occupancy",
+      "churn": "Churn",
+      "funnel": "Funnel",
+      "instructors": "Instructors",
+      "digest": "Weekly digest"
+    },
+    "from": "From month",
+    "to": "To month",
+    "show": "Show",
+    "csv": "Export CSV (Excel)",
+    "range": "{from} to {to}",
+    "empty": "No data in this range",
+    "month": "Month",
+    "venue": "Venue",
+    "program": "Program",
+    "group": "Group",
+    "total": "Total",
+    "noVenue": "No venue (manual charge)",
+    "revenue": {
+      "months": "By month",
+      "byVenue": "Charges by venue and program",
+      "charged": "Charged",
+      "collected": "Collected",
+      "institutions": "Institution invoices",
+      "institutionsPaid": "Collected from institutions",
+      "note": "A charge belongs to the venue where the group's lessons ran that month. Collected = successful payments less refunds."
+    },
+    "venues": {
+      "subtitle": "Revenue against rent and instructor pay, per venue and month",
+      "margin": "Margin in range: {amount}",
+      "revenue": "Revenue",
+      "rent": "Rent",
+      "staff": "Instructor pay",
+      "marginCol": "Margin",
+      "utilization": "Seat use",
+      "rentUnknown": "Unknown (revenue share)",
+      "seats": "{held}/{capacity} ({pct})",
+      "familyRevenue": "Family revenue",
+      "institutionRevenue": "Institution revenue",
+      "held": "Seats held",
+      "capacity": "Seats",
+      "note": "Rent per the contract: a fixed month, or a rate times the hours (or lane-hours) lessons ran. Instructor pay from the payroll lines of lessons at the venue."
+    },
+    "occupancy": {
+      "subtitle": "Seats held out of capacity, by venue, day and hour",
+      "date": "As of",
+      "cell": "{held} of {capacity} seats in {groups} groups",
+      "groups": "The groups",
+      "slot": "Day and time",
+      "seats": "Seats",
+      "day": "Day",
+      "time": "Time",
+      "legend": "Green: {high}% and up. Yellow: under {low}%. The marks are set in the policy (weekly digest)."
+    },
+    "churn": {
+      "subtitle": "Places that ended each month, by the reason the family gave",
+      "byReason": "By reason ({n})",
+      "none": "No place ended in this range",
+      "places": "Who is leaving",
+      "child": "Child",
+      "lastDay": "Last day",
+      "reason": "Reason",
+      "unknown": "No reason recorded",
+      "note": "Moving to another group and a course ending don't count as churn."
+    },
+    "funnel": {
+      "subtitle": "New families, trial booked, trial held, enrolled",
+      "bySource": "By source",
+      "byBranch": "By branch",
+      "families": "New families",
+      "trialBooked": "Booked a trial",
+      "trialHeld": "Came to the trial",
+      "enrolled": "Enrolled",
+      "conversion": "Conversion",
+      "trialConversion": "After-trial conversion",
+      "medianDays": "Days to enroll (median)",
+      "noBranch": "No branch yet",
+      "source": {
+        "ghl": "LeadYourWay",
+        "office": "Office"
+      },
+      "note": "LeadYourWay = a family that came from the GHL contacts. Branch = the venue of the first trial, or of the first group."
+    },
+    "instructors": {
+      "subtitle": "Lessons taught, lessons a substitute took, children kept after three months",
+      "name": "Instructor",
+      "taught": "Lessons taught",
+      "substituted": "Substituted",
+      "covered": "Covered for others",
+      "retention": "Kept after 3 months",
+      "kept": "{pct} ({kept} of {of})",
+      "note": "Retention: of the children who started in the instructor's groups at least three months ago."
+    },
+    "digest": {
+      "subtitle": "Every Sunday at 07:00: what happened, what needs attention, and suggestions",
+      "build": "Build this week's digest now",
+      "built": "Digest built",
+      "empty": "No digests yet",
+      "week": "Week starting {date}",
+      "anyDay": "any day",
+      "anyVenue": "any venue",
+      "sections": {
+        "happened": "What happened",
+        "attention": "Needs attention",
+        "suggestion": "Suggestions"
+      },
+      "items": {
+        "places": "{started} new places, {ended} ended",
+        "trials": "{held} trials held, {enrolled} enrolled",
+        "collected": "{amount} collected",
+        "cancelled": "{count} lessons cancelled",
+        "venueLoss": "{venue} lost {amount} in {period}",
+        "oldDebts": "{count} families owe for over {days} days, {amount} in all (largest: {top})",
+        "lowGroup": "{group} at {venue} is only {pct}% full",
+        "raisePrice": "{group} at {venue} is {pct}% full. Consider a higher price or another group",
+        "openGroup": "{count} waiting for {program} ({venue}, {day}). Consider opening a group",
+        "allClear": "Nothing urgent this week"
+      }
+    }
+  },
+  "copilot": {
+    "title": "AI copilot",
+    "subtitle": "Ask in plain words. The copilot checks and proposes; nothing happens without your confirmation.",
+    "prompt": "What should I do?",
+    "promptHint": "E.g. \"Move Yoav to the Tuesday group\", \"Who owes us?\", \"Message Noa's parents: ...\"",
+    "ask": "Send",
+    "empty": "You haven't asked anything yet",
+    "trace": "What was checked ({n})",
+    "confirm": "Confirm and run",
+    "dismiss": "Not now",
+    "undo": "Undo the move",
+    "undoConfirm": "Move the child back to the previous group?",
+    "confirmed": "Done",
+    "undone": "Move undone",
+    "note": "The copilot only reads and proposes. Every action passes the same rules as the screens and is logged.",
+    "tools": {
+      "find_students": "Find children",
+      "find_groups": "Find groups",
+      "find_staff": "Find instructors",
+      "debts": "Debts",
+      "lessons_on": "Lessons on a day",
+      "closures": "Closures",
+      "propose_move_student": "Propose a group move",
+      "propose_message_family": "Propose a family message",
+      "propose_open_makeup_slots": "Propose makeup slots"
+    },
+    "summary": {
+      "move": "Move {student} from {from} to {to}, from {date}",
+      "add": "Place {student} in {to}, from {date}",
+      "message": "Message the {family} family: \"{text}\"",
+      "slots": "Open makeup slots with {staff} at {venue}, {date} {from}-{to} ({capacity} children)"
+    },
+    "errors": {
+      "ownerOnly": "The copilot is for the owner only",
+      "disabled": "The copilot is off. Turn it on in the policy (AI copilot)",
+      "noModel": "The copilot has no model yet. The server needs ANTHROPIC_API_KEY",
+      "badProposal": "The proposal is not valid",
+      "unknownTool": "Unknown tool",
+      "toolFailed": "The check failed",
+      "alreadyDecided": "You already decided on this proposal",
+      "notConfirmed": "Only a done action can be undone",
+      "notUndoable": "This action can't be undone",
+      "prompt": "Write up to 2,000 characters",
+      "modelFailed": "The copilot couldn't answer. Try again",
+      "incomplete": "The copilot didn't finish. Try a shorter request"
     }
   }
 }

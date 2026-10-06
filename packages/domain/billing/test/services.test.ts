@@ -315,6 +315,7 @@ describe('freezes and the cancellation cut-off', () => {
       requestCancellation(tx, ctx, {
         enrollmentId: seats.b1 as string,
         requestedAt: '2026-09-26T10:00',
+        reason: 'schedule',
       }),
     );
     expect(decision).toMatchObject({
@@ -326,7 +327,9 @@ describe('freezes and the cancellation cut-off', () => {
     expect(e).toEqual({ status: 'cancel_requested', ends_on: '2026-11-01' });
     expect(
       await codeOf(
-        owner((tx) => requestCancellation(tx, ctx, { enrollmentId: seats.b1 as string })),
+        owner((tx) =>
+          requestCancellation(tx, ctx, { enrollmentId: seats.b1 as string, reason: 'cost' }),
+        ),
       ),
     ).toBe('billing.errors.notCancellable');
     await owner((tx) => withdrawCancellation(tx, ctx, cancellationId));
@@ -336,6 +339,7 @@ describe('freezes and the cancellation cut-off', () => {
       requestCancellation(tx, ctx, {
         enrollmentId: seats.b1 as string,
         requestedAt: '2026-09-25T23:30',
+        reason: 'other',
       }),
     );
     expect(early.lastChargedPeriod).toBe('2026-09');

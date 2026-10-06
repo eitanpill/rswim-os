@@ -28,6 +28,8 @@ export const TEMPLATE_KEYS = [
   'transport_arrived_pool',
   'transport_left_pool',
   'transport_dropped_off',
+  'venue_migration',
+  'venue_migration_reverted',
   'free_text',
 ] as const;
 export const TemplateKey = z.enum(TEMPLATE_KEYS);

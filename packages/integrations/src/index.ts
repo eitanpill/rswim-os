@@ -120,3 +120,4 @@ export * from './ghl';
 export * from './grow';
 export * from './fakes';
 export * from './messaging';
+export * from './copilot';

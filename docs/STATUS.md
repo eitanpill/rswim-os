@@ -11,7 +11,23 @@
 | 6 Staff ops and payroll | **Done**, merged (PR #7) | Both acceptance criteria pass (see below) |
 | 7 Parent portal | **Done**, merged (PR #8) | The acceptance criterion passes (see below) |
 | 8 Transport, courses & camps, institutions | **Done**, merged (PR #9) | The acceptance criterion passes (see below) |
-| 9–10 | Not started | |
+| 9 Reports, venue migration, copilot | **Done**, merged (PR #10) | The acceptance criterion passes (see below) |
+| 10 | Not started | |
+
+## Phase 9 acceptance criteria
+
+| Criterion | Proof | Result |
+|---|---|---|
+| Migrating all groups from a closing venue to another produces a preview, personalized messages, and is reversible within 24h | `apps/web/e2e/migration.spec.ts`: the owner opens the wizard for the demo Gush Etzion pool, moves every group to the Jerusalem country club (one with no lead instructor for now), reads the per-child rule checks, the price line and one personal message per child, executes (every group is in Jerusalem, the worker's automation queues the families' messages), then reverts inside `migration.revert_hours` (24): the groups are back in Gush Etzion and the same number of "the change was cancelled" messages is queued. Service level: `packages/seed/test/migration.test.ts` (relocate and merge, a target without room is flagged, a new instructor through a shift change, the revert refused after the window, instructors kept away) | Pass |
+
+Also: reports (revenue, venue profitability with rent and instructor cost, occupancy heatmap, churn by a now
+required reason, trial funnel by source and branch, instructor KPIs) with CSV export
+(`packages/seed/test/reports.test.ts`, `apps/web/e2e/reports.spec.ts`); the weekly digest built every Sunday at 07:00
+by the worker; the owner copilot (Claude or the rules-based stand-in) that only proposes and runs confirmed actions
+through the ordinary services, with undo for moves (`packages/seed/test/copilot.test.ts`,
+`apps/web/e2e/copilot.spec.ts`); and the policies screen showing every section.
+
+Totals on 2026-10-06: 637 unit/integration tests + 39 browser tests, all green. `lint`, `typecheck`, `format:check` clean.
 
 ## Phase 8 acceptance criteria
 

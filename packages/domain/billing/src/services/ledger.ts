@@ -221,3 +221,18 @@ export async function householdStatement(tx: Tx, householdId: string, period: st
     closing: opening + entries.reduce((s, e) => s + e.amountAgorot, 0),
   };
 }
+
+/** Which of these places the ledger has charged (a venue migration may not be reverted over them). */
+export async function chargedPlaces(tx: Tx, enrollmentIds: readonly string[]): Promise<string[]> {
+  if (enrollmentIds.length === 0) return [];
+  const rows = await tx
+    .selectDistinct({ id: ledgerEntries.enrollmentId })
+    .from(ledgerEntries)
+    .where(
+      and(
+        inArray(ledgerEntries.enrollmentId, [...enrollmentIds]),
+        eq(ledgerEntries.type, 'charge'),
+      ),
+    );
+  return rows.flatMap((r) => (r.id ? [r.id] : []));
+}

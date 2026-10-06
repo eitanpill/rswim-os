@@ -115,7 +115,9 @@ describe('demo seed', () => {
     ).toEqual([
       { weekday: 0, gender_restriction: 'mixed' },
       { weekday: 1, gender_restriction: 'female' },
+      { weekday: 2, gender_restriction: 'mixed' },
       { weekday: 3, gender_restriction: 'male' },
+      { weekday: 4, gender_restriction: 'mixed' },
     ]);
     expect(
       await rows(
@@ -222,7 +224,7 @@ describe('demo seed', () => {
     process.env.RSWIM_MASTER_KEY = masterKey.toString('base64');
     try {
       const summary = await seedDemo(t.pool, { masterKey });
-      expect(summary.billing).toMatchObject({ failedCharges: 1 });
+      expect(summary.billing).toMatchObject({ failedCharges: 1, leaving: 3 });
       expect(summary.billing?.payments).toBeGreaterThan(5);
       expect(summary.billing?.receipts).toBeGreaterThan(0);
     } finally {
