@@ -177,6 +177,9 @@ importers:
       '@rswim/domain-crm':
         specifier: workspace:*
         version: link:../../packages/domain/crm
+      '@rswim/domain-institutions':
+        specifier: workspace:*
+        version: link:../../packages/domain/institutions
       '@rswim/domain-scheduling':
         specifier: workspace:*
         version: link:../../packages/domain/scheduling

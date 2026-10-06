@@ -18,6 +18,7 @@
     "@rswim/domain-comms": "workspace:*",
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-crm": "workspace:*",
+    "@rswim/domain-institutions": "workspace:*",
     "@rswim/domain-scheduling": "workspace:*",
     "@rswim/domain-transport": "workspace:*",
     "@rswim/integrations": "workspace:*",
