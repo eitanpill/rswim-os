@@ -80,7 +80,8 @@ export type BoardGroup = Awaited<ReturnType<typeof boardData>>['groups'][number]
 /**
  * Everything the board shows for a venue: its active groups with lanes, window, instructor, fill, members (with the
  * facts the badges need), and whether a shift change is waiting. Members are the seats held on `onDate`, including
- * children whose place starts later.
+ * children whose place starts later. Course and camp groups are left out: they belong to a cohort and are run from
+ * its page.
  */
 export async function boardData(tx: Tx, venueId: string, onDate: string) {
   const groups = await groupsWithLanes(
@@ -88,6 +89,7 @@ export async function boardData(tx: Tx, venueId: string, onDate: string) {
     and(
       eq(classTemplates.venueId, venueId),
       eq(classTemplates.status, 'active'),
+      isNull(classTemplates.cohortId),
       or(isNull(classTemplates.effectiveTo), gt(classTemplates.effectiveTo, onDate)),
     ),
   );

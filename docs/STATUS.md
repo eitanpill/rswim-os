@@ -10,7 +10,23 @@
 | 5 Communications hub | **Done**, merged (PR #6) | All three acceptance criteria pass |
 | 6 Staff ops and payroll | **Done**, merged (PR #7) | Both acceptance criteria pass (see below) |
 | 7 Parent portal | **Done**, merged (PR #8) | The acceptance criterion passes (see below) |
-| 8–10 | Not started | |
+| 8 Transport, courses & camps, institutions | **Done** | The acceptance criterion passes (see below) |
+| 9–10 | Not started | |
+
+## Phase 8 acceptance criteria
+
+| Criterion | Proof | Result |
+|---|---|---|
+| Parents receive "arrived at the pool" automatically when the escort taps check-in | `apps/web/e2e/transport.spec.ts` on a Pixel 7 viewport: the owner opens today's run of the demo route if today is not its day, the escort persona marks יואב on board and taps "יצאנו מבית הספר" and "הגענו לבריכה", the worker's automation step queues exactly one message (template `transport_arrived_pool`) to his mother, the office sees it in the message log and the parent's child card shows the stage. Service level: `packages/domain/comms/test/transport.test.ts` (only children on board are messaged, a stale tap messages nobody, the database refuses backdating and another escort's or another day's run, a family sees only its own child) | Pass |
+
+Also: in-water time per run against the lesson and a monthly report; intensive courses and camp weeks as cohorts
+with their own regulations, capacity, closing date and a camp staff ratio, billed once per cohort, with a printable
+roster; institutions with contracts, monthly invoices from the roster (per child, per lesson held or fixed),
+printed tax invoices and receipts (fake provider), partial payments and overdue tracking, an attendance report, and
+families not billed for institution-paid groups (`packages/domain/billing/test/institutions.test.ts`,
+`apps/web/e2e/courses.spec.ts`).
+
+Totals on 2026-10-06: 575 unit/integration tests + 34 browser tests, all green. `lint`, `typecheck`, `format:check` clean.
 
 ## Phase 7 acceptance criteria
 
