@@ -30,12 +30,24 @@ import {
 } from './scheduling';
 import { institutionsPrintInvoice, institutionsPrintReceipt } from './institutions';
 import { reportsWeeklyDigest } from './reports';
+import {
+  platformBillSchool,
+  platformCheckDomain,
+  platformDaily,
+  platformMonthlyBilling,
+  platformSchoolCreated,
+} from './platform';
 import { transportPlanRuns } from './transport';
 
 export const functions = [
   outboxRelay,
   transportPlanRuns,
   reportsWeeklyDigest,
+  platformSchoolCreated,
+  platformCheckDomain,
+  platformBillSchool,
+  platformMonthlyBilling,
+  platformDaily,
   institutionsPrintInvoice,
   institutionsPrintReceipt,
   corePing,

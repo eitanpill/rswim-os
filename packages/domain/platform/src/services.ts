@@ -757,6 +757,7 @@ export type SchoolUpdateInput = z.input<typeof SchoolUpdateInput>;
 /** A platform admin changes a school's plan, ends its trial, suspends or reactivates it, or records its mandate. */
 export async function updateSchool(tx: Tx, raw: SchoolUpdateInput, today: string) {
   const input = SchoolUpdateInput.parse(raw);
+  await assertPlatformAdmin(tx);
   const where = eq(orgSubscriptions.organizationId, input.organizationId);
   const [sub] = await tx.select().from(orgSubscriptions).where(where);
   if (!sub) throw new DomainError('platform.errors.noSubscription');
@@ -806,6 +807,11 @@ export async function requestBilling(tx: Tx, period: string) {
   return (r as { n: number }).n;
 }
 
+async function assertPlatformAdmin(tx: Tx) {
+  const [r] = await rows<{ ok: boolean }>(tx, sql`select app.is_platform_admin() ok`);
+  if (!r?.ok) throw new DomainError('common.errors.forbidden');
+}
+
 export async function listSubmittedTemplates(tx: Tx) {
   return tx
     .select()
@@ -820,6 +826,7 @@ export async function reviewTemplate(
   id: string,
   decision: 'published' | 'rejected',
 ) {
+  await assertPlatformAdmin(tx);
   const [t] = await tx.select().from(templates).where(eq(templates.id, id));
   if (!t || t.status !== 'submitted') throw new DomainError('platform.errors.notSubmitted');
   if (decision === 'published') {

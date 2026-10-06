@@ -62,6 +62,9 @@ importers:
       '@rswim/domain-people':
         specifier: workspace:*
         version: link:../../packages/domain/people
+      '@rswim/domain-platform':
+        specifier: workspace:*
+        version: link:../../packages/domain/platform
       '@rswim/domain-reports':
         specifier: workspace:*
         version: link:../../packages/domain/reports
@@ -189,6 +192,9 @@ importers:
       '@rswim/domain-institutions':
         specifier: workspace:*
         version: link:../../packages/domain/institutions
+      '@rswim/domain-platform':
+        specifier: workspace:*
+        version: link:../../packages/domain/platform
       '@rswim/domain-reports':
         specifier: workspace:*
         version: link:../../packages/domain/reports
@@ -1222,6 +1228,9 @@ importers:
       '@rswim/domain-payroll':
         specifier: workspace:*
         version: link:../domain/payroll
+      '@rswim/domain-platform':
+        specifier: workspace:*
+        version: link:../domain/platform
       '@rswim/domain-reports':
         specifier: workspace:*
         version: link:../domain/reports
@@ -1234,6 +1243,9 @@ importers:
       '@rswim/domain-transport':
         specifier: workspace:*
         version: link:../domain/transport
+      '@rswim/domain-venues':
+        specifier: workspace:*
+        version: link:../domain/venues
       '@rswim/integrations':
         specifier: workspace:*
         version: link:../integrations

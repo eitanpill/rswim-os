@@ -24,10 +24,12 @@
     "@rswim/domain-enrollment": "workspace:*",
     "@rswim/domain-institutions": "workspace:*",
     "@rswim/domain-payroll": "workspace:*",
+    "@rswim/domain-platform": "workspace:*",
     "@rswim/domain-reports": "workspace:*",
     "@rswim/domain-scheduling": "workspace:*",
     "@rswim/domain-staff": "workspace:*",
     "@rswim/domain-transport": "workspace:*",
+    "@rswim/domain-venues": "workspace:*",
     "@rswim/integrations": "workspace:*",
     "@supabase/supabase-js": "^2.117.2",
     "pg": "^8.23.1"
