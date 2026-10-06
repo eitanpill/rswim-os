@@ -6,7 +6,7 @@ import type { z } from 'zod';
 import type { Tx } from '@rswim/db';
 import { parseShekels } from '@rswim/money';
 import { toDomainError, type ServiceContext } from '@rswim/domain-core';
-import { withSession } from './db';
+import { withSession, withSignedIn } from './db';
 import type { FormState } from './form-state';
 
 /**
@@ -36,6 +36,8 @@ export interface RunFormOptions<R> {
   success?: string | ((result: R, tr: Translate) => string);
   /** Maps a validation issue's path to the form field that shows it (default: the first path segment). */
   errorField?: (path: readonly PropertyKey[]) => string;
+  /** Who runs the handler: the user in their school (default), signed in without a school, or a platform admin. */
+  scope?: 'org' | 'user' | 'platform';
   /** Data the page shows once after success, e.g. an invite link. */
   data?: (result: R) => Record<string, string>;
 }
@@ -67,7 +69,11 @@ export async function runForm<S extends z.ZodType, R>(
 
   let result: R;
   try {
-    result = await withSession((tx, ctx) => handler(tx, ctx, parsed.data));
+    const run = (tx: Tx, ctx: ServiceContext) => handler(tx, ctx, parsed.data);
+    result =
+      opts.scope === 'user' || opts.scope === 'platform'
+        ? await withSignedIn(run, { platform: opts.scope === 'platform' })
+        : await withSession(run);
   } catch (e) {
     const de = toDomainError(e);
     if (!de) throw e;

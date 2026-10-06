@@ -89,6 +89,10 @@ begin
   insert into memberships (organization_id, user_id, role) values (org, uid, 'owner');
   insert into org_subscriptions (organization_id, plan_code, status, trial_ends_on)
     values (org, pl.code, 'trialing', (now() at time zone 'Asia/Jerusalem')::date + pl.trial_days);
+  -- The worker gives the school its encryption key.
+  insert into outbox (organization_id, event_type, payload, idempotency_key)
+    values (org, 'platform.school_created', jsonb_build_object('planCode', pl.code, 'ownerId', uid),
+            format('platform.school_created:%s', org));
   -- So the next Supabase token is issued for the new school.
   update auth.users set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
     || jsonb_build_object('active_org_id', org)

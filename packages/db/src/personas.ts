@@ -64,3 +64,22 @@ export const PERSONAS = {
 } as const satisfies Record<string, Persona>;
 
 export type PersonaKey = keyof typeof PERSONAS;
+
+/**
+ * Phase 10 demo accounts without a school role: someone about to open a new swim school (no membership yet), and
+ * the platform's own admin (sees every school in /platform).
+ */
+export const ACCOUNT_PERSONAS = {
+  newcomer: {
+    userId: '00000000-0000-4000-8000-000000000201',
+    name: 'גל (דמו, בית ספר חדש)',
+    email: 'newcomer@demo.rswim.test',
+  },
+  platform: {
+    userId: '00000000-0000-4000-8000-000000000202',
+    name: 'מנהל/ת הפלטפורמה (דמו)',
+    email: 'platform@demo.rswim.test',
+  },
+} as const;
+
+export type AccountPersonaKey = keyof typeof ACCOUNT_PERSONAS;

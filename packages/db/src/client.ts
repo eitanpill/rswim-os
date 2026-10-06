@@ -33,3 +33,11 @@ export async function asUser<T>(db: Db, claims: DbClaims, fn: (tx: Tx) => Promis
     return fn(tx);
   });
 }
+
+/** Runs `fn` with no user at all (`anon`), for the few public reads before sign-in (a domain's branding). */
+export async function asAnon<T>(db: Db, fn: (tx: Tx) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`set local role anon`);
+    return fn(tx);
+  });
+}

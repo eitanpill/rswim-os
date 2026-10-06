@@ -121,3 +121,10 @@ export * from './grow';
 export * from './fakes';
 export * from './messaging';
 export * from './copilot';
+
+// ─── DNS (Phase 10): custom domain verification ─────────────────────────────
+export interface DnsResolver {
+  /** TXT records of a name, each as its chunks; throws or returns [] when there are none. */
+  resolveTxt(name: string): Promise<string[][]>;
+}
+export * from './dns';
