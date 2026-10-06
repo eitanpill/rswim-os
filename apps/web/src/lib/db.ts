@@ -1,6 +1,6 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
-import { asUser, createDb, createPool, type Db, type Tx } from '@rswim/db';
+import { asAnon, asUser, createDb, createPool, type Db, type Tx } from '@rswim/db';
 import type { ServiceContext } from '@rswim/domain-core';
 import { getSession } from './auth/session';
 import type { Session } from './auth/types';
@@ -33,4 +33,25 @@ export async function withSession<T>(
   return asUser(db(), { sub: session.userId, org_id: orgId }, (tx) =>
     fn(tx, { orgId, userId: session.userId }, session),
   );
+}
+
+/**
+ * Runs `fn` as the signed-in user without a school claim: for opening a new school (the database function checks
+ * the caller) and for the platform console (security-definer functions check `platform_admins`).
+ */
+export async function withSignedIn<T>(
+  fn: (tx: Tx, ctx: ServiceContext, session: Session) => Promise<T>,
+  opts: { platform?: boolean } = {},
+): Promise<T> {
+  const session = await getSession();
+  if (!session) redirect('/login');
+  if (opts.platform && !session.isPlatformAdmin) redirect('/');
+  return asUser(db(), { sub: session.userId, org_id: null }, (tx) =>
+    fn(tx, { orgId: '', userId: session.userId }, session),
+  );
+}
+
+/** Runs `fn` with no user, for public reads before sign-in. */
+export async function withAnon<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
+  return asAnon(db(), fn);
 }

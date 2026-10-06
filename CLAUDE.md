@@ -71,6 +71,12 @@ WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, 
 or on a rules-based fake with `RSWIM_COPILOT_FAKE=1` (demos and E2E). Trial pipeline moves need
 `integrations.ghl.pipeline` (pipeline id + stage ids) in the org settings.
 
+SaaS (Phase 10): a signed-in user with no school lands on `/onboarding` to open one; platform admins (`platform_admins`)
+use `/platform`. Dev personas **בית ספר חדש** and **מנהל/ת פלטפורמה** cover both. The worker verifies custom domains
+by DNS TXT, or with `RSWIM_DNS_FAKE=1` accepts any `*.localhost`; it bills schools through the payment provider
+(`RSWIM_GROW_FAKE=1`). `RSWIM_PLATFORM_HOSTS` (comma-separated) lists the platform's own hosts, which schools can't claim.
+Plan limits are a database trigger; plan features gate screens through `requireFeature`.
+
 ## Database access, in one paragraph
 Signed-in requests run as `authenticated` with JWT claims (`asUser`). Background jobs for one tenant run as
 `rswim_system` with `app.org_id` set (`withOrg`, from `@rswim/db/service`): RLS still applies, so a job cannot touch

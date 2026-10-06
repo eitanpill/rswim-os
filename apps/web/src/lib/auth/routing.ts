@@ -31,6 +31,8 @@ export function surfaceForPath(pathname: string): Surface | 'platform' | null {
 export function homePath(session: Session): string {
   if (session.isPlatformAdmin && !session.role) return '/platform';
   const surface = session.role ? homeSurface(session.role) : null;
+  // Signed in with no school at all: open one (a parent without a family is told so on that page too).
+  if (!session.role) return '/onboarding';
   return surface ? SURFACE_PATHS[surface] : '/login?error=no_membership';
 }
 

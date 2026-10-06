@@ -128,6 +128,10 @@ const TENANT_TABLES = [
   'copilot_requests',
   'copilot_actions',
   'weekly_digests',
+  'org_subscriptions',
+  'platform_invoices',
+  'org_domains',
+  'template_installs',
 ] as const;
 
 describe('schema guardrails', () => {

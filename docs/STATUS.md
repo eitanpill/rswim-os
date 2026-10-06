@@ -12,7 +12,20 @@
 | 7 Parent portal | **Done**, merged (PR #8) | The acceptance criterion passes (see below) |
 | 8 Transport, courses & camps, institutions | **Done**, merged (PR #9) | The acceptance criterion passes (see below) |
 | 9 Reports, venue migration, copilot | **Done**, merged (PR #10) | The acceptance criterion passes (see below) |
-| 10 | Not started | |
+| 10 SaaS hardening | **Done** (PR #11) | The acceptance criterion passes (see below) |
+
+## Phase 10 acceptance criteria
+
+| Criterion | Proof | Result |
+|---|---|---|
+| A new swim school signs up, completes onboarding from templates, shows its own brand on its own domain, is held to its plan's limits and is billed by the platform | `apps/web/e2e/platform.spec.ts`: the newcomer persona (no school) opens "גלים (דמו)" on the starter plan with a 14-day trial, installs the marketplace's regulations, sample catalog and WhatsApp wording (the checklist ticks them), names the school "גלים" in coral and adds `galim.localhost`; the worker's domain check (fake DNS) verifies it and `galim.localhost/login` shows "גלים" in coral. The first venue is created and a second is refused with "התוכנית שלכם כוללת בריכה אחת בלבד…". The platform admin sees the school's usage, ends its trial, sets a declined standing order and runs billing: the invoice is issued, the fake Grow declines it, the school is past due and its owner sees the banner and the failed invoice; with a good standing order the same invoice is charged and the school is active again. Service level: `packages/db/test/rls/saas.test.ts`, `packages/seed/test/saas.test.ts`, and `packages/domain/platform/test/policies.test.ts` (100% coverage) | Pass |
+
+Also: plan features hide reports, courses, transport, institutions and the copilot for plans without them (a direct
+link lands on the plan page); a suspended school's office is locked to its plan page while parents and staff keep
+working; schools share their own setup as templates that a platform admin reviews; the worker bills every school on
+the 1st and runs a daily step for trials, suspensions and pending domains.
+
+Totals on 2026-10-06: 667 unit/integration tests + 40 browser tests, all green. `lint`, `typecheck`, `format:check` clean.
 
 ## Phase 9 acceptance criteria
 

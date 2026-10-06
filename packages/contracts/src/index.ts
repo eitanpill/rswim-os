@@ -13,3 +13,4 @@ export * from './payroll';
 export * from './transport';
 export * from './institutions';
 export * from './copilot';
+export * from './platform';
