@@ -10,7 +10,7 @@
 | 5 Communications hub | **Done**, merged (PR #6) | All three acceptance criteria pass |
 | 6 Staff ops and payroll | **Done**, merged (PR #7) | Both acceptance criteria pass (see below) |
 | 7 Parent portal | **Done**, merged (PR #8) | The acceptance criterion passes (see below) |
-| 8 Transport, courses & camps, institutions | **Done** | The acceptance criterion passes (see below) |
+| 8 Transport, courses & camps, institutions | **Done**, merged (PR #9) | The acceptance criterion passes (see below) |
 | 9–10 | Not started | |
 
 ## Phase 8 acceptance criteria
