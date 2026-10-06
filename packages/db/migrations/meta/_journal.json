@@ -155,6 +155,20 @@
       "when": 1791275195706,
       "tag": "0021_reports_migration_copilot_security",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1791277345198,
+      "tag": "0022_saas",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791277377007,
+      "tag": "0023_saas_security",
+      "breakpoints": true
     }
   ]
 }
