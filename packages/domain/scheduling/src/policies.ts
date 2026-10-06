@@ -877,3 +877,86 @@ export function staffingGaps(lessons: readonly LessonSlot[]): StaffingGap[] {
       a.venueId.localeCompare(b.venueId),
   );
 }
+
+// ─── Course and camp cohorts (brief §6.11) ──────────────────────────────────
+
+export interface CohortRules {
+  /** A camp takes at most this many children per staff member (instructors and counselors). */
+  childrenPerStaff: number;
+}
+
+export function cohortRulesFrom(rules: PolicyRules): CohortRules {
+  return { childrenPerStaff: rules.camp?.children_per_staff ?? 8 };
+}
+
+export interface CohortFacts {
+  status: 'open' | 'closed' | 'cancelled';
+  startsOn: string;
+  endsOn: string;
+  capacity: number;
+  registrationClosesOn: string | null;
+  /** Camps keep a staff ratio; courses do not. */
+  isCamp: boolean;
+  groups: number;
+  registered: number;
+  staff: number;
+}
+
+export type CohortDecision =
+  { ok: true } | { ok: false; code: string; params: RuleIssue['params'] };
+const cohortRefusal = (code: string, params: RuleIssue['params'] = {}): CohortDecision => ({
+  ok: false,
+  code: `scheduling.cohort.${code}`,
+  params,
+});
+
+/**
+ * Whether one more child may register: the cohort is open and has its groups, registration has not closed (its own
+ * date, else the cohort's last day), there is a seat, and a camp keeps its staff ratio with one more child.
+ */
+export function cohortRegistrationCheck(
+  c: CohortFacts,
+  today: string,
+  rules: CohortRules,
+): CohortDecision {
+  if (c.status !== 'open') return cohortRefusal(c.status);
+  if (c.groups === 0) return cohortRefusal('noGroups');
+  if (today > (c.registrationClosesOn ?? c.endsOn)) return cohortRefusal('registrationOver');
+  if (c.registered >= c.capacity) return cohortRefusal('full', { capacity: c.capacity });
+  const ratio = cohortRatio({ ...c, registered: c.registered + 1 }, rules);
+  if (ratio.short) return cohortRefusal('ratio', ratio.explanation.params);
+  return { ok: true };
+}
+
+export interface CohortRatio {
+  /** Staff the registered children need (camps only; 0 for a course). */
+  needed: number;
+  /** Children the current staff can take (null for a course). */
+  max: number | null;
+  short: boolean;
+  explanation: RuleIssue;
+}
+
+/** A camp's staff ratio: how many staff its children need, and whether it has them. */
+export function cohortRatio(c: CohortFacts, rules: CohortRules): CohortRatio {
+  if (!c.isCamp) {
+    return {
+      needed: 0,
+      max: null,
+      short: false,
+      explanation: { code: 'scheduling.cohort.noRatio', params: {} },
+    };
+  }
+  const needed = Math.ceil(c.registered / rules.childrenPerStaff);
+  const max = c.staff * rules.childrenPerStaff;
+  const short = c.staff < needed;
+  return {
+    needed,
+    max,
+    short,
+    explanation: {
+      code: short ? 'scheduling.cohort.ratioShort' : 'scheduling.cohort.ratioOk',
+      params: { staff: c.staff, needed, ratio: rules.childrenPerStaff, max },
+    },
+  };
+}

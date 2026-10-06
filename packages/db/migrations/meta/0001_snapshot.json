@@ -40,13 +40,9 @@
         "feature_flags_organization_id_organizations_id_fk": {
           "name": "feature_flags_organization_id_organizations_id_fk",
           "tableFrom": "feature_flags",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -54,10 +50,7 @@
       "compositePrimaryKeys": {
         "feature_flags_organization_id_key_pk": {
           "name": "feature_flags_organization_id_key_pk",
-          "columns": [
-            "organization_id",
-            "key"
-          ]
+          "columns": ["organization_id", "key"]
         }
       },
       "uniqueConstraints": {},
@@ -131,13 +124,9 @@
         "files_organization_id_organizations_id_fk": {
           "name": "files_organization_id_organizations_id_fk",
           "tableFrom": "files",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -146,18 +135,12 @@
       "uniqueConstraints": {
         "files_org_id": {
           "name": "files_org_id",
-          "columns": [
-            "organization_id",
-            "id"
-          ],
+          "columns": ["organization_id", "id"],
           "nullsNotDistinct": false
         },
         "files_bucket_path": {
           "name": "files_bucket_path",
-          "columns": [
-            "bucket",
-            "path"
-          ],
+          "columns": ["bucket", "path"],
           "nullsNotDistinct": false
         }
       },
@@ -233,13 +216,9 @@
         "memberships_organization_id_organizations_id_fk": {
           "name": "memberships_organization_id_organizations_id_fk",
           "tableFrom": "memberships",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -248,10 +227,7 @@
       "uniqueConstraints": {
         "memberships_org_user": {
           "name": "memberships_org_user",
-          "columns": [
-            "organization_id",
-            "user_id"
-          ],
+          "columns": ["organization_id", "user_id"],
           "nullsNotDistinct": false
         }
       },
@@ -304,13 +280,9 @@
         "org_keys_organization_id_organizations_id_fk": {
           "name": "org_keys_organization_id_organizations_id_fk",
           "tableFrom": "org_keys",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -385,13 +357,9 @@
         "org_settings_organization_id_organizations_id_fk": {
           "name": "org_settings_organization_id_organizations_id_fk",
           "tableFrom": "org_settings",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -486,9 +454,7 @@
       "uniqueConstraints": {
         "organizations_slug_unique": {
           "name": "organizations_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "nullsNotDistinct": false
         }
       },
@@ -644,15 +610,9 @@
         "guardians_household_fk": {
           "name": "guardians_household_fk",
           "tableFrom": "guardians",
-          "columnsFrom": [
-            "organization_id",
-            "household_id"
-          ],
+          "columnsFrom": ["organization_id", "household_id"],
           "tableTo": "households",
-          "columnsTo": [
-            "organization_id",
-            "id"
-          ],
+          "columnsTo": ["organization_id", "id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -661,18 +621,12 @@
       "uniqueConstraints": {
         "guardians_org_id": {
           "name": "guardians_org_id",
-          "columns": [
-            "organization_id",
-            "id"
-          ],
+          "columns": ["organization_id", "id"],
           "nullsNotDistinct": false
         },
         "guardians_org_ghl": {
           "name": "guardians_org_ghl",
-          "columns": [
-            "organization_id",
-            "ghl_contact_id"
-          ],
+          "columns": ["organization_id", "ghl_contact_id"],
           "nullsNotDistinct": false
         }
       },
@@ -743,13 +697,9 @@
         "households_organization_id_organizations_id_fk": {
           "name": "households_organization_id_organizations_id_fk",
           "tableFrom": "households",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -758,10 +708,7 @@
       "uniqueConstraints": {
         "households_org_id": {
           "name": "households_org_id",
-          "columns": [
-            "organization_id",
-            "id"
-          ],
+          "columns": ["organization_id", "id"],
           "nullsNotDistinct": false
         }
       },
@@ -873,13 +820,9 @@
         "staff_members_organization_id_organizations_id_fk": {
           "name": "staff_members_organization_id_organizations_id_fk",
           "tableFrom": "staff_members",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -888,10 +831,7 @@
       "uniqueConstraints": {
         "staff_members_org_id": {
           "name": "staff_members_org_id",
-          "columns": [
-            "organization_id",
-            "id"
-          ],
+          "columns": ["organization_id", "id"],
           "nullsNotDistinct": false
         }
       },
@@ -1029,15 +969,9 @@
         "students_household_fk": {
           "name": "students_household_fk",
           "tableFrom": "students",
-          "columnsFrom": [
-            "organization_id",
-            "household_id"
-          ],
+          "columnsFrom": ["organization_id", "household_id"],
           "tableTo": "households",
-          "columnsTo": [
-            "organization_id",
-            "id"
-          ],
+          "columnsTo": ["organization_id", "id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -1046,10 +980,7 @@
       "uniqueConstraints": {
         "students_org_id": {
           "name": "students_org_id",
-          "columns": [
-            "organization_id",
-            "id"
-          ],
+          "columns": ["organization_id", "id"],
           "nullsNotDistinct": false
         }
       },
@@ -1238,10 +1169,7 @@
       "compositePrimaryKeys": {
         "inbox_receipts_consumer_event_id_pk": {
           "name": "inbox_receipts_consumer_event_id_pk",
-          "columns": [
-            "consumer",
-            "event_id"
-          ]
+          "columns": ["consumer", "event_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1340,13 +1268,9 @@
         "outbox_organization_id_organizations_id_fk": {
           "name": "outbox_organization_id_organizations_id_fk",
           "tableFrom": "outbox",
-          "columnsFrom": [
-            "organization_id"
-          ],
+          "columnsFrom": ["organization_id"],
           "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -1355,10 +1279,7 @@
       "uniqueConstraints": {
         "outbox_org_idempotency": {
           "name": "outbox_org_idempotency",
-          "columns": [
-            "organization_id",
-            "idempotency_key"
-          ],
+          "columns": ["organization_id", "idempotency_key"],
           "nullsNotDistinct": false
         }
       },
@@ -1428,10 +1349,7 @@
       "uniqueConstraints": {
         "webhook_events_provider_external": {
           "name": "webhook_events_provider_external",
-          "columns": [
-            "provider",
-            "external_id"
-          ],
+          "columns": ["provider", "external_id"],
           "nullsNotDistinct": false
         }
       },

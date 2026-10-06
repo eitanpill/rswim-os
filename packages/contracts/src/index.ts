@@ -10,3 +10,5 @@ export * from './attendance';
 export * from './billing';
 export * from './comms';
 export * from './payroll';
+export * from './transport';
+export * from './institutions';

@@ -1,0 +1,33 @@
+{
+  "name": "@rswim/domain-transport",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./policies": "./src/policies.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@rswim/calendar": "workspace:*",
+    "@rswim/contracts": "workspace:*",
+    "@rswim/db": "workspace:*",
+    "@rswim/domain-core": "workspace:*",
+    "@rswim/domain-people": "workspace:*",
+    "@rswim/domain-scheduling": "workspace:*",
+    "@rswim/domain-settings": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@rswim/config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^9.39.5",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

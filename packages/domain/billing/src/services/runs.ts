@@ -8,6 +8,7 @@ import { BillingPeriod, type AnomalyKind, type BillingLineKind } from '@rswim/co
 import { and, asc, desc, eq, inArray, ne, schema, sql, type Tx } from '@rswim/db';
 import { DomainError, emit, type ServiceContext } from '@rswim/domain-core';
 import { listTrials } from '@rswim/domain-enrollment';
+import { institutionPaidGroups } from '@rswim/domain-institutions';
 import { studentsByIds } from '@rswim/domain-people';
 import {
   lessonBookingsBetween,
@@ -90,7 +91,11 @@ export async function draftRun(tx: Tx, ctx: ServiceContext, rawPeriod: string) {
   const orgRules = billingRulesFrom(policyAt({ date: from }).rules);
 
   // ─── Seats (in advance) ───────────────────────────────────────────────────
-  const places = await placesOverlapping(tx, from, addDays(to, 1));
+  // Places in groups an institution pays for that month are on the institution's invoice, not the family's.
+  const institutionPaid = new Set(await institutionPaidGroups(tx, from, to));
+  const places = (await placesOverlapping(tx, from, addDays(to, 1))).filter(
+    (p) => !institutionPaid.has(p.classTemplateId),
+  );
   const placeIds = places.map((p) => p.enrollmentId);
   const [dates, freezes, cancellations] = await Promise.all([
     lessonDatesOfGroups(tx, [...new Set(places.map((p) => p.classTemplateId))], from, to),
@@ -140,6 +145,7 @@ export async function draftRun(tx: Tx, ctx: ServiceContext, rawPeriod: string) {
   const lines: DraftLine[] = [];
   const seats: { householdId: string; enrollmentId: string; studentId: string }[] = [];
 
+  const packagesCharged = new Set<string>();
   for (const p of places) {
     const householdId = householdOf(p.studentId);
     if (!householdId) continue;
@@ -152,6 +158,10 @@ export async function draftRun(tx: Tx, ctx: ServiceContext, rawPeriod: string) {
     const rules = billingRulesFrom(policy.rules);
     if (PACKAGE_PROGRAMS.has(p.programKind)) {
       if (p.startsOn < from || p.startsOn > to) continue;
+      // A cohort meets in several groups (a course twice a week); its package is charged once per child.
+      const packageKey = `${p.studentId}:${p.cohortId ?? p.classTemplateId}`;
+      if (packagesCharged.has(packageKey)) continue;
+      packagesCharged.add(packageKey);
       const price = priceAt({
         date: p.startsOn,
         venueId: p.venueId,

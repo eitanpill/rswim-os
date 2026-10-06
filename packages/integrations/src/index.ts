@@ -77,6 +77,26 @@ export interface InvoicingProvider {
     ctx: ProviderContext,
     req: { originalDocumentId: string; lines: FiscalLine[] },
   ): Promise<{ documentId: string; number: string }>;
+  /** A tax invoice (חשבונית מס) to an institution that pays later (Phase 8). */
+  issueTaxInvoice(
+    ctx: ProviderContext,
+    req: {
+      client: { name: string; nationalId?: string; email?: string };
+      lines: FiscalLine[];
+      dueOn: string;
+      notes?: string;
+    },
+  ): Promise<{ documentId: string; number: string; pdfUrl: string }>;
+  /** A receipt (קבלה) for a payment against an earlier tax invoice. */
+  issueReceipt(
+    ctx: ProviderContext,
+    req: {
+      client: { name: string; nationalId?: string; email?: string };
+      invoiceDocumentId: string;
+      amount: Agorot;
+      paymentMethod: string;
+    },
+  ): Promise<{ documentId: string; number: string; pdfUrl: string }>;
 }
 
 // ─── CRM (Phase 1/5): GoHighLevel ─────────────────────────────────────────────

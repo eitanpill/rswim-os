@@ -22,13 +22,16 @@ import { getDb, inngest, log } from '../client';
 import { invoicingProvider, invoicingProviderName, paymentProvider } from '../providers';
 import { toEnvelope } from './core-ping';
 
-const sys = (envelope: DomainEventEnvelope) => ({ orgId: envelope.organizationId, userId: null });
+export const sys = (envelope: DomainEventEnvelope) => ({
+  orgId: envelope.organizationId,
+  userId: null,
+});
 
 /**
  * Runs a provider-bound consumer once per event. Without a provider set up the event is left unconsumed and logged,
  * so nothing is marked done that never happened.
  */
-async function withProvider<P>(
+export async function withProvider<P>(
   consumer: string,
   envelope: DomainEventEnvelope,
   provider: P | null,

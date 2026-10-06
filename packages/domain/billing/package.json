@@ -19,6 +19,7 @@
     "@rswim/domain-attendance": "workspace:*",
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-enrollment": "workspace:*",
+    "@rswim/domain-institutions": "workspace:*",
     "@rswim/domain-people": "workspace:*",
     "@rswim/domain-scheduling": "workspace:*",
     "@rswim/domain-settings": "workspace:*",

@@ -18,6 +18,7 @@ const placeColumns = {
   startsOn: enrollments.startsOn,
   endsOn: enrollments.endsOn,
   classTemplateId: classTemplates.id,
+  cohortId: classTemplates.cohortId,
   groupName: classTemplates.name,
   venueId: classTemplates.venueId,
   durationMin: classTemplates.durationMin,

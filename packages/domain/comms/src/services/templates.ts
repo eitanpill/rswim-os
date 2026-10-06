@@ -86,6 +86,22 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
     he: 'חג שמח מ{{school_name}}! 🌿 אין שיעורים מ{{from}} עד {{to}}. חוזרים לשגרה ב{{resume_on}}.',
     en: 'Happy holiday from {{school_name}}! 🌿 No lessons from {{from}} to {{to}}. Back to routine on {{resume_on}}.',
   },
+  transport_left_school: {
+    he: '🚌 {{student_name}} בדרך לבריכה: הקבוצה יצאה מ{{pickup}} בשעה {{time}}. {{school_name}}',
+    en: '🚌 {{student_name}} is on the way to the pool: the group left {{pickup}} at {{time}}. {{school_name}}',
+  },
+  transport_arrived_pool: {
+    he: '🏊 הגענו לבריכה! {{student_name}} ב{{venue}} מ-{{time}}. {{school_name}}',
+    en: '🏊 We arrived at the pool! {{student_name}} is at {{venue}} since {{time}}. {{school_name}}',
+  },
+  transport_left_pool: {
+    he: '🚌 יצאנו מהבריכה ב-{{time}}. {{student_name}} בדרך לנקודת ההורדה, בעוד כ-{{minutes}} דק׳. {{school_name}}',
+    en: '🚌 We left the pool at {{time}}. {{student_name}} is on the way to the drop-off, about {{minutes}} minutes. {{school_name}}',
+  },
+  transport_dropped_off: {
+    he: '✅ {{student_name}} ירד/ה מההסעה ב{{point}} בשעה {{time}}. {{school_name}}',
+    en: '✅ {{student_name}} got off at {{point}} at {{time}}. {{school_name}}',
+  },
   free_text: { he: '{{text}}', en: '{{text}}' },
 };
 
@@ -103,6 +119,10 @@ export const DEFAULT_AUTOMATIONS: [eventType: string, templateKey: Key][] = [
   ['billing.freeze_decided', 'freeze_approved'],
   ['billing.cancellation_requested', 'cancellation_confirmed'],
   ['calendar.holiday_ahead', 'holiday_schedule'],
+  ['transport.left_school', 'transport_left_school'],
+  ['transport.arrived_pool', 'transport_arrived_pool'],
+  ['transport.left_pool', 'transport_left_pool'],
+  ['transport.rider_dropped', 'transport_dropped_off'],
 ];
 
 /** Gives an organization every template and automation it lacks. Running it twice changes nothing. */

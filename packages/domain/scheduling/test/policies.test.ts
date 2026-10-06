@@ -29,6 +29,10 @@ import {
   type SubstituteCandidate,
   type TemplateDraft,
   type WindowRow,
+  cohortRatio,
+  cohortRegistrationCheck,
+  cohortRulesFrom,
+  type CohortFacts,
 } from '../src/policies';
 
 // Fixtures follow 5787 (autumn 2026). Sukkot I = Sat 26 Sep 2026, Chol HaMoed 27 Sep → 2 Oct, Shmini Atzeret 3 Oct.
@@ -972,5 +976,90 @@ describe('staffingGaps', () => {
         groups: ['שני'],
       },
     ]);
+  });
+});
+
+describe('course and camp cohorts', () => {
+  const rules = cohortRulesFrom({ camp: { children_per_staff: 8 } });
+  const course: CohortFacts = {
+    status: 'open',
+    startsOn: '2026-07-05',
+    endsOn: '2026-07-30',
+    capacity: 10,
+    registrationClosesOn: '2026-07-01',
+    isCamp: false,
+    groups: 2,
+    registered: 3,
+    staff: 1,
+  };
+  const camp: CohortFacts = { ...course, isCamp: true, registrationClosesOn: null, capacity: 40 };
+
+  it('reads the camp ratio with a default', () => {
+    expect(cohortRulesFrom({})).toEqual({ childrenPerStaff: 8 });
+    expect(rules).toEqual({ childrenPerStaff: 8 });
+  });
+
+  it('registers while open, with groups, before the closing date and with a seat', () => {
+    expect(cohortRegistrationCheck(course, '2026-06-20', rules)).toEqual({ ok: true });
+    expect(cohortRegistrationCheck({ ...course, status: 'closed' }, '2026-06-20', rules)).toEqual({
+      ok: false,
+      code: 'scheduling.cohort.closed',
+      params: {},
+    });
+    expect(
+      cohortRegistrationCheck({ ...course, status: 'cancelled' }, '2026-06-20', rules),
+    ).toMatchObject({ code: 'scheduling.cohort.cancelled' });
+    expect(cohortRegistrationCheck({ ...course, groups: 0 }, '2026-06-20', rules)).toMatchObject({
+      code: 'scheduling.cohort.noGroups',
+    });
+    expect(cohortRegistrationCheck(course, '2026-07-02', rules)).toMatchObject({
+      code: 'scheduling.cohort.registrationOver',
+    });
+    // Without its own closing date, registration runs to the cohort's last day.
+    expect(cohortRegistrationCheck(camp, '2026-07-30', rules)).toEqual({ ok: true });
+    expect(cohortRegistrationCheck(camp, '2026-07-31', rules)).toMatchObject({
+      code: 'scheduling.cohort.registrationOver',
+    });
+    expect(cohortRegistrationCheck({ ...course, registered: 10 }, '2026-06-20', rules)).toEqual({
+      ok: false,
+      code: 'scheduling.cohort.full',
+      params: { capacity: 10 },
+    });
+  });
+
+  it('keeps a camp within its staff ratio', () => {
+    expect(cohortRegistrationCheck({ ...camp, registered: 7 }, '2026-06-20', rules)).toEqual({
+      ok: true,
+    });
+    expect(cohortRegistrationCheck({ ...camp, registered: 8 }, '2026-06-20', rules)).toEqual({
+      ok: false,
+      code: 'scheduling.cohort.ratio',
+      params: { staff: 1, needed: 2, ratio: 8, max: 8 },
+    });
+    // A course has no ratio.
+    expect(cohortRegistrationCheck({ ...course, registered: 9 }, '2026-06-20', rules)).toEqual({
+      ok: true,
+    });
+  });
+
+  it('explains the ratio', () => {
+    expect(cohortRatio(course, rules)).toEqual({
+      needed: 0,
+      max: null,
+      short: false,
+      explanation: { code: 'scheduling.cohort.noRatio', params: {} },
+    });
+    expect(cohortRatio({ ...camp, registered: 17, staff: 2 }, rules)).toEqual({
+      needed: 3,
+      max: 16,
+      short: true,
+      explanation: {
+        code: 'scheduling.cohort.ratioShort',
+        params: { staff: 2, needed: 3, ratio: 8, max: 16 },
+      },
+    });
+    expect(cohortRatio({ ...camp, registered: 16, staff: 2 }, rules).explanation.code).toBe(
+      'scheduling.cohort.ratioOk',
+    );
   });
 });

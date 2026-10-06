@@ -178,6 +178,28 @@ gender for a group that requires one.
 | `comms.ai_triage` | `false` | Re-classify inbound WhatsApp with Claude (needs `ANTHROPIC_API_KEY` in the worker); the rules classifier stays the fallback |
 | `comms.triage_min_confidence_pct` | `80` | Below this a message goes to a person instead of getting a draft action |
 
+## 13. Transport (Phase 8)
+
+| Key | Default | Notes |
+|---|---|---|
+| `transport.stale_after_min` | `30` | A stage or drop-off tapped longer ago than this is recorded but not messaged |
+| `transport.short_water_warn_min` | `5` | In-water time shorter than the lesson by more than this is flagged on the run and the report |
+
+Stages run in order (left school → arrived at the pool → in the water → out of the water → left the pool → done),
+each once; a forgotten stage may be skipped, "out of the water" needs "in the water". A child is marked on board or
+missing until the group reaches the pool, and dropped off only after it left the pool and only if they were on
+board.
+
+## 14. Courses, camps and institutions (Phase 8)
+
+| Key | Default | Notes |
+|---|---|---|
+| `camp.children_per_staff` | `8` | A camp week takes at most this many children per staff member (lead instructors plus counselors) |
+
+A cohort registers a child while it is open, has groups, before its closing date (else its last day) and with a
+seat. A course's own rules are its program's policy version (scope `program`). An institution's month is priced
+per child on the roster, per lesson held, or as a fixed sum; it is due after the contract's payment terms.
+
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.
 - Proration rounds per line; statement total = sum of rounded lines.

@@ -23,7 +23,7 @@ export async function AppShell({
   return (
     <div className="flex min-h-dvh flex-col" data-surface={surface}>
       <OfflineBanner />
-      <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-surface-raised px-4 py-2">
+      <header className="sticky top-0 print:hidden z-10 flex items-center justify-between gap-3 border-b border-line bg-surface-raised px-4 py-2">
         <div className="min-w-0">
           <p className="truncate font-semibold" data-testid="org-name">
             {session.orgName ?? 'R-SWIM OS'}
@@ -48,10 +48,20 @@ export async function AppShell({
         </div>
       </header>
       <div className="flex flex-1">
-        {nav.length > 0 ? <DesktopNav items={nav} label={t('mainNav')} /> : null}
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-4 pb-24 md:pb-8">{children}</main>
+        {nav.length > 0 ? (
+          <div className="contents print:hidden">
+            <DesktopNav items={nav} label={t('mainNav')} />
+          </div>
+        ) : null}
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-4 pb-24 md:pb-8 print:p-0">
+          {children}
+        </main>
       </div>
-      {nav.length > 0 ? <MobileNav items={nav} label={t('mainNav')} /> : null}
+      {nav.length > 0 ? (
+        <div className="contents print:hidden">
+          <MobileNav items={nav} label={t('mainNav')} />
+        </div>
+      ) : null}
     </div>
   );
 }

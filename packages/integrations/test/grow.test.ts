@@ -100,4 +100,25 @@ describe('fake providers', () => {
       (await inv.issueCreditNote(ctx('c'), { originalDocumentId: a.documentId, lines: [] })).number,
     ).toBe('10003');
   });
+
+  it('fake Green Invoice prints institution tax invoices and their receipts once per key', async () => {
+    const inv = new FakeInvoicingProvider();
+    const client = { name: 'בית ספר (דמו)' };
+    const lines = [{ description: 'שיעורי שחייה', amount: agorot(72_000), quantity: 1 }];
+    const tax = await inv.issueTaxInvoice(ctx('t'), { client, lines, dueOn: '2026-11-01' });
+    expect(await inv.issueTaxInvoice(ctx('t'), { client, lines, dueOn: '2026-11-01' })).toEqual(
+      tax,
+    );
+    const receipt = await inv.issueReceipt(ctx('r'), {
+      client,
+      invoiceDocumentId: tax.documentId,
+      amount: agorot(36_000),
+      paymentMethod: 'bank_transfer',
+    });
+    expect(receipt.number).toBe('10002');
+    expect(inv.issued.map((d) => [d.kind, d.notes])).toEqual([
+      ['tax_invoice', 'due 2026-11-01'],
+      ['receipt', undefined],
+    ]);
+  });
 });

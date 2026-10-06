@@ -305,3 +305,16 @@ export async function childProgress(
     };
   });
 }
+
+/** The marks recorded for these lessons (an institution's monthly attendance report). */
+export async function marksOfSessions(tx: Tx, sessionIds: readonly string[]) {
+  if (sessionIds.length === 0) return [];
+  return tx
+    .select({
+      sessionId: attendance.sessionId,
+      studentId: attendance.studentId,
+      status: attendance.status,
+    })
+    .from(attendance)
+    .where(inArray(attendance.sessionId, [...sessionIds]));
+}

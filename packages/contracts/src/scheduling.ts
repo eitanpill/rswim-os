@@ -6,6 +6,11 @@ export const TERM_KINDS = ['school_year', 'summer', 'course', 'custom'] as const
 export const TermKind = z.enum(TERM_KINDS);
 export type TermKind = z.infer<typeof TermKind>;
 
+/** A course or camp cohort: open for registration, closed (full or past its date), or called off. */
+export const COHORT_STATUSES = ['open', 'closed', 'cancelled'] as const;
+export const CohortStatus = z.enum(COHORT_STATUSES);
+export type CohortStatus = z.infer<typeof CohortStatus>;
+
 /** Who a group admits. The pool window may narrow it further (girls, women…). */
 export const ADMITTED_GENDERS = ['mixed', 'female', 'male'] as const;
 export const AdmittedGender = z.enum(ADMITTED_GENDERS);

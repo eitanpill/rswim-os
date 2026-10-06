@@ -165,7 +165,13 @@
       "recruiting": {
         "title": "Recruiting",
         "hint": "Applicants, trial days and the substitute pool"
-      }
+      },
+      "transport": {
+        "title": "After-school transport",
+        "hint": "Routes, today's runs and time in the water"
+      },
+      "cohorts": "Courses & camps",
+      "institutions": "Institutions"
     }
   },
   "instructor": {
@@ -228,7 +234,154 @@
   "transport": {
     "home": {
       "title": "After-school transport",
-      "empty": "No routes today"
+      "empty": "No runs on your routes today",
+      "today": "Today, {date}"
+    },
+    "tabs": {
+      "label": "Transport screens",
+      "today": "Runs",
+      "routes": "Routes",
+      "schools": "Schools",
+      "report": "Time in water"
+    },
+    "stage": {
+      "left_school": "Left the school",
+      "arrived_pool": "Arrived at the pool",
+      "in_water": "In the water",
+      "out_of_water": "Out of the water",
+      "left_pool": "Left the pool",
+      "run_done": "Run finished"
+    },
+    "tap": {
+      "left_school": "We left the school",
+      "arrived_pool": "We're at the pool",
+      "in_water": "Into the water",
+      "out_of_water": "Out of the water",
+      "left_pool": "We left the pool",
+      "run_done": "Finish run"
+    },
+    "mark": {
+      "boarded": "On board",
+      "missing": "Not there",
+      "dropped_off": "Dropped off"
+    },
+    "markTap": {
+      "boarded": "On board",
+      "missing": "Not there",
+      "dropped_off": "Dropped off"
+    },
+    "card": {
+      "line": "{school} at {leaves} → {group}, {venue} {lesson}",
+      "escort": "Escort: {name}",
+      "otherStage": "Another stage",
+      "riders": "Children on the ride",
+      "dropoff": "Drop-off: {point}",
+      "remove": "Remove",
+      "cancel": "Cancel the run",
+      "cancelConfirm": "Cancel today's run?"
+    },
+    "decision": {
+      "waterUnknown": "Time in water: not measured yet",
+      "water": "{minutes} minutes in the water",
+      "waterFull": "{minutes} of {planned} minutes in the water",
+      "waterShort": "Only {minutes} of {planned} minutes in the water (arrived {late} min after the lesson started)"
+    },
+    "errors": {
+      "stageDone": "This stage is already recorded",
+      "stageOrder": "A later stage is already recorded",
+      "notInWater": "Mark \"into the water\" first",
+      "riderMarked": "This child is already marked",
+      "notLeftPool": "Drop-off can be marked only after leaving the pool",
+      "notBoarded": "This child was not marked on board",
+      "pickupOver": "Pickup is over",
+      "notRider": "This child is not on this route",
+      "alreadyRiding": "This child is already on this route",
+      "cancelled": "This run was cancelled",
+      "alreadyLeft": "This run already left",
+      "weekdays": "Pick at least one day"
+    },
+    "admin": {
+      "title": "After-school transport",
+      "hint": "Where each group is now, who is on board, and how long they were in the water",
+      "date": "Date",
+      "show": "Show",
+      "noRuns": "No runs on {date}",
+      "openTitle": "Opening runs",
+      "planHint": "Each day's runs open automatically in the morning, by the routes' days and the groups' lessons",
+      "plan": "Open this day's runs",
+      "planned": "{n, plural, =0 {No new runs} one {One run opened} other {# runs opened}}",
+      "route": "Route",
+      "open": "Open a run on a route",
+      "opened": "The run is open",
+      "riderAdded": "The child was added to the route"
+    },
+    "routes": {
+      "title": "Transport routes",
+      "hint": "From the school to the after-school group and back to the drop-off points",
+      "empty": "No routes yet",
+      "inactive": "Inactive",
+      "line": "{school} · {group} · {days} · leaves {leaves}",
+      "riders": "{n, plural, =0 {No children} one {One child} other {# children}}",
+      "add": "New route",
+      "needSchool": "Add a school first",
+      "create": "Create route",
+      "name": "Route name",
+      "school": "School",
+      "group": "After-school group",
+      "groupHint": "The lesson the ride brings children to",
+      "escort": "Escort",
+      "noEscort": "No regular escort",
+      "leaves": "Leaves the school at",
+      "ride": "Ride (minutes)",
+      "rideHint": "Used in \"on the way, about X minutes\"",
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "driverPhone": "Driver's phone",
+      "weekdays": "Days",
+      "notes": "Notes",
+      "ridersTitle": "Children on the route ({n})",
+      "noRiders": "No children on the route yet",
+      "since": "From {date}",
+      "dropoff": "Drop-off point",
+      "dropoffHint": "Empty: back to the school",
+      "dropoffNote": "Drop-off note",
+      "savePoint": "Save point",
+      "end": "Take off the route",
+      "endConfirm": "Take {name} off the route from today?",
+      "student": "Child",
+      "startsOn": "From",
+      "addRider": "Add to route",
+      "details": "Route details",
+      "save": "Save",
+      "deactivate": "Deactivate route",
+      "activate": "Activate route"
+    },
+    "schools": {
+      "title": "Schools",
+      "hint": "Schools the rides pick children up from",
+      "empty": "No schools yet",
+      "edit": "Edit",
+      "save": "Save",
+      "add": "New school",
+      "create": "Add",
+      "name": "Name",
+      "address": "Address",
+      "contact": "Contact person",
+      "phone": "Phone",
+      "notes": "Notes"
+    },
+    "report": {
+      "title": "Time in water",
+      "hint": "How long the children were really in the water, by the escort's taps",
+      "noData": "No measurements this month yet",
+      "totals": "{runs} runs measured · {avg} minutes in the water on average · {short} short",
+      "empty": "No runs this month",
+      "short": "Short"
+    },
+    "parent": {
+      "title": "Today's ride: {route}",
+      "now": "{stage} at {time}",
+      "notYet": "The ride leaves the school at {time}"
     }
   },
   "accountant": {
@@ -799,7 +952,11 @@
       "freeze_approved": "Freeze approved",
       "cancellation_confirmed": "Cancellation confirmed",
       "holiday_schedule": "Holiday notice",
-      "free_text": "Free text"
+      "free_text": "Free text",
+      "transport_left_school": "Left the school",
+      "transport_arrived_pool": "Arrived at the pool",
+      "transport_left_pool": "Left the pool",
+      "transport_dropped_off": "Dropped off"
     },
     "messageStatus": {
       "queued": "Queued",
@@ -917,6 +1074,44 @@
       "done": "Handled",
       "refused": "Not approved",
       "withdrawn": "Withdrawn"
+    },
+    "runStatus": {
+      "planned": "Planned",
+      "underway": "Underway",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "cohortStatus": {
+      "open": "Open",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "institutionKind": {
+      "school": "School",
+      "municipality": "Local authority",
+      "after_school": "After-school",
+      "community_center": "Community center",
+      "other": "Other"
+    },
+    "contractPricing": {
+      "per_child_month": "Per child per month",
+      "per_session": "Per lesson",
+      "fixed_month": "Fixed monthly sum"
+    },
+    "institutionInvoiceState": {
+      "draft": "Draft",
+      "issuing": "Issuing",
+      "open": "Open",
+      "partial": "Partly paid",
+      "overdue": "Overdue",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "institutionPaymentMethod": {
+      "bank_transfer": "Bank transfer",
+      "cheque": "Cheque",
+      "cash": "Cash",
+      "other": "Other"
     }
   },
   "venues": {
@@ -1381,7 +1576,9 @@
       "payroll": "Payroll",
       "staffing": "Staffing",
       "comms": "Communications",
-      "scheduling": "Scheduling"
+      "scheduling": "Scheduling",
+      "transport": "Transport",
+      "camp": "Camps"
     },
     "fields": {
       "billing": {
@@ -1498,6 +1695,13 @@
         "travel_buffer_min": "Travel time between venues",
         "window_instructor_gender": "Who teaches in separate hours",
         "open_group_min_waiting": "Waiting families to suggest a new group"
+      },
+      "transport": {
+        "stale_after_min": "Don't send a transport update tapped more than",
+        "short_water_warn_min": "Flag a run whose time in the water falls short of the lesson by more than"
+      },
+      "camp": {
+        "children_per_staff": "Most children per staff member"
       }
     },
     "options": {
@@ -1842,6 +2046,23 @@
       "alreadyOpen": "Already looking for a substitute for this lesson",
       "offerClosed": "This offer is no longer open",
       "notOpen": "The request is no longer open"
+    },
+    "cohort": {
+      "closed": "Registration is closed",
+      "cancelled": "This cohort was cancelled",
+      "open": "Open",
+      "noGroups": "No groups are attached to this cohort yet",
+      "registrationOver": "Registration has closed",
+      "full": "The cohort is full ({capacity} places)",
+      "ratio": "Not enough staff: {staff} staff can take up to {max} children ({ratio} per staff member). It needs {needed}",
+      "noRatio": "Courses have no staff ratio",
+      "ratioShort": "Short of staff: {staff} on, {needed} needed (up to {ratio} children each)",
+      "ratioOk": "Staff ratio OK: {staff} staff, up to {max} children ({ratio} each)",
+      "programMismatch": "The group belongs to another program",
+      "otherCohort": "The group already belongs to another cohort",
+      "hasMembers": "Children are registered; the groups can no longer change",
+      "alreadyRegistered": "Already registered",
+      "notRegistered": "Not registered in this cohort"
     }
   },
   "attendance": {
@@ -2434,7 +2655,11 @@
       "billing_dunning_step": "Failed charge / collection reminder",
       "billing_freeze_decided": "Freeze decided",
       "billing_cancellation_requested": "Cancellation requested",
-      "calendar_holiday_ahead": "Holiday ahead (daily check)"
+      "calendar_holiday_ahead": "Holiday ahead (daily check)",
+      "transport_left_school": "The ride left the school",
+      "transport_arrived_pool": "The ride arrived at the pool",
+      "transport_left_pool": "The ride left the pool",
+      "transport_rider_dropped": "A child got off at their point"
     },
     "decision": {
       "send": "Sent now",
@@ -2666,5 +2891,157 @@
     "time": "Time",
     "companions": "Companions",
     "school": "School"
+  },
+  "cohorts": {
+    "title": "Courses & camps",
+    "hint": "Fixed cohorts over set dates, with their own regulations, places and a camp staff ratio",
+    "empty": "No cohorts yet",
+    "line": "{program} · {from}–{to} · {registered}/{capacity} registered · {groups} groups",
+    "add": "New cohort",
+    "noPrograms": "Create an intensive course or camp program first",
+    "create": "Create cohort",
+    "registered": "Registered",
+    "form": {
+      "name": "Cohort name",
+      "program": "Program",
+      "startsOn": "From",
+      "endsOn": "To",
+      "capacity": "Places",
+      "closesOn": "Registration closes",
+      "closesOnHint": "Blank = until the cohort's last day",
+      "notes": "Notes"
+    },
+    "detail": {
+      "rules": "Regulations & registration",
+      "ownPolicy": "The program has its own regulations from {from}.",
+      "orgPolicy": "The school's general regulations apply.",
+      "policyLink": "Regulations",
+      "closes": "Registration closes on {date}",
+      "closesAtEnd": "Registration is open until the cohort ends",
+      "status": "Status",
+      "saveStatus": "Update status",
+      "print": "Printable roster",
+      "groups": "Meetings",
+      "noGroups": "No groups yet. Create groups for the program and attach them here.",
+      "group": "{name} · {day} {time} · {venue} · instructor: {lead} · {lessons} lessons",
+      "detach": "Remove",
+      "attach": "Attach a group",
+      "attachHint": "A twice-weekly course = two groups; a camp week = a group per day",
+      "attachButton": "Attach",
+      "staff": "Additional staff",
+      "noStaff": "No staff besides the instructors",
+      "remove": "Remove",
+      "staffMember": "Staff member",
+      "role": "Role",
+      "addStaff": "Add to staff",
+      "roster": "Registered ({n} of {capacity})",
+      "noMembers": "Nobody registered yet",
+      "waterFear": "Afraid of water",
+      "cancelConfirm": "Cancel the registration? Before the cohort starts nothing is charged.",
+      "cancel": "Cancel registration",
+      "student": "Child",
+      "register": "Register",
+      "edit": "Edit cohort details",
+      "save": "Save"
+    },
+    "print": {
+      "dates": "{program} · {from}–{to}",
+      "print": "Print / PDF",
+      "groups": "Meetings",
+      "group": "{name} · {day} {time} · {venue} · instructor: {lead}",
+      "staff": "Staff: {names}",
+      "child": "Child",
+      "born": "Born",
+      "parents": "Parents",
+      "notes": "Notes",
+      "waterFear": "Afraid of water",
+      "medical": "Medical info at the office",
+      "count": "{n} participants"
+    }
+  },
+  "institutions": {
+    "title": "Institutions",
+    "hint": "Schools and authorities that pay for their children's swimming by contract",
+    "empty": "No institutions yet",
+    "add": "New institution",
+    "create": "Add",
+    "edit": "Edit institution details",
+    "save": "Save",
+    "debts": {
+      "title": "Open balances",
+      "line": "Owed {owed} · overdue {overdue}"
+    },
+    "form": {
+      "name": "Name",
+      "kind": "Type",
+      "taxId": "Company / VAT no.",
+      "contact": "Contact person",
+      "phone": "Phone",
+      "email": "Invoice email",
+      "address": "Address",
+      "notes": "Notes"
+    },
+    "contract": {
+      "name": "Contract name",
+      "pricing": "Pricing",
+      "amount": "Price (₪)",
+      "amountHint": "Per child per month, per lesson or per month, by pricing",
+      "terms": "Payment days",
+      "startsOn": "From",
+      "endsOn": "To",
+      "notes": "Notes",
+      "line": "{from}–{to} · {pricing} {amount} · pay within {days} days",
+      "groups": "Groups on the contract",
+      "noGroups": "No groups attached yet",
+      "detach": "Remove",
+      "attach": "Group the institution pays for",
+      "attachButton": "Attach",
+      "edit": "Edit contract",
+      "save": "Save",
+      "add": "New contract",
+      "create": "Create contract"
+    },
+    "invoices": {
+      "drafted": "The invoice draft is ready",
+      "issuing": "The invoice is being issued",
+      "paymentSaved": "Payment recorded",
+      "period": "Month",
+      "draft": "Prepare monthly invoice",
+      "report": "Attendance report for the month",
+      "title": "Invoices",
+      "empty": "No invoices yet",
+      "document": "Tax invoice {number} · due {due} · paid {paid} · left {left}",
+      "payment": "{date}: {amount} by {method} · receipt {receipt}",
+      "issue": "Approve & issue",
+      "cancel": "Cancel draft",
+      "amount": "Amount (₪)",
+      "paidOn": "Paid on",
+      "method": "Method",
+      "reference": "Reference",
+      "record": "Record payment"
+    },
+    "report": {
+      "title": "Attendance · {institution} · {month}",
+      "print": "Print / PDF",
+      "empty": "No lessons this month",
+      "child": "Child",
+      "cancelled": "cancelled",
+      "present": "Came",
+      "legend": "{children} children · {lessons} lessons · ✓ came ◐ late ✗ absent"
+    },
+    "errors": {
+      "groupTaken": "Another institution's contract already covers this group on those dates",
+      "outsideContract": "The contract does not run that month",
+      "issued": "This month's invoice was already issued",
+      "notDraft": "Only a draft can do that",
+      "overpaid": "More than the invoice's balance",
+      "alreadyPaid": "The invoice is already paid",
+      "notIssued": "Payments go against an issued invoice"
+    },
+    "decision": {
+      "per_child_month": "{count} children × {rate} = {amount}",
+      "per_session": "{count} lessons held × {rate} = {amount} (cancelled: {cancelled})",
+      "fixed_month": "Fixed monthly sum: {amount}"
+    }
   }
 }

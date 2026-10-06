@@ -28,9 +28,14 @@ import {
   schedulingEscalateShiftChanges,
   schedulingSubstituteWaves,
 } from './scheduling';
+import { institutionsPrintInvoice, institutionsPrintReceipt } from './institutions';
+import { transportPlanRuns } from './transport';
 
 export const functions = [
   outboxRelay,
+  transportPlanRuns,
+  institutionsPrintInvoice,
+  institutionsPrintReceipt,
   corePing,
   crmPushGuardian,
   crmImportContacts,

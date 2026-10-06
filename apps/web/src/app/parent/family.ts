@@ -11,6 +11,7 @@ import { portalRequestsOf, seatChangesOf } from '@rswim/domain-billing';
 import { formsDueFor } from '@rswim/domain-enrollment';
 import { getHousehold, searchHouseholds } from '@rswim/domain-people';
 import { placesByIds, seatsOfStudent, upcomingSessionsOfStudent } from '@rswim/domain-scheduling';
+import { runsOnDate } from '@rswim/domain-transport';
 import { todayIL } from '@/lib/options';
 
 /** The signed-in parent's household (RLS shows them only their own). */
@@ -63,10 +64,13 @@ export async function childOverview(tx: Tx, studentId: string) {
     childProgress(tx, [{ id: student.id, levelId: student.levelId }]),
   ]);
   const ids = seats.map((s) => s.enrollmentId);
-  const [places, changes, requests] = await Promise.all([
+  const [places, changes, requests, runs] = await Promise.all([
     placesByIds(tx, ids),
     seatChangesOf(tx, ids),
     portalRequestsOf(tx, ids),
+    runsOnDate(tx, today),
   ]);
-  return { family, student, sessions, places, changes, requests, progress };
+  // Today's after-school ride, if the child is on one (RLS shows a family only their own child on it).
+  const ride = runs.find((r) => r.riders.some((x) => x.studentId === student.id)) ?? null;
+  return { family, student, sessions, places, changes, requests, progress, ride };
 }
