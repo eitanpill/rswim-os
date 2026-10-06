@@ -318,3 +318,24 @@ export async function marksOfSessions(tx: Tx, sessionIds: readonly string[]) {
     .from(attendance)
     .where(inArray(attendance.sessionId, [...sessionIds]));
 }
+
+/**
+ * How many bookings hang on these lessons: makeups and trials still booked, and marks already recorded. A venue
+ * migration will not cancel lessons that have any.
+ */
+export async function bookingsInSessions(tx: Tx, sessionIds: readonly string[]): Promise<number> {
+  if (sessionIds.length === 0) return 0;
+  const ids = [...sessionIds];
+  const [m, tr, a] = await Promise.all([
+    tx
+      .select({ n: sql<number>`count(*)::int` })
+      .from(makeupBookings)
+      .where(and(inArray(makeupBookings.sessionId, ids), eq(makeupBookings.status, 'booked'))),
+    trialsInSessions(tx, ids),
+    tx
+      .select({ n: sql<number>`count(*)::int` })
+      .from(attendance)
+      .where(inArray(attendance.sessionId, ids)),
+  ]);
+  return (m[0]?.n ?? 0) + tr.filter((x) => x.status === 'booked').length + (a[0]?.n ?? 0);
+}

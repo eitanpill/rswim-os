@@ -123,6 +123,11 @@ const TENANT_TABLES = [
   'institution_contract_groups',
   'institution_invoices',
   'institution_payments',
+  'venue_migrations',
+  'venue_migration_items',
+  'copilot_requests',
+  'copilot_actions',
+  'weekly_digests',
 ] as const;
 
 describe('schema guardrails', () => {

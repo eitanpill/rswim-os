@@ -205,6 +205,8 @@ export async function seedSchedulingData(
     [reut, 2, 'בריכת הדמו - גוש עציון'],
     [lia, 1, 'קאנטרי הדמו - ירושלים'],
     [lia, 4, 'בריכת הדמו - גוש עציון'],
+    // Dani also teaches in Jerusalem on Tuesdays; Lia does not on Thursdays (the venue migration demo shows both).
+    [dani, 2, 'קאנטרי הדמו - ירושלים'],
   ] as const) {
     await client.query(
       `insert into availability_rules (organization_id, staff_member_id, weekday, starts_at, ends_at, venue_id, effective_from)

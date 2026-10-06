@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { FREEZE_REASONS } from '@rswim/contracts';
+import { CHURN_REASONS, FREEZE_REASONS } from '@rswim/contracts';
 import { addDays } from '@rswim/calendar';
 import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import {
@@ -44,6 +44,7 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
   const myMarks = ride?.riders.find((r) => r.studentId === student.id)?.marks ?? [];
   const today = todayIL();
   const reasons = await enumOptions('freezeReason', FREEZE_REASONS);
+  const churnReasons = await enumOptions('churnReason', CHURN_REASONS);
   const groupOf = (enrollmentId: string) =>
     places.find((p) => p.enrollmentId === enrollmentId)?.groupName ?? '';
   const reasonText = (e: unknown) => {
@@ -242,6 +243,12 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
                     <input type="hidden" name="enrollmentId" value={p.enrollmentId} />
                     <input type="hidden" name="studentId" value={student.id} />
                     <p className="text-sm text-ink-muted">{t('leaveHint')}</p>
+                    <SelectField
+                      name="reason"
+                      label={t('leaveReason')}
+                      includeEmpty="—"
+                      options={churnReasons}
+                    />
                     <TextareaField name="note" label={t('note')} />
                     <div>
                       <SubmitButton variant="danger">{t('sendLeave')}</SubmitButton>

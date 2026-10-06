@@ -21,29 +21,9 @@ import { withSession } from '@/lib/db';
 import { dmy, todayIL } from '@/lib/options';
 import { createPolicyVersionAction } from './actions';
 import { PolicyFieldInput } from './policy-field';
+import { SECTION_ORDER } from './sections';
 
 type Search = { venue?: string; program?: string };
-
-/** Sections in the order the owner thinks about them. */
-const SECTION_ORDER = [
-  'absence',
-  'makeup',
-  'closure',
-  'billing',
-  'discount',
-  'trial',
-  'attendance',
-  'calendar',
-  'venue',
-  'health',
-  'consent',
-  'regulations',
-  'enrollment',
-  'scheduling',
-  'staffing',
-  'payroll',
-  'comms',
-];
 
 export default async function PoliciesPage({ searchParams }: { searchParams: Promise<Search> }) {
   const q = await searchParams;

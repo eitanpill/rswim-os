@@ -11,6 +11,7 @@ import type { ServiceContext } from '@rswim/domain-core';
 import { guardiansOfHouseholds, staffNames, studentsByIds } from '@rswim/domain-people';
 import {
   lessonTexts,
+  migrationNotices,
   placesByIds,
   slotText,
   studentsInLessons,
@@ -18,7 +19,7 @@ import {
 } from '@rswim/domain-scheduling';
 import { dropAudience, stageAudience } from '@rswim/domain-transport';
 import { agorot, formatILS } from '@rswim/money';
-import { messageDate, messagePeriod } from '../policies';
+import { messageDate, messagePeriod, migrationNoticeVars } from '../policies';
 import { enqueueMessage, type Vars } from './outbound';
 import { ensureCommsDefaults } from './templates';
 
@@ -91,8 +92,21 @@ const lessonVars =
     venue: l.venueName,
   });
 
+/** A venue migration (or its revert): one personal message per child, from the migration's notices. */
+const venueMigration: Resolver = async (tx, raw) => {
+  const p = z.looseObject({ migrationId: uuid }).parse(raw);
+  const notices = await migrationNotices(tx, p.migrationId);
+  return notices.map((n) => ({
+    key: n.studentId,
+    householdId: n.householdId,
+    vars: (l) => migrationNoticeVars(n, l),
+  }));
+};
+
 /** The events that message families, and how each finds its audience and words. */
 export const RESOLVERS: Record<string, Resolver> = {
+  'scheduling.venue_migrated': venueMigration,
+  'scheduling.venue_migration_reverted': venueMigration,
   'enrollment.trial_booked': async (tx, raw) => {
     const p = z.looseObject({ studentId: uuid, sessionId: uuid }).parse(raw);
     const l = await lessonOf(tx, p.sessionId);

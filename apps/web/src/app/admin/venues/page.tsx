@@ -23,9 +23,14 @@ export default async function VenuesPage() {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={
-          <Link href="/admin/venues/new" className={buttonVariants()}>
-            {t('new')}
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/admin/venues/migrations" className="text-brand-700 underline">
+              {t('migrations')}
+            </Link>
+            <Link href="/admin/venues/new" className={buttonVariants()}>
+              {t('new')}
+            </Link>
+          </div>
         }
       />
       {venues.length === 0 ? (

@@ -4,7 +4,7 @@
  * `requestCancellation`), so the same regulations apply and the cut-off is decided by the moment the family asked.
  */
 import { z } from 'zod';
-import { FREEZE_REASONS, optionalText, requiredDate } from '@rswim/contracts';
+import { CHURN_REASONS, FREEZE_REASONS, optionalText, requiredDate } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, type Tx } from '@rswim/db';
 import { DomainError, emit, toDomainError, type ServiceContext } from '@rswim/domain-core';
 import { guarded } from './shared';
@@ -25,6 +25,7 @@ export type PortalFreezeInput = z.input<typeof PortalFreezeInput>;
 
 export const PortalCancellationInput = z.object({
   enrollmentId: z.uuid(),
+  reason: z.enum(CHURN_REASONS),
   note: optionalText(500),
 });
 export type PortalCancellationInput = z.input<typeof PortalCancellationInput>;
@@ -78,7 +79,12 @@ export async function askFreeze(tx: Tx, ctx: ServiceContext, raw: PortalFreezeIn
 /** The family asks to leave the group; the regulations' cut-off decides the last month they pay for. */
 export async function askCancellation(tx: Tx, ctx: ServiceContext, raw: PortalCancellationInput) {
   const input = PortalCancellationInput.parse(raw);
-  return ask(tx, ctx, { enrollmentId: input.enrollmentId, kind: 'cancellation', note: input.note });
+  return ask(tx, ctx, {
+    enrollmentId: input.enrollmentId,
+    kind: 'cancellation',
+    reason: input.reason,
+    note: input.note,
+  });
 }
 
 /** The family changes their mind before the request was decided. */
@@ -137,6 +143,7 @@ export async function processPortalRequest(tx: Tx, ctx: ServiceContext, id: stri
       const out = await requestCancellation(sp, actor, {
         enrollmentId: r.enrollmentId,
         requestedAt: israelMinute(r.requestedAt),
+        reason: (r.reason ?? 'other') as (typeof CHURN_REASONS)[number],
         note: r.note,
       });
       await sp

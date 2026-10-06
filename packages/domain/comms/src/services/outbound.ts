@@ -55,7 +55,7 @@ export async function commsRules(tx: Tx): Promise<CommsRules> {
   return commsRulesFrom(resolved.rules);
 }
 
-async function schoolName(tx: Tx, orgId: string): Promise<string> {
+export async function schoolName(tx: Tx, orgId: string): Promise<string> {
   const [o] = await tx
     .select({ name: organizations.name })
     .from(organizations)

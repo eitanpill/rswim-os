@@ -200,6 +200,46 @@ A cohort registers a child while it is open, has groups, before its closing date
 seat. A course's own rules are its program's policy version (scope `program`). An institution's month is priced
 per child on the roster, per lesson held, or as a fixed sum; it is due after the contract's payment terms.
 
+## 15. Venue migration (Phase 9)
+
+| Key | Default | Notes |
+|---|---|---|
+| `migration.revert_hours` | `24` | An executed migration can be reverted for this long; places billing already charged block the revert |
+
+Each group at the closing venue is either **relocated** (same group, new venue/pool/lanes, start time may shift on the
+same weekday) or **merged** into an existing group elsewhere. Merge targets are ranked (`rankMergeTargets`): same
+program 30, same weekday 20, a start within 15 minutes 20 (within an hour 10), overlapping age band 10, overlapping
+level range 10, room for every child 10; a group admitting fewer people than the source is never offered. The preview
+runs the ordinary hard rules on the timetable as it will be and the placement rules for every child who joins a group;
+execution is refused while anything blocks.
+
+## 16. Reports and weekly digest (Phase 9)
+
+| Key | Default | Notes |
+|---|---|---|
+| `digest.enabled` | `true` | The worker builds the digest every Sunday at 07:00 (Israel) |
+| `digest.high_occupancy_pct` | `90` | A group above this suggests a price rise |
+| `digest.low_occupancy_pct` | `40` | A group below this is flagged |
+| `digest.debt_attention_days` | `60` | Debts older than this are listed |
+| `scheduling.open_group_min_waiting` | (scheduling) | Children waiting for one program and slot that suggest opening a group |
+
+Venue margin = revenue attributed to the venue (charges for its groups' lessons, by where the lesson was held that
+month, plus institution invoices) − rent − instructor pay for its lessons. Rent per month: fixed monthly as is, per
+hour and per lane-hour from the lessons held; a revenue-share contract is shown as unknown. Occupancy = seats held /
+capacity. Churn counts places that ended, by reason; transfers between groups, completed places and courses/camps are
+not churn. The funnel source is "LeadYourWay" when the family came from GHL, otherwise "office".
+
+## 17. Owner copilot (Phase 9)
+
+| Key | Default | Notes |
+|---|---|---|
+| `copilot.enabled` | `false` | Also needs `ANTHROPIC_API_KEY` in the web app (or `RSWIM_COPILOT_FAKE=1` for demos) |
+
+Owner only. The model reads through fixed tools (children, groups, staff, debts, lessons on a date, closures) and can
+only propose three actions: move or add a child to a group, message a family, open makeup slots. A proposal is checked
+before it is stored (a move runs the placement preview), and nothing happens until the owner confirms; the action then
+runs through the ordinary service as the owner. A confirmed move can be undone; a message cannot.
+
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.
 - Proration rounds per line; statement total = sum of rounded lines.

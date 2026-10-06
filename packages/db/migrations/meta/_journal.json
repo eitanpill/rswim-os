@@ -141,6 +141,20 @@
       "when": 1791192536757,
       "tag": "0019_courses_institutions_security",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791275194357,
+      "tag": "0020_reports_migration_copilot",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791275195706,
+      "tag": "0021_reports_migration_copilot_security",
+      "breakpoints": true
     }
   ]
 }

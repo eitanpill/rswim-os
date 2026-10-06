@@ -143,6 +143,19 @@ export const PORTAL_REQUEST_STATUSES = ['pending', 'done', 'refused', 'withdrawn
 export const PortalRequestStatus = z.enum(PORTAL_REQUEST_STATUSES);
 export type PortalRequestStatus = z.infer<typeof PortalRequestStatus>;
 
+/** Why a family leaves (brief §6.14 churn reasons), asked on every cancellation. */
+export const CHURN_REASONS = [
+  'cold_water',
+  'schedule',
+  'fear',
+  'moving',
+  'cost',
+  'level_done',
+  'other',
+] as const;
+export const ChurnReason = z.enum(CHURN_REASONS);
+export type ChurnReason = z.infer<typeof ChurnReason>;
+
 export const CANCELLATION_STATUSES = ['active', 'withdrawn'] as const;
 export const CancellationStatus = z.enum(CANCELLATION_STATUSES);
 export type CancellationStatus = z.infer<typeof CancellationStatus>;

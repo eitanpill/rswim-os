@@ -170,8 +170,22 @@
         "title": "הסעות צהרון",
         "hint": "מסלולים, נסיעות היום וזמן במים"
       },
-      "cohorts": "קורסים וקייטנות",
-      "institutions": "מוסדות"
+      "cohorts": {
+        "title": "קורסים וקייטנות",
+        "hint": "מחזורים, הרשמה, צוות ויחס מדריכים"
+      },
+      "institutions": {
+        "title": "מוסדות",
+        "hint": "חוזים עם בתי ספר ורשויות, דוחות נוכחות וחשבוניות"
+      },
+      "reports": {
+        "title": "דוחות",
+        "hint": "הכנסות, רווחיות בריכות, תפוסה, עזיבות, משפך וסיכום שבועי"
+      },
+      "copilot": {
+        "title": "עוזר AI",
+        "hint": "לשאול בעברית, לקבל הצעות, ולאשר לפני שמשהו קורה"
+      }
     }
   },
   "instructor": {
@@ -482,7 +496,8 @@
       "freezeOutcome": "ההקפאה {status}",
       "leaveOutcome": "החודש האחרון לתשלום: {period}. השיעור האחרון לפני {date}",
       "refused": "לא אושר: {reason}",
-      "leaving": "עוזב/ת את הקבוצה"
+      "leaving": "עוזב/ת את הקבוצה",
+      "leaveReason": "למה אתם עוזבים?"
     },
     "requests": {
       "errors": {
@@ -956,7 +971,9 @@
       "transport_left_school": "הסעה יצאה מבית הספר",
       "transport_arrived_pool": "הגענו לבריכה",
       "transport_left_pool": "יצאנו מהבריכה",
-      "transport_dropped_off": "ירד/ה מההסעה"
+      "transport_dropped_off": "ירד/ה מההסעה",
+      "venue_migration": "מעבר בריכה",
+      "venue_migration_reverted": "ביטול מעבר בריכה"
     },
     "messageStatus": {
       "queued": "בתור",
@@ -1112,6 +1129,36 @@
       "cheque": "המחאה",
       "cash": "מזומן",
       "other": "אחר"
+    },
+    "churnReason": {
+      "cold_water": "מים קרים",
+      "schedule": "לא מסתדר בלו״ז",
+      "fear": "פחד",
+      "moving": "מעבר דירה",
+      "cost": "מחיר",
+      "level_done": "סיים/ה את השלב",
+      "other": "אחר"
+    },
+    "migrationStatus": {
+      "draft": "טיוטה",
+      "executed": "בוצע",
+      "reverted": "בוטל"
+    },
+    "migrationMode": {
+      "relocate": "הקבוצה עוברת כמו שהיא",
+      "merge": "הצטרפות לקבוצה קיימת"
+    },
+    "migrationLead": {
+      "keep": "אותו מדריך/ה",
+      "other": "מדריך/ה אחר/ת",
+      "none": "בלי מדריך/ה בינתיים"
+    },
+    "copilotActionStatus": {
+      "proposed": "מחכה לאישור",
+      "confirmed": "בוצע",
+      "failed": "לא בוצע",
+      "dismissed": "נדחה",
+      "undone": "בוטל"
     }
   },
   "venues": {
@@ -1195,7 +1242,8 @@
       "datesReversed": "תאריך הסיום לפני תאריך ההתחלה",
       "noLanes": "יש לבחור לפחות מסלול אחד",
       "laneOverlap": "{lanes, plural, one {מסלול כבר תפוס} other {# מסלולים כבר תפוסים}} בחלון אחר באותו זמן"
-    }
+    },
+    "migrations": "מעבר בריכה"
   },
   "programs": {
     "title": "תוכניות ורמות",
@@ -1578,7 +1626,10 @@
       "comms": "תקשורת",
       "scheduling": "שיבוץ",
       "transport": "הסעות",
-      "camp": "קייטנות"
+      "camp": "קייטנות",
+      "migration": "מעבר בריכה",
+      "copilot": "עוזר AI",
+      "digest": "סיכום שבועי"
     },
     "fields": {
       "billing": {
@@ -1702,6 +1753,18 @@
       },
       "camp": {
         "children_per_staff": "מקסימום ילדים לאיש צוות"
+      },
+      "migration": {
+        "revert_hours": "אפשר לבטל מעבר בריכה עד (שעות)"
+      },
+      "copilot": {
+        "enabled": "עוזר AI לבעלים פעיל"
+      },
+      "digest": {
+        "enabled": "סיכום שבועי פעיל",
+        "high_occupancy_pct": "תפוסה גבוהה (אחוז) להצעת העלאת מחיר",
+        "low_occupancy_pct": "תפוסה נמוכה (אחוז) לסימון קבוצה",
+        "debt_attention_days": "חוב ותיק מעל (ימים)"
       }
     },
     "options": {
@@ -2063,6 +2126,41 @@
       "hasMembers": "כבר יש נרשמים, אי אפשר לשנות את הקבוצות",
       "alreadyRegistered": "הילד/ה כבר רשום/ה למחזור",
       "notRegistered": "הילד/ה לא רשום/ה למחזור"
+    },
+    "migration": {
+      "why": {
+        "sameProgram": "אותה תוכנית",
+        "sameSlot": "אותו יום ושעה",
+        "sameDay": "אותו יום, הפרש של {minutes} דקות",
+        "otherDay": "ביום {day}",
+        "ageOverlap": "טווח גילים מתאים",
+        "ageApart": "טווח גילים שונה",
+        "levelOverlap": "רמה מתאימה",
+        "room": "{free} מקומות פנויים, צריך {needed}",
+        "noRoom": "רק {free} מקומות פנויים, צריך {needed}"
+      },
+      "unmapped": "עוד לא נבחר לאן הקבוצה עוברת",
+      "targetGone": "קבוצת היעד כבר לא קיימת",
+      "noRoom": "בקבוצת היעד {free} מקומות פנויים, וצריך {needed}",
+      "frozen": "בהקפאה",
+      "trialBooked": "קבע/ה שיעור ניסיון בקבוצה",
+      "leaving": "כבר עוזב/ת את הקבוצה",
+      "bookedLessons": "יש {count} שיעורים מהתאריך עם השלמות, ניסיונות או נוכחות רשומה. צריך להזיז אותם קודם",
+      "noLeadYet": "לקבוצה עוד אין מדריך/ה בבריכה החדשה, והמשמרת תחכה לשיבוץ",
+      "errors": {
+        "leadMissing": "בחרו את המדריך/ה החדש/ה",
+        "targetMissing": "בחרו לאן הקבוצה עוברת",
+        "notDraft": "המעבר כבר בוצע, אי אפשר לשנות אותו",
+        "pastDate": "תאריך המעבר צריך להיות היום או אחריו",
+        "draftExists": "כבר יש טיוטת מעבר לבריכה הזו",
+        "notSource": "הקבוצה לא שייכת לבריכה שנסגרת",
+        "badTarget": "היעד לא מתאים: בחרו בריכה אחרת או קבוצה ביום פעילות",
+        "noLanes": "אין מסלולים פנויים בבריכה ובשעה האלה",
+        "notReady": "יש עוד בעיות פתוחות במעבר. תקנו אותן ונסו שוב",
+        "billed": "כבר חויבו מקומות בקבוצות החדשות, ולכן אי אפשר לבטל",
+        "notExecuted": "המעבר עוד לא בוצע",
+        "revertClosed": "חלון הביטול נסגר"
+      }
     }
   },
   "attendance": {
@@ -2535,7 +2633,8 @@
       "requestCancel": "לרשום ביטול",
       "withdraw": "לבטל את הביטול",
       "cancelInfo": "החיוב האחרון: {last}. המקום מסתיים ב-{ends}",
-      "freezeInfo": "{from} עד {to} · {status}"
+      "freezeInfo": "{from} עד {to} · {status}",
+      "churnReason": "למה עוזבים"
     },
     "profiles": {
       "title": "פרופילי החזר",
@@ -2659,7 +2758,9 @@
       "transport_left_school": "ההסעה יצאה מבית הספר",
       "transport_arrived_pool": "ההסעה הגיעה לבריכה",
       "transport_left_pool": "ההסעה יצאה מהבריכה",
-      "transport_rider_dropped": "ילד/ה ירד/ה בנקודת ההורדה"
+      "transport_rider_dropped": "ילד/ה ירד/ה בנקודת ההורדה",
+      "scheduling_venue_migrated": "מעבר בריכה בוצע",
+      "scheduling_venue_migration_reverted": "מעבר בריכה בוטל"
     },
     "decision": {
       "send": "נשלח מיד",
@@ -3042,6 +3143,256 @@
       "per_child_month": "{count} ילדים × {rate} = {amount}",
       "per_session": "{count} שיעורים שהתקיימו × {rate} = {amount} (שיעורים שבוטלו: {cancelled})",
       "fixed_month": "סכום חודשי קבוע: {amount}"
+    }
+  },
+  "migrations": {
+    "saved": "נשמר",
+    "executed": "המעבר בוצע, וההודעות להורים נשלחות",
+    "reverted": "המעבר בוטל. הכל חזר כמו שהיה",
+    "title": "מעבר בריכה",
+    "hint": "כשבריכה נסגרת: בוחרים לאן כל קבוצה עוברת, רואים תצוגה מקדימה והודעה אישית לכל משפחה, ומבצעים. אפשר לבטל בתוך חלון הביטול.",
+    "empty": "עוד לא היו מעברי בריכה",
+    "line": "{venue} · מ־{date} · {groups, plural, one {קבוצה אחת} other {# קבוצות}}",
+    "new": "מעבר חדש",
+    "form": {
+      "source": "הבריכה שנסגרת",
+      "effectiveOn": "החל מתאריך",
+      "effectiveOnHint": "שיעורים מהתאריך הזה עוברים",
+      "reason": "סיבה (לא חובה)",
+      "create": "פתיחת אשף המעבר"
+    },
+    "wizardTitle": "מעבר מ{venue}",
+    "wizardLine": "החל מ־{date} · {groups, plural, one {קבוצה אחת} other {# קבוצות}}",
+    "done": {
+      "title": "המעבר בוצע",
+      "line": "{children, plural, one {ילד/ה אחד/ת} other {# ילדים}} ב{groups, plural, one {קבוצה אחת} other {־# קבוצות}} עברו",
+      "revertUntil": "אפשר לבטל עד {at}",
+      "revertConfirm": "לבטל את המעבר? הקבוצות, המקומות והשיעורים יחזרו כמו שהיו, וההורים יקבלו הודעה",
+      "revert": "ביטול המעבר",
+      "final": "חלון הביטול נסגר. המעבר סופי",
+      "messages": "להודעות שנשלחו"
+    },
+    "quick": {
+      "title": "כל הקבוצות לבריכה אחת",
+      "venue": "בריכת יעד",
+      "hint": "כל קבוצה עוברת כמו שהיא, באותו יום ושעה, למסלולים פנויים",
+      "button": "העברת כל הקבוצות"
+    },
+    "messages": {
+      "title": "הודעות להורים ({n})",
+      "none": "ההודעות יופיעו אחרי שתבחרו לאן הקבוצות עוברות",
+      "to": "ל{guardian}, על {child}",
+      "noGuardian": "אין הורה עם טלפון",
+      "missing": "חסרים פרטים להודעה: {vars}"
+    },
+    "execute": {
+      "title": "ביצוע",
+      "ready": "הכל מוכן. אחרי הביצוע ההורים מקבלים הודעה, ואפשר לבטל במשך {hours} שעות",
+      "confirm": "לבצע את המעבר ולשלוח הודעות לכל המשפחות?",
+      "button": "ביצוע המעבר",
+      "noGroups": "אין קבוצות פעילות בבריכה הזו",
+      "blocked": "{n, plural, one {בעיה אחת פתוחה} other {# בעיות פתוחות}}. תקנו לפני הביצוע",
+      "deleteConfirm": "למחוק את הטיוטה?",
+      "delete": "מחיקת הטיוטה"
+    },
+    "group": {
+      "unmapped": "לא מוגדר",
+      "source": "היום: {slot} · מדריך/ה: {lead} · {children} ילדים",
+      "relocateTo": "עוברת ל{venue}, {pool}, מסלול {lanes} · {slot} · מדריך/ה: {lead}",
+      "mergeInto": "מצטרפת ל{group} ב{venue} · {slot} · מדריך/ה: {lead}",
+      "noLead": "עוד לא נקבע",
+      "relocate": "הקבוצה עוברת כמו שהיא",
+      "targetPool": "בריכה",
+      "startsAt": "שעת התחלה",
+      "lead": "מדריך/ה",
+      "newLead": "מדריך/ה חדש/ה",
+      "newLeadHint": "רק אם בחרתם מדריך/ה אחר/ת",
+      "save": "שמירה",
+      "merge": "או: הילדים מצטרפים לקבוצה קיימת",
+      "noSuggestions": "אין קבוצות מתאימות בבריכות אחרות",
+      "suggestions": "קבוצות מתאימות",
+      "suggestion": "{group} · {venue} · {slot} · {seated}/{capacity}",
+      "clear": "ניקוי הבחירה"
+    },
+    "price": {
+      "unknown": "אין מחירון לבריכה החדשה",
+      "same": "המחיר לא משתנה ({amount} לחודש)",
+      "up": "המחיר עולה מ־{before} ל־{after} לחודש",
+      "down": "המחיר יורד מ־{before} ל־{after} לחודש"
+    }
+  },
+  "reports": {
+    "title": "דוחות",
+    "subtitle": "כמה חויב וכמה נגבה, לפי חודש, בריכה ותוכנית",
+    "tabs": {
+      "label": "דוחות",
+      "revenue": "הכנסות",
+      "venues": "רווחיות בריכות",
+      "occupancy": "תפוסה",
+      "churn": "עזיבות",
+      "funnel": "משפך",
+      "instructors": "מדריכים",
+      "digest": "סיכום שבועי"
+    },
+    "from": "מחודש",
+    "to": "עד חודש",
+    "show": "הצגה",
+    "csv": "ייצוא ל-CSV (אקסל)",
+    "range": "{from} עד {to}",
+    "empty": "אין נתונים בטווח הזה",
+    "month": "חודש",
+    "venue": "בריכה",
+    "program": "תוכנית",
+    "group": "קבוצה",
+    "total": "סה״כ",
+    "noVenue": "בלי בריכה (חיוב ידני)",
+    "revenue": {
+      "months": "לפי חודש",
+      "byVenue": "חיובים לפי בריכה ותוכנית",
+      "charged": "חויב",
+      "collected": "נגבה",
+      "institutions": "חשבוניות למוסדות",
+      "institutionsPaid": "נגבה ממוסדות",
+      "note": "חיוב שייך לבריכה שבה התקיימו שיעורי הקבוצה באותו חודש. נגבה = תשלומים שהצליחו פחות החזרים."
+    },
+    "venues": {
+      "subtitle": "הכנסות מול שכירות ושכר מדריכים, לכל בריכה ולכל חודש",
+      "margin": "רווח בטווח: {amount}",
+      "revenue": "הכנסות",
+      "rent": "שכירות",
+      "staff": "שכר מדריכים",
+      "marginCol": "רווח",
+      "utilization": "ניצול מקומות",
+      "rentUnknown": "לא ידוע (אחוז מההכנסות)",
+      "seats": "{held}/{capacity} ({pct})",
+      "familyRevenue": "הכנסות ממשפחות",
+      "institutionRevenue": "הכנסות ממוסדות",
+      "held": "מקומות תפוסים",
+      "capacity": "מקומות",
+      "note": "שכירות לפי החוזה: חודשית קבועה, או תעריף כפול שעות (או שעות מסלול) שבהן התקיימו שיעורים. שכר מדריכים מתוך שורות השכר של השיעורים בבריכה."
+    },
+    "occupancy": {
+      "subtitle": "כמה מקומות תפוסים מתוך הקיבולת, לפי בריכה, יום ושעה",
+      "date": "נכון לתאריך",
+      "cell": "{held} מתוך {capacity} מקומות ב-{groups} קבוצות",
+      "groups": "הקבוצות",
+      "slot": "יום ושעה",
+      "seats": "מקומות",
+      "day": "יום",
+      "time": "שעה",
+      "legend": "ירוק: {high}% ומעלה. צהוב: מתחת ל-{low}%. הסף נקבע במדיניות (סיכום שבועי)."
+    },
+    "churn": {
+      "subtitle": "מקומות שהסתיימו בכל חודש, לפי הסיבה שהמשפחה נתנה",
+      "byReason": "לפי סיבה ({n})",
+      "none": "אף מקום לא הסתיים בטווח הזה",
+      "places": "מי עוזב/ת",
+      "child": "ילד/ה",
+      "lastDay": "יום אחרון",
+      "reason": "סיבה",
+      "unknown": "לא נרשמה סיבה",
+      "note": "מעבר לקבוצה אחרת וסיום קורס לא נספרים כעזיבה."
+    },
+    "funnel": {
+      "subtitle": "משפחות חדשות, שיעור ניסיון, הגעה לשיעור והרשמה",
+      "bySource": "לפי מקור",
+      "byBranch": "לפי סניף",
+      "families": "משפחות חדשות",
+      "trialBooked": "קבעו ניסיון",
+      "trialHeld": "הגיעו לניסיון",
+      "enrolled": "נרשמו",
+      "conversion": "המרה",
+      "trialConversion": "המרה אחרי ניסיון",
+      "medianDays": "ימים עד הרשמה (חציון)",
+      "noBranch": "עוד בלי סניף",
+      "source": {
+        "ghl": "LeadYourWay",
+        "office": "המשרד"
+      },
+      "note": "מקור LeadYourWay = משפחה שהגיעה מאנשי הקשר ב-GHL. סניף = הבריכה של שיעור הניסיון הראשון, או של הקבוצה הראשונה."
+    },
+    "instructors": {
+      "subtitle": "שיעורים שהעבירו, שיעורים שמחליף לקח, וילדים שנשארו אחרי שלושה חודשים",
+      "name": "מדריך/ה",
+      "taught": "שיעורים שהעביר/ה",
+      "substituted": "הוחלף/ה",
+      "covered": "החליף/ה אחרים",
+      "retention": "נשארו אחרי 3 חודשים",
+      "kept": "{pct} ({kept} מתוך {of})",
+      "note": "שמירה על ילדים: מתוך הילדים שהתחילו בקבוצות שהמדריך/ה מוביל/ה לפני שלושה חודשים לפחות."
+    },
+    "digest": {
+      "subtitle": "כל יום ראשון ב-07:00: מה היה, מה דורש תשומת לב, והצעות",
+      "build": "בניית הסיכום של השבוע עכשיו",
+      "built": "הסיכום נבנה",
+      "empty": "עוד אין סיכומים",
+      "week": "השבוע שמתחיל ב-{date}",
+      "anyDay": "בכל יום",
+      "anyVenue": "בכל בריכה",
+      "sections": {
+        "happened": "מה היה",
+        "attention": "דורש תשומת לב",
+        "suggestion": "הצעות"
+      },
+      "items": {
+        "places": "{started} מקומות חדשים, {ended} הסתיימו",
+        "trials": "{held} שיעורי ניסיון התקיימו, {enrolled} נרשמו",
+        "collected": "נגבו {amount}",
+        "cancelled": "{count} שיעורים בוטלו",
+        "venueLoss": "{venue} הפסידה {amount} ב-{period}",
+        "oldDebts": "{count} משפחות עם חוב ותיק מעל {days} ימים, סה״כ {amount} (הגדולים: {top})",
+        "lowGroup": "{group} ב{venue} מלאה רק ב-{pct}%",
+        "raisePrice": "{group} ב{venue} מלאה ב-{pct}%. אולי להעלות מחיר או לפתוח קבוצה נוספת",
+        "openGroup": "{count} ממתינים ל{program} ({venue}, {day}). אולי לפתוח קבוצה",
+        "allClear": "אין משהו דחוף השבוע"
+      }
+    }
+  },
+  "copilot": {
+    "title": "עוזר AI",
+    "subtitle": "שואלים בעברית. העוזר בודק ומציע, ושום דבר לא קורה בלי אישור שלך.",
+    "prompt": "מה לעשות?",
+    "promptHint": "למשל: \"תעביר את יואב לקבוצה של שלישי\", \"מי חייב לנו?\", \"תשלח להורים של נועה: ...\"",
+    "ask": "שליחה",
+    "empty": "עוד לא שאלת כלום",
+    "trace": "מה נבדק ({n})",
+    "confirm": "אישור וביצוע",
+    "dismiss": "לא עכשיו",
+    "undo": "ביטול המעבר",
+    "undoConfirm": "להחזיר את הילד/ה לקבוצה הקודמת?",
+    "confirmed": "בוצע",
+    "undone": "המעבר בוטל",
+    "note": "העוזר רק קורא ומציע. כל פעולה עוברת את אותם כללים כמו במסכים, ונרשמת ביומן.",
+    "tools": {
+      "find_students": "חיפוש ילדים",
+      "find_groups": "חיפוש קבוצות",
+      "find_staff": "חיפוש מדריכים",
+      "debts": "חובות",
+      "lessons_on": "שיעורים ביום",
+      "closures": "סגירות",
+      "propose_move_student": "הצעת מעבר קבוצה",
+      "propose_message_family": "הצעת הודעה למשפחה",
+      "propose_open_makeup_slots": "הצעת השלמות"
+    },
+    "summary": {
+      "move": "להעביר את {student} מ{from} ל{to}, החל מ-{date}",
+      "add": "לשבץ את {student} ב{to}, החל מ-{date}",
+      "message": "לשלוח למשפחת {family}: \"{text}\"",
+      "slots": "לפתוח השלמות עם {staff} ב{venue}, {date} {from}-{to} ({capacity} ילדים)"
+    },
+    "errors": {
+      "ownerOnly": "העוזר זמין רק לבעלים",
+      "disabled": "העוזר כבוי. אפשר להפעיל אותו במדיניות (עוזר AI)",
+      "noModel": "העוזר עוד לא מחובר למודל. צריך מפתח ANTHROPIC_API_KEY בהגדרות השרת",
+      "badProposal": "ההצעה לא תקינה",
+      "unknownTool": "כלי לא מוכר",
+      "toolFailed": "הבדיקה נכשלה",
+      "alreadyDecided": "כבר החלטת על ההצעה הזו",
+      "notConfirmed": "אפשר לבטל רק פעולה שבוצעה",
+      "notUndoable": "את הפעולה הזו אי אפשר לבטל",
+      "prompt": "כתבו עד 2,000 תווים",
+      "modelFailed": "העוזר לא הצליח לענות. נסו שוב",
+      "incomplete": "העוזר לא סיים לענות. נסו לנסח קצר יותר"
     }
   }
 }

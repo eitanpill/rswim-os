@@ -102,6 +102,14 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
     he: '✅ {{student_name}} ירד/ה מההסעה ב{{point}} בשעה {{time}}. {{school_name}}',
     en: '✅ {{student_name}} got off at {{point}} at {{time}}. {{school_name}}',
   },
+  venue_migration: {
+    he: 'היי {{guardian_name}}, עדכון חשוב: מ{{date}} הקבוצה של {{student_name}} ({{from_group}}, {{from_day}} {{from_time}} ב{{from_venue}}) עוברת ל{{to_venue}}: {{to_group}}, {{to_day}} בשעה {{to_time}}. {{price_note}} אם יש שאלה או שהשינוי לא מתאים לכם, פשוט עונים להודעה הזו. {{school_name}}',
+    en: "Hi {{guardian_name}}, an important update: from {{date}}, {{student_name}}'s group ({{from_group}}, {{from_day}} {{from_time}} at {{from_venue}}) moves to {{to_venue}}: {{to_group}}, {{to_day}} at {{to_time}}. {{price_note}} If you have a question or the change does not work for you, just reply here. {{school_name}}",
+  },
+  venue_migration_reverted: {
+    he: 'היי {{guardian_name}}, עדכון: המעבר של {{student_name}} ל{{to_venue}} בוטל. הקבוצה ({{from_group}}) ממשיכה כרגיל ב{{from_venue}}, {{from_day}} בשעה {{from_time}}. סליחה על הבלבול! {{school_name}}',
+    en: "Hi {{guardian_name}}, an update: {{student_name}}'s move to {{to_venue}} is cancelled. The group ({{from_group}}) carries on as usual at {{from_venue}}, {{from_day}} at {{from_time}}. Sorry for the confusion! {{school_name}}",
+  },
   free_text: { he: '{{text}}', en: '{{text}}' },
 };
 
@@ -123,6 +131,8 @@ export const DEFAULT_AUTOMATIONS: [eventType: string, templateKey: Key][] = [
   ['transport.arrived_pool', 'transport_arrived_pool'],
   ['transport.left_pool', 'transport_left_pool'],
   ['transport.rider_dropped', 'transport_dropped_off'],
+  ['scheduling.venue_migrated', 'venue_migration'],
+  ['scheduling.venue_migration_reverted', 'venue_migration_reverted'],
 ];
 
 /** Gives an organization every template and automation it lacks. Running it twice changes nothing. */

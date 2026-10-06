@@ -19,7 +19,9 @@ const { classTemplates, classTemplateLanes } = schema;
 
 /** An optional <select> of ids: "" means none. */
 export const optionalUuid = () =>
-  z.preprocess((v) => (v === '' ? undefined : v), z.uuid().optional()).transform((v) => v ?? null);
+  z
+    .preprocess((v) => (v === '' || v === null ? undefined : v), z.uuid().optional())
+    .transform((v) => v ?? null);
 
 /** Throws the first hard-rule violation as a DomainError, so a form shows it in Hebrew. */
 export function refuse(violations: readonly RuleIssue[]): void {

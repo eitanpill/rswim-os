@@ -11,6 +11,21 @@ export const COHORT_STATUSES = ['open', 'closed', 'cancelled'] as const;
 export const CohortStatus = z.enum(COHORT_STATUSES);
 export type CohortStatus = z.infer<typeof CohortStatus>;
 
+/** A venue migration (brief §6.2): mapped and previewed as a draft, executed, then possibly reverted in the window. */
+export const MIGRATION_STATUSES = ['draft', 'executed', 'reverted'] as const;
+export const MigrationStatus = z.enum(MIGRATION_STATUSES);
+export type MigrationStatus = z.infer<typeof MigrationStatus>;
+
+/** How a source group is handled: it moves to another venue as it is, or its children join an existing group. */
+export const MIGRATION_MODES = ['relocate', 'merge'] as const;
+export const MigrationMode = z.enum(MIGRATION_MODES);
+export type MigrationMode = z.infer<typeof MigrationMode>;
+
+/** Who leads a relocated group: the same instructor, another one (who accepts the shift change), or none yet. */
+export const MIGRATION_LEAD_CHOICES = ['keep', 'other', 'none'] as const;
+export const MigrationLeadChoice = z.enum(MIGRATION_LEAD_CHOICES);
+export type MigrationLeadChoice = z.infer<typeof MigrationLeadChoice>;
+
 /** Who a group admits. The pool window may narrow it further (girls, women…). */
 export const ADMITTED_GENDERS = ['mixed', 'female', 'male'] as const;
 export const AdmittedGender = z.enum(ADMITTED_GENDERS);

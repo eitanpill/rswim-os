@@ -196,7 +196,11 @@ describe('a family asks; the worker decides with the office’s rules', () => {
 
   it('a request to leave is decided by the moment the family asked', async () => {
     const id = await as('parent', (tx) =>
-      askCancellation(tx, parentCtx(), { enrollmentId: seats.mine, note: 'עוברים דירה' }),
+      askCancellation(tx, parentCtx(), {
+        enrollmentId: seats.mine,
+        reason: 'moving',
+        note: 'עוברים דירה',
+      }),
     );
     const out = await system((tx) =>
       processPortalRequest(tx, { orgId: ctx.orgId, userId: null }, id),
@@ -208,11 +212,13 @@ describe('a family asks; the worker decides with the office’s rules', () => {
       Math.abs(new Date(c.requested_at).getTime() - new Date(row.requested_at).getTime()),
     ).toBeLessThan(60_000);
     expect(c.last_charged_period).toMatch(/^\d{4}-\d{2}$/);
+    // The family's reason travels with the request into the cancellation (the churn report reads it).
+    expect(c.reason).toBe('moving');
   });
 
   it('a request the rules refuse is stored with the reason, for the family to read', async () => {
     const id = await as('parent', (tx) =>
-      askCancellation(tx, parentCtx(), { enrollmentId: seats.mine }),
+      askCancellation(tx, parentCtx(), { enrollmentId: seats.mine, reason: 'moving' }),
     );
     const out = await system((tx) =>
       processPortalRequest(tx, { orgId: ctx.orgId, userId: null }, id),
@@ -251,7 +257,7 @@ describe('a family asks; the worker decides with the office’s rules', () => {
           askCancellation(
             tx,
             { orgId: ctx.orgId, userId: users.other },
-            { enrollmentId: seats.mine },
+            { enrollmentId: seats.mine, reason: 'cost' },
           ),
         ),
       ),
