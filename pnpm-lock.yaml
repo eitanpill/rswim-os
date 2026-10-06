@@ -386,6 +386,9 @@ importers:
       '@rswim/domain-enrollment':
         specifier: workspace:*
         version: link:../enrollment
+      '@rswim/domain-institutions':
+        specifier: workspace:*
+        version: link:../institutions
       '@rswim/domain-people':
         specifier: workspace:*
         version: link:../people
@@ -613,6 +616,58 @@ importers:
       '@rswim/domain-venues':
         specifier: workspace:*
         version: link:../venues
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/domain/institutions:
+    dependencies:
+      '@rswim/calendar':
+        specifier: workspace:*
+        version: link:../../calendar
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
+      '@rswim/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@rswim/domain-attendance':
+        specifier: workspace:*
+        version: link:../attendance
+      '@rswim/domain-core':
+        specifier: workspace:*
+        version: link:../core
+      '@rswim/domain-people':
+        specifier: workspace:*
+        version: link:../people
+      '@rswim/domain-scheduling':
+        specifier: workspace:*
+        version: link:../scheduling
+      '@rswim/integrations':
+        specifier: workspace:*
+        version: link:../../integrations
+      '@rswim/money':
+        specifier: workspace:*
+        version: link:../../money
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@rswim/config':
+        specifier: workspace:*
+        version: link:../../config
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.4

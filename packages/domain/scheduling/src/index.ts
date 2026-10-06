@@ -12,3 +12,5 @@ export * from './services/messaging-facts';
 export * from './services/payroll-facts';
 export * from './services/substitutes';
 export * from './services/transport-facts';
+export * from './services/cohorts';
+export * from './services/institution-facts';

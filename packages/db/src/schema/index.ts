@@ -11,3 +11,4 @@ export * from './billing';
 export * from './comms';
 export * from './staffops';
 export * from './transport';
+export * from './institutions';

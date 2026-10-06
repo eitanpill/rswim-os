@@ -27,6 +27,7 @@ import {
   SLOT_KINDS,
   SLOT_STATUSES,
   TERM_KINDS,
+  COHORT_STATUSES,
   WAITLIST_STATUSES,
 } from '@rswim/contracts';
 import { createdAt, id, inList, orgId, updatedAt } from './_helpers';
@@ -85,6 +86,42 @@ export const hebrewCalendarOverrides = pgTable(
 );
 
 /**
+ * A course or camp cohort (brief §6.11): a fixed group of children over set dates, meeting in one or more groups (an
+ * intensive course twice a week, a camp week every day). Registration is per cohort; a camp's weeks are separate
+ * cohorts. Its own regulations are the program's policy version.
+ */
+export const cohorts = pgTable(
+  'cohorts',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    programId: uuid('program_id').notNull(),
+    name: text('name').notNull(),
+    startsOn: date('starts_on').notNull(),
+    endsOn: date('ends_on').notNull(),
+    capacity: smallint('capacity').notNull(),
+    /** Registration closes at the end of this day (null = until the cohort starts). */
+    registrationClosesOn: date('registration_closes_on'),
+    status: text('status').notNull().default('open'),
+    notes: text('notes'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('cohorts_org_id').on(t.organizationId, t.id),
+    unique('cohorts_org_name').on(t.organizationId, t.name),
+    foreignKey({
+      name: 'cohorts_program_fk',
+      columns: [t.organizationId, t.programId],
+      foreignColumns: [programs.organizationId, programs.id],
+    }).onDelete('cascade'),
+    check('cohorts_status_check', sql.raw(`status in (${inList(COHORT_STATUSES)})`)),
+    check('cohorts_dates_check', sql`${t.endsOn} >= ${t.startsOn}`),
+    check('cohorts_capacity_check', sql`${t.capacity} between 1 and 500`),
+  ],
+);
+
+/**
  * A recurring group (brief §5): venue, pool, lanes, weekday, start and duration, program, level range, age band, who
  * it admits, capacity and what its instructor needs. Changing the lead instructor goes through `shift_changes`.
  */
@@ -112,6 +149,8 @@ export const classTemplates = pgTable(
       .notNull()
       .default(sql`'{}'::text[]`),
     leadStaffId: uuid('lead_staff_id'),
+    /** The course or camp cohort this group belongs to (its dates and registration); null for a regular group. */
+    cohortId: uuid('cohort_id'),
     effectiveFrom: date('effective_from').notNull(),
     effectiveTo: date('effective_to'),
     status: text('status').notNull().default('active'),
@@ -522,5 +561,32 @@ export const shiftChanges = pgTable(
           and ${t.newEndsAt} > ${t.newStartsAt}
       end`,
     ),
+  ],
+);
+
+/** Counselors and helpers on a cohort besides the groups' instructors (a camp's staff ratio counts them). */
+export const cohortStaff = pgTable(
+  'cohort_staff',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    cohortId: uuid('cohort_id').notNull(),
+    staffMemberId: uuid('staff_member_id').notNull(),
+    role: text('role'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('cohort_staff_org_id').on(t.organizationId, t.id),
+    unique('cohort_staff_once').on(t.cohortId, t.staffMemberId),
+    foreignKey({
+      name: 'cohort_staff_cohort_fk',
+      columns: [t.organizationId, t.cohortId],
+      foreignColumns: [cohorts.organizationId, cohorts.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'cohort_staff_staff_fk',
+      columns: [t.organizationId, t.staffMemberId],
+      foreignColumns: [staffMembers.organizationId, staffMembers.id],
+    }).onDelete('cascade'),
   ],
 );

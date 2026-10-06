@@ -116,6 +116,13 @@ const TENANT_TABLES = [
   'route_riders',
   'route_runs',
   'run_events',
+  'cohorts',
+  'cohort_staff',
+  'institutions',
+  'institution_contracts',
+  'institution_contract_groups',
+  'institution_invoices',
+  'institution_payments',
 ] as const;
 
 describe('schema guardrails', () => {

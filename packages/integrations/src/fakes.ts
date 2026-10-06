@@ -79,6 +79,7 @@ export class FakePaymentProvider implements PaymentProvider {
 }
 
 export interface FakeInvoice {
+  kind?: 'invoice_receipt' | 'tax_invoice' | 'receipt';
   ctx: ProviderContext;
   client: { name: string; nationalId?: string; email?: string };
   lines: FiscalLine[];
@@ -115,6 +116,57 @@ export class FakeInvoicingProvider implements InvoicingProvider {
       number: doc.number,
       pdfUrl: `https://docs.example.test/${doc.documentId}.pdf`,
     };
+  }
+
+  private remember(ctx: ProviderContext, doc: Omit<FakeInvoice, 'ctx' | 'documentId' | 'number'>) {
+    const seen = this.issued.find((d) => d.ctx.idempotencyKey === ctx.idempotencyKey);
+    const out = seen ?? {
+      ctx,
+      ...doc,
+      documentId: `fake_doc_${short(ctx.idempotencyKey)}`,
+      number: String(this.next++),
+    };
+    if (!seen) this.issued.push(out);
+    return {
+      documentId: out.documentId,
+      number: out.number,
+      pdfUrl: `https://docs.example.test/${out.documentId}.pdf`,
+    };
+  }
+
+  async issueTaxInvoice(
+    ctx: ProviderContext,
+    req: {
+      client: { name: string; nationalId?: string; email?: string };
+      lines: FiscalLine[];
+      dueOn: string;
+      notes?: string;
+    },
+  ) {
+    return this.remember(ctx, {
+      kind: 'tax_invoice',
+      client: req.client,
+      lines: req.lines,
+      paymentMethod: 'later',
+      notes: req.notes ?? `due ${req.dueOn}`,
+    });
+  }
+
+  async issueReceipt(
+    ctx: ProviderContext,
+    req: {
+      client: { name: string; nationalId?: string; email?: string };
+      invoiceDocumentId: string;
+      amount: Agorot;
+      paymentMethod: string;
+    },
+  ) {
+    return this.remember(ctx, {
+      kind: 'receipt',
+      client: req.client,
+      lines: [{ description: req.invoiceDocumentId, amount: req.amount, quantity: 1 }],
+      paymentMethod: req.paymentMethod,
+    });
   }
 
   async issueCreditNote(
