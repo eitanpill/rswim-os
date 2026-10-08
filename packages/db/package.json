@@ -9,7 +9,8 @@
     "./service": "./src/service.ts",
     "./migrate": "./src/migrate.ts",
     "./testing": "./test/harness.ts",
-    "./personas": "./src/personas.ts"
+    "./personas": "./src/personas.ts",
+    "./demo-profiles": "./src/demo-profiles.ts"
   },
   "scripts": {
     "lint": "eslint .",

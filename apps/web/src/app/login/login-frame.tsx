@@ -2,6 +2,8 @@ import { headers } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { brandingForHost, brandPalette } from '@rswim/domain-platform';
+import { demoProfile } from '@rswim/db/demo-profiles';
+import { isDemoMode } from '@/lib/auth/dev';
 import { withAnon } from '@/lib/db';
 
 /** On a school's own verified domain, sign-in wears that school's name and colour. */
@@ -33,7 +35,9 @@ export async function LoginFrame({
         <p className="text-3xl font-bold text-brand-600">
           {brand ? (brand.displayName ?? brand.name) : t('app.name')}
         </p>
-        <p className="text-ink-muted">{brand ? t('login.poweredBy') : t('app.tagline')}</p>
+        <p className="text-ink-muted">
+          {brand ? t('login.poweredBy') : isDemoMode() ? demoProfile().tagline : t('app.tagline')}
+        </p>
       </div>
       <section className="rounded-card border border-line bg-surface-raised p-5 shadow-sm">
         <h1 className="mb-4 text-xl font-semibold">{title}</h1>

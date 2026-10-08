@@ -32,10 +32,19 @@
    - לא חובה: `RSWIM_DEMO_SCHOOL_NAME` (למשל `גלי הים (דמו)`) ו-`RSWIM_DEMO_OWNER_NAME` (שם פרטי, למשל `דנה`).
 4. **Settings ← Networking ← Generate Domain** נותן כתובת כמו `rswim-demo.up.railway.app`. אפשר גם דומיין משלך
    (למשל `demo.leadyourway.co.il`) עם רשומת CNAME שמופיעה שם.
-5. זהו. כל מיזוג ל-`main` מעדכן את הדמו אוטומטית.
+5. זהו. כל מיזוג ל-`main` מעדכן את הדמו אוטומטית. אם ב-Settings ← Source כתוב "Could not load branches", העדכון ידני:
+   Deployments ← שלוש הנקודות על הפריסה האחרונה ← Redeploy.
 
 **איפוס לפני פגישה**: פותחים `https://<הכתובת>/dev/reset?key=<RSWIM_DEMO_RESET_KEY>`. תוך פחות מדקה הכול חוזר
 להתחלה. אפשר גם ללחוץ Restart ב-Railway.
+
+## פרופיל צלילה חופשית
+
+עם `RSWIM_DEMO_PROFILE=freediving` אותם נתונים מומצאים מתלבשים על בית ספר לצלילה חופשית: "כחול עמוק (דמו)",
+בריכת עומק במודיעין ואתר ים בחוף אכזיב, נבחרת נוער עם סולם של 4 שלבים (נשימה ורגיעה, סטטית, דינמית, ירידה בים),
+קורס למבוגרים (Freediver / Advanced), סדנאות סוף שבוע ומחנה צלילה. כל התלמידים בני 10 ומעלה, ובמסכים כתוב צלילה
+במקום שחייה. ההחלפה ב-Railway: Variables ← מוסיפים `RSWIM_DEMO_PROFILE` = `freediving` ← Deploy. כדי לחזור לשחייה
+מוחקים את המשתנה.
 
 ## אירוח אחר
 
@@ -48,9 +57,10 @@
 
 | משתנה | ברירת מחדל | מה עושה |
 |---|---|---|
+| `RSWIM_DEMO_PROFILE` | `swim` | סוג בית הספר בדמו: `swim` (שחייה) או `freediving` (צלילה חופשית) |
 | `RSWIM_DEMO_RESET_KEY` | (אין, הקישור כבוי) | מפעיל את `/dev/reset?key=…` |
-| `RSWIM_DEMO_SCHOOL_NAME` | `שחייה בכיף (דמו)` | שם בית הספר בדמו |
-| `RSWIM_DEMO_OWNER_NAME` | `יעל` | השם הפרטי של הבעלים בדמו |
+| `RSWIM_DEMO_SCHOOL_NAME` | לפי הפרופיל (`שחייה בכיף (דמו)` / `כחול עמוק (דמו)`) | שם בית הספר בדמו |
+| `RSWIM_DEMO_OWNER_NAME` | לפי הפרופיל (`יעל` / `אורי`) | השם הפרטי של הבעלים בדמו |
 | `RSWIM_DEMO_RESET_HOUR` | `3` | שעת האיפוס הלילי, שעון ישראל |
 | `RSWIM_DEMO_REAL_CLAUDE` + `ANTHROPIC_API_KEY` | כבוי | העוזר החכם ובוט ההורים על Claude אמיתי. עולה כסף, והדמו ציבורי |
 
