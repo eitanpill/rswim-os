@@ -81,6 +81,11 @@ by DNS TXT, or with `RSWIM_DNS_FAKE=1` accepts any `*.localhost`; it bills schoo
 (`RSWIM_GROW_FAKE=1`). `RSWIM_PLATFORM_HOSTS` (comma-separated) lists the platform's own hosts, which schools can't claim.
 Plan limits are a database trigger; plan features gate screens through `requireFeature`.
 
+Live demo (`docs/LIVE-DEMO.md`): `deploy/demo/Dockerfile` builds one container (Postgres, Inngest dev server, worker,
+web) on fake data and fake providers with `RSWIM_DEMO_MODE=1` (persona sign-in in production builds, demo banner).
+`pnpm --filter @rswim/seed demo:reset` drops and rebuilds its database; it refuses to run without `RSWIM_DEMO_MODE=1`.
+Inngest allows at most 10 triggers per function (`apps/worker/test/functions.test.ts`).
+
 ## Database access, in one paragraph
 Signed-in requests run as `authenticated` with JWT claims (`asUser`). Background jobs for one tenant run as
 `rswim_system` with `app.org_id` set (`withOrg`, from `@rswim/db/service`): RLS still applies, so a job cannot touch

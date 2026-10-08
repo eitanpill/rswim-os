@@ -34,7 +34,8 @@
     "errors": {
       "notFound": "Not found; it may have been deleted",
       "forbidden": "You don't have permission for this"
-    }
+    },
+    "demoBanner": "Demo environment · all data is invented · no message or charge is really sent"
   },
   "login": {
     "title": "Sign in",
@@ -62,6 +63,26 @@
     "devAccount": {
       "newcomer": "New school (sign-up)",
       "platform": "Platform admin"
+    },
+    "demo": {
+      "title": "Enter the demo",
+      "intro": "This is a live demo. Pick a role and you're in, no password. Every name, phone number and payment is invented, and no message or charge is ever really sent.",
+      "footnote": "The data goes back to its starting state every night, so click anything.",
+      "account": {
+        "newcomer": "New school",
+        "platform": "Platform admin"
+      },
+      "sees": {
+        "owner": "The home screen with insights, the group board, collections, payroll, reports and the copilot",
+        "admin": "Office work: families, placements, makeups and messages",
+        "instructor": "The instructor app: today's lessons, one-tap attendance, substitutes and pay",
+        "escort": "The transport app: who's on board, leaving school and arriving at the pool",
+        "accountant": "Payments, receipts and payroll ready for the accountant",
+        "parent": "The parents' portal on a phone: schedule, absences, makeups, payments and receipts",
+        "newcomer": "Opening a new school from scratch: templates, branding and a domain",
+        "platform": "Every school on the platform: plans, usage and billing"
+      },
+      "resetting": "The demo is going back to its starting data. You can sign in again in under a minute."
     }
   },
   "admin": {

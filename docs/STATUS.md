@@ -14,6 +14,17 @@
 | 9 Reports, venue migration, copilot | **Done**, merged (PR #10) | The acceptance criterion passes (see below) |
 | 10 SaaS hardening | **Done** (PR #11) | The acceptance criterion passes (see below) |
 
+## Live demo (for selling)
+
+A public demo that runs on fake data only: `docs/LIVE-DEMO.md` (Hebrew, for Pit) and `deploy/demo/`. One container
+runs Postgres, the Inngest dev server, the worker and the web app; sign-in is a role picker, every provider is a fake,
+and the data is rebuilt at boot, nightly and on request. Verified here: the image builds and runs, the owner's home
+shows the neutral name and four insights, the worker registers with Inngest and drains the outbox, messages go to
+the fake, a reset under a running app keeps it serving. Not yet hosted: needs Pit's Railway (or Render) account.
+
+Found on the way: the worker had never been able to register with Inngest (one function had more than 10 triggers);
+fixed, with a test.
+
 ## After Phase 10: owner insights (proactive alerts)
 
 The command center opens with "מה כדאי לשים לב אליו": a feed of rule-based insights (a group emptying, families at

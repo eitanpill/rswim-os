@@ -24,27 +24,42 @@ import { toEnvelope } from './core-ping';
 
 const sys = (envelope: DomainEventEnvelope) => ({ orgId: envelope.organizationId, userId: null });
 
-/** Domain events that message families: render the template per guardian and queue (or log as blocked). */
-export const commsAutomation = inngest.createFunction(
-  {
-    id: 'comms-automation',
-    triggers: Object.keys(RESOLVERS).map((event) => ({ event })),
-    retries: 5,
-  },
-  async ({ event, step }) => {
-    const envelope = toEnvelope(event);
-    return step.run('queue', async () => {
-      let result: unknown = null;
-      await consumeOnce(getDb(), 'comms-automation', envelope, async (tx) => {
-        result = await runAutomation(tx, sys(envelope), {
-          id: envelope.id,
-          type: envelope.type,
-          payload: envelope.payload,
+/** Inngest refuses a function with more than this many triggers (and with it the whole app's registration). */
+export const MAX_TRIGGERS = 10;
+
+const automationEvents = Object.keys(RESOLVERS);
+
+/**
+ * Domain events that message families: render the template per guardian and queue (or log as blocked). There are
+ * more events than one function may listen to, so the same handler is registered as several functions of at most
+ * MAX_TRIGGERS events each; every event belongs to exactly one, and they share the consumer name for idempotency.
+ */
+export const commsAutomations = Array.from(
+  { length: Math.ceil(automationEvents.length / MAX_TRIGGERS) },
+  (_, i) =>
+    inngest.createFunction(
+      {
+        id: i === 0 ? 'comms-automation' : `comms-automation-${i + 1}`,
+        triggers: automationEvents
+          .slice(i * MAX_TRIGGERS, (i + 1) * MAX_TRIGGERS)
+          .map((event) => ({ event })),
+        retries: 5,
+      },
+      async ({ event, step }) => {
+        const envelope = toEnvelope(event);
+        return step.run('queue', async () => {
+          let result: unknown = null;
+          await consumeOnce(getDb(), 'comms-automation', envelope, async (tx) => {
+            result = await runAutomation(tx, sys(envelope), {
+              id: envelope.id,
+              type: envelope.type,
+              payload: envelope.payload,
+            });
+          });
+          return result;
         });
-      });
-      return result;
-    });
-  },
+      },
+    ),
 );
 
 /**
