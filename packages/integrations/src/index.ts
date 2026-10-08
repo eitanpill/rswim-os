@@ -121,6 +121,7 @@ export * from './grow';
 export * from './fakes';
 export * from './messaging';
 export * from './copilot';
+export * from './insights';
 
 // ─── DNS (Phase 10): custom domain verification ─────────────────────────────
 export interface DnsResolver {

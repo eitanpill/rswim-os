@@ -200,6 +200,19 @@ export const PolicyRules = z
       })
       .partial()
       .strict(),
+    insights: z
+      .object({
+        enabled: z.boolean(),
+        ai_notes: z.boolean(),
+        lookback_days: int(7, 120),
+        emptying_drop_seats: int(1, 50),
+        churn_absences: int(1, 10),
+        staff_max_weekly_hours: int(5, 60),
+        trial_followup_days: int(3, 60),
+        snooze_days: int(1, 90),
+      })
+      .partial()
+      .strict(),
     comms: z
       .object({
         quiet_hours_start: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -410,6 +423,16 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
     high_occupancy_pct: 90,
     low_occupancy_pct: 40,
     debt_attention_days: 60,
+  },
+  insights: {
+    enabled: true,
+    ai_notes: true,
+    lookback_days: 28,
+    emptying_drop_seats: 2,
+    churn_absences: 2,
+    staff_max_weekly_hours: 25,
+    trial_followup_days: 14,
+    snooze_days: 14,
   },
   comms: {
     quiet_hours_start: '21:30',

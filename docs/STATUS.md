@@ -14,6 +14,17 @@
 | 9 Reports, venue migration, copilot | **Done**, merged (PR #10) | The acceptance criterion passes (see below) |
 | 10 SaaS hardening | **Done** (PR #11) | The acceptance criterion passes (see below) |
 
+## After Phase 10: owner insights (proactive alerts)
+
+The command center opens with "מה כדאי לשים לב אליו": a feed of rule-based insights (a group emptying, families at
+risk of leaving, families that asked to leave, old debts, a pool losing money, a waitlist big enough for a group,
+trials with no sign-up, lessons with no instructor, an overloaded instructor), each with what to do and a link to the
+screen. The worker refreshes it every morning at 06:30; Claude writes the explanation and next step when the worker
+has `ANTHROPIC_API_KEY`. The owner can set an insight aside ("טופל / להסתיר"). Proof: `packages/domain/reports/test/insights.test.ts`
+(100% coverage of the rules), `packages/seed/test/insights.test.ts` (the demo's 4 families at risk and 3 leaving),
+`packages/integrations/test/insights.test.ts`, `apps/web/e2e/insights.spec.ts`. Not verified against the real Claude
+API (no key here); the demo seed has no emptying group, so that rule is covered by unit tests only.
+
 ## Phase 10 acceptance criteria
 
 | Criterion | Proof | Result |

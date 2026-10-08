@@ -1,7 +1,9 @@
 import {
+  ClaudeInsightWriter,
   ClaudeTriageClassifier,
   FakeInvoicingProvider,
   FakePaymentProvider,
+  type InsightWriter,
   type InvoicingProvider,
   type PaymentProvider,
   type TriageClassifier,
@@ -43,4 +45,15 @@ let classifier: ClaudeTriageClassifier | undefined;
 export function triageClassifier(): TriageClassifier | null {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   return (classifier ??= new ClaudeTriageClassifier({ apiKey: process.env.ANTHROPIC_API_KEY }));
+}
+
+let insights: ClaudeInsightWriter | undefined;
+
+/**
+ * Claude for the insights feed's notes, or null without ANTHROPIC_API_KEY (the feed then shows its built-in wording).
+ * The `insights.ai_notes` policy can turn it off per school.
+ */
+export function insightWriter(): InsightWriter | null {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  return (insights ??= new ClaudeInsightWriter({ apiKey: process.env.ANTHROPIC_API_KEY }));
 }

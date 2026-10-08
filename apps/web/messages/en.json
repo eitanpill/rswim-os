@@ -82,7 +82,11 @@
       "growth": "Growth",
       "expected": "Expected this month",
       "collected": "Collected",
-      "inboxWaiting": "{n} WhatsApp messages waiting in the inbox"
+      "inboxWaiting": "{n} WhatsApp messages waiting in the inbox",
+      "todayLessons": "{lessons, plural, one {One lesson} other {# lessons}} today, {children} children expected",
+      "seats": "Children in groups",
+      "seatsChange": "{n, plural, =0 {no change this month} other {{s} in the last month}}",
+      "trials": "Trial lessons this month"
     },
     "placeholder": "This screen arrives in Phase {phase}",
     "more": {
@@ -1880,7 +1884,8 @@
       "camp": "Camps",
       "migration": "Venue moves",
       "copilot": "AI copilot",
-      "digest": "Weekly digest"
+      "digest": "Weekly digest",
+      "insights": "Proactive insights"
     },
     "fields": {
       "billing": {
@@ -2016,6 +2021,16 @@
         "high_occupancy_pct": "High occupancy (%) to suggest a price raise",
         "low_occupancy_pct": "Low occupancy (%) to flag a group",
         "debt_attention_days": "Old debt after (days)"
+      },
+      "insights": {
+        "enabled": "Daily insights check on",
+        "ai_notes": "Claude writes an explanation and next step for each insight",
+        "lookback_days": "Emptying group: days to look back",
+        "emptying_drop_seats": "Emptying group: drop of at least (children)",
+        "churn_absences": "Churn risk: absences in a row",
+        "staff_max_weekly_hours": "Instructor load: max hours a week",
+        "trial_followup_days": "Trial follow-up window (days)",
+        "snooze_days": "A hidden insight returns after (days)"
       }
     },
     "options": {
@@ -3644,6 +3659,79 @@
       "prompt": "Write up to 2,000 characters",
       "modelFailed": "The copilot couldn't answer. Try again",
       "incomplete": "The copilot didn't finish. Try a shorter request"
+    }
+  },
+  "insights": {
+    "title": "Worth your attention",
+    "refresh": "Check now",
+    "refreshed": "Insights updated",
+    "dismissed": "Hidden for two weeks",
+    "empty": "Nothing needs your attention right now",
+    "emptyHint": "The check runs every morning at 06:30",
+    "advisory": "Recommendations only: nothing here happens on its own.",
+    "open": "Open",
+    "dismiss": "Handled / hide",
+    "next": "What to do",
+    "ai": "Written by Claude",
+    "anyDay": "any day",
+    "anyVenue": "any pool",
+    "noReason": "no reason given",
+    "severity": {
+      "high": "Urgent",
+      "medium": "Important",
+      "low": "Opportunity"
+    },
+    "why": {
+      "title": "Details",
+      "absences": "{n} absences in a row",
+      "recent": "{n} recent absences",
+      "frozen": "frozen place",
+      "debt": "debt {days} days old"
+    },
+    "detail": {
+      "churn_risk": "{student} ({household}), {group}: {why}",
+      "leaving": "{student} ({household}), {group}: leaves on {date}, {reason}",
+      "old_debts": "{household}: {amount}, {days} days",
+      "trial_followup": "{student} ({household}), trial on {date}",
+      "uncovered_lessons": "{group} at {venue}, {date}"
+    },
+    "kinds": {
+      "group_emptying": {
+        "title": "{group} at {venue} is emptying: from {before} to {now} children of {capacity} in the last {days} days (counting those leaving this month)",
+        "action": "Reach out to waiting families and recent trials, or consider merging with a nearby group"
+      },
+      "churn_risk": {
+        "title": "{count, plural, one {One family} other {# families}} at risk of leaving: {names}",
+        "action": "Call this week, ask how the child is doing and offer a makeup lesson or help with payment"
+      },
+      "leaving": {
+        "title": "{count, plural, one {One family} other {# families}} asked to leave in the coming month: {names}",
+        "action": "A short retention call: ask about the reason and offer a fix (another time, a freeze, a discount)"
+      },
+      "old_debts": {
+        "title": "{count, plural, one {One family} other {# families}} with debt older than {days} days, {amount} in total ({names})",
+        "action": "Send a payment link and call those who did not pay after the reminder"
+      },
+      "venue_loss": {
+        "title": "{venue} lost {amount} in {period}",
+        "action": "Review the rent contract and occupancy, and consider moving groups to a more profitable pool"
+      },
+      "waitlist_cluster": {
+        "title": "{count} waiting for {program} ({venue}, {day})",
+        "action": "Consider opening a new group and offering them a place"
+      },
+      "trial_followup": {
+        "title": "{count, plural, one {One child} other {# children}} had a trial lesson in the last {days} days and have not enrolled: {names}",
+        "action": "Call the parents while the experience is fresh and offer a place in a group"
+      },
+      "uncovered_lessons": {
+        "title": "{count, plural, one {One lesson} other {# lessons}} in the coming week with no instructor (first on {first})",
+        "action": "Assign an instructor or send a substitute request"
+      },
+      "staff_overload": {
+        "title": "{name} has {hours} teaching hours this week (over {max})",
+        "action": "See whether some lessons can move to another instructor"
+      }
     }
   }
 }

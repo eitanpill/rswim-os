@@ -29,7 +29,7 @@ import {
   schedulingSubstituteWaves,
 } from './scheduling';
 import { institutionsPrintInvoice, institutionsPrintReceipt } from './institutions';
-import { reportsWeeklyDigest } from './reports';
+import { reportsDailyInsights, reportsWeeklyDigest } from './reports';
 import {
   platformBillSchool,
   platformCheckDomain,
@@ -43,6 +43,7 @@ export const functions = [
   outboxRelay,
   transportPlanRuns,
   reportsWeeklyDigest,
+  reportsDailyInsights,
   platformSchoolCreated,
   platformCheckDomain,
   platformBillSchool,

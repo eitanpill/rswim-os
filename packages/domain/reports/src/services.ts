@@ -4,24 +4,34 @@
  * what is visible) instead of calling a service per row (docs/DECISIONS.md, 2026-10-06). Every rule that turns rows
  * into numbers lives in policies.ts.
  */
-import { schema, sql, type Tx } from '@rswim/db';
+import { and, eq, schema, sql, type Tx } from '@rswim/db';
+import type { InsightKind, InsightSeverity, InsightStatus } from '@rswim/contracts';
 import { debtsDashboard } from '@rswim/domain-billing';
 import type { ServiceContext } from '@rswim/domain-core';
 import { resolvePolicyFor } from '@rswim/domain-settings';
 import {
   buildDigest,
   churnTable,
+  detectInsights,
   digestRulesFrom,
   funnel,
   heatmap,
+  insightDigestItems,
+  insightRulesFrom,
+  reconcileInsights,
   monthRange,
   monthsBetween,
   rentForMonth,
   retention,
   venueMargin,
+  addMonths,
   type DigestFacts,
   type DigestItem,
   type FamilyFunnelFacts,
+  type Insight,
+  type InsightDetail,
+  type InsightFacts,
+  type InsightRules,
   type RentContract,
   type VenueMargin,
 } from './policies';
@@ -417,6 +427,20 @@ export async function instructorKpis(tx: Tx, range: PeriodRange): Promise<Instru
 
 // ─── Weekly digest ──────────────────────────────────────────────────────────
 
+/** Families waiting, grouped by program, venue and first preferred weekday, biggest first. */
+async function waitlistClusters(tx: Tx): Promise<DigestFacts['waitlist']> {
+  return rows<DigestFacts['waitlist'][number]>(
+    tx,
+    sql`select p.name_he program, v.name venue, wd.weekday, count(*)::int count
+        from waitlist_entries x
+        join programs p on p.id = x.program_id
+        left join venues v on v.id = x.venue_id
+        left join lateral (select x.preferred_weekdays[1]::int weekday) wd on true
+        where x.status = 'waiting'
+        group by 1, 2, 3 order by 4 desc, 1`,
+  );
+}
+
 const daysBetween = (from: string, to: string) =>
   Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
 
@@ -457,21 +481,7 @@ export async function digestFacts(tx: Tx, weekOf: string): Promise<DigestFacts> 
   );
   const week = w as NonNullable<typeof w>;
   const groups = await groupsOn(tx, weekOf);
-  const waitlist = await rows<{
-    program: string;
-    venue: string | null;
-    weekday: number | null;
-    count: number;
-  }>(
-    tx,
-    sql`select p.name_he program, v.name venue, wd.weekday, count(*)::int count
-        from waitlist_entries x
-        join programs p on p.id = x.program_id
-        left join venues v on v.id = x.venue_id
-        left join lateral (select x.preferred_weekdays[1]::int weekday) wd on true
-        where x.status = 'waiting'
-        group by 1, 2, 3 order by 4 desc, 1`,
-  );
+  const waitlist = await waitlistClusters(tx);
   const venues = await venueProfitability(tx, { from: week.lastMonth, to: week.lastMonth });
   // Debts come from billing's own dashboard (its aging rules), not from the ledger directly.
   const debts = (await debtsDashboard(tx)).rows.map((d) => ({
@@ -524,7 +534,11 @@ export async function buildWeeklyDigest(
   const rules = digestRulesFrom((await resolvePolicyFor(tx, { date: weekOf })).rules);
   if (!rules.enabled) return null;
   const facts = await digestFacts(tx, weekOf);
-  const items = buildDigest(facts, rules);
+  const insights = insightRulesFrom((await resolvePolicyFor(tx, { date: weekOf })).rules);
+  const extra = insights.enabled
+    ? insightDigestItems(detectInsights(await insightFacts(tx, weekOf, insights), insights))
+    : [];
+  const items = buildDigest(facts, rules, extra);
   const [row] = await tx
     .insert(schema.weeklyDigests)
     .values({ organizationId: ctx.orgId, weekOf, facts, items })
@@ -551,4 +565,297 @@ export async function listDigests(tx: Tx, limit = 12): Promise<WeeklyDigest[]> {
     facts: d.facts as DigestFacts,
     createdAt: d.createdAt,
   }));
+}
+
+// ─── Insights ───────────────────────────────────────────────────────────────
+
+const addDays = (date: string, n: number) =>
+  new Date(Date.parse(`${date}T12:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
+
+/** Everything the insight rules look at, as of a date (the coming week for staffing, the coming month for leaving). */
+export async function insightFacts(
+  tx: Tx,
+  asOf: string,
+  rules: InsightRules,
+): Promise<InsightFacts> {
+  const weekEnd = addDays(asOf, 6);
+  const monthEnd = addDays(asOf, 31);
+  const [now, before, leavingSoon] = await Promise.all([
+    groupsOn(tx, asOf),
+    groupsOn(tx, addDays(asOf, -rules.lookbackDays)),
+    rows<{ id: string; n: number }>(
+      tx,
+      sql`select e.class_template_id id, count(*)::int n from enrollments e
+          where ${SEAT} and e.ends_on > ${asOf}::date and e.ends_on <= ${monthEnd}::date
+            and not exists (select 1 from enrollments n where n.previous_enrollment_id = e.id)
+          group by 1`,
+    ),
+  ]);
+  const seats = await rows<InsightFacts['seats'][number]>(
+    tx,
+    sql`select st.household_id "householdId", h.display_name household,
+               st.first_name || ' ' || st.last_name student, t.name "group",
+               e.status = 'frozen' frozen,
+               (e.status = 'cancel_requested' or exists (select 1 from cancellation_requests c
+                 where c.enrollment_id = e.id and c.status = 'active')) "cancelRequested",
+               coalesce((select array_agg(x.status order by x.date desc) from (
+                 select a.status, s.date from attendance a join sessions s on s.id = a.session_id
+                 where a.student_id = e.student_id and s.class_template_id = e.class_template_id
+                   and a.kind = 'member' and s.date <= ${asOf}::date
+                 order by s.date desc limit 6) x), '{}') marks
+        from enrollments e
+        join students st on st.id = e.student_id
+        join households h on h.id = st.household_id
+        join class_templates t on t.id = e.class_template_id
+        where e.status in ('active', 'frozen', 'cancel_requested') and t.cohort_id is null
+          and e.starts_on <= ${asOf}::date and (e.ends_on is null or e.ends_on > ${asOf}::date)
+        order by h.display_name, st.first_name`,
+  );
+  const leaving = await rows<InsightFacts['leaving'][number]>(
+    tx,
+    sql`select st.household_id "householdId", h.display_name household,
+               st.first_name || ' ' || st.last_name student, t.name "group", e.ends_on::text "endsOn", c.reason
+        from cancellation_requests c
+        join enrollments e on e.id = c.enrollment_id
+        join students st on st.id = e.student_id
+        join households h on h.id = st.household_id
+        join class_templates t on t.id = e.class_template_id
+        where c.status = 'active' and e.ends_on > ${asOf}::date and e.ends_on <= ${monthEnd}::date
+        order by e.ends_on, h.display_name`,
+  );
+  const debts = (await debtsDashboard(tx)).rows.map((d) => ({
+    householdId: d.householdId,
+    household: d.name,
+    balanceAgorot: d.balance,
+    oldestDays: d.oldest ? daysBetween(d.oldest, asOf) : 0,
+  }));
+  const prev = addMonths(asOf, -1).slice(0, 7);
+  const venues = (await venueProfitability(tx, { from: prev, to: prev })).map((v) => ({
+    id: v.venueId,
+    name: v.venue,
+    period: v.period,
+    margin: v.margin,
+  }));
+  const trials = await rows<InsightFacts['trials'][number]>(
+    tx,
+    sql`select st.household_id "householdId", h.display_name household,
+               st.first_name || ' ' || st.last_name student, max(tr.date)::text date
+        from trials tr
+        join students st on st.id = tr.student_id
+        join households h on h.id = st.household_id
+        where tr.status = 'attended' and tr.converted_enrollment_id is null
+          and tr.date between ${addDays(asOf, -rules.trialFollowupDays)}::date and ${asOf}::date
+          and not exists (select 1 from enrollments e where e.student_id = st.id
+                          and e.status in ('active', 'frozen') and (e.ends_on is null or e.ends_on > ${asOf}::date))
+        group by 1, 2, 3 order by 4 desc`,
+  );
+  const uncovered = await rows<InsightFacts['uncovered'][number]>(
+    tx,
+    sql`select s.id "sessionId", s.date::text date, t.name "group", v.name venue
+        from sessions s join class_templates t on t.id = s.class_template_id join venues v on v.id = s.venue_id
+        where s.status = 'scheduled' and s.date between ${asOf}::date and ${weekEnd}::date
+          and not exists (select 1 from session_staff ss where ss.session_id = s.id and ss.role in ('lead', 'substitute'))
+        order by s.date, s.starts_at`,
+  );
+  const staff = await rows<InsightFacts['staff'][number]>(
+    tx,
+    sql`select m.id "staffId", m.first_name || ' ' || m.last_name name,
+               round((sum(extract(epoch from s.ends_at - s.starts_at)) / 3600)::numeric, 1)::float hours
+        from session_staff ss
+        join sessions s on s.id = ss.session_id
+        join staff_members m on m.id = ss.staff_member_id
+        where s.status = 'scheduled' and s.date between ${asOf}::date and ${weekEnd}::date
+        group by 1, 2 order by 3 desc`,
+  );
+  const before_ = new Map(before.map((g) => [g.id, g.held]));
+  const leaving_ = new Map(leavingSoon.map((g) => [g.id, g.n]));
+  return {
+    asOf,
+    groups: now.map((g) => ({
+      id: g.id,
+      name: g.name,
+      venue: g.venue,
+      held: g.held,
+      heldBefore: before_.get(g.id) ?? 0,
+      leavingSoon: leaving_.get(g.id) ?? 0,
+      capacity: g.capacity,
+    })),
+    seats,
+    leaving,
+    debts,
+    venues,
+    waitlist: await waitlistClusters(tx),
+    trials,
+    uncovered,
+    staff,
+  };
+}
+
+/** Claude's words on an insight: why it matters and what to do, in Hebrew. */
+export interface InsightNote {
+  explanation: string;
+  recommendation: string;
+  model: string;
+}
+
+export interface OwnerInsight extends Insight {
+  id: string;
+  status: InsightStatus;
+  note: InsightNote | null;
+  firstSeenOn: string;
+  lastSeenOn: string;
+  snoozedUntil: string | null;
+}
+
+const toOwnerInsight = (r: typeof schema.ownerInsights.$inferSelect): OwnerInsight => ({
+  id: r.id,
+  key: r.key,
+  kind: r.kind as InsightKind,
+  severity: r.severity as InsightSeverity,
+  params: r.params as Insight['params'],
+  detail: r.detail as InsightDetail[],
+  href: r.href ?? '',
+  status: r.status as InsightStatus,
+  note: (r.note as InsightNote | null) ?? null,
+  firstSeenOn: r.firstSeenOn,
+  lastSeenOn: r.lastSeenOn,
+  snoozedUntil: r.snoozedUntil,
+});
+
+/**
+ * The daily check: works out today's insights and brings the stored feed in line (reconcileInsights). Advisory only;
+ * it writes nothing but the feed. Returns null when the insights policy is off.
+ */
+export async function refreshInsights(
+  tx: Tx,
+  ctx: ServiceContext,
+  asOf: string,
+): Promise<{ open: number; aiNotes: boolean } | null> {
+  const rules = insightRulesFrom((await resolvePolicyFor(tx, { date: asOf })).rules);
+  if (!rules.enabled) return null;
+  const found = detectInsights(await insightFacts(tx, asOf, rules), rules);
+  const stored = await tx.select().from(schema.ownerInsights);
+  const changes = reconcileInsights(stored, found, asOf);
+  const t = schema.ownerInsights;
+  for (const c of changes) {
+    if (c.op === 'insert') {
+      const i = c.insight;
+      await tx.insert(t).values({
+        organizationId: ctx.orgId,
+        key: i.key,
+        kind: i.kind,
+        severity: i.severity,
+        params: i.params,
+        detail: i.detail,
+        href: i.href,
+        firstSeenOn: asOf,
+        lastSeenOn: asOf,
+      });
+    } else if (c.op === 'update') {
+      const i = c.insight;
+      await tx
+        .update(t)
+        .set({
+          severity: i.severity,
+          params: i.params,
+          detail: i.detail,
+          href: i.href,
+          status: c.status,
+          lastSeenOn: asOf,
+          ...(c.status === 'open' ? { snoozedUntil: null } : {}),
+          ...(c.clearNote ? { note: null } : {}),
+        })
+        .where(eq(t.key, i.key));
+    } else {
+      await tx.update(t).set({ status: 'resolved' }).where(eq(t.key, c.key));
+    }
+  }
+  return { open: changes.filter((c) => c.op !== 'resolve').length, aiNotes: rules.aiNotes };
+}
+
+const SEVERITY_SQL = sql`case ${schema.ownerInsights.severity} when 'high' then 0 when 'medium' then 1 else 2 end`;
+
+/** The open insights, most severe first. */
+export async function listInsights(tx: Tx): Promise<OwnerInsight[]> {
+  const r = await tx
+    .select()
+    .from(schema.ownerInsights)
+    .where(eq(schema.ownerInsights.status, 'open'))
+    .orderBy(SEVERITY_SQL, schema.ownerInsights.firstSeenOn, schema.ownerInsights.key);
+  return r.map(toOwnerInsight);
+}
+
+/** Open insights Claude has not written about yet (the worker fills them in). */
+export async function insightsWithoutNotes(tx: Tx): Promise<OwnerInsight[]> {
+  return (await listInsights(tx)).filter((i) => i.note === null);
+}
+
+/** Stores Claude's note, unless the insight's facts changed since it was read (the next check writes it again). */
+export async function saveInsightNote(
+  tx: Tx,
+  q: { id: string; params: unknown; note: InsightNote },
+): Promise<boolean> {
+  const t = schema.ownerInsights;
+  const r = await tx
+    .update(t)
+    .set({ note: q.note })
+    .where(and(eq(t.id, q.id), sql`${t.params} = ${JSON.stringify(q.params)}::jsonb`))
+    .returning({ id: t.id });
+  return r.length > 0;
+}
+
+/** The owner sets an insight aside: it stays hidden until the snooze date, and comes back then if still true. */
+export async function dismissInsight(
+  tx: Tx,
+  ctx: ServiceContext,
+  q: { id: string },
+): Promise<void> {
+  const today = await todayIL(tx);
+  const rules = insightRulesFrom((await resolvePolicyFor(tx, { date: today })).rules);
+  await tx
+    .update(schema.ownerInsights)
+    .set({
+      status: 'dismissed',
+      snoozedUntil: addDays(today, rules.snoozeDays),
+      decidedBy: ctx.userId,
+      decidedAt: new Date(),
+    })
+    .where(eq(schema.ownerInsights.id, q.id));
+}
+
+// ─── Command center ─────────────────────────────────────────────────────────
+
+/** The owner's home numbers: today's lessons, this month's money, places held now and a month ago. */
+export async function homeSummary(tx: Tx, today: string) {
+  const period = today.slice(0, 7);
+  const [money] = await moneyByMonth(tx, { from: period, to: period });
+  const [r] = await rows<{
+    lessons: number;
+    children: number;
+    seats: number;
+    seatsBefore: number;
+    trials: number;
+    drafted: number;
+  }>(
+    tx,
+    sql`select
+          (select coalesce(sum(l.amount_agorot), 0) from billing_run_lines l
+             join billing_runs r on r.id = l.billing_run_id
+           where r.period = ${period} and r.status = 'draft')::int drafted,
+          (select count(*) from sessions s where s.status = 'scheduled' and s.date = ${today}::date)::int lessons,
+          (select count(*) from sessions s join enrollments e on e.class_template_id = s.class_template_id
+             and e.status in ('active', 'cancel_requested') and e.starts_on <= s.date
+             and (e.ends_on is null or e.ends_on > s.date)
+           where s.status = 'scheduled' and s.date = ${today}::date)::int children,
+          (select count(*) from enrollments e where ${SEAT} and e.starts_on <= ${today}::date
+             and (e.ends_on is null or e.ends_on > ${today}::date))::int seats,
+          (select count(*) from enrollments e where ${SEAT} and e.starts_on <= ${addDays(today, -30)}::date
+             and (e.ends_on is null or e.ends_on > ${addDays(today, -30)}::date))::int "seatsBefore",
+          (select count(*) from trials where date between ${`${period}-01`}::date and ${today}::date
+             and status = 'attended')::int trials`,
+  );
+  const facts = r as NonNullable<typeof r>;
+  const m = money as MonthMoney;
+  // Before the month's run is posted, what it will charge is the run's draft.
+  return { period, expectedAgorot: m.chargedAgorot || facts.drafted, money: m, ...facts };
 }

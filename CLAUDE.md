@@ -68,7 +68,9 @@ WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, 
 `RSWIM_MESSAGING_FAKE=1` (a phone containing 0000000 fails). Inbound WhatsApp arrives on the same GHL webhook route
 (`InboundMessage`). With the `comms.ai_triage` policy on, the worker re-classifies inbound messages with Claude using
 `ANTHROPIC_API_KEY`; without it the rules classifier decides alone. The owner copilot (`/admin/copilot`, policy `copilot.enabled`) runs on Claude when the web app has `ANTHROPIC_API_KEY`,
-or on a rules-based fake with `RSWIM_COPILOT_FAKE=1` (demos and E2E). Trial pipeline moves need
+or on a rules-based fake with `RSWIM_COPILOT_FAKE=1` (demos and E2E). The owner's insights feed (command center, policy
+`insights.*`) is rule-based and advisory only; the worker refreshes it daily and, with `ANTHROPIC_API_KEY`, has Claude
+write each insight's explanation and next step. Trial pipeline moves need
 `integrations.ghl.pipeline` (pipeline id + stage ids) in the org settings.
 
 SaaS (Phase 10): a signed-in user with no school lands on `/onboarding` to open one; platform admins (`platform_admins`)
