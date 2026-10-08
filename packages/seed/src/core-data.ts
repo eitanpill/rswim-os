@@ -253,10 +253,18 @@ export async function seedCoreData(
   await priceList('טיוטת מחירון קיץ', null, '2027-07-01', [['kids-group', 'monthly', 360]], false);
 
   // ─── Policy: the documented defaults from the start of the season, plus one venue override ──
-  // The demo turns the owner's copilot on (it still needs RSWIM_COPILOT_FAKE=1 or ANTHROPIC_API_KEY to run).
+  // The demo turns the owner's copilot and the parents' bot on (they still need a fake flag or ANTHROPIC_API_KEY to run).
   await client.query(
     `insert into policy_sets (organization_id, scope_type, effective_from, rules, notes) values ($1, 'org', $2, $3, 'ברירות מחדל (דמו)')`,
-    [orgId, SEASON_START, JSON.stringify({ ...DEFAULT_ORG_RULES, copilot: { enabled: true } })],
+    [
+      orgId,
+      SEASON_START,
+      JSON.stringify({
+        ...DEFAULT_ORG_RULES,
+        copilot: { enabled: true },
+        comms: { ...DEFAULT_ORG_RULES.comms, bot_enabled: true },
+      }),
+    ],
   );
   await client.query(
     `insert into policy_sets (organization_id, scope_type, venue_id, effective_from, rules, notes)

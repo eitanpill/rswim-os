@@ -286,6 +286,29 @@ days) and each school's `org_subscriptions` row. The demo plans (fake prices, no
 - A plan change (by a platform admin) is refused when the school already uses more than the new plan allows.
 - One user may own at most 3 schools.
 
+## 19. Parents' WhatsApp bot
+
+Policy `comms.bot_enabled` (off by default; on in the demo school). The worker runs the bot on every family message
+after the inbox has stored and classified it, with Claude when it has `ANTHROPIC_API_KEY` or the rules-based stand-in
+with `RSWIM_BOT_FAKE=1`. Without either the bot stays out of the way and the inbox works as before.
+
+- **Which messages**: only from a guardian of a known family, while the message is still open. Staff, unknown numbers
+  and leads are left to the inbox. A message the inbox already drafted an action for (an absence, a freeze…) is left
+  for the office's one tap.
+- **Straight to a person, without asking the model**: complaints, leaving the school, and any message about health,
+  injuries, refunds or billing mistakes, safety, or unhappiness (a fixed word list).
+- **What the bot reads**: the writing family's lessons in the next 14 days, balance and unpaid charges, open makeup
+  credits; pool closures; the school's rules from the policy in force (absence notice, makeups, billing day,
+  cancellation cut-off, freezes, sibling discount, companions, health); and the active questions and answers.
+- **It never changes data.** A parent who wants something done is handed off (`needs_action`).
+- **Answering**: the answer goes out as a free-text WhatsApp in the family's conversation (inside the 24-hour window),
+  through the send window like every message (quiet hours, Shabbat and Yom Tov). The inbox message is closed.
+- **Handing off**: the message stays open in the inbox, marked for a person, with the bot's summary. The family gets
+  the `bot_handoff` template ("we passed it to the team"), at most once every 2 hours per family.
+- **Learning**: when the office answers a message the bot handed off, the question and the answer become a suggested
+  entry. The office edits it (removing personal details) and approves it, and from then on the bot uses it. Entries the
+  office writes itself are active at once. The office marks the bot's answers good or bad on `/admin/messages/bot`.
+
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.
 - Proration rounds per line; statement total = sum of rounded lines.

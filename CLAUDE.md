@@ -67,7 +67,9 @@ Grow (payments) and Green Invoice (receipts) run on fakes only until Pit's accou
 WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, or to an in-memory fake with
 `RSWIM_MESSAGING_FAKE=1` (a phone containing 0000000 fails). Inbound WhatsApp arrives on the same GHL webhook route
 (`InboundMessage`). With the `comms.ai_triage` policy on, the worker re-classifies inbound messages with Claude using
-`ANTHROPIC_API_KEY`; without it the rules classifier decides alone. The owner copilot (`/admin/copilot`, policy `copilot.enabled`) runs on Claude when the web app has `ANTHROPIC_API_KEY`,
+`ANTHROPIC_API_KEY`; without it the rules classifier decides alone. With `comms.bot_enabled` on, the parents' bot
+(`/admin/messages/bot`) answers families from their own data and the office's approved answers, with Claude
+(`ANTHROPIC_API_KEY`) or a rules-based fake (`RSWIM_BOT_FAKE=1`) in the worker, and hands the rest to the inbox. The owner copilot (`/admin/copilot`, policy `copilot.enabled`) runs on Claude when the web app has `ANTHROPIC_API_KEY`,
 or on a rules-based fake with `RSWIM_COPILOT_FAKE=1` (demos and E2E). The owner's insights feed (command center, policy
 `insights.*`) is rule-based and advisory only; the worker refreshes it daily and, with `ANTHROPIC_API_KEY`, has Claude
 write each insight's explanation and next step. Trial pipeline moves need

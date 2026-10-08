@@ -183,6 +183,9 @@ importers:
       '@rswim/domain-comms':
         specifier: workspace:*
         version: link:../../packages/domain/comms
+      '@rswim/domain-copilot':
+        specifier: workspace:*
+        version: link:../../packages/domain/copilot
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../../packages/domain/core
@@ -550,6 +553,9 @@ importers:
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../core
+      '@rswim/domain-people':
+        specifier: workspace:*
+        version: link:../people
       '@rswim/domain-scheduling':
         specifier: workspace:*
         version: link:../scheduling

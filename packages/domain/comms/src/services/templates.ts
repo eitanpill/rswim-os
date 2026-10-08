@@ -110,6 +110,10 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
     he: 'היי {{guardian_name}}, עדכון: המעבר של {{student_name}} ל{{to_venue}} בוטל. הקבוצה ({{from_group}}) ממשיכה כרגיל ב{{from_venue}}, {{from_day}} בשעה {{from_time}}. סליחה על הבלבול! {{school_name}}',
     en: "Hi {{guardian_name}}, an update: {{student_name}}'s move to {{to_venue}} is cancelled. The group ({{from_group}}) carries on as usual at {{from_venue}}, {{from_day}} at {{from_time}}. Sorry for the confusion! {{school_name}}",
   },
+  bot_handoff: {
+    he: 'תודה {{guardian_name}}, קיבלנו את ההודעה 🙏 העברנו אותה לצוות ונחזור אליך בהקדם. {{school_name}}',
+    en: 'Thanks {{guardian_name}}, we got your message 🙏 We passed it to the team and will get back to you soon. {{school_name}}',
+  },
   free_text: { he: '{{text}}', en: '{{text}}' },
 };
 

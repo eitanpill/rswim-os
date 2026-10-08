@@ -224,6 +224,8 @@ export const PolicyRules = z
         holiday_notice_days_before: int(0, 14),
         ai_triage: z.boolean(),
         triage_min_confidence_pct: int(50, 100),
+        /** The parents' WhatsApp bot answers families' questions by itself and hands the rest to the office. */
+        bot_enabled: z.boolean(),
       })
       .partial()
       .strict(),
@@ -443,6 +445,7 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
     rate_per_minute: 20,
     holiday_notice_days_before: 2,
     ai_triage: false,
+    bot_enabled: false,
     triage_min_confidence_pct: 80,
   },
 };

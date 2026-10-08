@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./policies": "./src/policies.ts"
+    "./policies": "./src/policies.ts",
+    "./bot-policies": "./src/bot-policies.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -18,6 +19,7 @@
     "@rswim/domain-billing": "workspace:*",
     "@rswim/domain-comms": "workspace:*",
     "@rswim/domain-core": "workspace:*",
+    "@rswim/domain-people": "workspace:*",
     "@rswim/domain-scheduling": "workspace:*",
     "@rswim/domain-settings": "workspace:*",
     "@rswim/integrations": "workspace:*",

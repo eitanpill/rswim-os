@@ -16,6 +16,11 @@ import {
 } from 'drizzle-orm/pg-core';
 import {
   BLOCK_REASONS,
+  BOT_HANDOFF_REASONS,
+  BOT_KNOWLEDGE_SOURCES,
+  BOT_KNOWLEDGE_STATUSES,
+  BOT_REPLY_OUTCOMES,
+  BOT_REVIEWS,
   BROADCAST_STATUSES,
   HOLD_REASONS,
   INBOUND_INTENTS,
@@ -231,5 +236,90 @@ export const triageActions = pgTable(
       .where(sql`status = 'pending'`),
     check('triage_actions_kind_check', sql.raw(`kind in (${inList(TRIAGE_ACTION_KINDS)})`)),
     check('triage_actions_status_check', sql.raw(`status in (${inList(TRIAGE_ACTION_STATUSES)})`)),
+  ],
+);
+
+/**
+ * What the parents' bot did with one family message: the answer it sent, or the summary it handed to the office.
+ * One row per inbound message; the office marks answers good or bad.
+ */
+export const botReplies = pgTable(
+  'bot_replies',
+  {
+    id: id(),
+    organizationId: orgId(),
+    inboundMessageId: uuid('inbound_message_id').notNull(),
+    householdId: uuid('household_id'),
+    outcome: text('outcome').notNull(),
+    /** The model (or `fake:rules`, or `rules` when the bot did not ask a model). */
+    model: text('model').notNull(),
+    answer: text('answer'),
+    handoffReason: text('handoff_reason'),
+    /** For the office: what the family asked and what is missing, in a line or two. */
+    handoffSummary: text('handoff_summary'),
+    /** The knowledge entries the answer leaned on. */
+    knowledgeIds: jsonb('knowledge_ids').notNull().default([]),
+    /** The read tools the model called, with their results. */
+    trace: jsonb('trace').notNull().default([]),
+    /** The outgoing WhatsApp message (the answer or the "we passed it on" note). */
+    messageId: uuid('message_id'),
+    review: text('review').notNull().default('unreviewed'),
+    reviewedBy: uuid('reviewed_by'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('bot_replies_org_id').on(t.organizationId, t.id),
+    unique('bot_replies_once').on(t.organizationId, t.inboundMessageId),
+    foreignKey({
+      name: 'bot_replies_inbound_fk',
+      columns: [t.organizationId, t.inboundMessageId],
+      foreignColumns: [inboundMessages.organizationId, inboundMessages.id],
+    }).onDelete('cascade'),
+    index('bot_replies_recent').on(t.organizationId, t.createdAt),
+    index('bot_replies_household').on(t.householdId, t.createdAt),
+    check('bot_replies_outcome_check', sql.raw(`outcome in (${inList(BOT_REPLY_OUTCOMES)})`)),
+    check('bot_replies_review_check', sql.raw(`review in (${inList(BOT_REVIEWS)})`)),
+    check(
+      'bot_replies_handoff_check',
+      sql.raw(
+        `(outcome = 'handed_off') = (handoff_reason is not null) and (handoff_reason is null or handoff_reason in (${inList(BOT_HANDOFF_REASONS)}))`,
+      ),
+    ),
+    check('bot_replies_answer_check', sql`${t.outcome} <> 'answered' or ${t.answer} is not null`),
+  ],
+);
+
+/**
+ * The bot's questions and answers. The office writes them, and every answer the office gives to a question the bot
+ * handed off becomes a suggestion here; only active entries reach the bot.
+ */
+export const botKnowledge = pgTable(
+  'bot_knowledge',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    question: text('question').notNull(),
+    answer: text('answer').notNull(),
+    status: text('status').notNull().default('active'),
+    source: text('source').notNull().default('office'),
+    sourceInboundMessageId: uuid('source_inbound_message_id'),
+    createdBy: uuid('created_by'),
+    decidedBy: uuid('decided_by'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('bot_knowledge_org_id').on(t.organizationId, t.id),
+    index('bot_knowledge_org_status').on(t.organizationId, t.status),
+    uniqueIndex('bot_knowledge_one_per_inbound')
+      .on(t.organizationId, t.sourceInboundMessageId)
+      .where(sql`source_inbound_message_id is not null`),
+    check('bot_knowledge_status_check', sql.raw(`status in (${inList(BOT_KNOWLEDGE_STATUSES)})`)),
+    check('bot_knowledge_source_check', sql.raw(`source in (${inList(BOT_KNOWLEDGE_SOURCES)})`)),
+    check('bot_knowledge_question_check', sql`length(${t.question}) between 1 and 500`),
+    check('bot_knowledge_answer_check', sql`length(${t.answer}) between 1 and 1000`),
   ],
 );
