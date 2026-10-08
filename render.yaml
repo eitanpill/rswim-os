@@ -1,0 +1,12 @@
+# Render blueprint for the live demo (fake data only). See docs/LIVE-DEMO.md.
+services:
+  - type: web
+    name: rswim-demo
+    runtime: docker
+    dockerfilePath: ./deploy/demo/Dockerfile
+    dockerContext: .
+    plan: standard
+    healthCheckPath: /api/health
+    envVars:
+      - key: RSWIM_DEMO_RESET_KEY
+        generateValue: true

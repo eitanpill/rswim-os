@@ -8,7 +8,11 @@ export type Db = NodePgDatabase<Schema>;
 export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 
 export function createPool(connectionString: string, max = 10): pg.Pool {
-  return new pg.Pool({ connectionString, max });
+  const pool = new pg.Pool({ connectionString, max });
+  // An idle connection the server dropped (a restart, the pooler, the live demo's nightly reset) must not crash the
+  // process: the pool discards it and the next query opens a fresh one.
+  pool.on('error', (err) => console.error('idle database connection lost:', err.message));
+  return pool;
 }
 
 export function createDb(pool: pg.Pool | pg.PoolClient): Db {

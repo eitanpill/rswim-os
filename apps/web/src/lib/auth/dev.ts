@@ -1,6 +1,7 @@
 /**
  * Local-only login that skips Supabase: pick a demo persona, get a cookie.
- * Enabled only with RSWIM_DEV_AUTH=1 and never on a Vercel production deployment.
+ * Enabled with RSWIM_DEV_AUTH=1 (never on a Vercel production deployment), or on the public live demo
+ * (RSWIM_DEMO_MODE=1), which runs on fake data and fake providers only (deploy/demo).
  * The personas match the fake seed data (packages/db/src/personas.ts).
  *
  * The cookie holds a persona key. A newcomer who has just opened a school holds `newcomer@<orgId>`: they are that
@@ -17,8 +18,23 @@ import type { Session } from './types';
 
 export const DEV_COOKIE = 'rswim_dev_session';
 
+/** The public live demo: persona sign-in, a demo banner, fake providers only, data reset nightly. */
+export function isDemoMode(): boolean {
+  return process.env.RSWIM_DEMO_MODE === '1';
+}
+
 export function isDevAuthEnabled(): boolean {
+  if (isDemoMode()) return true;
   return process.env.RSWIM_DEV_AUTH === '1' && process.env.VERCEL_ENV !== 'production';
+}
+
+/** On the live demo the owner wears the neutral first name the demo was seeded with (RSWIM_DEMO_OWNER_NAME). */
+export function personaName(key: DevKey): string {
+  if (key === 'owner' && isDemoMode() && process.env.RSWIM_DEMO_OWNER_NAME)
+    return `${process.env.RSWIM_DEMO_OWNER_NAME} (דמו)`;
+  return key in PERSONAS
+    ? PERSONAS[key as PersonaKey].name
+    : ACCOUNT_PERSONAS[key as AccountPersonaKey].name;
 }
 
 export type DevKey = PersonaKey | AccountPersonaKey;
@@ -49,7 +65,7 @@ export function devSessionFor(key: DevKey, orgId?: string): Session {
     role: p.role,
     permissions: [],
     isPlatformAdmin: false,
-    displayName: p.name,
+    displayName: personaName(key),
     orgName: DEMO_ORG.name,
     mode: 'dev',
   };

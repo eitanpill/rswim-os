@@ -15,7 +15,7 @@ import {
 import {
   commsAiTriage,
   commsParentBot,
-  commsAutomation,
+  commsAutomations,
   commsDispatch,
   commsHolidayNotice,
   crmPipelineSync,
@@ -73,7 +73,7 @@ export const functions = [
   billingDailyDunning,
   billingPortalRequest,
   billingPortalRequestSweep,
-  commsAutomation,
+  ...commsAutomations,
   commsDispatch,
   commsHolidayNotice,
   commsAiTriage,

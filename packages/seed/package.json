@@ -10,7 +10,8 @@
     "seed": "tsx src/cli.ts",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "demo:reset": "tsx src/live-demo-reset.ts"
   },
   "dependencies": {
     "@rswim/contracts": "workspace:*",
