@@ -19,9 +19,7 @@ RUN pnpm install --frozen-lockfile
 ENV RSWIM_DEMO_MODE=1 \
     NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production \
-    TZ=Asia/Jerusalem \
-    RSWIM_DEMO_SCHOOL_NAME="שחייה בכיף (דמו)" \
-    RSWIM_DEMO_OWNER_NAME="יעל"
+    TZ=Asia/Jerusalem
 RUN pnpm --filter @rswim/web build
 
 EXPOSE 3000

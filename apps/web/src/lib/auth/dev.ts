@@ -14,6 +14,7 @@ import {
   type AccountPersonaKey,
   type PersonaKey,
 } from '@rswim/db/personas';
+import { demoProfile } from '@rswim/db/demo-profiles';
 import type { Session } from './types';
 
 export const DEV_COOKIE = 'rswim_dev_session';
@@ -28,10 +29,9 @@ export function isDevAuthEnabled(): boolean {
   return process.env.RSWIM_DEV_AUTH === '1' && process.env.VERCEL_ENV !== 'production';
 }
 
-/** On the live demo the owner wears the neutral first name the demo was seeded with (RSWIM_DEMO_OWNER_NAME). */
+/** On the live demo the owner wears the first name the demo was seeded with (its profile, or RSWIM_DEMO_OWNER_NAME). */
 export function personaName(key: DevKey): string {
-  if (key === 'owner' && isDemoMode() && process.env.RSWIM_DEMO_OWNER_NAME)
-    return `${process.env.RSWIM_DEMO_OWNER_NAME} (דמו)`;
+  if (key === 'owner' && isDemoMode()) return `${demoProfile().ownerFirstName} (דמו)`;
   return key in PERSONAS
     ? PERSONAS[key as PersonaKey].name
     : ACCOUNT_PERSONAS[key as AccountPersonaKey].name;

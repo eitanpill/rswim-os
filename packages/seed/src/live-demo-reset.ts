@@ -5,13 +5,14 @@
  */
 import pg from 'pg';
 import { createDb, createPool } from '@rswim/db';
+import { demoProfile } from '@rswim/db/demo-profiles';
 import { DEMO_ORG } from '@rswim/db/personas';
 import { withOrg } from '@rswim/db/service';
 import { applySupabaseShim, runMigrations } from '@rswim/db/migrate';
 import { parseMasterKey } from '@rswim/domain-core';
 import { refreshInsights, todayIL } from '@rswim/domain-reports';
 import { seedDemo } from './demo';
-import { DEFAULT_LIVE_DEMO_BRAND, rebrandLiveDemo } from './live-demo';
+import { rebrandLiveDemo } from './live-demo';
 
 if (process.env.RSWIM_DEMO_MODE !== '1')
   throw new Error('Refusing to reset: RSWIM_DEMO_MODE is not 1');
@@ -42,10 +43,8 @@ try {
   await runMigrations(pool);
   const masterKey = process.env.RSWIM_MASTER_KEY;
   const seeded = await seedDemo(pool, masterKey ? { masterKey: parseMasterKey(masterKey) } : {});
-  await rebrandLiveDemo(pool, {
-    schoolName: process.env.RSWIM_DEMO_SCHOOL_NAME || DEFAULT_LIVE_DEMO_BRAND.schoolName,
-    ownerFirstName: process.env.RSWIM_DEMO_OWNER_NAME || DEFAULT_LIVE_DEMO_BRAND.ownerFirstName,
-  });
+  const profile = demoProfile();
+  await rebrandLiveDemo(pool, profile);
   // The owner's home opens with this morning's insights rather than an empty feed.
   const insights = await withOrg(createDb(pool), DEMO_ORG.id, async (tx) =>
     refreshInsights(tx, { orgId: DEMO_ORG.id, userId: null }, await todayIL(tx)),
@@ -53,6 +52,7 @@ try {
   console.log(
     JSON.stringify({
       msg: 'live demo reset',
+      profile: profile.key,
       ms: Date.now() - started,
       students: seeded.students,
       insights: insights?.open,

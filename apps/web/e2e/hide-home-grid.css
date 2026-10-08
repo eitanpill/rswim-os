@@ -1,0 +1,4 @@
+/* Left out of the owner-home screenshots: its height depends on how many insights exist (see shells.spec.ts). */
+[data-testid='home-grid'] {
+  display: none !important;
+}
