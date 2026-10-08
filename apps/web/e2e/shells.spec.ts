@@ -2,6 +2,7 @@
  * Phase 0 acceptance: three role-based shells render RTL on mobile.
  * Uses the local demo login (RSWIM_DEV_AUTH=1); every name shown is fake.
  */
+import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 
 async function loginAs(page: Page, persona: string) {
@@ -27,6 +28,11 @@ async function expectRtlMobileShell(page: Page) {
   for (const box of [first, last]) expect(box!.height).toBeGreaterThanOrEqual(44);
 }
 
+// The date, the insights and the numbers on the owner's home change from run to run (other tests, running in parallel,
+// refresh insights and change the demo data), and the number of insights changes the page's height, so the home grid
+// is left out of the screenshots.
+const HIDE_HOME_GRID = fileURLToPath(new URL('./hide-home-grid.css', import.meta.url));
+
 test.describe('role shells on mobile', () => {
   test('owner sees the Hebrew Command Center', async ({ page }) => {
     await loginAs(page, 'owner');
@@ -37,8 +43,8 @@ test.describe('role shells on mobile', () => {
     await expect(page.getByTestId('today-line')).toBeVisible();
     await expectRtlMobileShell(page);
     await expect(page).toHaveScreenshot('admin-mobile.png', {
-      // The date, the insights and the numbers change from run to run (other tests change the demo data).
-      mask: [page.getByTestId('today-line'), page.getByTestId('home-grid')],
+      mask: [page.getByTestId('today-line')],
+      stylePath: HIDE_HOME_GRID,
       fullPage: true,
     });
   });
@@ -138,6 +144,7 @@ test('@desktop owner shell shows the side nav on the right', async ({ page }) =>
   const box = await side.boundingBox();
   expect(box!.x).toBeGreaterThan(600);
   await expect(page).toHaveScreenshot('admin-desktop.png', {
-    mask: [page.getByTestId('today-line'), page.getByTestId('home-grid')],
+    mask: [page.getByTestId('today-line')],
+    stylePath: HIDE_HOME_GRID,
   });
 });
