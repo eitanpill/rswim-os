@@ -13,12 +13,13 @@ import {
   runAutomation,
   sendHolidayNotice,
 } from '@rswim/domain-comms';
+import { runParentBot } from '@rswim/domain-copilot';
 import { syncPipelineStage, type PipelineStage } from '@rswim/domain-crm';
 import { consumeOnce } from '@rswim/domain-core/worker';
 import { and, eq, lte, schema } from '@rswim/db';
 import { getDb, inngest, log } from '../client';
 import { ghlFor, messagingFor } from '../ghl';
-import { triageClassifier } from '../providers';
+import { parentBotModel, triageClassifier } from '../providers';
 import { toEnvelope } from './core-ping';
 
 const sys = (envelope: DomainEventEnvelope) => ({ orgId: envelope.organizationId, userId: null });
@@ -153,6 +154,27 @@ export const commsAiTriage = inngest.createFunction(
         });
       });
       return { outcome };
+    });
+  },
+);
+
+/**
+ * The parents' bot (`comms.bot_enabled`): answers a family's question from their own data and the school's knowledge,
+ * or hands it to the office with a summary. Without a model (no key, no fake) it stays out of the way.
+ */
+export const commsParentBot = inngest.createFunction(
+  { id: 'comms-parent-bot', triggers: [{ event: 'comms.inbound_received' }], retries: 3 },
+  async ({ event, step }) => {
+    const envelope = toEnvelope(event);
+    const { inboundMessageId } = z.object({ inboundMessageId: z.uuid() }).parse(envelope.payload);
+    const model = parentBotModel();
+    if (!model) return { skipped: 'not_configured' };
+    return step.run('answer', async () => {
+      let result: unknown = { skipped: 'already' };
+      await consumeOnce(getDb(), 'comms-parent-bot', envelope, async (tx) => {
+        result = await runParentBot(tx, sys(envelope), model, inboundMessageId);
+      });
+      return result;
     });
   },
 );

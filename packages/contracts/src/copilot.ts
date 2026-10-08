@@ -52,3 +52,30 @@ export type InsightSeverity = (typeof INSIGHT_SEVERITIES)[number];
 /** open → dismissed (set aside until a date) | resolved (the rule no longer fires); either may open again. */
 export const INSIGHT_STATUSES = ['open', 'dismissed', 'resolved'] as const;
 export type InsightStatus = (typeof INSIGHT_STATUSES)[number];
+// ─── The parents' WhatsApp bot ──────────────────────────────────────────────
+
+/** What the bot did with one family message: answered it, or handed it to the office with a summary. */
+export const BOT_REPLY_OUTCOMES = ['answered', 'handed_off'] as const;
+export type BotReplyOutcome = (typeof BOT_REPLY_OUTCOMES)[number];
+
+/** Why a message went to a person. */
+export const BOT_HANDOFF_REASONS = [
+  'unknown',
+  'sensitive',
+  'needs_action',
+  'model_failed',
+] as const;
+export const BotHandoffReason = z.enum(BOT_HANDOFF_REASONS);
+export type BotHandoffReason = z.infer<typeof BotHandoffReason>;
+
+/** The office's verdict on an answer the bot sent. */
+export const BOT_REVIEWS = ['unreviewed', 'good', 'bad'] as const;
+export type BotReview = (typeof BOT_REVIEWS)[number];
+
+/** suggested (learned from the office's reply, waits for approval) → active | archived. */
+export const BOT_KNOWLEDGE_STATUSES = ['suggested', 'active', 'archived'] as const;
+export type BotKnowledgeStatus = (typeof BOT_KNOWLEDGE_STATUSES)[number];
+
+/** Written by the office, or learned from the office's answer to a question the bot handed off. */
+export const BOT_KNOWLEDGE_SOURCES = ['office', 'learned'] as const;
+export type BotKnowledgeSource = (typeof BOT_KNOWLEDGE_SOURCES)[number];

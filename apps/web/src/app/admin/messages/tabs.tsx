@@ -4,6 +4,7 @@ import { cn } from '@rswim/ui';
 
 const TABS = {
   inbox: '/admin/messages',
+  bot: '/admin/messages/bot',
   log: '/admin/messages/log',
   templates: '/admin/messages/templates',
   broadcast: '/admin/messages/broadcast',

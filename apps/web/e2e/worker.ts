@@ -7,6 +7,7 @@ import { createDb, type Tx } from '@rswim/db';
 import { processAbsenceNotice } from '@rswim/domain-attendance';
 import { processPortalRequest } from '@rswim/domain-billing';
 import { runAutomation } from '@rswim/domain-comms';
+import { FakeParentBotModel, runParentBot } from '@rswim/domain-copilot';
 import { billingPeriod, billSchool, pendingDomainIds, verifyDomain } from '@rswim/domain-platform';
 import { FakeDnsResolver, FakePaymentProvider } from '@rswim/integrations';
 import { ACCOUNT_PERSONAS } from '@rswim/db/personas';
@@ -156,5 +157,12 @@ export function billSchoolNow(slug: string) {
         today,
       ),
     slug,
+  );
+}
+
+/** The parents' bot on one inbound message (the worker's `comms-parent-bot` step), with the rules-based stand-in. */
+export function runBot(inboundMessageId: string) {
+  return asWorker((tx, orgId) =>
+    runParentBot(tx, { orgId, userId: null }, new FakeParentBotModel(), inboundMessageId),
   );
 }

@@ -21,7 +21,7 @@ import {
 } from '../policies';
 import { commsRules, enqueueMessage } from './outbound';
 
-const { inboundMessages, triageActions } = schema;
+const { botKnowledge, botReplies, inboundMessages, triageActions } = schema;
 
 export interface InboundInput {
   provider: string;
@@ -223,6 +223,9 @@ export async function listInbox(tx: Tx, q: { status?: 'open' | 'closed'; limit?:
     ...new Set(rows.flatMap((r) => (r.classification as Classification).studentIds ?? [])),
   ];
   const students = new Map((await studentsByIds(tx, studentIds)).map((s) => [s.id, s]));
+  const bot = ids.length
+    ? await tx.select().from(botReplies).where(inArray(botReplies.inboundMessageId, ids))
+    : [];
   return rows.map((r) => {
     const c = r.classification as Classification;
     return {
@@ -234,6 +237,7 @@ export async function listInbox(tx: Tx, q: { status?: 'open' | 'closed'; limit?:
         actions.find((a) => a.inboundMessageId === r.id && a.status === 'pending') ??
         actions.find((a) => a.inboundMessageId === r.id && a.status === 'approved') ??
         null,
+      bot: bot.find((b) => b.inboundMessageId === r.id) ?? null,
     };
   });
 }
@@ -327,7 +331,11 @@ export async function resolveInbound(
 export const ReplyInput = z.object({ inboundMessageId: z.uuid(), text: requiredText(1000) });
 export type ReplyInput = z.input<typeof ReplyInput>;
 
-/** The office answers a family in the conversation (free text, inside WhatsApp's 24-hour window). */
+/**
+ * The office answers a family in the conversation (free text, inside WhatsApp's 24-hour window). When the bot had
+ * handed this message to the office, the question and the answer become a suggestion for the bot's knowledge, which
+ * the office approves (and may edit) before the bot uses it.
+ */
 export async function replyToInbound(tx: Tx, ctx: ServiceContext, raw: ReplyInput) {
   const input = ReplyInput.parse(raw);
   const [row] = await tx
@@ -349,6 +357,24 @@ export async function replyToInbound(tx: Tx, ctx: ServiceContext, raw: ReplyInpu
   });
   if (row.status === 'new' || row.status === 'needs_human')
     await closeInbound(tx, ctx, row.id, 'actioned');
+  const [handedOff] = await tx
+    .select({ id: botReplies.id })
+    .from(botReplies)
+    .where(and(eq(botReplies.inboundMessageId, row.id), eq(botReplies.outcome, 'handed_off')));
+  if (handedOff) {
+    await tx
+      .insert(botKnowledge)
+      .values({
+        organizationId: ctx.orgId,
+        question: row.body.slice(0, 500),
+        answer: input.text,
+        status: 'suggested',
+        source: 'learned',
+        sourceInboundMessageId: row.id,
+        createdBy: ctx.userId,
+      })
+      .onConflictDoNothing();
+  }
   return message;
 }
 

@@ -14,6 +14,7 @@ import {
 } from './billing';
 import {
   commsAiTriage,
+  commsParentBot,
   commsAutomation,
   commsDispatch,
   commsHolidayNotice,
@@ -76,5 +77,6 @@ export const functions = [
   commsDispatch,
   commsHolidayNotice,
   commsAiTriage,
+  commsParentBot,
   crmPipelineSync,
 ];

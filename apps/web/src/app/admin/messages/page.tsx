@@ -86,6 +86,17 @@ export default async function InboxPage({
                   <p className="mt-2 whitespace-pre-wrap rounded-xl bg-surface p-3" dir="auto">
                     {m.body}
                   </p>
+                  {m.bot &&
+                  (m.bot.answer ?? m.bot.handoffSummary) &&
+                  (m.bot.answer ?? m.bot.handoffSummary) !== m.body ? (
+                    <p
+                      className="mt-2 whitespace-pre-wrap text-sm text-ink-muted"
+                      dir="auto"
+                      data-testid="inbox-bot"
+                    >
+                      {t('inbox.bot', { summary: m.bot.answer ?? m.bot.handoffSummary ?? '' })}
+                    </p>
+                  ) : null}
                   {m.students.length > 0 ? (
                     <p className="mt-1 text-sm text-ink-muted">
                       {m.students.map((s) => s.firstName).join(', ')}

@@ -41,6 +41,7 @@ export interface CommsRules {
   holidayNoticeDaysBefore: number;
   aiTriage: boolean;
   minConfidence: number;
+  botEnabled: boolean;
 }
 
 /** The comms part of resolved PolicyRules, with the documented defaults (docs/POLICIES.md §12). */
@@ -54,6 +55,7 @@ export function commsRulesFrom(rules: PolicyRules): CommsRules {
     holidayNoticeDaysBefore: c.holiday_notice_days_before ?? 2,
     aiTriage: c.ai_triage ?? false,
     minConfidence: c.triage_min_confidence_pct ?? 80,
+    botEnabled: c.bot_enabled ?? false,
   };
 }
 

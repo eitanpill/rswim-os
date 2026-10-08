@@ -1,6 +1,9 @@
+import { FakeParentBotModel } from '@rswim/domain-copilot';
 import {
   ClaudeInsightWriter,
+  ClaudeCopilotModel,
   ClaudeTriageClassifier,
+  type CopilotModel,
   FakeInvoicingProvider,
   FakePaymentProvider,
   type InsightWriter,
@@ -56,4 +59,20 @@ let insights: ClaudeInsightWriter | undefined;
 export function insightWriter(): InsightWriter | null {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   return (insights ??= new ClaudeInsightWriter({ apiKey: process.env.ANTHROPIC_API_KEY }));
+}
+
+let botModel: CopilotModel | undefined;
+
+/**
+ * The model behind the parents' bot, or null (the bot then stays out of the way and the inbox works as before).
+ * - RSWIM_BOT_FAKE=1: the rules-based stand-in, for demos and tests.
+ * - ANTHROPIC_API_KEY: Claude with the bot's read tools. The owner still has to turn on `comms.bot_enabled`.
+ */
+export function parentBotModel(): CopilotModel | null {
+  if (process.env.RSWIM_BOT_FAKE === '1') return (botModel ??= new FakeParentBotModel());
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  return (botModel ??= new ClaudeCopilotModel({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    maxTurns: 6,
+  }));
 }

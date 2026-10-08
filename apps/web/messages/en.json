@@ -1178,7 +1178,8 @@
       "transport_left_pool": "Left the pool",
       "transport_dropped_off": "Dropped off",
       "venue_migration": "Venue move",
-      "venue_migration_reverted": "Venue move cancelled"
+      "venue_migration_reverted": "Venue move cancelled",
+      "bot_handoff": "Bot passed it to the team"
     },
     "messageStatus": {
       "queued": "Queued",
@@ -1216,6 +1217,21 @@
       "actioned": "Handled",
       "dismissed": "Closed",
       "needs_human": "Needs you"
+    },
+    "botReview": {
+      "unreviewed": "Not reviewed",
+      "good": "Good answer",
+      "bad": "Bad answer"
+    },
+    "botHandoffReason": {
+      "unknown": "Did not know",
+      "sensitive": "Sensitive topic",
+      "needs_action": "Needs the team to act",
+      "model_failed": "Bot unavailable"
+    },
+    "botOutcome": {
+      "answered": "Answered",
+      "handed_off": "Passed to the team"
     },
     "triageActionKind": {
       "absence_notice": "Record absence",
@@ -1996,6 +2012,7 @@
         "rate_per_minute": "Messages per minute (max)",
         "holiday_notice_days_before": "Holiday notice, days before",
         "ai_triage": "AI triage of inbound messages",
+        "bot_enabled": "The parents’ bot answers questions by itself",
         "triage_min_confidence_pct": "Minimum confidence for a draft action (%)"
       },
       "scheduling": {
@@ -2937,6 +2954,7 @@
     "tabs": {
       "label": "Messaging screens",
       "inbox": "Inbox",
+      "bot": "Bot",
       "log": "Log",
       "templates": "Templates & automations",
       "broadcast": "Broadcast"
@@ -2961,7 +2979,44 @@
       "sent": "Reply queued",
       "done": "Marked handled",
       "familyCard": "Family card",
-      "actionResult": "Created: {n} absence notices"
+      "actionResult": "Created: {n} absence notices",
+      "bot": "Bot: {summary}"
+    },
+    "bot": {
+      "title": "Parents’ bot",
+      "subtitle": "Answers parents on WhatsApp from the family’s data, the regulations and the knowledge base. What it does not know comes to you.",
+      "on": "The bot is on",
+      "off": "The bot is off. When it is on, it answers parents by itself and passes you only what it does not know.",
+      "turnOn": "Turn it on or off in Policies (messages)",
+      "stats": "Last 30 days: {answered} answers, {handedOff} passed to the team, {unreviewed} answers not reviewed yet",
+      "howItWorks": "The bot only reads: it does not record absences, book makeups or change charges. Requests like these, complaints, and medical or money topics always reach the inbox with a summary.",
+      "suggestions": "Learning from your answers ({n})",
+      "suggestionsHint": "When you answer a parent’s question that the bot passed on, the question and your answer land here. Once approved, the bot uses them. Remove personal details before approving.",
+      "noSuggestions": "No new suggestions",
+      "approve": "Approve and add",
+      "reject": "Don’t add",
+      "question": "Question",
+      "answer": "Answer",
+      "replies": "What the bot did lately",
+      "noReplies": "The bot has not answered any message yet",
+      "parentWrote": "The parent wrote",
+      "botAnswered": "The bot answered",
+      "handoffSummary": "Summary for the team",
+      "good": "👍 Good",
+      "bad": "👎 Bad",
+      "badHint": "To answer correctly next time, add the right answer to the knowledge base.",
+      "knowledge": "Questions and answers ({n})",
+      "knowledgeHint": "The school’s standing answers: parking, what to bring, equipment, prices. The bot answers from them as closely as it can.",
+      "add": "Add a question and answer",
+      "save": "Save",
+      "saved": "Saved",
+      "archive": "Remove",
+      "archived": "Removed",
+      "approved": "Added",
+      "reviewed": "Thanks, noted",
+      "empty": "The knowledge base is empty",
+      "learned": "Learned from your answer",
+      "edit": "Edit"
     },
     "log": {
       "title": "Message log",

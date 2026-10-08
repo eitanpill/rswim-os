@@ -16,6 +16,7 @@
     "@rswim/domain-attendance": "workspace:*",
     "@rswim/domain-billing": "workspace:*",
     "@rswim/domain-comms": "workspace:*",
+    "@rswim/domain-copilot": "workspace:*",
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-crm": "workspace:*",
     "@rswim/domain-institutions": "workspace:*",
