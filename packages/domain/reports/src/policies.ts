@@ -8,7 +8,11 @@ import {
   CHURN_REASONS,
   DEFAULT_ORG_RULES,
   type ChurnReason,
+  INSIGHT_KINDS,
   type DigestSection,
+  type InsightKind,
+  type InsightSeverity,
+  type InsightStatus,
   type PolicyRules,
   type RentModel,
 } from '@rswim/contracts';
@@ -421,7 +425,12 @@ const item = (
  * running near empty), and suggestions (open a group where the waitlist clusters, raise the price where a group is
  * nearly full).
  */
-export function buildDigest(f: DigestFacts, rules: DigestRules): DigestItem[] {
+export function buildDigest(
+  f: DigestFacts,
+  rules: DigestRules,
+  /** The insights feed's own items (insightDigestItems), shown with the digest's. */
+  extra: readonly DigestItem[] = [],
+): DigestItem[] {
   const items: DigestItem[] = [
     item('happened', 'places', { started: f.newPlaces, ended: f.endedPlaces }),
     item('happened', 'trials', { held: f.trialsHeld, enrolled: f.trialsEnrolled }),
@@ -470,6 +479,374 @@ export function buildDigest(f: DigestFacts, rules: DigestRules): DigestItem[] {
       }),
     );
   }
+  items.push(...extra);
   if (!items.some((i) => i.section === 'attention')) items.push(item('attention', 'allClear'));
   return items;
+}
+
+// ─── Insights ───────────────────────────────────────────────────────────────
+
+export interface InsightRules {
+  lookbackDays: number;
+  emptyingDropSeats: number;
+  churnAbsences: number;
+  staffMaxWeeklyHours: number;
+  trialFollowupDays: number;
+  debtAttentionDays: number;
+  lowOccupancyPct: number;
+  waitlistClusterMin: number;
+}
+
+/** The insights' thresholds from the resolved policy (debts, occupancy and the waitlist mark are the digest's own). */
+export function insightRulesFrom(
+  rules: PolicyRules,
+): InsightRules & { enabled: boolean; aiNotes: boolean; snoozeDays: number } {
+  const i = { ...DEFAULT_ORG_RULES.insights, ...rules.insights };
+  const d = digestRulesFrom(rules);
+  return {
+    enabled: i.enabled as boolean,
+    aiNotes: i.ai_notes as boolean,
+    snoozeDays: i.snooze_days as number,
+    lookbackDays: i.lookback_days as number,
+    emptyingDropSeats: i.emptying_drop_seats as number,
+    churnAbsences: i.churn_absences as number,
+    staffMaxWeeklyHours: i.staff_max_weekly_hours as number,
+    trialFollowupDays: i.trial_followup_days as number,
+    debtAttentionDays: d.debtAttentionDays,
+    lowOccupancyPct: d.lowOccupancyPct,
+    waitlistClusterMin: d.waitlistClusterMin,
+  };
+}
+
+export interface InsightFacts {
+  asOf: string;
+  /** Regular groups running today, with the seats held `lookbackDays` ago and the places ending in the coming month. */
+  groups: {
+    id: string;
+    name: string;
+    venue: string;
+    held: number;
+    heldBefore: number;
+    leavingSoon: number;
+    capacity: number;
+  }[];
+  /** Every child holding a seat today, with their latest attendance marks (newest first). */
+  seats: {
+    householdId: string;
+    household: string;
+    student: string;
+    group: string;
+    marks: string[];
+    frozen: boolean;
+    cancelRequested: boolean;
+  }[];
+  /** Places a family asked to end, ending within the coming month. */
+  leaving: {
+    householdId: string;
+    household: string;
+    student: string;
+    group: string;
+    endsOn: string;
+    reason: string | null;
+  }[];
+  debts: { householdId: string; household: string; balanceAgorot: number; oldestDays: number }[];
+  /** Last month's margin per venue. */
+  venues: { id: string; name: string; period: string; margin: number }[];
+  waitlist: { program: string; venue: string | null; weekday: number | null; count: number }[];
+  /** Trials held within the follow-up window whose child has no place yet. */
+  trials: { householdId: string; household: string; student: string; date: string }[];
+  /** Lessons in the coming week with no instructor on them. */
+  uncovered: { sessionId: string; date: string; group: string; venue: string }[];
+  /** Instructors' teaching hours in the coming week. */
+  staff: { staffId: string; name: string; hours: number }[];
+}
+
+export type InsightDetail = Record<string, string | number | boolean | null>;
+
+export interface Insight {
+  key: string;
+  kind: InsightKind;
+  severity: InsightSeverity;
+  /** i18n params for `insights.kinds.<kind>.title` and `.action`. */
+  params: Record<string, string | number>;
+  detail: InsightDetail[];
+  href: string;
+}
+
+/** A short, stable fingerprint of a set of ids (FNV-1a), so an insight about other families is a new insight. */
+export function fingerprint(ids: readonly string[]): string {
+  let h = 0x811c9dc5;
+  for (const ch of [...new Set(ids)].sort().join('|')) {
+    h ^= ch.charCodeAt(0);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
+}
+
+/** Absences in a row from the newest mark back. */
+export function absenceStreak(marks: readonly string[]): number {
+  const n = marks.findIndex((m) => m !== 'absent');
+  return n === -1 ? marks.length : n;
+}
+
+export interface ChurnSignal {
+  householdId: string;
+  household: string;
+  student: string;
+  group: string;
+  absencesInARow: number;
+  recentAbsences: number;
+  frozen: boolean;
+  debtDays: number;
+  score: number;
+}
+
+/**
+ * How likely a child is to leave, from what the school already knows: absences in a row (2 points), several recent
+ * absences (1), a frozen place (1), an old debt (1). Two points or more is a risk. Children whose family already asked
+ * to leave are not a risk any more; they are leaving.
+ */
+export function churnSignals(f: InsightFacts, rules: InsightRules): ChurnSignal[] {
+  const out: ChurnSignal[] = [];
+  for (const s of f.seats) {
+    if (s.cancelRequested) continue;
+    const absencesInARow = absenceStreak(s.marks);
+    const recentAbsences = s.marks.slice(0, 4).filter((m) => m === 'absent').length;
+    const debt = f.debts.find((d) => d.householdId === s.householdId);
+    const debtDays = debt?.oldestDays ?? 0;
+    const score =
+      (absencesInARow >= rules.churnAbsences ? 2 : recentAbsences >= 2 ? 1 : 0) +
+      (s.frozen ? 1 : 0) +
+      (debtDays >= rules.debtAttentionDays ? 1 : 0);
+    if (score >= 2) {
+      out.push({
+        householdId: s.householdId,
+        household: s.household,
+        student: s.student,
+        group: s.group,
+        absencesInARow,
+        recentAbsences,
+        frozen: s.frozen,
+        debtDays,
+        score,
+      });
+    }
+  }
+  return out.sort((a, b) => b.score - a.score || (a.household < b.household ? -1 : 1));
+}
+
+const names = (xs: readonly { household: string }[], max = 5) =>
+  [...new Set(xs.map((x) => x.household))].slice(0, max).join(', ');
+
+const SEVERITY_ORDER: Record<InsightSeverity, number> = { high: 0, medium: 1, low: 2 };
+
+/**
+ * What the owner should look at, worked out from the facts (advisory only: nothing here changes data). Each rule
+ * gives an i18n title and recommendation with params, the subjects behind it, and the screen to open.
+ */
+export function detectInsights(f: InsightFacts, rules: InsightRules): Insight[] {
+  const out: Insight[] = [];
+
+  for (const g of f.groups) {
+    const staying = g.held - g.leavingSoon;
+    const drop = g.heldBefore - staying;
+    if (drop < rules.emptyingDropSeats || g.capacity === 0) continue;
+    const pct = occupancyPct(Math.max(staying, 0), g.capacity) as number;
+    out.push({
+      key: `group_emptying:${g.id}`,
+      kind: 'group_emptying',
+      severity: pct < rules.lowOccupancyPct ? 'high' : 'medium',
+      params: {
+        group: g.name,
+        venue: g.venue,
+        before: g.heldBefore,
+        now: Math.max(staying, 0),
+        capacity: g.capacity,
+        days: rules.lookbackDays,
+      },
+      detail: [{ leavingSoon: g.leavingSoon, held: g.held, pct }],
+      href: `/admin/groups/${g.id}`,
+    });
+  }
+
+  const churn = churnSignals(f, rules);
+  const atRisk = [...new Map(churn.map((c) => [c.householdId, c])).values()];
+  if (atRisk.length) {
+    out.push({
+      key: `churn_risk:${fingerprint(atRisk.map((c) => c.householdId))}`,
+      kind: 'churn_risk',
+      severity: atRisk.length >= 3 ? 'high' : 'medium',
+      params: { count: atRisk.length, names: names(atRisk) },
+      detail: churn.map(({ householdId: _, ...c }) => c),
+      href: '/admin/families',
+    });
+  }
+
+  if (f.leaving.length) {
+    const households = [...new Set(f.leaving.map((l) => l.householdId))];
+    out.push({
+      key: `leaving:${fingerprint(households)}`,
+      kind: 'leaving',
+      severity: 'medium',
+      params: { count: households.length, names: names(f.leaving) },
+      detail: f.leaving.map(({ householdId: _, ...l }) => l),
+      href: '/admin/reports/churn',
+    });
+  }
+
+  const old = f.debts
+    .filter((d) => d.oldestDays >= rules.debtAttentionDays)
+    .sort((a, b) => b.balanceAgorot - a.balanceAgorot);
+  if (old.length) {
+    out.push({
+      key: `old_debts:${fingerprint(old.map((d) => d.householdId))}`,
+      kind: 'old_debts',
+      severity: old.length >= 3 ? 'high' : 'medium',
+      params: {
+        count: old.length,
+        amount: old.reduce((n, d) => n + d.balanceAgorot, 0),
+        days: rules.debtAttentionDays,
+        names: names(old, 3),
+      },
+      detail: old.map(({ householdId: _, ...d }) => d),
+      href: '/admin/money',
+    });
+  }
+
+  for (const v of f.venues.filter((x) => x.margin < 0)) {
+    out.push({
+      key: `venue_loss:${v.id}:${v.period}`,
+      kind: 'venue_loss',
+      severity: 'high',
+      params: { venue: v.name, period: v.period, amount: -v.margin },
+      detail: [],
+      href: '/admin/reports/venues',
+    });
+  }
+
+  for (const w of f.waitlist.filter((x) => x.count >= rules.waitlistClusterMin)) {
+    out.push({
+      key: `waitlist_cluster:${fingerprint([w.program, w.venue ?? '', String(w.weekday ?? -1)])}`,
+      kind: 'waitlist_cluster',
+      severity: 'low',
+      params: { program: w.program, venue: w.venue ?? '', day: w.weekday ?? -1, count: w.count },
+      detail: [],
+      href: '/admin/waitlist',
+    });
+  }
+
+  if (f.trials.length) {
+    out.push({
+      key: `trial_followup:${fingerprint(f.trials.map((t) => t.householdId))}`,
+      kind: 'trial_followup',
+      severity: 'medium',
+      params: { count: f.trials.length, names: names(f.trials), days: rules.trialFollowupDays },
+      detail: f.trials.map(({ householdId: _, ...t }) => t),
+      href: '/admin/trials',
+    });
+  }
+
+  if (f.uncovered.length) {
+    const first = [...f.uncovered].sort((a, b) => (a.date < b.date ? -1 : 1))[0] as {
+      date: string;
+    };
+    out.push({
+      key: `uncovered_lessons:${fingerprint(f.uncovered.map((u) => u.sessionId))}`,
+      kind: 'uncovered_lessons',
+      severity: 'high',
+      params: { count: f.uncovered.length, first: first.date },
+      detail: f.uncovered.map(({ sessionId: _, ...u }) => u),
+      href: '/admin/staff/gaps',
+    });
+  }
+
+  for (const s of f.staff.filter((x) => x.hours > rules.staffMaxWeeklyHours)) {
+    out.push({
+      key: `staff_overload:${s.staffId}`,
+      kind: 'staff_overload',
+      severity: 'medium',
+      params: { name: s.name, hours: s.hours, max: rules.staffMaxWeeklyHours },
+      detail: [],
+      href: `/admin/staff/${s.staffId}`,
+    });
+  }
+
+  return out.sort(
+    (a, b) =>
+      SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] ||
+      INSIGHT_KINDS.indexOf(a.kind) - INSIGHT_KINDS.indexOf(b.kind),
+  );
+}
+
+export interface StoredInsight {
+  key: string;
+  status: string;
+  params: unknown;
+  detail: unknown;
+  snoozedUntil: string | null;
+}
+
+export type InsightChange =
+  | { op: 'insert'; insight: Insight }
+  | { op: 'update'; insight: Insight; status: InsightStatus; clearNote: boolean }
+  | { op: 'resolve'; key: string };
+
+/** JSON with object keys sorted, so a value read back from jsonb (which reorders keys) compares equal. */
+const canonical = (v: unknown): string =>
+  Array.isArray(v)
+    ? `[${v.map(canonical).join(',')}]`
+    : v !== null && typeof v === 'object'
+      ? `{${Object.keys(v)
+          .sort()
+          .map((k) => `${JSON.stringify(k)}:${canonical((v as Record<string, unknown>)[k])}`)
+          .join(',')}}`
+      : JSON.stringify(v);
+const same = (a: unknown, b: unknown) => canonical(a) === canonical(b);
+
+/**
+ * Brings the stored feed in line with today's insights: new ones are inserted; ones seen again keep their status (a
+ * dismissed one reopens once its snooze date has passed, a resolved one reopens); changed facts clear the AI note;
+ * open ones no longer found are resolved.
+ */
+export function reconcileInsights(
+  stored: readonly StoredInsight[],
+  found: readonly Insight[],
+  asOf: string,
+): InsightChange[] {
+  const byKey = new Map(stored.map((s) => [s.key, s]));
+  const changes: InsightChange[] = [];
+  for (const i of found) {
+    const s = byKey.get(i.key);
+    if (!s) {
+      changes.push({ op: 'insert', insight: i });
+      continue;
+    }
+    const status: InsightStatus =
+      s.status === 'dismissed' && (s.snoozedUntil === null || s.snoozedUntil >= asOf)
+        ? 'dismissed'
+        : 'open';
+    changes.push({
+      op: 'update',
+      insight: i,
+      status,
+      clearNote: !same(s.params, i.params) || !same(s.detail, i.detail),
+    });
+  }
+  const seen = new Set(found.map((i) => i.key));
+  for (const s of stored) {
+    if (s.status === 'open' && !seen.has(s.key)) changes.push({ op: 'resolve', key: s.key });
+  }
+  return changes;
+}
+
+/** Insights as digest items: the kinds the digest does not already cover on its own. */
+export function insightDigestItems(insights: readonly Insight[]): DigestItem[] {
+  const own: readonly InsightKind[] = ['old_debts', 'venue_loss', 'waitlist_cluster'];
+  return insights
+    .filter((i) => !own.includes(i.kind))
+    .map((i) => ({
+      section: i.severity === 'low' ? 'suggestion' : 'attention',
+      code: `insights.kinds.${i.kind}.title`,
+      params: i.params,
+    }));
 }

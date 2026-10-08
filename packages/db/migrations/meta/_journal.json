@@ -169,6 +169,20 @@
       "when": 1791277377007,
       "tag": "0023_saas_security",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791441013384,
+      "tag": "0024_insights",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791441014844,
+      "tag": "0025_insights_security",
+      "breakpoints": true
     }
   ]
 }

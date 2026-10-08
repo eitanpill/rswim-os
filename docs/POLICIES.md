@@ -240,6 +240,28 @@ only propose three actions: move or add a child to a group, message a family, op
 before it is stored (a move runs the placement preview), and nothing happens until the owner confirms; the action then
 runs through the ordinary service as the owner. A confirmed move can be undone; a message cannot.
 
+## 17a. Owner insights (proactive alerts)
+
+| Key | Default | Notes |
+|---|---|---|
+| `insights.enabled` | `true` | The daily check (06:30 Israel) and its lines in the weekly digest |
+| `insights.ai_notes` | `true` | Claude writes a Hebrew explanation and next step per insight; also needs `ANTHROPIC_API_KEY` in the worker |
+| `insights.lookback_days` | `28` | A group is "emptying" when its places now, less those ending in the coming month… |
+| `insights.emptying_drop_seats` | `2` | …are at least this many below its places `lookback_days` ago |
+| `insights.churn_absences` | `2` | Absences in a row that count as a churn signal |
+| `insights.staff_max_weekly_hours` | `25` | Teaching hours in the coming week above which an instructor is flagged |
+| `insights.trial_followup_days` | `14` | Trials held this recently with no place yet are flagged for a call |
+| `insights.snooze_days` | `14` | A dismissed insight comes back after this many days if it still holds |
+
+Advisory only: an insight never changes data. Old debts and empty groups reuse `digest.debt_attention_days` and
+`digest.low_occupancy_pct`; the waitlist cluster reuses `scheduling.open_group_min_waiting`.
+
+Churn risk scores each child holding a place whose family has not asked to leave: absences in a row at or above
+`churn_absences` (2 points), otherwise two or more absences in the last four marks (1); a frozen place (1); a family
+debt older than `debt_attention_days` (1). Two points or more is a risk. Each insight has a stable key (the kind and
+its subject: a group id, or a fingerprint of the families listed), so a list with a new family in it is a new insight
+and comes back even if the old one was dismissed.
+
 ## 18. Plans, limits and platform billing (Phase 10)
 
 These are platform rules, not a school's own: they live in the `plans` rows (price, limits, features, trial and grace

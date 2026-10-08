@@ -37,8 +37,8 @@ test.describe('role shells on mobile', () => {
     await expect(page.getByTestId('today-line')).toBeVisible();
     await expectRtlMobileShell(page);
     await expect(page).toHaveScreenshot('admin-mobile.png', {
-      // The date and the inbox count change from run to run (other tests post WhatsApp messages).
-      mask: [page.getByTestId('today-line'), page.getByTestId('home-inbox')],
+      // The date, the insights and the numbers change from run to run (other tests change the demo data).
+      mask: [page.getByTestId('today-line'), page.getByTestId('home-grid')],
       fullPage: true,
     });
   });
@@ -138,6 +138,6 @@ test('@desktop owner shell shows the side nav on the right', async ({ page }) =>
   const box = await side.boundingBox();
   expect(box!.x).toBeGreaterThan(600);
   await expect(page).toHaveScreenshot('admin-desktop.png', {
-    mask: [page.getByTestId('today-line')],
+    mask: [page.getByTestId('today-line'), page.getByTestId('home-grid')],
   });
 });

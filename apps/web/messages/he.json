@@ -82,7 +82,11 @@
       "growth": "צמיחה",
       "expected": "צפוי החודש",
       "collected": "נגבה",
-      "inboxWaiting": "{n} הודעות וואטסאפ מחכות בתיבה"
+      "inboxWaiting": "{n} הודעות וואטסאפ מחכות בתיבה",
+      "todayLessons": "{lessons, plural, one {שיעור אחד} other {# שיעורים}} היום, {children} ילדים צפויים",
+      "seats": "ילדים בקבוצות",
+      "seatsChange": "{n, plural, =0 {ללא שינוי בחודש} other {{s} בחודש האחרון}}",
+      "trials": "שיעורי ניסיון החודש"
     },
     "placeholder": "המסך הזה ייבנה בשלב {phase}",
     "more": {
@@ -1880,7 +1884,8 @@
       "camp": "קייטנות",
       "migration": "מעבר בריכה",
       "copilot": "עוזר AI",
-      "digest": "סיכום שבועי"
+      "digest": "סיכום שבועי",
+      "insights": "תובנות יזומות"
     },
     "fields": {
       "billing": {
@@ -2016,6 +2021,16 @@
         "high_occupancy_pct": "תפוסה גבוהה (אחוז) להצעת העלאת מחיר",
         "low_occupancy_pct": "תפוסה נמוכה (אחוז) לסימון קבוצה",
         "debt_attention_days": "חוב ותיק מעל (ימים)"
+      },
+      "insights": {
+        "enabled": "בדיקת תובנות יומית פעילה",
+        "ai_notes": "Claude מנסח הסבר והמלצה לכל תובנה",
+        "lookback_days": "קבוצה מתרוקנת: כמה ימים אחורה להשוות",
+        "emptying_drop_seats": "קבוצה מתרוקנת: ירידה של לפחות (ילדים)",
+        "churn_absences": "סיכון עזיבה: היעדרויות ברצף",
+        "staff_max_weekly_hours": "עומס מדריך: מקסימום שעות בשבוע",
+        "trial_followup_days": "מעקב אחרי שיעור ניסיון (ימים)",
+        "snooze_days": "תובנה שהוסתרה חוזרת אחרי (ימים)"
       }
     },
     "options": {
@@ -3644,6 +3659,79 @@
       "prompt": "כתבו עד 2,000 תווים",
       "modelFailed": "העוזר לא הצליח לענות. נסו שוב",
       "incomplete": "העוזר לא סיים לענות. נסו לנסח קצר יותר"
+    }
+  },
+  "insights": {
+    "title": "מה כדאי לשים לב אליו",
+    "refresh": "בדיקה עכשיו",
+    "refreshed": "התובנות עודכנו",
+    "dismissed": "הוסר מהרשימה לשבועיים",
+    "empty": "אין כרגע משהו שדורש תשומת לב",
+    "emptyHint": "הבדיקה רצה כל בוקר ב-06:30",
+    "advisory": "אלה המלצות בלבד: שום דבר כאן לא מתבצע לבד.",
+    "open": "פתיחה",
+    "dismiss": "טופל / להסתיר",
+    "next": "מה לעשות",
+    "ai": "ניסוח: Claude",
+    "anyDay": "בכל יום",
+    "anyVenue": "בכל בריכה",
+    "noReason": "בלי סיבה",
+    "severity": {
+      "high": "דחוף",
+      "medium": "חשוב",
+      "low": "הזדמנות"
+    },
+    "why": {
+      "title": "פירוט",
+      "absences": "{n} היעדרויות ברצף",
+      "recent": "{n} היעדרויות לאחרונה",
+      "frozen": "מקום מוקפא",
+      "debt": "חוב בן {days} ימים"
+    },
+    "detail": {
+      "churn_risk": "{student} ({household}), {group}: {why}",
+      "leaving": "{student} ({household}), {group}: עוזב/ת ב-{date}, {reason}",
+      "old_debts": "{household}: {amount}, {days} ימים",
+      "trial_followup": "{student} ({household}), ניסיון ב-{date}",
+      "uncovered_lessons": "{group} ב{venue}, {date}"
+    },
+    "kinds": {
+      "group_emptying": {
+        "title": "{group} ב{venue} מתרוקנת: מ-{before} ל-{now} ילדים מתוך {capacity} ב-{days} הימים האחרונים (כולל מי שעוזב החודש)",
+        "action": "לפנות לממתינים ולמשפחות אחרי שיעור ניסיון, או לשקול איחוד עם קבוצה קרובה"
+      },
+      "churn_risk": {
+        "title": "{count, plural, one {משפחה אחת בסיכון עזיבה} other {# משפחות בסיכון עזיבה}}: {names}",
+        "action": "להתקשר השבוע, לשאול מה שלום הילד ולהציע שיעור השלמה או עזרה בתשלום"
+      },
+      "leaving": {
+        "title": "{count, plural, one {משפחה אחת ביקשה לעזוב} other {# משפחות ביקשו לעזוב}} בחודש הקרוב: {names}",
+        "action": "שיחת שימור קצרה: לשאול על הסיבה ולהציע פתרון (שעה אחרת, הקפאה, הנחה)"
+      },
+      "old_debts": {
+        "title": "{count, plural, one {משפחה אחת} other {# משפחות}} עם חוב ותיק מעל {days} ימים, סה״כ {amount} ({names})",
+        "action": "לשלוח קישור תשלום ולהתקשר למי שלא שילם אחרי התזכורת"
+      },
+      "venue_loss": {
+        "title": "{venue} הפסידה {amount} ב-{period}",
+        "action": "לבדוק את חוזה השכירות ואת התפוסה, ולשקול להעביר קבוצות לבריכה רווחית יותר"
+      },
+      "waitlist_cluster": {
+        "title": "{count} ממתינים ל{program} ({venue}, {day})",
+        "action": "לשקול לפתוח קבוצה חדשה ולהציע להם מקום"
+      },
+      "trial_followup": {
+        "title": "{count, plural, one {ילד אחד היה} other {# ילדים היו}} בשיעור ניסיון ב-{days} הימים האחרונים ועוד לא נרשמו: {names}",
+        "action": "להתקשר להורים כל עוד החוויה טרייה ולהציע מקום בקבוצה"
+      },
+      "uncovered_lessons": {
+        "title": "{count, plural, one {שיעור אחד} other {# שיעורים}} בשבוע הקרוב בלי מדריך (הראשון ב-{first})",
+        "action": "לשבץ מדריך או לשלוח בקשת מחליף"
+      },
+      "staff_overload": {
+        "title": "ל{name} יש {hours} שעות הוראה השבוע (מעל {max})",
+        "action": "לבדוק אם אפשר להעביר חלק מהשיעורים למדריך אחר"
+      }
     }
   }
 }

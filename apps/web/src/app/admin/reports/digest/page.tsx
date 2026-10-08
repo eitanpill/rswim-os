@@ -3,8 +3,8 @@ import { DIGEST_SECTIONS } from '@rswim/contracts';
 import { listDigests, type DigestItem } from '@rswim/domain-reports';
 import { Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import { ActionButton } from '@/components/form';
-import { explainer, periodLabel } from '@/lib/billing';
 import { withSession } from '@/lib/db';
+import { insightText } from '@/lib/insights';
 import { dmy } from '@/lib/options';
 import { ReportTabs } from '../shared';
 import { buildDigestAction } from './actions';
@@ -12,16 +12,9 @@ import { buildDigestAction } from './actions';
 /** The owner's weekly digest (brief §6.15): built every Sunday at 07:00, kept here week by week. */
 export default async function DigestPage() {
   const t = await getTranslations('reports');
-  const tw = await getTranslations('common.weekday');
-  const explain = await explainer();
+  const insight = await insightText();
   const digests = await withSession((tx) => listDigests(tx));
-  const text = (i: DigestItem) => {
-    const p = { ...i.params };
-    if ('day' in p) p.day = Number(p.day) >= 0 ? tw(String(p.day)) : t('digest.anyDay');
-    if ('period' in p) p.period = periodLabel(String(p.period));
-    if (p.venue === '') p.venue = t('digest.anyVenue');
-    return explain({ code: i.code, params: p });
-  };
+  const text = (i: DigestItem) => insight(i.code, i.params);
 
   return (
     <>

@@ -128,6 +128,7 @@ const TENANT_TABLES = [
   'copilot_requests',
   'copilot_actions',
   'weekly_digests',
+  'owner_insights',
   'org_subscriptions',
   'platform_invoices',
   'org_domains',
