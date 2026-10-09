@@ -13,6 +13,7 @@ const config: NextConfig = {
     '@rswim/domain-attendance',
     '@rswim/domain-core',
     '@rswim/domain-crm',
+    '@rswim/domain-dive',
     '@rswim/domain-enrollment',
     '@rswim/domain-people',
     '@rswim/domain-scheduling',

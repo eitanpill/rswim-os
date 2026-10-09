@@ -8,5 +8,7 @@ export interface Session {
   isPlatformAdmin: boolean;
   displayName?: string;
   orgName?: string;
+  /** The school's kind: a freediving club's people land in /dive. */
+  vertical?: 'swim' | 'freediving';
   mode: 'supabase' | 'dev';
 }

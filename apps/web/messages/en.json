@@ -82,7 +82,31 @@
         "newcomer": "Opening a new school from scratch: templates, branding and a domain",
         "platform": "Every school on the platform: plans, usage and billing"
       },
-      "resetting": "The demo is going back to its starting data. You can sign in again in under a minute."
+      "resetting": "The demo is going back to its starting data. You can sign in again in under a minute.",
+      "clubGroup": "The Eilat freediving club",
+      "swimGroup": "Also a swim school (same system)",
+      "platformGroup": "Above them all",
+      "dive": {
+        "diveOwner": "The bridge: sea, money, crew, safety and what needs a decision, on one screen",
+        "diveManager": "Ops room: the week against the sea forecast, morning report, paperwork, crew certificates, gear",
+        "diveOffice": "Front desk: who's coming and ready, one-tap check-in, booking, gear rental, till and leads",
+        "diveInstructor": "In the water: my divers, each one's allowed depth, lines, dive log and course skills",
+        "diveCustomer": "The diver's app: personal best, today's allowed depth, pass, booking and logbook"
+      },
+      "diveRole": {
+        "diveOwner": "Owner",
+        "diveManager": "Operations manager",
+        "diveOffice": "Office & desk",
+        "diveInstructor": "Instructor",
+        "diveCustomer": "Diver"
+      }
+    },
+    "devDive": {
+      "diveOwner": "Owner",
+      "diveManager": "Operations manager",
+      "diveOffice": "Office & desk",
+      "diveInstructor": "Instructor",
+      "diveCustomer": "Diver"
     }
   },
   "admin": {
@@ -762,6 +786,32 @@
         "staff": "You've reached the number of staff your plan allows. Contact us to upgrade.",
         "venues": "Your plan includes one venue only. Upgrade to add another."
       }
+    },
+    "network": {
+      "kicker": "From the top bridge",
+      "title": "The whole network on one screen",
+      "clubs": "Schools and clubs",
+      "split": "{swim} swim · {dive} freediving",
+      "customers": "Customers",
+      "staff": "{count} staff",
+      "revenue": "Revenue",
+      "last30": "in the last 30 days",
+      "next7": "Booked for the coming week",
+      "next7Sub": "lessons and bookings",
+      "board": "Clubs side by side",
+      "vertical": {
+        "swim": "Swim school",
+        "freediving": "Freediving club"
+      },
+      "col": {
+        "club": "Club",
+        "revenue": "Revenue 30 days",
+        "customers": "Customers",
+        "sessions": "Sessions 30 days",
+        "next7": "Next 7 days",
+        "safety": "Safety 90 days"
+      },
+      "incidents": "{count, plural, one {one incident} other {# incidents}}"
     }
   },
   "calendar": {
@@ -3808,6 +3858,600 @@
         "title": "{name} has {hours} teaching hours this week (over {max})",
         "action": "See whether some lessons can move to another instructor"
       }
+    }
+  },
+  "dive": {
+    "nav": {
+      "owner": "Bridge",
+      "manager": "Ops room",
+      "office": "Front desk",
+      "instructor": "In the water",
+      "me": "My diving",
+      "divers": "Divers"
+    },
+    "clubFallback": "Freediving club",
+    "tagline": "Freediving · Gulf of Eilat",
+    "footer": "R-SWIM OS · the freediving club's operating system. All demo data is invented.",
+    "roles": {
+      "owner": "Owner",
+      "manager": "Operations manager",
+      "office": "Office & front desk",
+      "instructor": "Instructor",
+      "customer": "Diver"
+    },
+    "call": {
+      "go": "Sea is open",
+      "caution": "Dive with caution",
+      "no_go": "No sea today"
+    },
+    "callShort": {
+      "go": "Open",
+      "caution": "Caution",
+      "no_go": "Closed"
+    },
+    "sea": {
+      "title": "The sea",
+      "gulf": "Gulf of Eilat",
+      "noReport": "No morning report yet",
+      "wind": "Wind",
+      "kts": "kts",
+      "waves": "Waves",
+      "cm": "cm",
+      "visibility": "Visibility",
+      "m": "m",
+      "water": "Water",
+      "windKts": "Wind (kts)",
+      "windDirLabel": "Wind from",
+      "wavesCm": "Waves (cm)",
+      "visibilityM": "Visibility (m)",
+      "waterC": "Water temp (°C)",
+      "current": "Current"
+    },
+    "windDir": {
+      "N": "North",
+      "NE": "North-east",
+      "E": "East",
+      "SE": "South-east",
+      "S": "South",
+      "SW": "South-west",
+      "W": "West",
+      "NW": "North-west"
+    },
+    "current": {
+      "none": "None",
+      "light": "Light",
+      "strong": "Strong"
+    },
+    "common": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "surface": "Surface",
+      "noLead": "No lead instructor",
+      "minLevel": "From {level}",
+      "booked": "{booked} of {capacity} places"
+    },
+    "level": {
+      "0": "Not certified",
+      "1": "Try dive",
+      "2": "Beginner (Wave 1 / AIDA 2)",
+      "3": "Intermediate (Wave 2 / AIDA 3)",
+      "4": "Advanced (Wave 3 / AIDA 4)",
+      "5": "Instructor"
+    },
+    "sessionStatus": {
+      "scheduled": "Scheduled",
+      "go": "Go",
+      "hold": "On hold",
+      "cancelled": "Cancelled",
+      "done": "Done"
+    },
+    "bookingStatus": {
+      "booked": "Booked",
+      "checked_in": "Arrived",
+      "no_show": "No-show",
+      "cancelled": "Cancelled"
+    },
+    "ratio": {
+      "short": "Short of instructors ({needed})",
+      "title": "Needs {needed} instructors in the water: at most {per} divers each"
+    },
+    "readiness": {
+      "waiver": {
+        "label": "Waiver",
+        "ok": "Signed and valid",
+        "warn": "Signed",
+        "missing": "Unsigned or expired"
+      },
+      "medical": {
+        "label": "Medical",
+        "ok": "Valid",
+        "warn": "Expires in {days} days",
+        "missing": "Missing or expired"
+      },
+      "level": {
+        "label": "Level",
+        "ok": "Fits",
+        "warn": "Borderline",
+        "missing": "Needs level {need}, has {has}"
+      },
+      "payment": {
+        "label": "Payment",
+        "ok": "Paid or on a pass",
+        "warn": "Partial",
+        "missing": "Not paid yet"
+      }
+    },
+    "severity": {
+      "urgent": "Urgent",
+      "attention": "To handle",
+      "info": "FYI"
+    },
+    "insight": {
+      "none": "All calm. Nothing is waiting for you.",
+      "open": "Open",
+      "weather": {
+        "title": "{date}: {call}, wind {kts} kts",
+        "body": "{divers} divers are booked for the sea that day. Decide now: move to the pool, shift the time or tell them early."
+      },
+      "course_fill": {
+        "title": "{title} on {date}: only {booked} of {capacity}",
+        "body": "Less than half the places are sold. Try-dive graduates and open leads are the warmest audience."
+      },
+      "medicals": {
+        "title": "{count, plural, one {One diver without a valid medical} other {# divers without a valid medical}}",
+        "body": "They're booked for upcoming dives. The office can send a reminder today."
+      },
+      "staff_cert": {
+        "title": "{name}’s {title}: {days} days left",
+        "body": "Renew it now, before it stops shifts."
+      },
+      "staff_cert_expired": {
+        "title": "{name}’s {title} expired {days} days ago",
+        "body": "Until it's renewed, {name} shouldn't lead in the water."
+      },
+      "rentals_overdue": {
+        "title": "{count, plural, one {One rental is overdue} other {# rentals are overdue}}",
+        "body": "They're marked red in the front desk's rentals list."
+      },
+      "leads": {
+        "title": "{count, plural, one {One lead waiting over a day} other {# leads waiting over a day}}",
+        "body": "A lead answered within the hour closes far more often. They're on the desk's lead board."
+      },
+      "gear_service": {
+        "title": "{count, plural, one {One gear item is past service} other {# gear items are past service}}",
+        "body": "The list is in the ops room, under gear."
+      },
+      "graduates": {
+        "title": "{count, plural, one {One course graduate hasn't come back} other {# course graduates haven't come back}}",
+        "body": "They finished a course in the last 90 days and haven't booked training. An intro pass would bring them back."
+      },
+      "safety_streak": {
+        "title": "{days} days without a safety incident",
+        "body": "The crew is doing great work. Tell them."
+      },
+      "more": "{count, plural, one {and one more} other {and # more}}"
+    },
+    "owner": {
+      "kicker": "The bridge",
+      "greet": {
+        "morning": "Good morning, {name}",
+        "noon": "Good afternoon, {name}",
+        "evening": "Good evening, {name}"
+      },
+      "summary": "Today: {sessions} sessions, {divers} divers in the water. The sea: {call}.",
+      "kpi": {
+        "revenue": "Revenue this month",
+        "vsLastMonth": "vs. this point last month",
+        "active": "Active divers",
+        "newDivers": "{count} new in 30 days",
+        "fill": "Fill this week",
+        "sessionsWeek": "{count} sessions in the next 7 days",
+        "safety": "Days without incident",
+        "safetySub": "since the last safety incident",
+        "conversion": "Course conversion",
+        "conversionSub": "try-dive divers who took a course",
+        "ticket": "Average sale",
+        "passes": "{count} active passes"
+      },
+      "needsYou": "What needs you",
+      "today": "In the water today",
+      "toOps": "To the ops room",
+      "noSessions": "No sessions today.",
+      "revenueTitle": "Revenue by month",
+      "originsTitle": "Where divers come from",
+      "divers": "divers",
+      "originDetail": "{revenue} in 90 days",
+      "originsNote": "Guests from abroad and visitors from the centre fill the weekends; locals fill weekday training.",
+      "funnelTitle": "Certification ladder",
+      "funnelNote": "How many divers reached each level. The gap between steps is the next course to sell.",
+      "crewTitle": "The crew, last 30 days",
+      "crew": {
+        "name": "Instructor",
+        "sessions": "Sessions",
+        "divers": "Divers",
+        "deepest": "Deepest"
+      },
+      "programsTitle": "What sells (90 days)",
+      "sold": "{count} sold",
+      "records": {
+        "deepest": "Club's deepest dive",
+        "sta": "Longest breath-hold",
+        "staSub": "STA in the pool",
+        "dives": "Dives in 30 days",
+        "divesSub": "in the logbook",
+        "certified": "Certified in 90 days",
+        "certifiedSub": "finished a course"
+      }
+    },
+    "stream": {
+      "courses": "Courses",
+      "training": "Training & passes",
+      "experiences": "Try dives & workshops",
+      "gear": "Gear & shop"
+    },
+    "origin": {
+      "eilat": "Eilat",
+      "israel": "Rest of Israel",
+      "abroad": "Abroad"
+    },
+    "manager": {
+      "kicker": "Ops room",
+      "title": "The week in the water",
+      "sub": "{sessions} sessions in the next seven days · {paperwork} divers with open paperwork",
+      "week": "Week board",
+      "diversCount": "{count, plural, one {one diver} other {# divers}}",
+      "quiet": "Quiet day",
+      "seaRisk": "Sea risk",
+      "hold": "Hold",
+      "release": "Release",
+      "cancel": "Cancel",
+      "cancelConfirm": "Cancel {title}? Booked divers will be told.",
+      "seaReport": "This morning's sea report",
+      "seaRules": "Club rules: above {caution} kts is caution, above {max} kts no sea; waves above {waves} cm close it; visibility under {vis} m is caution.",
+      "site": "Site",
+      "note": "Note (optional)",
+      "postSea": "Post the sea",
+      "paperwork": "Paperwork before the dive",
+      "paperworkClear": "Everyone booked for the next two weeks is in order.",
+      "crewCerts": "Crew certificates",
+      "noExpiry": "No expiry",
+      "gear": "Gear",
+      "serviceDue": "{count, plural, one {One item past service} other {# items past service}}",
+      "rules": "Safety rules in force",
+      "rule": {
+        "wind": "Wind (caution–close)",
+        "ratioCourse": "Course ratio",
+        "ratioTraining": "Training ratio",
+        "ratioExperience": "Try-dive ratio",
+        "step": "Max progression per dive",
+        "waiver": "Waiver valid for",
+        "months": "{count} months",
+        "ceilings": "Max depth by level"
+      },
+      "rulesNote": "Rules are versioned with an effective date; every decision here (closing the sea, allowed depth) comes from the version in force.",
+      "safetyLog": "Safety log",
+      "noIncidents": "No incidents recorded.",
+      "actionTaken": "Action taken",
+      "close": "Close",
+      "allClosed": "All incidents are closed.",
+      "report": "Report an incident",
+      "kind": "Kind",
+      "severity": "Severity",
+      "description": "What happened",
+      "reportSubmit": "Record incident"
+    },
+    "gearStatus": {
+      "available": "Available",
+      "rented": "Rented",
+      "maintenance": "In service",
+      "retired": "Retired"
+    },
+    "gearKind": {
+      "fins": "Fins",
+      "monofin": "Monofin",
+      "mask": "Mask",
+      "snorkel": "Snorkel",
+      "wetsuit": "Wetsuit",
+      "weight_belt": "Weight belt",
+      "neck_weight": "Neck weight",
+      "lanyard": "Lanyard",
+      "computer": "Dive computer",
+      "buoy": "Buoy",
+      "noseclip": "Noseclip"
+    },
+    "incidentKind": {
+      "blackout": "Blackout",
+      "lmc": "LMC (loss of motor control)",
+      "squeeze": "Squeeze",
+      "barotrauma": "Barotrauma",
+      "marine_life": "Marine life",
+      "cut": "Cut",
+      "equipment": "Equipment failure",
+      "other": "Other"
+    },
+    "incidentStatus": {
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "incidentSeverity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "office": {
+      "kicker": "Front desk",
+      "title": "Who's coming today",
+      "sub": "{arrivals} booked · {checked} arrived · {notReady} not ready for the water yet",
+      "till": "Till today",
+      "noSessions": "No sessions today.",
+      "nobody": "Nobody booked yet.",
+      "passLeft": "{count, plural, one {one session left on the pass} other {# left on the pass}}",
+      "ready": "Ready for the water",
+      "checkedInAt": "Arrived {time}",
+      "checkIn": "Arrived",
+      "noShow": "No-show",
+      "book": "Quick booking",
+      "diver": "Diver",
+      "session": "Session",
+      "payment": "Payment",
+      "payLater": "Collect on arrival",
+      "bookSubmit": "Book",
+      "rentals": "Gear out",
+      "noRentals": "All gear is in the club.",
+      "overdue": "Overdue",
+      "due": "Due {time}",
+      "return": "Returned",
+      "rentOut": "Rent out gear",
+      "gear": "Item",
+      "hours": "Hours",
+      "rentSubmit": "Rent",
+      "sales": "Sales today",
+      "noSales": "Nothing sold yet today.",
+      "walkIn": "Walk-in",
+      "leads": "Leads",
+      "hoursAgo": "{count, plural, one {an hour ago} other {# hours ago}}",
+      "daysAgo": "{count, plural, one {a day ago} other {# days ago}}",
+      "moveTo": {
+        "contacted": "Talked",
+        "booked": "Booked",
+        "lost": "Not relevant"
+      }
+    },
+    "payMethod": {
+      "card": "Card",
+      "cash": "Cash",
+      "bit": "Bit",
+      "transfer": "Transfer",
+      "pass": "Pass"
+    },
+    "leadStage": {
+      "new": "New",
+      "contacted": "Talking",
+      "booked": "Booked",
+      "lost": "Lost"
+    },
+    "leadSource": {
+      "instagram": "Instagram",
+      "google": "Google",
+      "referral": "Referral",
+      "hotel": "Hotel",
+      "walk_in": "Walked in",
+      "whatsapp": "WhatsApp"
+    },
+    "instructor": {
+      "kicker": "In the water",
+      "title": "Let's get wet, {name}",
+      "sub": "{count, plural, one {One session of yours today and tomorrow} other {# sessions of yours today and tomorrow}}",
+      "allSessions": "All sessions today and tomorrow",
+      "noSessions": "No sessions for you today or tomorrow. Good time to train yourself.",
+      "go": "Go",
+      "hold": "Hold",
+      "plan": "Assign lines",
+      "replan": "Reassign lines",
+      "logged": "{count, plural, one {one dive logged} other {# dives logged}}",
+      "linesSaved": "Lines in the water",
+      "linesSuggested": "Suggested lines (deepest on line A, buddies by depth)",
+      "line": "Line {line}",
+      "buddy": "Buddy: {name}",
+      "lastDive": "Last dive {date}: {depth} m, {outcome}",
+      "allowed": "Allowed today",
+      "target": "Target",
+      "set": "Set",
+      "log": "Log a dive",
+      "discipline": "Discipline",
+      "depth": "Depth (m)",
+      "distance": "Distance (m)",
+      "seconds": "Time (sec)",
+      "outcome": "Outcome",
+      "notes": "Notes",
+      "logNote": "An LMC, blackout or squeeze opens a safety-log incident automatically. Personal bests update on their own.",
+      "saveLog": "Save",
+      "students": "My students",
+      "noStudents": "No students on a course right now.",
+      "recent": "Logged recently",
+      "noLogs": "No dives logged yet."
+    },
+    "flag": {
+      "slow_equalizer": "Slow equalizer",
+      "cold_sensitive": "Feels the cold",
+      "photographer": "Photographer",
+      "competition": "Competes",
+      "vip": "VIP",
+      "motion_sickness": "Seasick",
+      "recent_incident": "Incident in 6 months",
+      "last_dive_issue": "Last dive not clean",
+      "first_timer": "First time"
+    },
+    "outcome": {
+      "clean": "Clean",
+      "early_turn": "Early turn",
+      "lmc": "LMC",
+      "blackout": "Blackout",
+      "squeeze": "Squeeze",
+      "ear": "Ears"
+    },
+    "limitedBy": {
+      "level": "level ceiling",
+      "progression": "best + progression",
+      "instructor": "instructor's limit",
+      "site": "site depth"
+    },
+    "skill": {
+      "breathe_up": "Breathe-up",
+      "recovery_breath": "Recovery breath",
+      "duck_dive": "Duck dive",
+      "frenzel": "Frenzel equalising",
+      "free_immersion": "Free immersion",
+      "buddy_rescue": "Buddy rescue",
+      "sta_2min": "STA 2 min",
+      "cwt_12m": "CWT 12 m",
+      "mouthfill_intro": "Mouthfill intro",
+      "freefall": "Freefall",
+      "lanyard_rescue": "Lanyard rescue",
+      "sta_3min": "STA 3 min",
+      "dyn_50m": "DYN 50 m",
+      "cwt_24m": "CWT 24 m",
+      "blackout_rescue_depth": "Rescue from depth",
+      "mouthfill": "Mouthfill",
+      "co2_tables": "CO2 tables",
+      "sta_4min": "STA 4 min",
+      "dyn_75m": "DYN 75 m",
+      "cwt_32m": "CWT 32 m",
+      "deep_safety": "Deep safety"
+    },
+    "diver": {
+      "pbOfAllowed": "Personal best out of today's allowed depth",
+      "pbCwt": "CWT best",
+      "allowedToday": "Allowed today to {m} m · {why}",
+      "stat": {
+        "dives": "Dives",
+        "deepest": "Deepest"
+      },
+      "depthTitle": "Depth over time",
+      "noDepth": "No depth dives in the logbook yet.",
+      "pbLine": "Best {m} m",
+      "allowedLine": "Allowed today {m} m",
+      "courses": "Certification path",
+      "noCourses": "Not on a course yet.",
+      "certified": "Certified {date}",
+      "logbook": "Logbook",
+      "noLogs": "The logbook is empty.",
+      "log": {
+        "date": "Date",
+        "discipline": "Discipline",
+        "result": "Result",
+        "outcome": "Outcome"
+      }
+    },
+    "enrollmentStatus": {
+      "active": "On course",
+      "completed": "Completed",
+      "dropped": "Dropped"
+    },
+    "me": {
+      "noDiver": "We couldn't find a diver card in your name. The office will sort it out in a second.",
+      "hello": "Hi {name} 👋",
+      "todoTitle": "Before your next dive",
+      "waiverMissing": "Your waiver isn't signed or has expired.",
+      "signWaiver": "I've read it and I sign",
+      "medicalSoon": "Your medical expires in {days} days.",
+      "medicalMissing": "We don't have a valid medical for you.",
+      "medicalUntil": "Valid until",
+      "medicalSave": "Update",
+      "next": "My next dives",
+      "noNext": "No dives coming up. How did that happen?",
+      "with": "with {name}",
+      "target": "Target {m} m",
+      "meet": "Meet at:",
+      "cancelConfirm": "Cancel this booking?",
+      "cancel": "Cancel booking",
+      "passes": "My pass",
+      "noPasses": "No active pass.",
+      "validUntil": "Valid until {date}",
+      "left": "{count, plural, one {one session left} other {# sessions left}}",
+      "unlimited": "Unlimited · {days} more days",
+      "book": "Book training",
+      "nothingToBook": "No open training in the next ten days.",
+      "onPass": "On your pass",
+      "spots": "{count, plural, one {last place} other {# places}}",
+      "bookIt": "Book"
+    },
+    "passKind": {
+      "punch5": "5-session pass",
+      "punch10": "10-session pass",
+      "monthly": "Monthly membership",
+      "annual": "Annual membership"
+    },
+    "divers": {
+      "kicker": "Divers",
+      "title": "All the club's divers",
+      "sub": "{count, plural, one {one diver} other {# divers, most valuable first}}",
+      "search": "Search by name or phone",
+      "find": "Search",
+      "none": "No divers found.",
+      "col": {
+        "name": "Diver",
+        "level": "Level",
+        "pb": "CWT best",
+        "dives": "Dives",
+        "last": "Last",
+        "value": "Revenue",
+        "medical": "Medical"
+      },
+      "privacy": "Only this club's divers are shown. Every name in the demo is invented."
+    },
+    "medicalState": {
+      "ok": "Valid",
+      "warn": "Expiring",
+      "expired": "Expired",
+      "missing": "Missing"
+    },
+    "file": {
+      "back": "← All divers",
+      "contact": "Details",
+      "phone": "Phone",
+      "email": "Email",
+      "origin": "From",
+      "emergency": "Emergency contact",
+      "source": "Came through",
+      "joined": "Joined",
+      "money": "Money",
+      "lifetime": "Total at the club",
+      "noSales": "No sales.",
+      "safety": "Safety and gear",
+      "cleanRecord": "Clean record. No incidents.",
+      "rentals": "Recent rentals"
+    },
+    "done": {
+      "checkedIn": "Checked in",
+      "cancelled": "Booking cancelled",
+      "booked": "Booked. See you in the water!",
+      "rented": "Gear is out",
+      "returned": "Gear is back",
+      "logged": "Dive logged",
+      "reported": "Incident recorded in the safety log",
+      "conditions": "Sea posted: {call}",
+      "lines": "Lines assigned",
+      "waiver": "Thanks! Waiver signed"
+    },
+    "errors": {
+      "sessionFull": "The session is full",
+      "customerCannotChange": "You can only cancel. For anything else, talk to the office.",
+      "gearNotAvailable": "That item is already rented or in service",
+      "noDiver": "No diver card found",
+      "sessionCancelled": "The session was cancelled",
+      "sessionPast": "The session has already started",
+      "alreadyBooked": "Already booked",
+      "levelTooLow": "Needs a higher level",
+      "measureRequired": "Enter a depth, distance or time"
+    },
+    "levelShort": {
+      "0": "None",
+      "1": "Try dive",
+      "2": "Beginner",
+      "3": "Intermediate",
+      "4": "Advanced",
+      "5": "Instructor"
     }
   }
 }

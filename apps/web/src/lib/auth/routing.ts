@@ -7,6 +7,7 @@ export const SURFACE_PATHS: Record<Surface, string> = {
   transport: '/transport',
   accountant: '/accountant',
   parent: '/parent',
+  dive: '/dive',
 };
 
 // Webhooks authenticate by signature, not by session; a companion pass by its own signature (lib/pass.ts).
@@ -30,7 +31,7 @@ export function surfaceForPath(pathname: string): Surface | 'platform' | null {
 
 export function homePath(session: Session): string {
   if (session.isPlatformAdmin && !session.role) return '/platform';
-  const surface = session.role ? homeSurface(session.role) : null;
+  const surface = session.role ? homeSurface(session.role, session.vertical) : null;
   // Signed in with no school at all: open one (a parent without a family is told so on that page too).
   if (!session.role) return '/onboarding';
   return surface ? SURFACE_PATHS[surface] : '/login?error=no_membership';
@@ -51,6 +52,9 @@ export function decideRoute(pathname: string, session: Session | null): RouteDec
     return session.isPlatformAdmin
       ? { action: 'next' }
       : { action: 'redirect', to: homePath(session) };
-  if (session.role && canEnterSurface(session.role, surface)) return { action: 'next' };
+  const wrongVertical =
+    session.vertical !== undefined && (session.vertical === 'freediving') !== (surface === 'dive');
+  if (session.role && canEnterSurface(session.role, surface) && !wrongVertical)
+    return { action: 'next' };
   return { action: 'redirect', to: homePath(session) };
 }

@@ -1,7 +1,7 @@
 /**
- * Profiles for the public live demo (deploy/demo): the same fake seed dressed for a kind of school. Chosen with
- * RSWIM_DEMO_PROFILE; RSWIM_DEMO_SCHOOL_NAME and RSWIM_DEMO_OWNER_NAME override the name and the owner. The data
- * changes for each profile live in @rswim/seed (live-demo.ts); this is only what the web app needs to show.
+ * Profiles for the public live demo (deploy/demo), chosen with RSWIM_DEMO_PROFILE: `swim` leads with the swim
+ * school, `freediving` with the Eilat freediving club. RSWIM_DEMO_SCHOOL_NAME and RSWIM_DEMO_OWNER_NAME override the
+ * swim school's name and owner. Both tenants are always seeded.
  */
 export const DEMO_PROFILES = {
   swim: {
@@ -10,29 +10,13 @@ export const DEMO_PROFILES = {
     tagline: 'מערכת ההפעלה של בית הספר לשחייה',
     uiWords: {},
   },
+  // The Eilat freediving club (its own tenant, seed/dive-data.ts) leads the sign-in page; the swim school stays a
+  // swim school beside it.
   freediving: {
-    schoolName: 'כחול עמוק (דמו)',
-    ownerFirstName: 'אורי',
-    tagline: 'מערכת ההפעלה של בית הספר לצלילה חופשית',
-    // Swimming words in the app's own wording, replaced in order (longest first).
-    uiWords: {
-      he: [
-        ['שחיית תינוקות', 'סדנת נשימה'],
-        ['קייטנות', 'מחנות צלילה'],
-        ['קייטנה', 'מחנה צלילה'],
-        ['השחייה', 'הצלילה'],
-        ['לשחייה', 'לצלילה'],
-        ['שחייה', 'צלילה'],
-      ],
-      en: [
-        ['baby swimming', 'breathing workshop'],
-        ['Baby swimming', 'Breathing workshop'],
-        ['swimming', 'freediving'],
-        ['Swimming', 'Freediving'],
-        ['swim', 'freedive'],
-        ['Swim', 'Freedive'],
-      ],
-    },
+    schoolName: 'שחייה בכיף (דמו)',
+    ownerFirstName: 'יעל',
+    tagline: 'מערכת ההפעלה של מועדון הצלילה החופשית',
+    uiWords: {},
   },
 } as const;
 

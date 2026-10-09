@@ -23,6 +23,7 @@
     "@rswim/domain-copilot": "workspace:*",
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-crm": "workspace:*",
+    "@rswim/domain-dive": "workspace:*",
     "@rswim/domain-enrollment": "workspace:*",
     "@rswim/domain-institutions": "workspace:*",
     "@rswim/domain-payroll": "workspace:*",

@@ -83,3 +83,64 @@ export const ACCOUNT_PERSONAS = {
 } as const;
 
 export type AccountPersonaKey = keyof typeof ACCOUNT_PERSONAS;
+
+/** The freediving club demo tenant (an Eilat club, all invented). */
+export const DIVE_ORG = {
+  id: '00000000-0000-4000-8000-00000000c001',
+  slug: 'eilat-deep-blue',
+  name: 'כחול עמוק אילת (דמו)',
+} as const;
+
+/** A second, smaller club on a trial, so the platform console shows a network. */
+export const DIVE_ORG_2 = {
+  id: '00000000-0000-4000-8000-00000000c002',
+  slug: 'haifa-free-waves',
+  name: 'גלים חופשיים חיפה (דמו)',
+} as const;
+
+/**
+ * The club's people: the owner, the operations manager, the front desk, an instructor and a customer. The manager
+ * and the front desk are both admins; the manager also holds settings, billing and payroll.
+ */
+export const DIVE_PERSONAS = {
+  diveOwner: {
+    userId: '00000000-0000-4000-8000-000000000301',
+    role: 'owner',
+    name: 'אורי (דמו)',
+    email: 'owner@eilat.dive.test',
+  },
+  diveManager: {
+    userId: '00000000-0000-4000-8000-000000000302',
+    role: 'admin',
+    name: 'מאיה (דמו)',
+    email: 'manager@eilat.dive.test',
+  },
+  diveOffice: {
+    userId: '00000000-0000-4000-8000-000000000303',
+    role: 'admin',
+    name: 'שני (דמו)',
+    email: 'office@eilat.dive.test',
+  },
+  diveInstructor: {
+    userId: '00000000-0000-4000-8000-000000000304',
+    role: 'instructor',
+    name: 'יואב (דמו)',
+    email: 'instructor@eilat.dive.test',
+  },
+  diveCustomer: {
+    userId: '00000000-0000-4000-8000-000000000305',
+    role: 'parent',
+    name: 'דנה (דמו)',
+    phone: '+972500000305',
+  },
+} as const satisfies Record<string, Persona>;
+
+export type DivePersonaKey = keyof typeof DIVE_PERSONAS;
+
+/** What the manager holds on top of the front desk. */
+export const DIVE_MANAGER_PERMISSIONS = [
+  'billing.read',
+  'billing.write',
+  'payroll.read',
+  'settings.write',
+] as const;

@@ -41,6 +41,8 @@ export const SURFACES = {
   transport: ['escort', 'owner', 'admin'],
   accountant: ['accountant', 'owner'],
   parent: ['parent'],
+  /** The freediving club (one surface; each role sees its own screens inside it). */
+  dive: ['owner', 'admin', 'instructor', 'parent'],
 } as const satisfies Record<string, readonly OrgRole[]>;
 export type Surface = keyof typeof SURFACES;
 
@@ -56,8 +58,12 @@ export function hasPermission(
   return role === 'owner' || permissions.includes(needed);
 }
 
-/** Where a user lands after login. */
-export function homeSurface(role: OrgRole): Surface | null {
+/** Where a user lands after login. A freediving club's staff and customers all start in the club surface. */
+export function homeSurface(
+  role: OrgRole,
+  vertical: 'swim' | 'freediving' = 'swim',
+): Surface | null {
+  if (vertical === 'freediving' && canEnterSurface(role, 'dive')) return 'dive';
   switch (role) {
     case 'owner':
     case 'admin':

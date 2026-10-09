@@ -1,2 +1,75 @@
 @import '@rswim/ui/styles.css';
 @source '../';
+
+/*
+ * Freediving club surface (/dive): the Red Sea at dawn. Deep navy chrome, turquoise water, coral for attention.
+ * Chart series follow the validated data-viz order (blue, orange, aqua, yellow), stepped for each mode.
+ */
+.dive {
+  --dive-abyss: oklch(19% 0.06 255);
+  --dive-deep: oklch(27% 0.08 245);
+  --dive-sea: oklch(62% 0.11 205);
+  --dive-shallow: oklch(86% 0.07 195);
+  --dive-foam: oklch(97% 0.015 200);
+  --dive-coral: oklch(66% 0.17 35);
+  --dive-sun: oklch(82% 0.14 80);
+  --dive-go: oklch(58% 0.14 155);
+  --dive-caution: oklch(70% 0.15 75);
+  --dive-nogo: oklch(57% 0.19 27);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --surface: oklch(98% 0.008 220);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .dive {
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --dive-foam: oklch(25% 0.03 230);
+    --dive-shallow: oklch(40% 0.07 200);
+    --surface: oklch(17% 0.025 245);
+    --surface-raised: oklch(22% 0.03 245);
+  }
+}
+.dark .dive {
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --dive-foam: oklch(25% 0.03 230);
+  --dive-shallow: oklch(40% 0.07 200);
+  --surface: oklch(17% 0.025 245);
+  --surface-raised: oklch(22% 0.03 245);
+}
+.dive .bg-ocean {
+  background:
+    radial-gradient(120% 80% at 85% -10%, oklch(70% 0.12 195 / 0.55), transparent 60%),
+    linear-gradient(170deg, var(--dive-deep), var(--dive-abyss));
+}
+.dive .bg-shore {
+  background: linear-gradient(
+    180deg,
+    oklch(88% 0.06 200) 0%,
+    var(--dive-sea) 55%,
+    var(--dive-deep) 100%
+  );
+}
+@keyframes dive-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.dive .wave-drift {
+  animation: dive-drift 18s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dive .wave-drift {
+    animation: none;
+  }
+}
