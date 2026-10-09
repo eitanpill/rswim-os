@@ -14,3 +14,4 @@ export * from './transport';
 export * from './institutions';
 export * from './insights';
 export * from './saas';
+export * from './dive';

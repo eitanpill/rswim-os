@@ -10,22 +10,33 @@ import {
   unique,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { ORG_ROLES } from '@rswim/contracts';
+import { ORG_ROLES, VERTICALS } from '@rswim/contracts';
 import { bytea, createdAt, id, orgId, updatedAt } from './_helpers';
 
-export const organizations = pgTable('organizations', {
-  id: id(),
-  slug: text('slug').notNull().unique(),
-  name: text('name').notNull(),
-  legalName: text('legal_name'),
-  taxStatus: text('tax_status').notNull().default('licensed'), // עוסק מורשה
-  vatNumber: text('vat_number'),
-  timezone: text('timezone').notNull().default('Asia/Jerusalem'),
-  defaultLocale: text('default_locale').notNull().default('he'),
-  status: text('status').notNull().default('active'),
-  createdAt: createdAt(),
-  updatedAt: updatedAt(),
-});
+export const organizations = pgTable(
+  'organizations',
+  {
+    id: id(),
+    slug: text('slug').notNull().unique(),
+    name: text('name').notNull(),
+    legalName: text('legal_name'),
+    taxStatus: text('tax_status').notNull().default('licensed'), // עוסק מורשה
+    vatNumber: text('vat_number'),
+    timezone: text('timezone').notNull().default('Asia/Jerusalem'),
+    defaultLocale: text('default_locale').notNull().default('he'),
+    status: text('status').notNull().default('active'),
+    /** Swim school or freediving club: decides which screens the school's people land on. */
+    vertical: text('vertical').notNull().default('swim'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    check(
+      'organizations_vertical_check',
+      sql`${t.vertical} in (${sql.raw(VERTICALS.map((v) => `'${v}'`).join(', '))})`,
+    ),
+  ],
+);
 
 export const orgSettings = pgTable('org_settings', {
   organizationId: uuid('organization_id')

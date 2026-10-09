@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@rswim/ui';
-import { ACCOUNT_PERSONAS, PERSONAS } from '@rswim/db/personas';
+import { ACCOUNT_PERSONAS, DIVE_PERSONAS, PERSONAS } from '@rswim/db/personas';
+import { demoProfile } from '@rswim/db/demo-profiles';
 import { isDemoMode, isDevAuthEnabled, personaName, type DevKey } from '@/lib/auth/dev';
 import { signInWithPassword } from './actions';
 import { inputClass, LoginFrame } from './login-frame';
@@ -77,6 +78,16 @@ export default async function LoginPage({
                 <span className="text-ink-muted">{p.name}</span>
               </a>
             ))}
+            {Object.entries(DIVE_PERSONAS).map(([key, p]) => (
+              <a
+                key={key}
+                href={`/dev/login?as=${key}`}
+                className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-surface"
+              >
+                <span className="block font-medium">🤿 {t(`devDive.${key}`)}</span>
+                <span className="text-ink-muted">{p.name}</span>
+              </a>
+            ))}
           </div>
         </div>
       ) : null}
@@ -84,14 +95,34 @@ export default async function LoginPage({
   );
 }
 
-/** The live demo's front door: who you can be, and what each one sees. No passwords, no SMS. */
+/**
+ * The live demo's front door: who you can be, and what each one sees. No passwords, no SMS. The freediving club and
+ * the swim school run side by side; the profile decides which comes first, and the platform admin sees both.
+ */
 async function DemoLogin({ resetting }: { resetting: boolean }) {
   const t = await getTranslations('login.demo');
   const tRole = await getTranslations('common.role');
-  const keys: DevKey[] = [
-    ...(Object.keys(PERSONAS) as DevKey[]),
-    ...(Object.keys(ACCOUNT_PERSONAS) as DevKey[]),
+  const swim = (Object.keys(PERSONAS) as DevKey[]).map((key) => ({
+    key,
+    role: tRole(PERSONAS[key as keyof typeof PERSONAS].role),
+    sees: t(`sees.${key}`),
+  }));
+  const dive = (Object.keys(DIVE_PERSONAS) as DevKey[]).map((key) => ({
+    key,
+    role: t(`diveRole.${key}`),
+    sees: t(`dive.${key}`),
+  }));
+  const account = (Object.keys(ACCOUNT_PERSONAS) as DevKey[]).map((key) => ({
+    key,
+    role: t(`account.${key}`),
+    sees: t(`sees.${key}`),
+  }));
+  const groups = [
+    { id: 'dive', title: t('clubGroup'), items: dive },
+    { id: 'swim', title: t('swimGroup'), items: swim },
   ];
+  if (demoProfile().key !== 'freediving') groups.reverse();
+  groups.push({ id: 'platform', title: t('platformGroup'), items: account });
   return (
     <LoginFrame title={t('title')}>
       {resetting ? (
@@ -102,21 +133,24 @@ async function DemoLogin({ resetting }: { resetting: boolean }) {
       <p className="mb-4 text-sm text-ink-muted" data-testid="demo-intro">
         {t('intro')}
       </p>
-      <div className="flex flex-col gap-2" data-testid="dev-login">
-        {keys.map((key) => (
-          <a
-            key={key}
-            href={`/dev/login?as=${key}`}
-            className="rounded-xl border border-line px-3 py-2 hover:bg-brand-50 dark:hover:bg-surface"
-          >
-            <span className="block font-medium">
-              {key in PERSONAS
-                ? tRole(PERSONAS[key as keyof typeof PERSONAS].role)
-                : t(`account.${key}`)}
-              <span className="font-normal text-ink-muted"> · {personaName(key)}</span>
-            </span>
-            <span className="text-sm text-ink-muted">{t(`sees.${key}`)}</span>
-          </a>
+      <div className="flex flex-col gap-5" data-testid="dev-login">
+        {groups.map((g) => (
+          <section key={g.id} data-testid={`demo-group-${g.id}`} className="flex flex-col gap-2">
+            <h2 className="text-xs font-semibold tracking-wide text-ink-muted">{g.title}</h2>
+            {g.items.map(({ key, role, sees }) => (
+              <a
+                key={key}
+                href={`/dev/login?as=${key}`}
+                className="rounded-xl border border-line px-3 py-2 hover:bg-brand-50 dark:hover:bg-surface"
+              >
+                <span className="block font-medium">
+                  {role}
+                  <span className="font-normal text-ink-muted"> · {personaName(key)}</span>
+                </span>
+                <span className="text-sm text-ink-muted">{sees}</span>
+              </a>
+            ))}
+          </section>
         ))}
       </div>
       <p className="mt-4 text-xs text-ink-muted">{t('footnote')}</p>

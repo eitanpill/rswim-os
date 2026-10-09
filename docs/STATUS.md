@@ -14,6 +14,15 @@
 | 9 Reports, venue migration, copilot | **Done**, merged (PR #10) | The acceptance criterion passes (see below) |
 | 10 SaaS hardening | **Done** (PR #11) | The acceptance criterion passes (see below) |
 
+## Freediving clubs (vertical)
+
+A freediving club runs on the same platform with its own module and screens (`docs/FREEDIVING.md`): the owner's
+bridge, the ops room, the front desk, the instructor's day in the water and the diver's own app, plus a network view
+for the platform admin across swim schools and clubs. Seeded with the Eilat demo club and a small Haifa club.
+Proof: `packages/domain/dive/test/policies.test.ts` (100% coverage of the rules), `packages/db/test/rls/dive.test.ts`
+(roles and tenants), `apps/web/e2e/dive.spec.ts` (every role's screen and the main taps). Not built yet: online
+payment for bookings (the desk records the method), WhatsApp reminders for the club, editing the rules in a screen.
+
 ## Live demo (for selling)
 
 A public demo that runs on fake data only: `docs/LIVE-DEMO.md` (Hebrew, for Pit) and `deploy/demo/`. One container

@@ -3,7 +3,13 @@
  * exists to show isolation. Re-running replaces both orgs. NEVER put real client data here.
  */
 import { randomUUID } from 'node:crypto';
-import { ACCOUNT_PERSONAS, DEMO_ORG, PERSONAS, SECOND_ORG } from '@rswim/db/personas';
+import {
+  ACCOUNT_PERSONAS,
+  DEMO_ORG,
+  DIVE_PERSONAS,
+  PERSONAS,
+  SECOND_ORG,
+} from '@rswim/db/personas';
 import { createDataKey, encryptField } from '@rswim/domain-core';
 import type pg from 'pg';
 import { seedAttendanceData, type AttendanceDataSummary } from './attendance-data';
@@ -14,6 +20,7 @@ import { seedCoursesData, type CoursesDataSummary } from './courses-data';
 import { seedTransportData, type TransportDataSummary } from './transport-data';
 import { seedCoreData, type CoreDataSummary } from './core-data';
 import { seedSaasData, type SaasDataSummary } from './saas-data';
+import { seedDiveData, type DiveDataSummary } from './dive-data';
 import { seedSchedulingData, type SchedulingDataSummary } from './scheduling-data';
 import { FIRST_BOYS, FIRST_GIRLS, LAST, PARENT_MEN, PARENT_WOMEN } from './names';
 
@@ -46,6 +53,8 @@ export interface SeedSummary {
   courses?: CoursesDataSummary;
   /** Phase 10 plans, subscriptions and marketplace templates. */
   saas?: SaasDataSummary;
+  /** The freediving clubs (Eilat, and a small Haifa club on a trial). */
+  dive?: DiveDataSummary;
 }
 
 /** Small deterministic PRNG so the demo data is the same on every run. */
@@ -228,7 +237,11 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
   };
   phoneCounter = 1000;
 
-  for (const p of [...Object.values(PERSONAS), ...Object.values(ACCOUNT_PERSONAS)]) {
+  for (const p of [
+    ...Object.values(PERSONAS),
+    ...Object.values(ACCOUNT_PERSONAS),
+    ...Object.values(DIVE_PERSONAS),
+  ]) {
     await ensureUser({
       id: p.userId,
       email: 'email' in p ? p.email : undefined,
@@ -398,6 +411,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
       }
     }
     summary.saas = await seedSaasData(client);
+    summary.dive = await seedDiveData(client);
     await client.query('commit');
   } catch (e) {
     await client.query('rollback');

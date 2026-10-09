@@ -81,6 +81,9 @@ by DNS TXT, or with `RSWIM_DNS_FAKE=1` accepts any `*.localhost`; it bills schoo
 (`RSWIM_GROW_FAKE=1`). `RSWIM_PLATFORM_HOSTS` (comma-separated) lists the platform's own hosts, which schools can't claim.
 Plan limits are a database trigger; plan features gate screens through `requireFeature`.
 
+Freediving (`docs/FREEDIVING.md`): `organizations.vertical = 'freediving'` sends a club's people to `/dive` (owner,
+manager, office, instructor, customer screens; `packages/domain/dive`). Dev personas **🤿 …** sign in to the seeded Eilat club.
+
 Live demo (`docs/LIVE-DEMO.md`): `deploy/demo/Dockerfile` builds one container (Postgres, Inngest dev server, worker,
 web) on fake data and fake providers with `RSWIM_DEMO_MODE=1` (persona sign-in in production builds, demo banner).
 `pnpm --filter @rswim/seed demo:reset` drops and rebuilds its database; it refuses to run without `RSWIM_DEMO_MODE=1`.

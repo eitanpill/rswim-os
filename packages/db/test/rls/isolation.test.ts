@@ -135,6 +135,22 @@ const TENANT_TABLES = [
   'platform_invoices',
   'org_domains',
   'template_installs',
+  'dive_rule_sets',
+  'dive_sites',
+  'dive_programs',
+  'dive_divers',
+  'dive_sessions',
+  'dive_passes',
+  'dive_bookings',
+  'dive_logs',
+  'dive_incidents',
+  'dive_enrollments',
+  'dive_gear',
+  'dive_rentals',
+  'dive_sales',
+  'dive_conditions',
+  'dive_leads',
+  'dive_staff_certs',
 ] as const;
 
 describe('schema guardrails', () => {

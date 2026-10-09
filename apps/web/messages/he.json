@@ -82,7 +82,31 @@
         "newcomer": "פתיחת בית ספר חדש מאפס: תבניות, מיתוג ודומיין",
         "platform": "מבט על כל בתי הספר במערכת: תוכניות, שימוש וחיוב"
       },
-      "resetting": "הדמו חוזר למצב ההתחלתי. תוך פחות מדקה אפשר להיכנס מחדש."
+      "resetting": "הדמו חוזר למצב ההתחלתי. תוך פחות מדקה אפשר להיכנס מחדש.",
+      "clubGroup": "מועדון הצלילה החופשית באילת",
+      "swimGroup": "גם בית ספר לשחייה (אותה מערכת)",
+      "platformGroup": "מעל כולם",
+      "dive": {
+        "diveOwner": "הגשר: מצב הים, כסף, צוות, בטיחות ומה מחכה להחלטה, הכול במסך אחד",
+        "diveManager": "חדר המבצעים: לוח השבוע מול תחזית הים, דיווח בוקר, ניירת, תעודות צוות וציוד",
+        "diveOffice": "הדלפק: מי מגיע ומוכן למים, צ׳ק-אין בלחיצה, רישום, השכרת ציוד, קופה ולידים",
+        "diveInstructor": "במים: הצוללים שלי, עומק מותר לכל אחד, חלוקה לחבלים, תיעוד צלילה ומיומנויות קורס",
+        "diveCustomer": "האפליקציה של הצוללת: שיא אישי, עומק מותר היום, כרטיסייה, הרשמה לאימון ויומן"
+      },
+      "diveRole": {
+        "diveOwner": "בעלים",
+        "diveManager": "מנהלת תפעול",
+        "diveOffice": "משרד וקבלה",
+        "diveInstructor": "מדריך",
+        "diveCustomer": "צוללת"
+      }
+    },
+    "devDive": {
+      "diveOwner": "בעלים",
+      "diveManager": "מנהלת תפעול",
+      "diveOffice": "משרד וקבלה",
+      "diveInstructor": "מדריך",
+      "diveCustomer": "צוללת"
     }
   },
   "admin": {
@@ -762,6 +786,32 @@
         "staff": "הגעתם למספר אנשי הצוות שהתוכנית מאפשרת. לשדרוג פנו אלינו.",
         "venues": "התוכנית שלכם כוללת בריכה אחת בלבד. כדי להוסיף בריכה צריך לשדרג תוכנית."
       }
+    },
+    "network": {
+      "kicker": "מבט מהגשר העליון",
+      "title": "כל הרשת במסך אחד",
+      "clubs": "בתי ספר ומועדונים",
+      "split": "{swim} שחייה · {dive} צלילה חופשית",
+      "customers": "לקוחות",
+      "staff": "{count} אנשי צוות",
+      "revenue": "הכנסות",
+      "last30": "ב-30 הימים האחרונים",
+      "next7": "רשומים לשבוע הקרוב",
+      "next7Sub": "שיעורים והזמנות",
+      "board": "השוואה בין המועדונים",
+      "vertical": {
+        "swim": "בית ספר לשחייה",
+        "freediving": "מועדון צלילה חופשית"
+      },
+      "col": {
+        "club": "מועדון",
+        "revenue": "הכנסות 30 יום",
+        "customers": "לקוחות",
+        "sessions": "מפגשים 30 יום",
+        "next7": "7 ימים קדימה",
+        "safety": "בטיחות 90 יום"
+      },
+      "incidents": "{count, plural, one {אירוע אחד} other {# אירועים}}"
     }
   },
   "calendar": {
@@ -3808,6 +3858,600 @@
         "title": "ל{name} יש {hours} שעות הוראה השבוע (מעל {max})",
         "action": "לבדוק אם אפשר להעביר חלק מהשיעורים למדריך אחר"
       }
+    }
+  },
+  "dive": {
+    "nav": {
+      "owner": "הגשר",
+      "manager": "חדר מבצעים",
+      "office": "דלפק",
+      "instructor": "במים",
+      "me": "הצלילה שלי",
+      "divers": "צוללים"
+    },
+    "clubFallback": "מועדון הצלילה",
+    "tagline": "צלילה חופשית · מפרץ אילת",
+    "footer": "R-SWIM OS · מערכת ההפעלה של מועדון הצלילה החופשית. כל הנתונים בדמו מומצאים.",
+    "roles": {
+      "owner": "בעלים",
+      "manager": "מנהלת תפעול",
+      "office": "משרד וקבלה",
+      "instructor": "מדריך/ה",
+      "customer": "צולל/ת"
+    },
+    "call": {
+      "go": "יוצאים למים",
+      "caution": "במים בזהירות",
+      "no_go": "לא נכנסים לים"
+    },
+    "callShort": {
+      "go": "ים פתוח",
+      "caution": "זהירות",
+      "no_go": "סגור"
+    },
+    "sea": {
+      "title": "מצב הים",
+      "gulf": "מפרץ אילת",
+      "noReport": "אין עדיין דיווח בוקר",
+      "wind": "רוח",
+      "kts": "קשר",
+      "waves": "גלים",
+      "cm": "ס״מ",
+      "visibility": "ראות",
+      "m": "מ׳",
+      "water": "מים",
+      "windKts": "רוח (קשר)",
+      "windDirLabel": "כיוון רוח",
+      "wavesCm": "גלים (ס״מ)",
+      "visibilityM": "ראות (מ׳)",
+      "waterC": "טמפ׳ מים (°C)",
+      "current": "זרם"
+    },
+    "windDir": {
+      "N": "צפונית",
+      "NE": "צפון-מזרחית",
+      "E": "מזרחית",
+      "SE": "דרום-מזרחית",
+      "S": "דרומית",
+      "SW": "דרום-מערבית",
+      "W": "מערבית",
+      "NW": "צפון-מערבית"
+    },
+    "current": {
+      "none": "אין",
+      "light": "חלש",
+      "strong": "חזק"
+    },
+    "common": {
+      "today": "היום",
+      "tomorrow": "מחר",
+      "surface": "פני המים",
+      "noLead": "אין מדריך משובץ",
+      "minLevel": "מרמת {level}",
+      "booked": "{booked} מתוך {capacity} מקומות"
+    },
+    "level": {
+      "0": "בלי הסמכה",
+      "1": "התנסות",
+      "2": "מתחילים (Wave 1 / AIDA 2)",
+      "3": "מתקדמים (Wave 2 / AIDA 3)",
+      "4": "מתקדמים מאוד (Wave 3 / AIDA 4)",
+      "5": "מדריך/ה"
+    },
+    "sessionStatus": {
+      "scheduled": "מתוכנן",
+      "go": "יוצאים",
+      "hold": "בהמתנה",
+      "cancelled": "בוטל",
+      "done": "הסתיים"
+    },
+    "bookingStatus": {
+      "booked": "רשום",
+      "checked_in": "הגיע",
+      "no_show": "לא הגיע",
+      "cancelled": "בוטל"
+    },
+    "ratio": {
+      "short": "חסר מדריך ({needed})",
+      "title": "צריך {needed} מדריכים במים: עד {per} צוללים למדריך"
+    },
+    "readiness": {
+      "waiver": {
+        "label": "כתב ויתור",
+        "ok": "חתום ובתוקף",
+        "warn": "חתום",
+        "missing": "לא חתום או פג"
+      },
+      "medical": {
+        "label": "הצהרת בריאות",
+        "ok": "בתוקף",
+        "warn": "פגה בעוד {days} ימים",
+        "missing": "חסרה או פגה"
+      },
+      "level": {
+        "label": "רמה",
+        "ok": "מתאימה",
+        "warn": "גבולית",
+        "missing": "נדרשת רמה {need}, יש {has}"
+      },
+      "payment": {
+        "label": "תשלום",
+        "ok": "שולם או בכרטיסייה",
+        "warn": "חלקי",
+        "missing": "עוד לא שולם"
+      }
+    },
+    "severity": {
+      "urgent": "דחוף",
+      "attention": "לטיפול",
+      "info": "לידיעה"
+    },
+    "insight": {
+      "none": "שקט. אין כרגע משהו שמחכה לך.",
+      "open": "לטיפול",
+      "weather": {
+        "title": "{date}: {call}, רוח {kts} קשר",
+        "body": "{divers} צוללים רשומים לים באותו יום. כדאי להחליט עכשיו: לעבור לבריכה, להזיז שעה או להודיע מראש."
+      },
+      "course_fill": {
+        "title": "{title} ב-{date}: רק {booked} מתוך {capacity}",
+        "body": "פחות מחצי מהמקומות תפוסים. בוגרי התנסות ולידים פתוחים הם הקהל הכי חם."
+      },
+      "medicals": {
+        "title": "{count, plural, one {צולל אחד בלי הצהרת בריאות בתוקף} other {# צוללים בלי הצהרת בריאות בתוקף}}",
+        "body": "הם רשומים לצלילות הקרובות. המשרד יכול לשלוח תזכורת היום."
+      },
+      "staff_cert": {
+        "title": "{title} של {name}: נשארו {days} ימים",
+        "body": "כדאי לחדש עכשיו, לפני שזה עוצר משמרות."
+      },
+      "staff_cert_expired": {
+        "title": "{title} של {name} פג לפני {days} ימים",
+        "body": "עד שזה מתחדש, {name} לא אמור/ה להוביל במים."
+      },
+      "rentals_overdue": {
+        "title": "{count, plural, one {השכרה אחת באיחור} other {# השכרות ציוד באיחור}}",
+        "body": "הן מסומנות באדום ברשימת ההשכרות בדלפק."
+      },
+      "leads": {
+        "title": "{count, plural, one {ליד אחד מחכה יותר מיום} other {# לידים מחכים יותר מיום}}",
+        "body": "ליד שחוזרים אליו בתוך שעה נסגר הרבה יותר. הם מחכים בלוח הלידים בדלפק."
+      },
+      "gear_service": {
+        "title": "{count, plural, one {פריט ציוד אחד עבר מועד טיפול} other {# פריטי ציוד עברו מועד טיפול}}",
+        "body": "הרשימה בחדר המבצעים, תחת ציוד."
+      },
+      "graduates": {
+        "title": "{count, plural, one {בוגר קורס אחד לא חזר למים} other {# בוגרי קורס לא חזרו למים}}",
+        "body": "סיימו קורס ב-90 הימים האחרונים ולא הזמינו אימון. כרטיסייה במחיר היכרות תחזיר אותם."
+      },
+      "safety_streak": {
+        "title": "{days} ימים בלי אירוע בטיחות",
+        "body": "הצוות עושה עבודה טובה. שווה להגיד להם."
+      },
+      "more": "{count, plural, one {ועוד אחד} other {ועוד #}}"
+    },
+    "owner": {
+      "kicker": "הגשר",
+      "greet": {
+        "morning": "בוקר טוב, {name}",
+        "noon": "צהריים טובים, {name}",
+        "evening": "ערב טוב, {name}"
+      },
+      "summary": "היום: {sessions} מפגשים, {divers} צוללים במים. הים: {call}.",
+      "kpi": {
+        "revenue": "הכנסות החודש",
+        "vsLastMonth": "מול אותה נקודה בחודש שעבר",
+        "active": "צוללים פעילים",
+        "newDivers": "{count} חדשים ב-30 יום",
+        "fill": "תפוסה השבוע",
+        "sessionsWeek": "{count} מפגשים ב-7 הימים הקרובים",
+        "safety": "ימים בלי אירוע",
+        "safetySub": "מאז אירוע הבטיחות האחרון",
+        "conversion": "המרה לקורס",
+        "conversionSub": "ממתנסים שהמשיכו לקורס",
+        "ticket": "עסקה ממוצעת",
+        "passes": "{count} כרטיסיות פעילות"
+      },
+      "needsYou": "מה מחכה לך",
+      "today": "המים היום",
+      "toOps": "לחדר המבצעים",
+      "noSessions": "אין מפגשים היום.",
+      "revenueTitle": "הכנסות לפי חודש",
+      "originsTitle": "מאיפה הצוללים",
+      "divers": "צוללים",
+      "originDetail": "{revenue} ב-90 יום",
+      "originsNote": "תיירים מחו״ל ומבקרים מהמרכז ממלאים את סופי השבוע; המקומיים את אימוני השבוע.",
+      "funnelTitle": "סולם ההסמכות",
+      "funnelNote": "כמה צוללים הגיעו לכל רמה. הפער בין מדרגה למדרגה הוא הקורס הבא שכדאי למכור.",
+      "crewTitle": "הצוות ב-30 יום",
+      "crew": {
+        "name": "מדריך/ה",
+        "sessions": "מפגשים",
+        "divers": "צוללים",
+        "deepest": "הכי עמוק"
+      },
+      "programsTitle": "מה נמכר (90 יום)",
+      "sold": "{count} מכירות",
+      "records": {
+        "deepest": "הצלילה העמוקה במועדון",
+        "sta": "עצירת נשימה ארוכה",
+        "staSub": "STA בבריכה",
+        "dives": "צלילות ב-30 יום",
+        "divesSub": "מתועדות ביומן",
+        "certified": "הוסמכו ב-90 יום",
+        "certifiedSub": "סיימו קורס"
+      }
+    },
+    "stream": {
+      "courses": "קורסים",
+      "training": "אימונים וכרטיסיות",
+      "experiences": "התנסויות וסדנאות",
+      "gear": "ציוד וחנות"
+    },
+    "origin": {
+      "eilat": "אילת",
+      "israel": "מהארץ",
+      "abroad": "מחו״ל"
+    },
+    "manager": {
+      "kicker": "חדר מבצעים",
+      "title": "השבוע במים",
+      "sub": "{sessions} מפגשים בשבעת הימים הקרובים · {paperwork} צוללים עם ניירת פתוחה",
+      "week": "לוח השבוע",
+      "diversCount": "{count, plural, one {צולל אחד} other {# צוללים}}",
+      "quiet": "יום שקט",
+      "seaRisk": "סיכון ים",
+      "hold": "להשהות",
+      "release": "לשחרר",
+      "cancel": "ביטול",
+      "cancelConfirm": "לבטל את {title}? הצוללים הרשומים יקבלו הודעה.",
+      "seaReport": "דיווח ים של הבוקר",
+      "seaRules": "לפי חוקי המועדון: מעל {caution} קשר זהירות, מעל {max} קשר לא נכנסים; גלים מעל {waves} ס״מ סוגרים; ראות מתחת ל-{vis} מ׳ היא זהירות.",
+      "site": "אתר",
+      "note": "הערה (לא חובה)",
+      "postSea": "לפרסם את מצב הים",
+      "paperwork": "ניירת לפני הצלילה",
+      "paperworkClear": "כל הרשומים לשבועיים הקרובים מסודרים.",
+      "crewCerts": "תעודות הצוות",
+      "noExpiry": "ללא תפוגה",
+      "gear": "ציוד",
+      "serviceDue": "{count, plural, one {פריט אחד עבר מועד טיפול} other {# פריטים עברו מועד טיפול}}",
+      "rules": "חוקי הבטיחות בתוקף",
+      "rule": {
+        "wind": "רוח (זהירות–סגירה)",
+        "ratioCourse": "יחס בקורס",
+        "ratioTraining": "יחס באימון",
+        "ratioExperience": "יחס בהתנסות",
+        "step": "התקדמות מקסימלית לצלילה",
+        "waiver": "תוקף כתב ויתור",
+        "months": "{count} חודשים",
+        "ceilings": "עומק מקסימלי לפי רמה"
+      },
+      "rulesNote": "החוקים נשמרים בגרסאות עם תאריך תחילה; כל החלטה במערכת (סגירת ים, עומק מותר) נגזרת מהגרסה שבתוקף.",
+      "safetyLog": "יומן בטיחות",
+      "noIncidents": "אין אירועים מתועדים.",
+      "actionTaken": "מה נעשה",
+      "close": "סגירה",
+      "allClosed": "כל האירועים סגורים.",
+      "report": "דיווח אירוע",
+      "kind": "סוג",
+      "severity": "חומרה",
+      "description": "מה קרה",
+      "reportSubmit": "לתעד אירוע"
+    },
+    "gearStatus": {
+      "available": "זמין",
+      "rented": "מושכר",
+      "maintenance": "בטיפול",
+      "retired": "יצא משימוש"
+    },
+    "gearKind": {
+      "fins": "סנפירים",
+      "monofin": "מונופין",
+      "mask": "מסכה",
+      "snorkel": "שנורקל",
+      "wetsuit": "חליפה",
+      "weight_belt": "חגורת משקולות",
+      "neck_weight": "משקולת צוואר",
+      "lanyard": "לניארד",
+      "computer": "מחשב צלילה",
+      "buoy": "מצוף",
+      "noseclip": "אטם אף"
+    },
+    "incidentKind": {
+      "blackout": "איבוד הכרה",
+      "lmc": "LMC (איבוד שליטה מוטורית)",
+      "squeeze": "סקוויז",
+      "barotrauma": "ברוטראומה",
+      "marine_life": "פגיעה מחיים ימיים",
+      "cut": "חתך",
+      "equipment": "תקלת ציוד",
+      "other": "אחר"
+    },
+    "incidentStatus": {
+      "open": "פתוח",
+      "closed": "סגור"
+    },
+    "incidentSeverity": {
+      "low": "נמוכה",
+      "medium": "בינונית",
+      "high": "גבוהה"
+    },
+    "office": {
+      "kicker": "דלפק",
+      "title": "מי מגיע היום",
+      "sub": "{arrivals} רשומים · {checked} הגיעו · {notReady} עוד לא מוכנים למים",
+      "till": "קופה היום",
+      "noSessions": "אין מפגשים היום.",
+      "nobody": "עוד אין רשומים.",
+      "passLeft": "{count, plural, one {נשאר אימון אחד בכרטיסייה} other {נשארו # בכרטיסייה}}",
+      "ready": "מוכן/ה למים",
+      "checkedInAt": "הגיע/ה {time}",
+      "checkIn": "הגיע/ה",
+      "noShow": "לא הגיע/ה",
+      "book": "רישום מהיר",
+      "diver": "צולל/ת",
+      "session": "מפגש",
+      "payment": "תשלום",
+      "payLater": "לגבות בהגעה",
+      "bookSubmit": "לרשום",
+      "rentals": "ציוד בחוץ",
+      "noRentals": "כל הציוד במועדון.",
+      "overdue": "באיחור",
+      "due": "עד {time}",
+      "return": "הוחזר",
+      "rentOut": "השכרת ציוד",
+      "gear": "פריט",
+      "hours": "שעות",
+      "rentSubmit": "להשכיר",
+      "sales": "מכירות היום",
+      "noSales": "עוד לא נמכר כלום היום.",
+      "walkIn": "לקוח מזדמן",
+      "leads": "לידים",
+      "hoursAgo": "{count, plural, one {לפני שעה} other {לפני # שעות}}",
+      "daysAgo": "{count, plural, one {לפני יום} other {לפני # ימים}}",
+      "moveTo": {
+        "contacted": "דיברנו",
+        "booked": "נרשם/ה",
+        "lost": "לא רלוונטי"
+      }
+    },
+    "payMethod": {
+      "card": "אשראי",
+      "cash": "מזומן",
+      "bit": "ביט",
+      "transfer": "העברה",
+      "pass": "כרטיסייה"
+    },
+    "leadStage": {
+      "new": "חדשים",
+      "contacted": "בשיחה",
+      "booked": "נרשמו",
+      "lost": "ירדו"
+    },
+    "leadSource": {
+      "instagram": "אינסטגרם",
+      "google": "גוגל",
+      "referral": "חבר מביא חבר",
+      "hotel": "מלון",
+      "walk_in": "הגיע לחוף",
+      "whatsapp": "וואטסאפ"
+    },
+    "instructor": {
+      "kicker": "במים",
+      "title": "יאללה למים, {name}",
+      "sub": "{count, plural, one {מפגש אחד שלך היום ומחר} other {# מפגשים שלך היום ומחר}}",
+      "allSessions": "כל המפגשים של היום ומחר",
+      "noSessions": "אין לך מפגשים היום או מחר. זמן טוב לאימון אישי.",
+      "go": "יוצאים",
+      "hold": "להשהות",
+      "plan": "לחלק לחבלים",
+      "replan": "לחלק מחדש",
+      "logged": "{count, plural, one {צלילה אחת תועדה} other {# צלילות תועדו}}",
+      "linesSaved": "החבלים במים",
+      "linesSuggested": "הצעה לחלוקה לחבלים (עמוק בחבל א׳, באדי לפי עומק)",
+      "line": "חבל {line}",
+      "buddy": "באדי: {name}",
+      "lastDive": "צלילה אחרונה {date}: {depth} מ׳, {outcome}",
+      "allowed": "מותר היום",
+      "target": "יעד",
+      "set": "קבע",
+      "log": "תיעוד צלילה",
+      "discipline": "מקצה",
+      "depth": "עומק (מ׳)",
+      "distance": "מרחק (מ׳)",
+      "seconds": "זמן (שנ׳)",
+      "outcome": "תוצאה",
+      "notes": "הערות",
+      "logNote": "LMC, איבוד הכרה או סקוויז פותחים אוטומטית אירוע ביומן הבטיחות. שיא אישי מתעדכן לבד.",
+      "saveLog": "שמירה",
+      "students": "התלמידים שלי",
+      "noStudents": "אין לך כרגע תלמידים בקורס.",
+      "recent": "תועד לאחרונה",
+      "noLogs": "עוד לא תועדו צלילות."
+    },
+    "flag": {
+      "slow_equalizer": "השוואת לחץ איטית",
+      "cold_sensitive": "רגיש/ה לקור",
+      "photographer": "צלם/ת",
+      "competition": "מתחרה",
+      "vip": "VIP",
+      "motion_sickness": "מחלת ים",
+      "recent_incident": "אירוע בחצי שנה",
+      "last_dive_issue": "צלילה אחרונה לא נקייה",
+      "first_timer": "פעם ראשונה"
+    },
+    "outcome": {
+      "clean": "נקייה",
+      "early_turn": "סיבוב מוקדם",
+      "lmc": "LMC",
+      "blackout": "איבוד הכרה",
+      "squeeze": "סקוויז",
+      "ear": "אוזניים"
+    },
+    "limitedBy": {
+      "level": "תקרת הרמה",
+      "progression": "שיא אישי + התקדמות",
+      "instructor": "הגבלת מדריך",
+      "site": "עומק האתר"
+    },
+    "skill": {
+      "breathe_up": "נשימת הכנה",
+      "recovery_breath": "נשימת התאוששות",
+      "duck_dive": "צלילת ברווז",
+      "frenzel": "השוואת לחץ פרנזל",
+      "free_immersion": "ירידה בחבל",
+      "buddy_rescue": "חילוץ באדי",
+      "sta_2min": "STA 2 דק׳",
+      "cwt_12m": "CWT 12 מ׳",
+      "mouthfill_intro": "מבוא למאוטפיל",
+      "freefall": "נפילה חופשית",
+      "lanyard_rescue": "חילוץ עם לניארד",
+      "sta_3min": "STA 3 דק׳",
+      "dyn_50m": "DYN 50 מ׳",
+      "cwt_24m": "CWT 24 מ׳",
+      "blackout_rescue_depth": "חילוץ מעומק",
+      "mouthfill": "מאוטפיל",
+      "co2_tables": "טבלאות CO2",
+      "sta_4min": "STA 4 דק׳",
+      "dyn_75m": "DYN 75 מ׳",
+      "cwt_32m": "CWT 32 מ׳",
+      "deep_safety": "אבטחת עומק"
+    },
+    "diver": {
+      "pbOfAllowed": "השיא האישי מתוך העומק המותר היום",
+      "pbCwt": "שיא CWT",
+      "allowedToday": "היום מותר עד {m} מ׳ · {why}",
+      "stat": {
+        "dives": "צלילות",
+        "deepest": "הכי עמוק"
+      },
+      "depthTitle": "העומק לאורך זמן",
+      "noDepth": "עוד אין צלילות עומק ביומן.",
+      "pbLine": "שיא {m} מ׳",
+      "allowedLine": "מותר היום {m} מ׳",
+      "courses": "מסלול ההסמכה",
+      "noCourses": "עוד לא נרשמת לקורס.",
+      "certified": "הוסמך/ה {date}",
+      "logbook": "יומן צלילות",
+      "noLogs": "היומן עוד ריק.",
+      "log": {
+        "date": "תאריך",
+        "discipline": "מקצה",
+        "result": "תוצאה",
+        "outcome": "סיום"
+      }
+    },
+    "enrollmentStatus": {
+      "active": "בקורס",
+      "completed": "הסתיים",
+      "dropped": "הפסיק"
+    },
+    "me": {
+      "noDiver": "לא מצאנו כרטיס צולל על שמך. המשרד יסדר את זה בשנייה.",
+      "hello": "שלום {name} 👋",
+      "todoTitle": "לפני הצלילה הבאה",
+      "waiverMissing": "כתב הוויתור שלך לא חתום או שפג תוקפו.",
+      "signWaiver": "קראתי ואני חותם/ת",
+      "medicalSoon": "הצהרת הבריאות שלך פגה בעוד {days} ימים.",
+      "medicalMissing": "אין לנו הצהרת בריאות בתוקף.",
+      "medicalUntil": "בתוקף עד",
+      "medicalSave": "עדכון",
+      "next": "הצלילות הבאות שלי",
+      "noNext": "אין צלילות קרובות. איך זה קרה?",
+      "with": "עם {name}",
+      "target": "יעד {m} מ׳",
+      "meet": "נפגשים:",
+      "cancelConfirm": "לבטל את ההרשמה?",
+      "cancel": "ביטול הרשמה",
+      "passes": "הכרטיסייה שלי",
+      "noPasses": "אין כרטיסייה פעילה.",
+      "validUntil": "בתוקף עד {date}",
+      "left": "{count, plural, one {נשאר אימון אחד} other {נשארו # אימונים}}",
+      "unlimited": "ללא הגבלה · עוד {days} ימים",
+      "book": "להירשם לאימון",
+      "nothingToBook": "אין כרגע אימונים פתוחים בעשרה הימים הקרובים.",
+      "onPass": "בכרטיסייה",
+      "spots": "{count, plural, one {מקום אחד אחרון} other {# מקומות}}",
+      "bookIt": "להירשם"
+    },
+    "passKind": {
+      "punch5": "כרטיסיית 5 אימונים",
+      "punch10": "כרטיסיית 10 אימונים",
+      "monthly": "מנוי חודשי",
+      "annual": "מנוי שנתי"
+    },
+    "divers": {
+      "kicker": "צוללים",
+      "title": "כל הצוללים של המועדון",
+      "sub": "{count, plural, one {צולל אחד} other {# צוללים, מהשווים ביותר}}",
+      "search": "חיפוש לפי שם או טלפון",
+      "find": "חיפוש",
+      "none": "לא נמצאו צוללים.",
+      "col": {
+        "name": "צולל/ת",
+        "level": "רמה",
+        "pb": "שיא CWT",
+        "dives": "צלילות",
+        "last": "אחרונה",
+        "value": "הכנסות",
+        "medical": "הצהרת בריאות"
+      },
+      "privacy": "רואים כאן רק צוללים של המועדון הזה. כל השמות בדמו מומצאים."
+    },
+    "medicalState": {
+      "ok": "בתוקף",
+      "warn": "פגה בקרוב",
+      "expired": "פגה",
+      "missing": "חסרה"
+    },
+    "file": {
+      "back": "← לכל הצוללים",
+      "contact": "פרטים",
+      "phone": "טלפון",
+      "email": "אימייל",
+      "origin": "מגיע/ה מ",
+      "emergency": "איש קשר לחירום",
+      "source": "הגיע/ה דרך",
+      "joined": "הצטרף/ה",
+      "money": "כסף",
+      "lifetime": "סך הכל במועדון",
+      "noSales": "אין מכירות.",
+      "safety": "בטיחות וציוד",
+      "cleanRecord": "רקורד נקי. אין אירועים.",
+      "rentals": "השכרות אחרונות"
+    },
+    "done": {
+      "checkedIn": "נרשמה הגעה",
+      "cancelled": "ההרשמה בוטלה",
+      "booked": "נרשם. נתראה במים!",
+      "rented": "הציוד יצא",
+      "returned": "הציוד חזר",
+      "logged": "הצלילה תועדה",
+      "reported": "האירוע תועד ביומן הבטיחות",
+      "conditions": "מצב הים פורסם: {call}",
+      "lines": "החבלים חולקו",
+      "waiver": "תודה! כתב הוויתור חתום"
+    },
+    "errors": {
+      "sessionFull": "המפגש מלא",
+      "customerCannotChange": "אפשר רק לבטל הרשמה. לשינויים אחרים דברו עם המשרד.",
+      "gearNotAvailable": "הפריט כבר מושכר או בטיפול",
+      "noDiver": "לא נמצא כרטיס צולל",
+      "sessionCancelled": "המפגש בוטל",
+      "sessionPast": "המפגש כבר התחיל",
+      "alreadyBooked": "כבר רשום/ה",
+      "levelTooLow": "נדרשת רמה גבוהה יותר",
+      "measureRequired": "צריך עומק, מרחק או זמן"
+    },
+    "levelShort": {
+      "0": "בלי",
+      "1": "התנסות",
+      "2": "מתחילים",
+      "3": "מתקדמים",
+      "4": "מתקדמים מאוד",
+      "5": "מדריכים"
     }
   }
 }

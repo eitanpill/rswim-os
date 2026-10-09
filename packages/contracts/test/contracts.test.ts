@@ -4,8 +4,10 @@ import {
   canEnterSurface,
   DomainEventEnvelope,
   hasPermission,
+  DEFAULT_DIVE_RULES,
   homeSurface,
   ORG_ROLES,
+  resolveDiveRules,
   PhoneE164,
   toE164IL,
 } from '../src';
@@ -32,6 +34,29 @@ describe('surfaces', () => {
       parent: 'parent',
       institution_contact: null,
     });
+  });
+  it("sends a freediving club's people to the club surface", () => {
+    const homes = Object.fromEntries(ORG_ROLES.map((r) => [r, homeSurface(r, 'freediving')]));
+    expect(homes).toEqual({
+      owner: 'dive',
+      admin: 'dive',
+      instructor: 'dive',
+      escort: 'transport',
+      accountant: 'accountant',
+      parent: 'dive',
+      institution_contact: null,
+    });
+  });
+});
+
+describe('dive rules', () => {
+  it('fills a stored version from the defaults', () => {
+    expect(resolveDiveRules(null)).toEqual(DEFAULT_DIVE_RULES);
+    const r = resolveDiveRules({ sea: { max_wind_kts: 18 }, ratio: { course: 3 } });
+    expect(r.sea.max_wind_kts).toBe(18);
+    expect(r.sea.caution_wind_kts).toBe(DEFAULT_DIVE_RULES.sea.caution_wind_kts);
+    expect(r.ratio.course).toBe(3);
+    expect(r.gear).toEqual(DEFAULT_DIVE_RULES.gear);
   });
 });
 

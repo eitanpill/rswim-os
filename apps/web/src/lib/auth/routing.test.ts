@@ -13,6 +13,18 @@ const s = (role: Session['role'], extra: Partial<Session> = {}): Session => ({
 });
 
 describe('decideRoute', () => {
+  it('sends a freediving club to /dive and keeps it out of the swim surfaces', () => {
+    const club = (role: Session['role']) => s(role, { vertical: 'freediving' });
+    expect(decideRoute('/', club('owner'))).toEqual({ action: 'redirect', to: '/dive' });
+    expect(decideRoute('/', club('parent'))).toEqual({ action: 'redirect', to: '/dive' });
+    expect(decideRoute('/admin', club('admin'))).toEqual({ action: 'redirect', to: '/dive' });
+    expect(decideRoute('/dive/office', club('admin'))).toEqual({ action: 'next' });
+    expect(decideRoute('/dive', s('owner', { vertical: 'swim' }))).toEqual({
+      action: 'redirect',
+      to: '/admin',
+    });
+  });
+
   it('lets anyone reach public pages', () => {
     expect(decideRoute('/login', null)).toEqual({ action: 'next' });
     expect(decideRoute('/login/phone', null)).toEqual({ action: 'next' });
