@@ -5,6 +5,7 @@ import { ACCOUNT_PERSONAS, DIVE_PERSONAS, PERSONAS } from '@rswim/db/personas';
 import { demoProfile } from '@rswim/db/demo-profiles';
 import { isDemoMode, isDevAuthEnabled, personaName, type DevKey } from '@/lib/auth/dev';
 import { signInWithPassword } from './actions';
+import { DiveLanding } from './dive-landing';
 import { inputClass, LoginFrame } from './login-frame';
 
 export default async function LoginPage({
@@ -121,7 +122,18 @@ async function DemoLogin({ resetting }: { resetting: boolean }) {
     { id: 'dive', title: t('clubGroup'), items: dive },
     { id: 'swim', title: t('swimGroup'), items: swim },
   ];
-  if (demoProfile().key !== 'freediving') groups.reverse();
+  if (demoProfile().key === 'freediving')
+    return (
+      <DiveLanding
+        resetting={resetting}
+        dive={dive}
+        others={[
+          { id: 'swim', title: t('swimGroup'), items: swim },
+          { id: 'platform', title: t('platformGroup'), items: account },
+        ]}
+      />
+    );
+  groups.reverse();
   groups.push({ id: 'platform', title: t('platformGroup'), items: account });
   return (
     <LoginFrame title={t('title')}>

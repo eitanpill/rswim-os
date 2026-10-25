@@ -8,7 +8,7 @@ import { withSession } from '@/lib/db';
 import { pagesFor, type DivePage, type DiveRole } from './access';
 import { ClubMark, di } from './icons';
 import { Avatar, CallBadge } from './kit';
-import { DiveNav } from './nav';
+import { DiveBottomNav, DiveNav } from './nav';
 
 const PAGE_ICON: Record<DivePage, ReactNode> = {
   owner: di.bridge,
@@ -45,7 +45,7 @@ export async function DiveShell({
     <div className="dive flex min-h-dvh flex-col bg-[var(--surface)]" data-surface="dive">
       {isDemoMode() ? (
         <p
-          className="bg-[var(--dive-coral)] px-4 py-1 text-center text-xs font-medium text-white print:hidden"
+          className="bg-[var(--dive-coral)] px-4 py-1 text-center text-[11px] leading-snug font-medium text-white sm:text-xs print:hidden"
           data-testid="demo-banner"
         >
           {tc('demoBanner')}
@@ -79,9 +79,9 @@ export async function DiveShell({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <div className="hidden items-center gap-2 md:flex">
+            <div className="flex items-center gap-2">
               <Avatar name={session.displayName ?? '?'} size={30} />
-              <div className="leading-tight">
+              <div className="hidden leading-tight md:block">
                 <p className="text-sm font-medium">{session.displayName}</p>
                 <p className="text-[11px] text-white/65">{t(`roles.${role}`)}</p>
               </div>
@@ -109,15 +109,21 @@ export async function DiveShell({
           </div>
         </div>
         {items.length > 1 ? (
-          <div className="relative mx-auto max-w-7xl px-4">
-            <DiveNav items={items} label={tc('mainNav')} />
-          </div>
+          <>
+            <div className="relative mx-auto hidden max-w-7xl px-4 md:block">
+              <DiveNav items={items} label={tc('mainNav')} />
+            </div>
+            <div className="h-4 md:hidden" />
+          </>
         ) : (
-          <div className="h-3" />
+          <div className="h-4" />
         )}
       </header>
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-5 pb-16">{children}</main>
-      <footer className="border-t border-line py-4 text-center text-xs text-ink-muted print:hidden">
+      {items.length > 1 ? <DiveBottomNav items={items} label={tc('mainNav')} /> : null}
+      <footer
+        className={`border-t border-line py-4 text-center text-xs text-ink-muted print:hidden ${items.length > 1 ? 'mb-16 md:mb-0' : ''}`}
+      >
         {t('footer')}
       </footer>
     </div>

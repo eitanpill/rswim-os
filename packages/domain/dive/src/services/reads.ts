@@ -176,6 +176,7 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
                sum(amount_agorot)::int as amount
         from dive_sales
         where sold_at >= date_trunc('month', now() at time zone 'Asia/Jerusalem') - interval '5 months'
+          and sold_at <= now()
         group by 1, 2 order by 1, 2`,
   );
   const origins = await rows<OwnerBridge['origins'][number]>(

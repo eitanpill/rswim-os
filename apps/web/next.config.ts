@@ -24,6 +24,8 @@ const config: NextConfig = {
   ],
   serverExternalPackages: ['pg'],
   poweredByHeader: false,
+  // The floating dev badge sits on top of demo screenshots; dev errors still show.
+  devIndicators: false,
   typedRoutes: false,
   // Lint runs as its own CI step with the shared config.
   eslint: { ignoreDuringBuilds: true },

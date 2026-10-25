@@ -521,3 +521,58 @@ export function LineDiagram({
     </div>
   );
 }
+
+/**
+ * The certification ladder drawn as a water column: each level sits at the depth it opens, shallow on top, darker
+ * below, with how many divers reached it and how many carried on from the step above.
+ */
+export function DepthLadder({
+  rows,
+  depthLabel,
+  stepLabel,
+}: {
+  rows: { label: string; divers: number; depthM: number }[];
+  depthLabel: (m: number) => string;
+  stepLabel: (pct: number) => string;
+}) {
+  const max = Math.max(...rows.map((r) => r.divers), 1);
+  return (
+    <ol className="flex flex-col" data-testid="depth-ladder">
+      {rows.map((r, i) => {
+        const shade = rows.length > 1 ? i / (rows.length - 1) : 0;
+        const prev = rows[i - 1];
+        const carried = prev && prev.divers > 0 ? Math.round((r.divers / prev.divers) * 100) : null;
+        return (
+          <li key={r.label} className="grid grid-cols-[4.25rem_1fr] gap-3">
+            <span
+              className={`flex flex-col items-center justify-center py-2 text-[11px] font-semibold text-white ${i === 0 ? 'rounded-t-xl' : ''} ${i === rows.length - 1 ? 'rounded-b-xl' : ''}`}
+              style={{
+                background: `linear-gradient(180deg, oklch(${78 - shade * 52}% ${0.09 - shade * 0.02} ${200 + shade * 45}), oklch(${72 - shade * 52}% ${0.09 - shade * 0.02} ${205 + shade * 45}))`,
+              }}
+            >
+              <span className="text-sm tabular-nums">{depthLabel(r.depthM)}</span>
+            </span>
+            <div className="min-w-0 py-2">
+              {carried !== null ? (
+                <p className="-mt-1 mb-1 text-[11px] text-ink-muted">↓ {stepLabel(carried)}</p>
+              ) : null}
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="truncate text-sm font-medium">{r.label}</span>
+                <span className="text-lg font-bold tabular-nums">{r.divers}</span>
+              </div>
+              <span className="mt-1 block h-2 overflow-hidden rounded-full bg-[color-mix(in_oklch,var(--ink)_6%,transparent)]">
+                <span
+                  className="block h-full rounded-full"
+                  style={{
+                    width: `${Math.max(3, (r.divers / max) * 100)}%`,
+                    background: `oklch(${66 - shade * 30}% 0.11 ${205 + shade * 40})`,
+                  }}
+                />
+              </span>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}

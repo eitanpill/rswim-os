@@ -56,7 +56,7 @@ export default async function OpsRoom() {
       />
 
       <Panel title={t('manager.week')} icon={di.calendar} testId="week-board" flush>
-        <div className="grid auto-cols-[minmax(13rem,1fr)] grid-flow-col gap-3 overflow-x-auto px-4 pb-4">
+        <div className="grid snap-x snap-mandatory auto-cols-[minmax(15rem,1fr)] grid-flow-col items-start gap-3 overflow-x-auto px-4 pb-4 [&>*]:snap-start">
           {b.days.map((day) => {
             const sea = seaByDay.get(day);
             const list = b.sessions.filter((s) => localDay(s.startsAt) === day);

@@ -37,3 +37,49 @@ export function DiveNav({
     </nav>
   );
 }
+
+/** The phone's tab bar: the same screens, under the thumb. Shown below the md breakpoint only. */
+export function DiveBottomNav({
+  items,
+  label,
+}: {
+  items: { href: string; label: string; icon: ReactNode }[];
+  label: string;
+}) {
+  const path = usePathname();
+  return (
+    <nav
+      aria-label={label}
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[color-mix(in_oklch,var(--dive-abyss)_92%,transparent)] pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden print:hidden"
+      data-testid="bottom-nav"
+    >
+      <ul className="mx-auto flex max-w-lg">
+        {items.map((i) => {
+          const active = path === i.href || path.startsWith(`${i.href}/`);
+          return (
+            <li key={i.href} className="flex-1">
+              <Link
+                href={i.href}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] [&_svg]:size-[22px]',
+                  active ? 'font-semibold text-[var(--dive-shallow)]' : 'text-white/60',
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-flex rounded-full px-3 py-0.5 transition-colors',
+                    active && 'bg-white/12',
+                  )}
+                >
+                  {i.icon}
+                </span>
+                {i.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}

@@ -260,7 +260,7 @@ export async function SessionRow({ s, children }: { s: SessionCard; children?: R
   return (
     <div className="flex flex-col gap-2 py-3" data-testid="session-row">
       <div className="flex items-start gap-3">
-        <div className="w-14 shrink-0 text-center">
+        <div className="w-12 shrink-0 text-center sm:w-14">
           <p className="text-base font-bold tabular-nums">{hhmm(s.startsAt)}</p>
           <p className="text-[11px] text-ink-muted tabular-nums">{hhmm(s.endsAt)}</p>
         </div>
@@ -302,7 +302,7 @@ export async function SessionRow({ s, children }: { s: SessionCard; children?: R
             ) : null}
           </p>
         </div>
-        <div className="w-24 shrink-0 text-end">
+        <div className="w-16 shrink-0 text-end sm:w-24">
           <p
             className={cn('text-sm font-semibold tabular-nums', full && 'text-[var(--dive-coral)]')}
           >

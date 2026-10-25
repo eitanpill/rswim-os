@@ -30,6 +30,15 @@ the Red Sea; everything in it is invented.
 The owner sees every staff screen through the tabs. `/dive/divers` and `/dive/divers/[id]` are the staff's diver
 list and file.
 
+## Look and feel
+
+The live demo's sign-in (`RSWIM_DEMO_PROFILE=freediving`) is the club's own landing (`apps/web/src/app/login/dive-landing.tsx`):
+one tap in as the owner, a card per role, the swim school and platform folded underneath. The owner's bridge opens
+with a live deep-water greeting beside the sea card, a dismissible three-step tour (remembered per browser), counting
+KPIs with a revenue trend, and the certification ladder drawn as a water column. On phones every club screen has a
+bottom tab bar. Motion (bubbles, light, count-up, panels surfacing) lives in `globals.css` and `_ui/motion.tsx` and
+stops under `prefers-reduced-motion`.
+
 ## Data (`packages/db/src/schema/dive.ts`, RLS in `0029_dive_security.sql`)
 
 `dive_rule_sets` (versioned rules) · `dive_sites` · `dive_programs` · `dive_divers` · `dive_sessions` ·
