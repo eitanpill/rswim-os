@@ -191,8 +191,14 @@ export default async function MyDiving() {
           <Empty>{t('me.nothingToBook')}</Empty>
         ) : (
           <ul className="grid gap-px bg-[var(--line)] sm:grid-cols-2 lg:grid-cols-3">
-            {home.bookable.slice(0, 12).map((b) => (
-              <li key={b.id} className="flex flex-col gap-2 bg-surface-raised p-4">
+            {home.bookable.slice(0, 12).map((b, k) => (
+              <li
+                key={b.id}
+                className={cn(
+                  'flex flex-col gap-2 bg-surface-raised p-4',
+                  k >= 6 && 'hidden sm:flex',
+                )}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-xs font-semibold text-[var(--dive-sea)]">

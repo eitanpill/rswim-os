@@ -3,7 +3,7 @@ import type { DiverHome } from '@rswim/domain-dive';
 import { DepthProfile } from './charts';
 import { dateShort, mmss } from './format';
 import { di } from './icons';
-import { Avatar, Chip, Empty, Meter, Panel } from './kit';
+import { Avatar, Bubbles, Chip, Empty, Meter, Panel } from './kit';
 
 /** A diver's story, shared by their own page and the staff file: who they are, how deep, what they learned. */
 
@@ -25,59 +25,63 @@ export async function DiverBanner({
       className="bg-ocean relative overflow-hidden rounded-3xl p-5 text-white md:p-6"
       data-testid="diver-banner"
     >
-      <div className="flex flex-wrap items-center gap-5">
-        <div className="relative size-28 shrink-0" title={t('diver.pbOfAllowed')}>
-          <svg viewBox="0 0 100 100" className="size-28 -rotate-90">
-            <circle
-              cx="50"
-              cy="50"
-              r="44"
-              fill="none"
-              stroke="white"
-              strokeOpacity="0.15"
-              strokeWidth="8"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="44"
-              fill="none"
-              stroke="var(--dive-shallow)"
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeDasharray={`${ring * 276.5} 276.5`}
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-bold tabular-nums">{d.pbCwtM ?? '—'}</span>
-            <span className="text-[10px] tracking-wider text-white/70 uppercase">
-              {t('diver.pbCwt')}
-            </span>
+      <span aria-hidden="true" className="light-rays pointer-events-none absolute inset-0" />
+      <Bubbles count={9} />
+      <div className="relative grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+        <div className="flex min-w-0 items-center gap-4 md:gap-5">
+          <div className="relative size-24 shrink-0 md:size-28" title={t('diver.pbOfAllowed')}>
+            <svg viewBox="0 0 100 100" className="size-24 -rotate-90 md:size-28">
+              <circle
+                cx="50"
+                cy="50"
+                r="44"
+                fill="none"
+                stroke="white"
+                strokeOpacity="0.15"
+                strokeWidth="8"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="44"
+                fill="none"
+                stroke="var(--dive-shallow)"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={`${ring * 276.5} 276.5`}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-3xl font-bold tabular-nums">{d.pbCwtM ?? '—'}</span>
+              <span className="text-[10px] tracking-wider text-white/70 uppercase">
+                {t('diver.pbCwt')}
+              </span>
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            {greeting ? <p className="text-sm text-white/75">{greeting}</p> : null}
+            <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight md:text-3xl">
+              {!greeting ? <Avatar name={name} size={36} /> : null}
+              {name}
+            </h1>
+            <p className="mt-1 text-sm text-white/80">
+              {t(`level.${d.certLevel}`)}
+              {d.certName ? ` · ${d.certName}` : ''}
+              {d.city ? ` · ${d.city}` : ''}
+            </p>
+            <p
+              className="mt-3 inline-flex items-center gap-2 rounded-2xl bg-white/12 px-3 py-1.5 text-xs ring-1 ring-white/15 backdrop-blur-sm sm:rounded-full sm:text-sm"
+              data-testid="allowed-depth"
+            >
+              <span className="[&_svg]:size-4">{di.arrow}</span>
+              {t('diver.allowedToday', {
+                m: home.allowed.maxM,
+                why: t(`limitedBy.${home.allowed.limitedBy}`),
+              })}
+            </p>
           </div>
         </div>
-        <div className="min-w-0 flex-1">
-          {greeting ? <p className="text-sm text-white/75">{greeting}</p> : null}
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight md:text-3xl">
-            {!greeting ? <Avatar name={name} size={36} /> : null}
-            {name}
-          </h1>
-          <p className="mt-1 text-sm text-white/80">
-            {t(`level.${d.certLevel}`)}
-            {d.certName ? ` · ${d.certName}` : ''}
-            {d.city ? ` · ${d.city}` : ''}
-          </p>
-          <p
-            className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-sm backdrop-blur-sm"
-            data-testid="allowed-depth"
-          >
-            <span className="[&_svg]:size-4">{di.arrow}</span>
-            {t('diver.allowedToday', {
-              m: home.allowed.maxM,
-              why: t(`limitedBy.${home.allowed.limitedBy}`),
-            })}
-          </p>
-        </div>
-        <dl className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+        <dl className="grid grid-cols-4 gap-2 text-center">
           {[
             { k: t('diver.stat.dives'), v: home.stats.dives },
             {
@@ -87,7 +91,10 @@ export async function DiverBanner({
             { k: 'STA', v: d.pbStaSec !== null ? mmss(d.pbStaSec) : '—' },
             { k: 'DYN', v: d.pbDynM !== null ? `${d.pbDynM}m` : '—' },
           ].map((s) => (
-            <div key={s.k} className="min-w-[4.5rem] rounded-xl bg-white/10 px-3 py-2">
+            <div
+              key={s.k}
+              className="rounded-xl bg-white/10 px-2 py-2 ring-1 ring-white/10 md:min-w-[4.75rem] md:px-3"
+            >
               <dt className="text-[11px] text-white/65">{s.k}</dt>
               <dd className="text-lg font-bold tabular-nums">{s.v}</dd>
             </div>

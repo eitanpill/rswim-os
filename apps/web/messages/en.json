@@ -99,6 +99,26 @@
         "diveOffice": "Office & desk",
         "diveInstructor": "Instructor",
         "diveCustomer": "Diver"
+      },
+      "landing": {
+        "club": "Deep Blue Eilat",
+        "place": "Freediving club · Gulf of Eilat",
+        "live": "Live demo",
+        "kicker": "The club’s operating system",
+        "title": "The whole club on one screen. From the sea to the till.",
+        "sub": "The sea report sets the day, every diver goes to the right depth, the desk knows who is ready for the water, and the owner sees it all. No password: tap and you’re in.",
+        "enterOwner": "Enter as the owner · {name}",
+        "otherRoles": "or pick another role",
+        "feature": {
+          "sea": "🌊 Sea call from the club’s rules",
+          "depth": "🤿 Allowed depth for every diver",
+          "ready": "✅ Waiver, medical and payment before the water",
+          "money": "📈 Revenue, crew and safety live"
+        },
+        "rolesTitle": "Everyone in the club, with their own screen",
+        "rolesSub": "One club, five points of view. Switch any time.",
+        "enter": "Enter →",
+        "more": "Also a swim school and the platform admin (same system)"
       }
     },
     "devDive": {
@@ -4081,6 +4101,28 @@
         "divesSub": "in the logbook",
         "certified": "Certified in 90 days",
         "certifiedSub": "finished a course"
+      },
+      "urgentCount": "{count, plural, one {One urgent item} other {# urgent items}}",
+      "inWater": "{count} divers in the water today",
+      "ladderDepth": "{m} m",
+      "ladderStep": "{pct}% carried on from the step above",
+      "welcome": {
+        "kicker": "First time here?",
+        "title": "Three things worth seeing, {name}",
+        "body": "The bridge shows the whole club on one screen: the sea, the money, the crew and safety. Everything here is live and invented, so click anything.",
+        "close": "Close",
+        "ops": {
+          "title": "The sea sets the day",
+          "body": "Post the sea report and the club’s rules decide whether you go out"
+        },
+        "desk": {
+          "title": "Who is ready for the water",
+          "body": "Waiver, medical, level and payment, before anyone gets wet"
+        },
+        "water": {
+          "title": "Every diver at the right depth",
+          "body": "Allowed depth per diver, lines and buddies, dive log"
+        }
       }
     },
     "stream": {

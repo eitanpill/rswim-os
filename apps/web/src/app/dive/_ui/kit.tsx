@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { cn } from '@rswim/ui';
 import { di } from './icons';
 import { hueFor, initials } from './format';
+import { CountUp } from './motion';
 
 /** The club's building blocks: panels, numbers, badges, chips and meters. Server components, no client state. */
 
@@ -105,6 +106,8 @@ export function Kpi({
   delta,
   icon,
   testId,
+  spark,
+  accent = 'sea',
 }: {
   label: string;
   value: ReactNode;
@@ -113,23 +116,48 @@ export function Kpi({
   delta?: { pct: number; label: string } | null;
   icon?: ReactNode;
   testId?: string;
+  /** A short trend (oldest first) drawn under the number. */
+  spark?: number[];
+  accent?: 'sea' | 'go' | 'coral' | 'sun';
 }) {
+  const color = {
+    sea: 'var(--dive-sea)',
+    go: 'var(--dive-go)',
+    coral: 'var(--dive-coral)',
+    sun: 'var(--dive-caution)',
+  }[accent];
   return (
     <div
       data-testid={testId}
-      className="relative overflow-hidden rounded-2xl border border-line bg-surface-raised p-4"
+      className="lift relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface-raised p-4"
     >
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-1"
+        style={{ background: `linear-gradient(90deg, ${color}, transparent)` }}
+      />
       <p className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">
-        {icon ? <span className="text-[var(--dive-sea)] [&_svg]:size-4">{icon}</span> : null}
+        {icon ? (
+          <span
+            className="inline-flex size-6 items-center justify-center rounded-lg [&_svg]:size-3.5"
+            style={{ color, background: `color-mix(in oklch, ${color} 14%, transparent)` }}
+          >
+            {icon}
+          </span>
+        ) : null}
         {label}
       </p>
-      <p className="mt-1 text-2xl font-bold tracking-tight tabular-nums">{value}</p>
+      <p className="mt-2 text-[1.7rem] leading-none font-bold tracking-tight tabular-nums">
+        {typeof value === 'string' || typeof value === 'number' ? <CountUp value={value} /> : value}
+      </p>
       {delta ? (
-        <p className="mt-1 text-xs">
+        <p className="mt-2 text-xs">
           <span
             className={cn(
-              'inline-flex items-center gap-0.5 font-semibold',
-              delta.pct >= 0 ? 'text-[var(--dive-go)]' : 'text-[var(--dive-nogo)]',
+              'inline-flex items-center gap-0.5 rounded-full px-1.5 py-px font-semibold',
+              delta.pct >= 0
+                ? 'bg-[color-mix(in_oklch,var(--dive-go)_14%,transparent)] text-[var(--dive-go)]'
+                : 'bg-[color-mix(in_oklch,var(--dive-nogo)_12%,transparent)] text-[var(--dive-nogo)]',
             )}
           >
             <span aria-hidden="true">{delta.pct >= 0 ? '▲' : '▼'}</span>
@@ -138,9 +166,68 @@ export function Kpi({
           <span className="text-ink-muted">{delta.label}</span>
         </p>
       ) : sub ? (
-        <p className="mt-1 text-xs text-ink-muted">{sub}</p>
+        <p className="mt-2 text-xs text-ink-muted">{sub}</p>
       ) : null}
+      {spark && spark.length > 1 ? <Spark values={spark} color={color} /> : null}
     </div>
+  );
+}
+
+/** A tiny trend line with a soft fill; the last point is marked. Decorative, the number above carries the value. */
+export function Spark({ values, color }: { values: number[]; color: string }) {
+  const w = 120;
+  const h = 28;
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const x = (i: number) => (i / (values.length - 1)) * w;
+  const y = (v: number) => h - 2 - ((v - min) / (max - min || 1)) * (h - 6);
+  const line = values
+    .map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(v).toFixed(1)}`)
+    .join(' ');
+  const last = values.length - 1;
+  return (
+    <svg
+      viewBox={`-2 0 ${w + 4} ${h}`}
+      preserveAspectRatio="none"
+      className="mt-3 h-7 w-full overflow-visible"
+      aria-hidden="true"
+    >
+      <path d={`${line} L${w},${h} L0,${h} Z`} fill={color} opacity="0.12" />
+      <path
+        d={line}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      <circle cx={x(last)} cy={y(values[last] ?? 0)} r="3" fill={color} />
+    </svg>
+  );
+}
+
+/** Rising bubbles for the deep-water bands. Fixed positions, so server and browser draw the same picture. */
+export function Bubbles({ count = 10 }: { count?: number }) {
+  return (
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      {Array.from({ length: count }, (_, i) => {
+        const size = 4 + ((i * 7) % 11);
+        return (
+          <span
+            key={i}
+            className="bubble"
+            style={{
+              insetInlineStart: `${(i * 37 + 11) % 100}%`,
+              width: size,
+              height: size,
+              animationDuration: `${7 + ((i * 5) % 9)}s`,
+              animationDelay: `${-((i * 13) % 10)}s`,
+            }}
+          />
+        );
+      })}
+    </span>
   );
 }
 

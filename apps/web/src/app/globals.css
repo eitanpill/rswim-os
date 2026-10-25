@@ -68,8 +68,118 @@
 .dive .wave-drift {
   animation: dive-drift 18s linear infinite;
 }
+/* Anchored at the inline start, the band extends the other way in RTL, so it drifts the other way too. */
+@keyframes dive-drift-rtl {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(50%);
+  }
+}
+[dir='rtl'] .dive .wave-drift {
+  animation-name: dive-drift-rtl;
+}
 @media (prefers-reduced-motion: reduce) {
   .dive .wave-drift {
     animation: none;
+  }
+}
+
+/* Motion for the club's first impression: bubbles rising, light through the water, panels surfacing in turn. */
+@keyframes dive-bubble {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(calc(-1 * var(--rise, 320px))) translateX(12px);
+    opacity: 0;
+  }
+}
+.dive .bubble {
+  position: absolute;
+  bottom: -12px;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.6);
+  background: radial-gradient(
+    circle at 35% 30%,
+    rgb(255 255 255 / 0.75),
+    rgb(255 255 255 / 0.12) 60%
+  );
+  animation: dive-bubble linear infinite;
+}
+@keyframes dive-rays {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: skewX(-12deg) translateX(0);
+  }
+  50% {
+    opacity: 0.6;
+    transform: skewX(-12deg) translateX(24px);
+  }
+}
+.dive .light-rays {
+  background: repeating-linear-gradient(
+    100deg,
+    transparent 0 40px,
+    oklch(95% 0.05 195 / 0.12) 40px 70px,
+    transparent 70px 130px
+  );
+  animation: dive-rays 9s ease-in-out infinite;
+  mask-image: linear-gradient(180deg, black, transparent 85%);
+}
+@keyframes dive-surface {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.dive .surface-in > * {
+  animation: dive-surface 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.dive .surface-in > :nth-child(2) {
+  animation-delay: 60ms;
+}
+.dive .surface-in > :nth-child(3) {
+  animation-delay: 120ms;
+}
+.dive .surface-in > :nth-child(4) {
+  animation-delay: 180ms;
+}
+.dive .surface-in > :nth-child(5) {
+  animation-delay: 240ms;
+}
+.dive .surface-in > :nth-child(6) {
+  animation-delay: 300ms;
+}
+.dive .surface-in > :nth-child(n + 7) {
+  animation-delay: 360ms;
+}
+.dive .lift {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.dive .lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -14px oklch(30% 0.1 230 / 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dive .bubble,
+  .dive .light-rays,
+  .dive .surface-in > * {
+    animation: none;
+  }
+  .dive .lift:hover {
+    transform: none;
   }
 }

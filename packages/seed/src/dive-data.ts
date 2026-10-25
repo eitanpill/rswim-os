@@ -1101,6 +1101,8 @@ async function seedClub(
     }
   }
   if (opts.hero) {
+    // The instructor persona always has an evening pool group today, so their screen is never a quiet day.
+    addSession('pool', today, '19:30', 'Club pool', 8, need(staff.yoav), null);
     const w3 = addDays(today, 9);
     const t = 'Molchanovs Wave 3 · מחזור 7';
     for (let k = 0; k < 4; k++)
@@ -1725,7 +1727,18 @@ async function seedClub(
     ],
     gearRows,
   );
-  // Rentals: history, today's out at the beach (one overdue from yesterday).
+  // Rentals: history, today's out at the beach (one overdue from yesterday). Sales read like the till's line.
+  const RENTAL_LABEL: Record<string, string> = {
+    fins: 'השכרת סנפירים',
+    wetsuit: 'השכרת חליפה',
+    mask: 'השכרת מסכה',
+    computer: 'השכרת מחשב צלילה',
+    monofin: 'השכרת מונופין',
+    weight_belt: 'השכרת חגורת משקולות',
+    neck_weight: 'השכרת משקולת צוואר',
+    lanyard: 'השכרת ליינארד',
+  };
+  const rentalLabel = (kind: string) => RENTAL_LABEL[kind] ?? `השכרת ${kind}`;
   const rentable = gearIds.filter((x) => x.price > 0 && x.kind !== 'buoy');
   let r = 0;
   for (const s of sessions.filter((x) => x.date < today && x.status === 'done').slice(-60)) {
@@ -1746,7 +1759,14 @@ async function seedClub(
         gear.price,
       ],
     );
-    sale(diverId, 'rental', gear.kind, gear.price, plusMinutes(s.startsAt, -20), payMethod());
+    sale(
+      diverId,
+      'rental',
+      rentalLabel(gear.kind),
+      gear.price,
+      plusMinutes(s.startsAt, -20),
+      payMethod(),
+    );
   }
   if (opts.hero) {
     const todays = sessions.filter((x) => x.date === today);
@@ -1768,11 +1788,12 @@ async function seedClub(
           gear.id,
           diverId,
           outAt,
-          overdue ? plusMinutes(outAt, 300) : il(today, '19:00'),
+          // Back the next morning, so an evening demo doesn't show the whole shelf as late.
+          overdue ? plusMinutes(outAt, 300) : il(addDays(today, 1), '10:00'),
           gear.price,
         ],
       );
-      sale(diverId, 'rental', gear.kind, gear.price, outAt, payMethod());
+      sale(diverId, 'rental', rentalLabel(gear.kind), gear.price, outAt, payMethod());
     }
   }
   // The shop counter.
