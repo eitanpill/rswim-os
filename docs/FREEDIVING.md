@@ -41,7 +41,9 @@ The live demo's sign-in (`RSWIM_DEMO_PROFILE=freediving`) is the club's own land
 one tap in as the owner, a card per role, the swim school and platform folded underneath. The owner's bridge opens
 with a live deep-water greeting beside the sea card, a dismissible three-step tour (remembered per browser), counting
 KPIs with a revenue trend, and the certification ladder drawn as a water column. On phones every club screen has a
-bottom tab bar. Motion (bubbles, light, count-up, panels surfacing) lives in `globals.css` and `_ui/motion.tsx` and
+bottom tab bar. The front desk shows today's sessions as tiles side by side (time, site, instructor, arrived of booked, who
+is not ready, who still owes); tapping one opens every detail of the session and its arrivals, with check-in and
+payment, in a dialog (`_ui/tile-dialog.tsx`). Motion (bubbles, light, count-up, panels surfacing) lives in `globals.css` and `_ui/motion.tsx` and
 stops under `prefers-reduced-motion`.
 
 ## Data (`packages/db/src/schema/dive.ts`, RLS in `0029_dive_security.sql`)

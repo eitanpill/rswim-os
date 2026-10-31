@@ -248,7 +248,7 @@ export async function InsightList({
   );
 }
 
-const STATUS_TONE: Record<string, Tone> = {
+export const STATUS_TONE: Record<string, Tone> = {
   scheduled: 'muted',
   go: 'go',
   hold: 'caution',
