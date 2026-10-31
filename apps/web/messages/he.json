@@ -3949,7 +3949,8 @@
       "noLead": "אין מדריך משובץ",
       "minLevel": "מרמת {level}",
       "booked": "{booked} מתוך {capacity} מקומות",
-      "pending": "{count, plural, one {אחד ממתין לתשלום} other {# ממתינים לתשלום}}"
+      "pending": "{count, plural, one {אחד ממתין לתשלום} other {# ממתינים לתשלום}}",
+      "close": "סגירה"
     },
     "level": {
       "0": "בלי הסמכה",
@@ -4272,7 +4273,29 @@
       "free": "ללא חיוב",
       "passTitle": "כרטיסייה או מנוי לצולל",
       "passKind": "מה",
-      "passSubmit": "הוספה לצולל"
+      "passSubmit": "הוספה לצולל",
+      "board": "מי מגיע היום",
+      "boardHint": "לחיצה על משבצת פותחת את כל הפרטים",
+      "arrived": "הגיעו",
+      "seats": "{capacity} מקומות",
+      "arrivedOf": "הגיעו {checked} מתוך {booked}",
+      "tileNotReady": "{count, plural, one {אחד לא מוכן} other {# לא מוכנים}}",
+      "tileOwing": "{count, plural, one {אחד לגבייה} other {# לגבייה}}",
+      "tileAllSet": "הכל מוכן",
+      "anyLevel": "כל הרמות",
+      "seatsDetail": "תפוסים {booked} מתוך {capacity}{pending, plural, =0 {} one {, אחד ממתין לתשלום} other {, # ממתינים לתשלום}}",
+      "ratioDetail": "עד {per} לכל מדריך · צריך {needed}",
+      "detail": {
+        "time": "שעות",
+        "site": "אתר",
+        "crew": "מדריכים",
+        "level": "רמה מינימלית",
+        "seats": "מקומות",
+        "price": "מחיר לצולל",
+        "ratio": "יחס מדריכים",
+        "arrived": "הגעה",
+        "expected": "הכנסה צפויה"
+      }
     },
     "payMethod": {
       "card": "אשראי",

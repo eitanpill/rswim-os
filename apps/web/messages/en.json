@@ -3949,7 +3949,8 @@
       "noLead": "No lead instructor",
       "minLevel": "From {level}",
       "booked": "{booked} of {capacity} places",
-      "pending": "{count, plural, one {1 awaiting payment} other {# awaiting payment}}"
+      "pending": "{count, plural, one {1 awaiting payment} other {# awaiting payment}}",
+      "close": "Close"
     },
     "level": {
       "0": "Not certified",
@@ -4272,7 +4273,29 @@
       "free": "No charge",
       "passTitle": "Pass or membership for a diver",
       "passKind": "What",
-      "passSubmit": "Add to diver"
+      "passSubmit": "Add to diver",
+      "board": "Who's coming today",
+      "boardHint": "Tap a tile for every detail",
+      "arrived": "Arrived",
+      "seats": "{capacity} seats",
+      "arrivedOf": "{checked} of {booked} arrived",
+      "tileNotReady": "{count} not ready",
+      "tileOwing": "{count} to collect",
+      "tileAllSet": "All set",
+      "anyLevel": "Any level",
+      "seatsDetail": "{booked} of {capacity} taken{pending, plural, =0 {} other {, # awaiting payment}}",
+      "ratioDetail": "Up to {per} per instructor · needs {needed}",
+      "detail": {
+        "time": "Time",
+        "site": "Site",
+        "crew": "Instructors",
+        "level": "Minimum level",
+        "seats": "Seats",
+        "price": "Price per diver",
+        "ratio": "Instructor ratio",
+        "arrived": "Arrivals",
+        "expected": "Expected revenue"
+      }
     },
     "payMethod": {
       "card": "Card",

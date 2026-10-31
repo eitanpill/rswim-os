@@ -87,6 +87,10 @@ export interface SessionCard {
   assistName: string | null;
   instructors: number;
   ratio: { needed: number; ok: boolean; perInstructor: number };
+  /** The program's price per diver, in agorot. */
+  price: number;
+  boat: string | null;
+  notes: string | null;
 }
 
 async function sessionCards(tx: Tx, where: ReturnType<typeof sql>): Promise<SessionCard[]> {
@@ -101,7 +105,8 @@ async function sessionCards(tx: Tx, where: ReturnType<typeof sql>): Promise<Sess
                coalesce(x.title, p.name_he) as title, p.kind as "programKind", p.code as "programCode", p.color,
                p.min_level as "minLevel", s.name as "siteName", s.kind as "siteKind",
                l.first_name as "leadName", a.first_name as "assistName",
-               ((x.lead_staff_id is not null)::int + (x.assist_staff_id is not null)::int) as instructors
+               ((x.lead_staff_id is not null)::int + (x.assist_staff_id is not null)::int) as instructors,
+               p.price_agorot as price, x.boat, x.notes
         from dive_sessions x
         join dive_programs p on p.id = x.program_id
         join dive_sites s on s.id = x.site_id

@@ -37,7 +37,7 @@ test('the manager posts a windy sea and the rules close it', async ({ page }) =>
 test('the front desk rents gear out and takes it back', async ({ page }) => {
   await page.goto('/dev/login?as=diveOffice');
   await expect(page).toHaveURL(/\/dive\/office$/);
-  await expect(page.getByTestId('arrival').first()).toBeVisible();
+  await expect(page.getByTestId('session-tile').first()).toBeVisible();
   const rentals = page.getByTestId('rentals');
   const before = await rentals.getByRole('button', { name: 'הוחזר' }).count();
   await rentals.getByText('השכרת ציוד').click();
@@ -127,13 +127,46 @@ test('a booking counts only once the diver pays for it', async ({ page }) => {
 test('the desk takes payment and confirms the booking', async ({ page }) => {
   await page.goto('/dev/login?as=diveOffice');
   await expect(page).toHaveURL(/\/dive\/office$/);
-  const settle = page.getByTestId('settle');
+  // The first session with someone to collect from; its tile opens the arrivals with the till form.
+  const tiles = page.getByTestId('session-tile');
+  const index = await tiles.evaluateAll((all) =>
+    all.findIndex((el) => el.querySelector('[data-testid="settle"]')),
+  );
+  expect(index).toBeGreaterThanOrEqual(0);
+  const tile = tiles.nth(index);
+  await tile.getByTestId('tile-open').click();
+  const settle = tile.getByTestId('tile-dialog').getByTestId('settle');
   const before = await settle.count();
-  expect(before).toBeGreaterThan(0);
   const till = await page.getByTestId('till').innerText();
   await settle.first().getByTestId('settle-submit').click();
   await expect(settle).toHaveCount(before - 1);
   await expect(page.getByTestId('till')).not.toHaveText(till);
+});
+
+test('who is coming today: a tile per session opens every detail and the arrivals', async ({
+  page,
+}) => {
+  await page.goto('/dev/login?as=diveOffice');
+  const tiles = page.getByTestId('session-tile');
+  expect(await tiles.count()).toBeGreaterThan(1);
+  const index = await tiles.evaluateAll((all) =>
+    all.findIndex((el) => el.querySelector('[data-testid="check-in"]')),
+  );
+  expect(index).toBeGreaterThanOrEqual(0);
+  const tile = tiles.nth(index);
+  const dialog = tile.getByTestId('tile-dialog');
+  await expect(dialog).toBeHidden();
+  await tile.getByTestId('tile-open').click();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByTestId('session-details')).toContainText('מחיר לצולל');
+  await expect(dialog.getByTestId('session-details')).toContainText('מדריכים');
+  // Checking a diver in from the dialog keeps it open and updates the tile.
+  const arrived = await dialog.getByText(/^הגיע\/ה \d/).count();
+  await dialog.getByTestId('check-in').first().click();
+  await expect(dialog.getByText(/^הגיע\/ה \d/)).toHaveCount(arrived + 1);
+  await expect(dialog).toBeVisible();
+  await dialog.getByTestId('tile-close').click();
+  await expect(dialog).toBeHidden();
 });
 
 test('the desk decides what to charge: a pass given free, a booking collected at the club', async ({
