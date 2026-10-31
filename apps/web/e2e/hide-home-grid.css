@@ -2,3 +2,10 @@
 [data-testid='home-grid'] {
   display: none !important;
 }
+
+/* The date line is masked, but on a Saturday or a holiday its badges wrap it to a second line: keep it one line tall. */
+[data-testid='today-line'] {
+  flex-wrap: nowrap !important;
+  height: 24px !important;
+  overflow: hidden !important;
+}
