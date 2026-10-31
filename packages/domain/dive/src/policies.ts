@@ -177,6 +177,38 @@ export function bookingDecision(
   return { ok: true };
 }
 
+/**
+ * Whether a new booking is confirmed now or waits for payment. A pass or a free session confirms it; money taken at
+ * the desk confirms it; otherwise it holds the seat as `pending_payment`: online for the club's hold window (never
+ * past the session's start), at the desk ("pay on arrival") until the session ends.
+ */
+export function bookingConfirmation(
+  f: {
+    price: number;
+    coveredByPass: boolean;
+    paidNow: boolean;
+    online: boolean;
+    startsAt: Date;
+    endsAt: Date;
+  },
+  now: Date,
+  rules: ResolvedDiveRules['booking'],
+): { status: 'booked' | 'pending_payment'; holdUntil: Date | null; reason: Reason } {
+  if (f.coveredByPass) return { status: 'booked', holdUntil: null, reason: { code: 'pass' } };
+  if (f.price <= 0) return { status: 'booked', holdUntil: null, reason: { code: 'free' } };
+  if (f.paidNow) return { status: 'booked', holdUntil: null, reason: { code: 'paid' } };
+  if (!rules.require_payment)
+    return { status: 'booked', holdUntil: null, reason: { code: 'payLater' } };
+  if (!f.online)
+    return { status: 'pending_payment', holdUntil: f.endsAt, reason: { code: 'payOnArrival' } };
+  const window = now.getTime() + rules.payment_hold_minutes * 60_000;
+  return {
+    status: 'pending_payment',
+    holdUntil: new Date(Math.min(window, f.startsAt.getTime())),
+    reason: { code: 'payOnline', params: { minutes: rules.payment_hold_minutes } },
+  };
+}
+
 // ─── Ratio ──────────────────────────────────────────────────────────────────
 
 /** Instructors a session needs in the water for its divers, and whether it has them. */
@@ -260,6 +292,8 @@ export interface ClubFacts {
   daysSinceIncident: number | null;
   /** Divers who finished a course in the last 90 days and have not dived since. */
   graduatesIdle: number;
+  /** Upcoming bookings still waiting for payment (seats held, not confirmed). */
+  paymentsPending: { count: number; amount: number };
 }
 
 export interface Insight {
@@ -272,7 +306,8 @@ export interface Insight {
     | 'rentals_overdue'
     | 'leads'
     | 'safety_streak'
-    | 'graduates';
+    | 'graduates'
+    | 'payments_pending';
   severity: 'info' | 'attention' | 'urgent';
   params: Record<string, string | number>;
 }
@@ -312,6 +347,12 @@ export function clubInsights(f: ClubFacts): Insight[] {
       kind: 'rentals_overdue',
       severity: 'attention',
       params: { count: f.rentalsOverdue },
+    });
+  if (f.paymentsPending.count > 0)
+    out.push({
+      kind: 'payments_pending',
+      severity: 'attention',
+      params: { count: f.paymentsPending.count, amount: f.paymentsPending.amount },
     });
   if (f.leadsWaiting > 0)
     out.push({ kind: 'leads', severity: 'attention', params: { count: f.leadsWaiting } });

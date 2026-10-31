@@ -11,6 +11,7 @@ import {
   noShowAction,
   rentAction,
   returnAction,
+  settleBookingAction,
 } from '../actions';
 import { requireDivePage } from '../_ui/access';
 import { dayLabel, hhmm, shekels } from '../_ui/format';
@@ -39,6 +40,7 @@ export default async function FrontDesk() {
   const arrivals = d.sessions.flatMap((s) => s.arrivals);
   const notReady = arrivals.filter((a) => !a.ready && a.status === 'booked').length;
   const checked = arrivals.filter((a) => a.status === 'checked_in').length;
+  const unpaid = arrivals.filter((a) => a.status === 'pending_payment');
   const methods = ['card', 'cash', 'bit'] as const;
 
   return (
@@ -46,7 +48,23 @@ export default async function FrontDesk() {
       <Hero
         kicker={`${t('office.kicker')} · ${dayLabel(d.today, locale)}`}
         title={t('office.title')}
-        sub={t('office.sub', { arrivals: arrivals.length, checked, notReady })}
+        sub={
+          <>
+            {t('office.sub', { arrivals: arrivals.length, checked, notReady })}
+            {unpaid.length > 0 ? (
+              <span className="font-semibold text-[var(--dive-coral)]">
+                {' · '}
+                {t('office.unpaidSub', {
+                  count: unpaid.length,
+                  amount: shekels(
+                    unpaid.reduce((a, x) => a + x.price, 0),
+                    locale,
+                  ),
+                })}
+              </span>
+            ) : null}
+          </>
+        }
         aside={
           <div
             className="rounded-2xl bg-[var(--dive-deep)] px-4 py-2 text-white"
@@ -85,6 +103,8 @@ export default async function FrontDesk() {
                         a.status === 'checked_in' &&
                           'bg-[color-mix(in_oklch,var(--dive-go)_5%,transparent)]',
                         a.status === 'no_show' && 'opacity-55',
+                        a.status === 'pending_payment' &&
+                          'bg-[color-mix(in_oklch,var(--dive-coral)_5%,transparent)]',
                       )}
                     >
                       <a
@@ -109,7 +129,14 @@ export default async function FrontDesk() {
                         </Chip>
                       ) : null}
                       {a.status !== 'checked_in' ? (
-                        <ReadinessChips items={a.items} compact />
+                        <ReadinessChips
+                          items={
+                            a.status === 'pending_payment'
+                              ? a.items.filter((i) => i.key !== 'payment')
+                              : a.items
+                          }
+                          compact
+                        />
                       ) : null}
                       {a.ready && a.status === 'booked' ? (
                         <Chip tone="go">{t('office.ready')}</Chip>
@@ -121,6 +148,31 @@ export default async function FrontDesk() {
                               time: a.checkedInAt ? hhmm(a.checkedInAt) : '',
                             })}
                           </Chip>
+                        ) : a.status === 'pending_payment' ? (
+                          <ActionForm
+                            action={settleBookingAction}
+                            className="flex-row flex-wrap items-center gap-1.5"
+                            testId="settle"
+                          >
+                            <Chip tone="nogo" icon={di.coin}>
+                              {t('office.unpaid', { amount: shekels(a.price, locale) })}
+                            </Chip>
+                            <input type="hidden" name="bookingId" value={a.bookingId} />
+                            <select
+                              name="method"
+                              aria-label={t('office.payment')}
+                              className="min-h-8 rounded-lg border border-line bg-surface-raised px-2 text-xs"
+                            >
+                              {methods.map((m) => (
+                                <option key={m} value={m}>
+                                  {t(`payMethod.${m}`)}
+                                </option>
+                              ))}
+                            </select>
+                            <SubmitButton className={small} data-testid="settle-submit">
+                              {t('office.settle')}
+                            </SubmitButton>
+                          </ActionForm>
                         ) : a.status === 'no_show' ? (
                           <>
                             <Chip tone="muted" icon={false}>

@@ -3,20 +3,26 @@ import { diverHome, myDiverId } from '@rswim/domain-dive';
 import { cn } from '@rswim/ui';
 import { ActionButton, ActionForm, Field, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
-import { bookAction, cancelBookingAction, medicalAction, waiverAction } from '../actions';
+import { bookOnlineAction, cancelBookingAction, medicalAction, waiverAction } from '../actions';
 import { requireDivePage } from '../_ui/access';
 import { CoursesPanel, DepthPanel, DiverBanner, LogbookPanel } from '../_ui/diver';
-import { dateShort, dayLabel, hhmm, localDay, shekels } from '../_ui/format';
+import { dateShort, dayLabel, heldLong, hhmm, localDay, shekels } from '../_ui/format';
 import { di } from '../_ui/icons';
-import { Chip, Empty, Panel } from '../_ui/kit';
+import { btn, Chip, Empty, Panel } from '../_ui/kit';
+import { HoldCountdown } from '../_ui/motion';
 import { SeaCard } from '../_ui/widgets';
 
 /**
  * The customer's own club: how deep they dive and may dive today, their next dives with meeting point and line,
  * paperwork they can fix themselves, their pass, booking the next training, and their logbook.
  */
-export default async function MyDiving() {
+export default async function MyDiving({
+  searchParams,
+}: {
+  searchParams: Promise<{ paid?: string; booked?: string }>;
+}) {
   await requireDivePage('me');
+  const sp = await searchParams;
   const t = await getTranslations('dive');
   const locale = await getLocale();
   const home = await withSession(async (tx) => {
@@ -31,10 +37,35 @@ export default async function MyDiving() {
     );
   }
   const todos = home.readinessItems.filter((i) => i.state !== 'ok');
+  const unpaid = home.next.filter((n) => n.bookingStatus === 'pending_payment');
 
   return (
     <div className="flex flex-col gap-5" data-testid="my-diving">
       <DiverBanner home={home} greeting={t('me.hello', { name: home.diver.firstName })} />
+
+      {sp.paid || sp.booked ? (
+        <p
+          role="status"
+          className="flex items-center gap-2 rounded-2xl bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-4 py-3 font-semibold text-[color-mix(in_oklch,var(--dive-go)_70%,var(--ink))] [&_svg]:size-5"
+          data-testid="paid-banner"
+        >
+          {di.check}
+          {sp.paid ? t('me.paidBanner') : t('done.booked')}
+        </p>
+      ) : null}
+
+      {unpaid.length > 0 ? (
+        <section
+          className="flex flex-col gap-2 rounded-2xl border border-[color-mix(in_oklch,var(--dive-coral)_45%,var(--line))] bg-[color-mix(in_oklch,var(--dive-coral)_7%,transparent)] p-4"
+          data-testid="unpaid"
+        >
+          <p className="flex items-center gap-2 font-semibold">
+            <span className="text-[var(--dive-coral)] [&_svg]:size-5">{di.coin}</span>
+            {t('me.unpaidTitle', { count: unpaid.length })}
+          </p>
+          <p className="text-sm text-ink-muted">{t('me.unpaidSub')}</p>
+        </section>
+      ) : null}
 
       {todos.length > 0 ? (
         <section
@@ -98,6 +129,13 @@ export default async function MyDiving() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1">
+                      {n.bookingStatus === 'pending_payment' ? (
+                        <Chip tone="nogo" icon={di.coin}>
+                          {t('bookingStatus.pending_payment')}
+                        </Chip>
+                      ) : (
+                        <Chip tone="go">{t('me.confirmed')}</Chip>
+                      )}
                       {n.status === 'hold' ? (
                         <Chip tone="caution">{t('sessionStatus.hold')}</Chip>
                       ) : null}
@@ -117,6 +155,29 @@ export default async function MyDiving() {
                     <p className="mt-2 text-sm">
                       <span className="text-ink-muted">{t('me.meet')}</span> {n.meetingPoint}
                     </p>
+                  ) : null}
+                  {n.bookingStatus === 'pending_payment' && n.holdUntil ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-[color-mix(in_oklch,var(--dive-coral)_8%,transparent)] p-2.5">
+                      <a
+                        href={`/dive/me/pay/${n.bookingId}`}
+                        className={btn.primary}
+                        data-testid="pay-link"
+                      >
+                        {t('me.payNow', { amount: shekels(n.price, locale) })}
+                      </a>
+                      <span className="text-xs text-ink-muted">
+                        {heldLong(n.holdUntil) ? (
+                          t('me.payOnArrival')
+                        ) : (
+                          <>
+                            {t('me.heldFor')}{' '}
+                            <strong className="text-ink">
+                              <HoldCountdown until={n.holdUntil} expired={t('pay.lapsedShort')} />
+                            </strong>
+                          </>
+                        )}
+                      </span>
+                    </div>
                   ) : null}
                   <div className="mt-2">
                     <ActionButton
@@ -223,12 +284,12 @@ export default async function MyDiving() {
                 </div>
                 {b.decision.ok ? (
                   <ActionButton
-                    action={bookAction}
+                    action={bookOnlineAction}
                     fields={{ sessionId: b.id }}
                     className="min-h-9 text-sm"
                     data-testid="book"
                   >
-                    {t('me.bookIt')}
+                    {b.price === 0 ? t('me.bookIt') : t('me.bookAndPay')}
                   </ActionButton>
                 ) : (
                   <Chip tone="muted">{t(`errors.${b.decision.code}`)}</Chip>

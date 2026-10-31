@@ -3,6 +3,7 @@ import { DEFAULT_DIVE_RULES as R, resolveDiveRules } from '@rswim/contracts';
 import {
   addMonths,
   allowedDepth,
+  bookingConfirmation,
   bookingDecision,
   clubInsights,
   daysBetween,
@@ -203,6 +204,49 @@ describe('planLines', () => {
   });
 });
 
+describe('bookingConfirmation', () => {
+  const now = new Date('2026-10-09T10:00:00Z');
+  const base = {
+    price: 18000,
+    coveredByPass: false,
+    paidNow: false,
+    online: true,
+    startsAt: new Date('2026-10-10T05:00:00Z'),
+    endsAt: new Date('2026-10-10T07:00:00Z'),
+  };
+  it('confirms a pass, a free session, money taken now, or a club that lets divers pay later', () => {
+    expect(bookingConfirmation({ ...base, coveredByPass: true }, now, R.booking).status).toBe(
+      'booked',
+    );
+    expect(bookingConfirmation({ ...base, price: 0 }, now, R.booking).reason.code).toBe('free');
+    expect(bookingConfirmation({ ...base, paidNow: true }, now, R.booking).reason.code).toBe(
+      'paid',
+    );
+    expect(
+      bookingConfirmation(base, now, { ...R.booking, require_payment: false }).reason.code,
+    ).toBe('payLater');
+  });
+  it('holds an online booking for the payment window, never past the start', () => {
+    const held = bookingConfirmation(base, now, R.booking);
+    expect(held.status).toBe('pending_payment');
+    expect(held.holdUntil?.toISOString()).toBe('2026-10-09T10:30:00.000Z');
+    const soon = bookingConfirmation(
+      { ...base, startsAt: new Date('2026-10-09T10:10:00Z') },
+      now,
+      R.booking,
+    );
+    expect(soon.holdUntil?.toISOString()).toBe('2026-10-09T10:10:00.000Z');
+  });
+  it('holds a desk booking paid on arrival until the session ends', () => {
+    const desk = bookingConfirmation({ ...base, online: false }, now, R.booking);
+    expect(desk).toEqual({
+      status: 'pending_payment',
+      holdUntil: base.endsAt,
+      reason: { code: 'payOnArrival' },
+    });
+  });
+});
+
 describe('clubInsights', () => {
   const quiet: ClubFacts = {
     today: '2026-10-09',
@@ -215,6 +259,7 @@ describe('clubInsights', () => {
     leadsWaiting: 0,
     daysSinceIncident: null,
     graduatesIdle: 0,
+    paymentsPending: { count: 0, amount: 0 },
   };
   it('says nothing on a quiet day', () => {
     expect(clubInsights(quiet)).toEqual([]);
@@ -245,6 +290,7 @@ describe('clubInsights', () => {
       leadsWaiting: 5,
       daysSinceIncident: 23,
       graduatesIdle: 6,
+      paymentsPending: { count: 2, amount: 36000 },
     });
     expect(out.map((i) => `${i.kind}:${i.severity}`)).toEqual([
       'weather:urgent',
@@ -255,6 +301,7 @@ describe('clubInsights', () => {
       'medicals:attention',
       'staff_cert:attention',
       'rentals_overdue:attention',
+      'payments_pending:attention',
       'leads:attention',
       'gear_service:info',
       'graduates:info',

@@ -37,6 +37,7 @@ export default defineConfig({
     env: {
       RSWIM_DEV_AUTH: '1',
       RSWIM_COPILOT_FAKE: '1',
+      RSWIM_GROW_FAKE: '1',
       NEXT_TELEMETRY_DISABLED: '1',
       DATABASE_URL: E2E_DATABASE_URL,
       RSWIM_MASTER_KEY: E2E_MASTER_KEY,
