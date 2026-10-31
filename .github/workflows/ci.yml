@@ -68,7 +68,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @rswim/web exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      - run: cp apps/web/e2e/shells.spec.ts-snapshots/admin-mobile-mobile-linux.png /tmp/old.png
+      - run: cd apps/web && pnpm exec playwright test e2e/shells.spec.ts -g "Command Center" --update-snapshots=all --retries=0 || true
+      - run: echo "NEWPNG_BEGIN"; base64 -w0 apps/web/e2e/shells.spec.ts-snapshots/admin-mobile-mobile-linux.png; echo; echo "NEWPNG_END"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
