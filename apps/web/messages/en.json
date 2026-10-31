@@ -4266,14 +4266,21 @@
       },
       "unpaid": "Unpaid · {amount}",
       "settle": "Take payment",
-      "unpaidSub": "{count, plural, one {1 hasn't paid} other {# haven't paid}} ({amount})"
+      "unpaidSub": "{count, plural, one {1 hasn't paid} other {# haven't paid}} ({amount})",
+      "collect": "Collect at the club · {amount}",
+      "collectLater": "Confirmed, collect at the club",
+      "free": "No charge",
+      "passTitle": "Pass or membership for a diver",
+      "passKind": "What",
+      "passSubmit": "Add to diver"
     },
     "payMethod": {
       "card": "Card",
       "cash": "Cash",
       "bit": "Bit",
       "transfer": "Transfer",
-      "pass": "Pass"
+      "pass": "Pass",
+      "comp": "No charge"
     },
     "leadStage": {
       "new": "New",
@@ -4433,7 +4440,9 @@
       "paidBanner": "Payment received and your booking is confirmed. See you in the water!",
       "unpaidTitle": "{count, plural, one {One booking is waiting for payment} other {# bookings are waiting for payment}}",
       "unpaidSub": "A booking counts only once it is paid. Until then your seat is held for a short while, then it goes back to others.",
-      "payOnArrival": "Your seat is held until the session. Pay now or on arrival."
+      "payOnArrival": "Your seat is held until the session. Pay now or on arrival.",
+      "buyPass": "Buy a pass or membership",
+      "passBanner": "Payment received and your pass is active. See you in the water!"
     },
     "passKind": {
       "punch5": "5-session pass",
@@ -4492,7 +4501,8 @@
       "conditions": "Sea posted: {call}",
       "lines": "Lines assigned",
       "waiver": "Thanks! Waiver signed",
-      "paid": "Paid. Booking confirmed"
+      "paid": "Paid. Booking confirmed",
+      "passSold": "Added to the diver"
     },
     "errors": {
       "sessionFull": "The session is full",
@@ -4535,7 +4545,10 @@
       "notFound": "We couldn't find this booking.",
       "back": "Back to my page",
       "heldUntil": "Seat held",
-      "untilSession": "Until the session · or pay on arrival"
+      "untilSession": "Until the session · or pay on arrival",
+      "passTitle": "Buy a pass",
+      "passHolds": "{count} sessions · valid {days} days",
+      "passUnlimited": "Unlimited sessions · valid {days} days"
     }
   }
 }

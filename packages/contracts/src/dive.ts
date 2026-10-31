@@ -130,7 +130,8 @@ export const DIVE_SALE_KINDS = [
   'retail',
 ] as const;
 export type DiveSaleKind = (typeof DIVE_SALE_KINDS)[number];
-export const PAY_METHODS = ['card', 'cash', 'bit', 'transfer', 'pass'] as const;
+export const PAY_METHODS = ['card', 'cash', 'bit', 'transfer', 'pass', 'comp'] as const;
+/** `comp`: the desk gave it without charge. Recorded as a zero sale, so the owner sees who gave what. */
 export type PayMethod = (typeof PAY_METHODS)[number];
 
 /** The day's sea call for a site. */
@@ -177,6 +178,14 @@ export const COURSE_SKILLS = {
  * stored version; DEFAULT_DIVE_RULES fills the rest.
  */
 const int = (min: number, max: number) => z.int().min(min).max(max);
+const PassProductSchema = z
+  .object({
+    price_agorot: int(0, 10_000_000),
+    sessions: int(1, 200).nullable(),
+    valid_days: int(1, 800),
+  })
+  .strict();
+
 export const DiveRules = z
   .object({
     sea: z
@@ -240,10 +249,25 @@ export const DiveRules = z
       })
       .partial()
       .strict(),
+    /** What each pass costs, how many sessions it holds (none = unlimited) and how long it is valid. */
+    passes: z
+      .object({
+        punch5: PassProductSchema,
+        punch10: PassProductSchema,
+        monthly: PassProductSchema,
+        annual: PassProductSchema,
+      })
+      .partial()
+      .strict(),
   })
   .partial()
   .strict();
 export type DiveRules = z.infer<typeof DiveRules>;
+export interface PassProduct {
+  price_agorot: number;
+  sessions: number | null;
+  valid_days: number;
+}
 
 export interface ResolvedDiveRules {
   sea: Required<NonNullable<DiveRules['sea']>>;
@@ -253,6 +277,7 @@ export interface ResolvedDiveRules {
   staff: Required<NonNullable<DiveRules['staff']>>;
   gear: Required<NonNullable<DiveRules['gear']>>;
   booking: Required<NonNullable<DiveRules['booking']>>;
+  passes: Record<DivePassKind, PassProduct>;
 }
 
 /** Sensible defaults for an Eilat club (fake demo numbers, not safety advice). */
@@ -271,6 +296,12 @@ export const DEFAULT_DIVE_RULES: ResolvedDiveRules = {
   staff: { cert_warn_days: 30 },
   gear: { rental_grace_min: 30 },
   booking: { require_payment: true, payment_hold_minutes: 30 },
+  passes: {
+    punch5: { price_agorot: 82000, sessions: 5, valid_days: 120 },
+    punch10: { price_agorot: 150000, sessions: 10, valid_days: 120 },
+    monthly: { price_agorot: 69000, sessions: null, valid_days: 30 },
+    annual: { price_agorot: 590000, sessions: null, valid_days: 365 },
+  },
 };
 
 /** A stored version's overrides on top of the defaults. */
@@ -284,5 +315,6 @@ export function resolveDiveRules(rules: DiveRules | null | undefined): ResolvedD
     staff: { ...DEFAULT_DIVE_RULES.staff, ...r.staff },
     gear: { ...DEFAULT_DIVE_RULES.gear, ...r.gear },
     booking: { ...DEFAULT_DIVE_RULES.booking, ...r.booking },
+    passes: { ...DEFAULT_DIVE_RULES.passes, ...r.passes },
   };
 }

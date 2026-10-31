@@ -225,6 +225,14 @@ describe('bookingConfirmation', () => {
     expect(
       bookingConfirmation(base, now, { ...R.booking, require_payment: false }).reason.code,
     ).toBe('payLater');
+    // The desk may confirm and collect at the club; online, that choice is not the diver's.
+    expect(
+      bookingConfirmation({ ...base, online: false, collectAtClub: true }, now, R.booking).reason
+        .code,
+    ).toBe('collectAtClub');
+    expect(bookingConfirmation({ ...base, collectAtClub: true }, now, R.booking).status).toBe(
+      'pending_payment',
+    );
   });
   it('holds an online booking for the payment window, never past the start', () => {
     const held = bookingConfirmation(base, now, R.booking);

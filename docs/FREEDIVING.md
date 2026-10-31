@@ -68,6 +68,18 @@ A booking for a paid session counts only once it is paid. Until then it is `pend
 - The owner's feed shows how many bookings wait for payment and how much they add up to.
 - A club that lets divers pay later turns this off with `booking.require_payment = false`.
 
+### The desk decides what to charge
+
+- **Booking a diver:** the desk can charge now (card, cash or Bit), confirm and collect at the club ("מאושר, גבייה
+  במועדון"), hold the seat until paid, or give it free ("ללא חיוב").
+- **Collecting or waiving:** any arrival that still owes shows "לגבייה במועדון" or "לא שולם" with "גבייה ואישור".
+  Choosing "ללא חיוב" there waives the charge.
+- **Passes and memberships:** the desk can sell one to a diver or give one free. A diver can buy one online from their
+  page ("לקנות כרטיסייה או מנוי"), and it is issued only once paid. Prices, sessions and validity live in the rules
+  (`passes`), not in code.
+- Everything given free is a zero sale with method `comp` and the person who gave it (`sold_by`), so the till and the
+  owner can see what was given and by whom.
+
 ## Rules (`packages/domain/dive/src/policies.ts`, pure, 100% branch coverage)
 
 `seaCall`, `allowedDepth`, `readiness`, `bookingDecision`, `bookingConfirmation`, `ratioCheck`, `passBalance`,

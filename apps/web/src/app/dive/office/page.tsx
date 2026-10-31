@@ -11,6 +11,7 @@ import {
   noShowAction,
   rentAction,
   returnAction,
+  sellPassAction,
   settleBookingAction,
 } from '../actions';
 import { requireDivePage } from '../_ui/access';
@@ -42,6 +43,33 @@ export default async function FrontDesk() {
   const checked = arrivals.filter((a) => a.status === 'checked_in').length;
   const unpaid = arrivals.filter((a) => a.status === 'pending_payment');
   const methods = ['card', 'cash', 'bit'] as const;
+  // Take the money, or waive it: the desk decides.
+  const settle = (a: (typeof arrivals)[number], label: string) => (
+    <ActionForm
+      action={settleBookingAction}
+      className="flex-row flex-wrap items-center gap-1.5"
+      testId="settle"
+    >
+      <Chip tone="nogo" icon={di.coin}>
+        {label}
+      </Chip>
+      <input type="hidden" name="bookingId" value={a.bookingId} />
+      <select
+        name="method"
+        aria-label={t('office.payment')}
+        className="min-h-8 rounded-lg border border-line bg-surface-raised px-2 text-xs"
+      >
+        {[...methods, 'comp' as const].map((m) => (
+          <option key={m} value={m}>
+            {t(`payMethod.${m}`)}
+          </option>
+        ))}
+      </select>
+      <SubmitButton className={small} data-testid="settle-submit">
+        {t('office.settle')}
+      </SubmitButton>
+    </ActionForm>
+  );
 
   return (
     <div className="flex flex-col gap-5" data-testid="front-desk">
@@ -130,17 +158,16 @@ export default async function FrontDesk() {
                       ) : null}
                       {a.status !== 'checked_in' ? (
                         <ReadinessChips
-                          items={
-                            a.status === 'pending_payment'
-                              ? a.items.filter((i) => i.key !== 'payment')
-                              : a.items
-                          }
+                          items={a.paid ? a.items : a.items.filter((i) => i.key !== 'payment')}
                           compact
                         />
                       ) : null}
                       {a.ready && a.status === 'booked' ? (
                         <Chip tone="go">{t('office.ready')}</Chip>
                       ) : null}
+                      {a.status !== 'pending_payment' && !a.paid
+                        ? settle(a, t('office.collect', { amount: shekels(a.price, locale) }))
+                        : null}
                       <div className="ms-auto flex items-center gap-1.5">
                         {a.status === 'checked_in' ? (
                           <Chip tone="go">
@@ -149,30 +176,7 @@ export default async function FrontDesk() {
                             })}
                           </Chip>
                         ) : a.status === 'pending_payment' ? (
-                          <ActionForm
-                            action={settleBookingAction}
-                            className="flex-row flex-wrap items-center gap-1.5"
-                            testId="settle"
-                          >
-                            <Chip tone="nogo" icon={di.coin}>
-                              {t('office.unpaid', { amount: shekels(a.price, locale) })}
-                            </Chip>
-                            <input type="hidden" name="bookingId" value={a.bookingId} />
-                            <select
-                              name="method"
-                              aria-label={t('office.payment')}
-                              className="min-h-8 rounded-lg border border-line bg-surface-raised px-2 text-xs"
-                            >
-                              {methods.map((m) => (
-                                <option key={m} value={m}>
-                                  {t(`payMethod.${m}`)}
-                                </option>
-                              ))}
-                            </select>
-                            <SubmitButton className={small} data-testid="settle-submit">
-                              {t('office.settle')}
-                            </SubmitButton>
-                          </ActionForm>
+                          settle(a, t('office.unpaid', { amount: shekels(a.price, locale) }))
                         ) : a.status === 'no_show' ? (
                           <>
                             <Chip tone="muted" icon={false}>
@@ -233,11 +237,40 @@ export default async function FrontDesk() {
                 name="method"
                 label={t('office.payment')}
                 options={[
-                  { value: 'none', label: t('office.payLater') },
                   ...methods.map((m) => ({ value: m, label: t(`payMethod.${m}`) })),
+                  { value: 'collect', label: t('office.collectLater') },
+                  { value: 'none', label: t('office.payLater') },
+                  { value: 'free', label: t('office.free') },
                 ]}
               />
               <SubmitButton>{t('office.bookSubmit')}</SubmitButton>
+            </ActionForm>
+          </Panel>
+
+          <Panel title={t('office.passTitle')} icon={di.coin} testId="sell-pass">
+            <ActionForm action={sellPassAction} resetOnSuccess>
+              <SelectField
+                name="diverId"
+                label={t('office.diver')}
+                options={d.divers.map((x) => ({ value: x.id, label: x.name }))}
+              />
+              <SelectField
+                name="kind"
+                label={t('office.passKind')}
+                options={d.passOffers.map((o) => ({
+                  value: o.kind,
+                  label: `${t(`passKind.${o.kind}`)} · ${shekels(o.price, locale)}`,
+                }))}
+              />
+              <SelectField
+                name="method"
+                label={t('office.payment')}
+                options={[...methods, 'comp' as const].map((m) => ({
+                  value: m,
+                  label: t(`payMethod.${m}`),
+                }))}
+              />
+              <SubmitButton>{t('office.passSubmit')}</SubmitButton>
             </ActionForm>
           </Panel>
 

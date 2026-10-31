@@ -8,6 +8,7 @@ import {
   cancelBooking,
   checkIn,
   checkoutView,
+  myDiverId,
   closeIncident,
   ConditionsInput,
   IncidentClose,
@@ -27,6 +28,8 @@ import {
   SessionRef,
   SessionStatusInput,
   setSessionStatus,
+  PassSale,
+  sellPass,
   setTarget,
   SettleInput,
   settleBooking,
@@ -36,7 +39,8 @@ import {
   toggleSkill,
   updateMedical,
 } from '@rswim/domain-dive';
-import { confirmCheckout } from '@rswim/domain-dive/checkout';
+import { DIVE_PASS_KINDS } from '@rswim/contracts';
+import { confirmCheckout, confirmPassCheckout } from '@rswim/domain-dive/checkout';
 import { toDomainError } from '@rswim/domain-core';
 import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
@@ -95,6 +99,46 @@ export async function settleBookingAction(_: FormState, fd: FormData) {
     (tx, ctx, i) => settleBooking(tx, ctx, i),
     opts('dive.done.paid'),
   );
+}
+
+/** The desk sells a pass to a diver, or gives one without charge. */
+export async function sellPassAction(_: FormState, fd: FormData) {
+  const t = await getTranslations('dive');
+  const kind = String(fd.get('kind') ?? '');
+  const label = (DIVE_PASS_KINDS as readonly string[]).includes(kind)
+    ? t(`passKind.${kind}`)
+    : kind;
+  return runForm(
+    fd,
+    PassSale,
+    (tx, ctx, i) => sellPass(tx, ctx, i),
+    opts('dive.done.passSold'),
+    (raw) => ({ ...raw, label }),
+  );
+}
+
+/** The diver buys a pass online (payment fake until the club's Grow is live); it is issued once paid. */
+export async function buyPassAction(_: FormState, fd: FormData): Promise<FormState> {
+  const t = await getTranslations();
+  const fail = (key: string) => ({ ok: false, errors: {}, message: t(key) });
+  if (!fakeCheckout()) return fail('dive.pay.notLive');
+  const kind = z.enum(DIVE_PASS_KINDS).safeParse(fd.get('kind'));
+  if (!kind.success) return fail('common.errors.notFound');
+  const me = await withSession(async (tx, ctx, session) => ({
+    diverId: await myDiverId(tx),
+    orgId: ctx.orgId,
+    userId: session.userId,
+  }));
+  if (!me.diverId) return fail('dive.errors.noDiver');
+  await confirmPassCheckout(db(), {
+    orgId: me.orgId,
+    userId: me.userId,
+    diverId: me.diverId,
+    kind: kind.data,
+    label: t(`dive.passKind.${kind.data}`),
+  });
+  for (const p of ALL) revalidatePath(p);
+  redirect('/dive/me?pass=1');
 }
 
 /**

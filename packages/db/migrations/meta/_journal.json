@@ -225,6 +225,13 @@
       "when": 1793425905512,
       "tag": "0031_dive_payment_security",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793428236566,
+      "tag": "0032_dive_comp_method",
+      "breakpoints": true
     }
   ]
 }

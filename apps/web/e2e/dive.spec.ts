@@ -110,6 +110,35 @@ test('the desk takes payment and confirms the booking', async ({ page }) => {
   await expect(page.getByTestId('till')).not.toHaveText(till);
 });
 
+test('the desk decides what to charge: a pass given free, a booking collected at the club', async ({
+  page,
+}) => {
+  await page.goto('/dev/login?as=diveOffice');
+  await expect(page).toHaveURL(/\/dive\/office$/);
+  const pass = page.getByTestId('sell-pass');
+  await pass.getByLabel('תשלום', { exact: true }).selectOption('comp');
+  await pass.getByRole('button', { name: 'הוספה לצולל' }).click();
+  await expect(pass.getByRole('status')).toContainText('נוסף לצולל');
+  await expect(page.getByTestId('till')).toBeVisible();
+  const book = page.getByTestId('quick-book');
+  await book.getByLabel('תשלום', { exact: true }).selectOption('collect');
+  await book.getByRole('button', { name: 'לרשום' }).click();
+  await expect(book.getByRole('status')).toContainText('נרשם');
+});
+
+test('a diver buys a pass online and it is active once paid', async ({ page }) => {
+  await page.goto('/dev/login?as=diveCustomer');
+  await expect(page).toHaveURL(/\/dive\/me$/);
+  await page.getByTestId('buy-pass').locator('summary').click();
+  await page.getByTestId('buy-punch5').click();
+  await expect(page).toHaveURL(/\/dive\/me\/pay\/pass\/punch5$/);
+  await expect(page.getByTestId('checkout-amount')).toContainText('₪');
+  await page.getByTestId('buy-pass-now').click();
+  await expect(page).toHaveURL(/\/dive\/me\?pass=1$/);
+  await expect(page.getByTestId('paid-banner')).toContainText('הכרטיסייה פעילה');
+  await expect(page.getByTestId('my-passes')).toContainText('כרטיסיית 5 אימונים');
+});
+
 test('swim and dive stay apart, and the platform sees both', async ({ page }) => {
   await page.goto('/dev/login?as=owner');
   await page.goto('/dive/owner');
