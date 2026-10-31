@@ -30,6 +30,11 @@ the Red Sea; everything in it is invented.
 The owner sees every staff screen through the tabs. `/dive/divers` and `/dive/divers/[id]` are the staff's diver
 list and file.
 
+The diver list filters by level, origin, medical, waiver, pass (valid, ending soon, none), payment (owes or all
+paid), activity (recent, lapsed, never dived), upcoming bookings and tag, sorted by revenue, name, last dive, best
+depth or level. Filters combine and live in the URL (`DiverFilterSchema` in `@rswim/contracts`), and five quick views
+(owe money, pass ending, medical expired, booked to dive, no dive in 90 days) sit one tap away.
+
 ## Look and feel
 
 The live demo's sign-in (`RSWIM_DEMO_PROFILE=freediving`) is the club's own landing (`apps/web/src/app/login/dive-landing.tsx`):

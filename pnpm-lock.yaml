@@ -1262,6 +1262,9 @@ importers:
       '@rswim/domain-crm':
         specifier: workspace:*
         version: link:../domain/crm
+      '@rswim/domain-dive':
+        specifier: workspace:*
+        version: link:../domain/dive
       '@rswim/domain-enrollment':
         specifier: workspace:*
         version: link:../domain/enrollment

@@ -49,6 +49,32 @@ test('the front desk rents gear out and takes it back', async ({ page }) => {
   await expect(page.getByTestId('leads').getByTestId('lead').first()).toBeVisible();
 });
 
+test('the desk combines filters on its diver list', async ({ page }) => {
+  await page.goto('/dev/login?as=diveOffice');
+  await page.goto('/dive/divers');
+  const rows = page.getByTestId('diver-row');
+  const all = await rows.count();
+  expect(all).toBeGreaterThan(50);
+  // A quick view, then one more filter from the full set: each narrows the list and shows as a removable chip.
+  await page.getByTestId('quick-owes').click();
+  await expect(page).toHaveURL(/balance=owes/);
+  const owing = await rows.count();
+  expect(owing).toBeLessThan(all);
+  await expect(rows.first().getByText('חוב פתוח')).toBeVisible();
+  await page.getByTestId('filter-upcoming').selectOption('booked');
+  await expect(page).toHaveURL(/upcoming=booked/);
+  await expect(page).toHaveURL(/balance=owes/);
+  await expect(page.getByTestId('active-filters').getByRole('link')).toHaveCount(3);
+  expect(await rows.count()).toBeLessThanOrEqual(owing);
+  // Removing one keeps the other; clearing brings everyone back.
+  await page.getByRole('link', { name: /הסרת הסינון תשלום/ }).click();
+  await expect(page).not.toHaveURL(/balance=/);
+  await expect(page).toHaveURL(/upcoming=booked/);
+  await page.getByTestId('clear-filters').click();
+  await expect(page).toHaveURL(/\/dive\/divers$/);
+  await expect(rows).toHaveCount(all);
+});
+
 test('the instructor sees allowed depths and logs a dive', async ({ page }) => {
   await page.goto('/dev/login?as=diveInstructor');
   await expect(page).toHaveURL(/\/dive\/instructor$/);

@@ -8,6 +8,7 @@ import {
   homeSurface,
   ORG_ROLES,
   resolveDiveRules,
+  DiverFilterSchema,
   PhoneE164,
   toE164IL,
 } from '../src';
@@ -57,6 +58,36 @@ describe('dive rules', () => {
     expect(r.sea.caution_wind_kts).toBe(DEFAULT_DIVE_RULES.sea.caution_wind_kts);
     expect(r.ratio.course).toBe(3);
     expect(r.gear).toEqual(DEFAULT_DIVE_RULES.gear);
+  });
+});
+
+describe('diver list filters', () => {
+  it('reads URL values, treats blanks as no filter and ignores values it does not know', () => {
+    expect(
+      DiverFilterSchema.parse({
+        q: ' דנה ',
+        level: '3',
+        origin: 'eilat',
+        balance: 'owes',
+        tag: 'vip',
+      }),
+    ).toEqual({ q: 'דנה', level: 3, origin: 'eilat', balance: 'owes', tag: 'vip', sort: 'value' });
+    expect(DiverFilterSchema.parse({ q: '', level: '', pass: '', sort: '' })).toEqual({
+      sort: 'value',
+    });
+    expect(
+      DiverFilterSchema.parse({
+        level: '9',
+        pass: 'gold',
+        tag: 'DROP TABLE',
+        sort: 'x',
+        medical: null,
+      }),
+    ).toEqual({ sort: 'value' });
+    expect(DiverFilterSchema.parse({ sort: 'pb', activity: 'never' })).toEqual({
+      sort: 'pb',
+      activity: 'never',
+    });
   });
 });
 
