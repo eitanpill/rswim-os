@@ -2,7 +2,14 @@
  * What each role's screens read. Every query runs as the signed-in user, so RLS decides what comes back: an
  * instructor's sales are empty, a customer sees only their own rows.
  */
-import { COURSE_SKILLS, type DiveProgramKind, type SeaCall } from '@rswim/contracts';
+import {
+  COURSE_SKILLS,
+  DIVE_PASS_KINDS,
+  type DivePassKind,
+  type DiveProgramKind,
+  type ResolvedDiveRules,
+  type SeaCall,
+} from '@rswim/contracts';
 import { sql, type Tx } from '@rswim/db';
 import {
   allowedDepth,
@@ -433,6 +440,22 @@ export async function opsBoard(tx: Tx): Promise<OpsBoard> {
 
 // ─── Office: the front desk ─────────────────────────────────────────────────
 
+export interface PassOffer {
+  kind: DivePassKind;
+  price: number;
+  sessions: number | null;
+  validDays: number;
+}
+
+function passOffers(rules: ResolvedDiveRules): PassOffer[] {
+  return DIVE_PASS_KINDS.map((kind) => ({
+    kind,
+    price: rules.passes[kind].price_agorot,
+    sessions: rules.passes[kind].sessions,
+    validDays: rules.passes[kind].valid_days,
+  }));
+}
+
 export interface ArrivalRow {
   bookingId: string;
   diverId: string;
@@ -443,9 +466,11 @@ export interface ArrivalRow {
   checkedInAt: string | null;
   certLevel: number;
   passLeft: number | null;
-  /** What a pending booking still owes, in agorot. */
+  /** What the booking costs, in agorot. */
   price: number;
   holdUntil: string | null;
+  /** Covered by a pass, paid, or given free; otherwise the desk still has to collect. */
+  paid: boolean;
   ready: boolean;
   items: ReadinessItem[];
 }
@@ -485,6 +510,8 @@ export interface FrontDesk {
   salesTotal: number;
   divers: { id: string; name: string }[];
   availableGear: { id: string; code: string; kind: string; size: string | null; price: number }[];
+  /** The club's passes and their prices, to sell or give at the desk. */
+  passOffers: PassOffer[];
   upcoming: { id: string; label: string }[];
 }
 
@@ -519,7 +546,7 @@ async function arrivals(
                b.checked_in_at as "checkedInAt", d.cert_level as "certLevel", b.price_agorot as price, b.hold_until as "holdUntil",
                d.waiver_signed_on::text as "waiverSignedOn", d.medical_expires_on::text as "medicalExpiresOn",
                p.min_level as "minLevel",
-               b.status <> 'pending_payment' and (b.pass_id is not null or exists (select 1 from dive_sales s where s.diver_id = d.id
+               b.status <> 'pending_payment' and (b.pass_id is not null or b.price_agorot = 0 or exists (select 1 from dive_sales s where s.diver_id = d.id
                   and (s.session_id = b.session_id or (s.program_id = x.program_id and p.kind = 'course')))) as paid,
                (select (ps.sessions_total - (select count(*) from dive_bookings u where u.pass_id = ps.id and u.status in ('booked', 'checked_in', 'no_show')))::int
                   from dive_passes ps where ps.id = b.pass_id) as "passLeft"
@@ -553,6 +580,7 @@ async function arrivals(
       passLeft: r.passLeft,
       price: r.price,
       holdUntil: r.holdUntil,
+      paid: r.paid,
       ready: ready.ready,
       items: ready.items,
     };
@@ -610,8 +638,10 @@ export async function frontDesk(tx: Tx): Promise<FrontDesk> {
           and (select count(*) from dive_bookings b where b.session_id = x.id and app.dive_holds_seat(b.status, b.hold_until)) < x.capacity
         order by x.starts_at`,
   );
+  const { rules } = await loadRules(tx);
   return {
     today,
+    passOffers: passOffers(rules),
     sessions: sessions.map((s) => ({ ...s, arrivals: byS.get(s.id) ?? [] })),
     leads,
     rentals,
@@ -845,6 +875,8 @@ export interface DiverHome {
     outcome: string;
     site: string | null;
   }[];
+  /** Passes the diver can buy online. */
+  passOffers: PassOffer[];
   bookable: {
     id: string;
     startsAt: string;
@@ -1071,6 +1103,7 @@ export async function diverHome(tx: Tx, diverId: string): Promise<DiverHome | nu
   return {
     today,
     diver,
+    passOffers: passOffers(rules),
     sea,
     next,
     readinessItems,

@@ -187,6 +187,8 @@ export function bookingConfirmation(
     price: number;
     coveredByPass: boolean;
     paidNow: boolean;
+    /** The desk confirmed it and will collect at the club. */
+    collectAtClub?: boolean;
     online: boolean;
     startsAt: Date;
     endsAt: Date;
@@ -197,6 +199,8 @@ export function bookingConfirmation(
   if (f.coveredByPass) return { status: 'booked', holdUntil: null, reason: { code: 'pass' } };
   if (f.price <= 0) return { status: 'booked', holdUntil: null, reason: { code: 'free' } };
   if (f.paidNow) return { status: 'booked', holdUntil: null, reason: { code: 'paid' } };
+  if (f.collectAtClub && !f.online)
+    return { status: 'booked', holdUntil: null, reason: { code: 'collectAtClub' } };
   if (!rules.require_payment)
     return { status: 'booked', holdUntil: null, reason: { code: 'payLater' } };
   if (!f.online)

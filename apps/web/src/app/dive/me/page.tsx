@@ -19,7 +19,7 @@ import { SeaCard } from '../_ui/widgets';
 export default async function MyDiving({
   searchParams,
 }: {
-  searchParams: Promise<{ paid?: string; booked?: string }>;
+  searchParams: Promise<{ paid?: string; booked?: string; pass?: string }>;
 }) {
   await requireDivePage('me');
   const sp = await searchParams;
@@ -43,14 +43,14 @@ export default async function MyDiving({
     <div className="flex flex-col gap-5" data-testid="my-diving">
       <DiverBanner home={home} greeting={t('me.hello', { name: home.diver.firstName })} />
 
-      {sp.paid || sp.booked ? (
+      {sp.paid || sp.booked || sp.pass ? (
         <p
           role="status"
           className="flex items-center gap-2 rounded-2xl bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-4 py-3 font-semibold text-[color-mix(in_oklch,var(--dive-go)_70%,var(--ink))] [&_svg]:size-5"
           data-testid="paid-banner"
         >
           {di.check}
-          {sp.paid ? t('me.paidBanner') : t('done.booked')}
+          {sp.paid ? t('me.paidBanner') : sp.pass ? t('me.passBanner') : t('done.booked')}
         </p>
       ) : null}
 
@@ -243,6 +243,32 @@ export default async function MyDiving({
                 ))}
               </ul>
             )}
+            <details className="mt-3 border-t border-line pt-3" data-testid="buy-pass">
+              <summary className="cursor-pointer text-sm font-semibold text-[var(--dive-sea)]">
+                {t('me.buyPass')}
+              </summary>
+              <ul className="mt-2 flex flex-col gap-2">
+                {home.passOffers.map((o) => (
+                  <li key={o.kind}>
+                    <a
+                      href={`/dive/me/pay/pass/${o.kind}`}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-line px-3 py-2 text-sm hover:bg-[color-mix(in_oklch,var(--dive-sea)_6%,transparent)]"
+                      data-testid={`buy-${o.kind}`}
+                    >
+                      <span>
+                        <span className="block font-medium">{t(`passKind.${o.kind}`)}</span>
+                        <span className="block text-xs text-ink-muted">
+                          {o.sessions !== null
+                            ? t('pay.passHolds', { count: o.sessions, days: o.validDays })
+                            : t('pay.passUnlimited', { days: o.validDays })}
+                        </span>
+                      </span>
+                      <span className="font-semibold tabular-nums">{shekels(o.price, locale)}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
           </Panel>
         </div>
       </div>

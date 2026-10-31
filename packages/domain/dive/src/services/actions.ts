@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import {
   CURRENTS,
+  DIVE_PASS_KINDS,
   DIVE_SESSION_STATUSES,
   DiveDiscipline,
   DiveIncidentKind,
@@ -71,8 +72,11 @@ export async function cancelBooking(tx: Tx, raw: z.input<typeof BookingRef>) {
 export const BookInput = z.object({
   sessionId: id,
   diverId: id.optional(),
-  /** Front desk: take payment now (else it shows as unpaid at check-in). */
-  method: z.enum(['card', 'cash', 'bit', 'none']).default('none'),
+  /**
+   * Front desk: take payment now (card, cash, bit); `collect` confirms it and the club collects later; `none` holds
+   * the seat until paid; `free` gives it without charge (recorded as a zero sale with who gave it).
+   */
+  method: z.enum(['card', 'cash', 'bit', 'collect', 'none', 'free']).default('none'),
 });
 
 /**
@@ -144,14 +148,16 @@ export async function bookSession(tx: Tx, ctx: ServiceContext, raw: z.input<type
             .usable,
       )?.id ?? null;
   }
-  const price = passId ? 0 : s.price;
   const via = ctx.userId && (await isCustomer(tx)) ? 'online' : 'office';
+  const free = via === 'office' && input.method === 'free' && !passId && s.price > 0;
+  const price = passId || free ? 0 : s.price;
   // Unpaid, it only holds the seat: confirmed once the money is in (desk, or the provider's callback).
   const confirm = bookingConfirmation(
     {
       price,
       coveredByPass: passId !== null,
-      paidNow: via === 'office' && input.method !== 'none',
+      paidNow: via === 'office' && ['card', 'cash', 'bit'].includes(input.method),
+      collectAtClub: input.method === 'collect',
       online: via === 'online',
       startsAt: new Date(s.startsAt),
       endsAt: new Date(s.endsAt),
@@ -177,13 +183,24 @@ export async function bookSession(tx: Tx, ctx: ServiceContext, raw: z.input<type
     );
     return (r as { id: string }).id;
   });
-  if (via === 'office' && !passId && price > 0 && input.method !== 'none') {
+  if (via === 'office' && price > 0 && ['card', 'cash', 'bit'].includes(input.method)) {
     await recordSale(tx, ctx, {
       diverId,
-      kind: s.kind as 'training',
+      kind: s.kind,
       description: s.title,
       amount: price,
       method: input.method,
+      programId: s.programId,
+      sessionId: input.sessionId,
+    });
+  }
+  if (free) {
+    await recordSale(tx, ctx, {
+      diverId,
+      kind: s.kind,
+      description: s.title,
+      amount: 0,
+      method: 'comp',
       programId: s.programId,
       sessionId: input.sessionId,
     });
@@ -199,10 +216,13 @@ export async function bookSession(tx: Tx, ctx: ServiceContext, raw: z.input<type
 
 export const SettleInput = z.object({
   bookingId: id,
-  method: z.enum(['card', 'cash', 'bit']).default('card'),
+  method: z.enum(['card', 'cash', 'bit', 'comp']).default('card'),
 });
 
-/** The desk takes the money for a booking waiting for payment: the sale is rung up and the booking confirmed. */
+/**
+ * The desk settles a booking that still owes: waiting for payment (it is confirmed) or confirmed to collect at the
+ * club. `comp` waives it: the booking costs nothing and a zero sale records who gave it.
+ */
 export async function settleBooking(tx: Tx, ctx: ServiceContext, raw: z.input<typeof SettleInput>) {
   const input = SettleInput.parse(raw);
   return confirmPayment(tx, ctx, { bookingId: input.bookingId, method: input.method });
@@ -240,26 +260,36 @@ async function confirmPayment(
     programId: string;
     kind: string;
     title: string;
+    owes: boolean;
   }>(
     tx,
     sql`select b.status, b.diver_id as "diverId", b.session_id as "sessionId", b.price_agorot as price,
-               p.id as "programId", p.kind, coalesce(x.title, p.name_he) as title
+               p.id as "programId", p.kind, coalesce(x.title, p.name_he) as title,
+               (b.pass_id is null and b.price_agorot > 0 and not exists (
+                  select 1 from dive_sales s where s.session_id = b.session_id and s.diver_id = b.diver_id)) as owes
         from dive_bookings b join dive_sessions x on x.id = b.session_id join dive_programs p on p.id = x.program_id
         where b.id = ${p.bookingId}`,
   );
   if (!b) throw new DomainError('common.errors.notFound');
-  if (b.status !== 'pending_payment') return { confirmed: false };
+  const pending = b.status === 'pending_payment';
+  if (!pending && !(b.owes && ['booked', 'checked_in', 'no_show'].includes(b.status)))
+    return { confirmed: false };
+  const comp = p.method === 'comp';
   // Confirming re-checks the seat (a lapsed hold may have been taken meanwhile); the money is only rung up after.
-  await guarded(() =>
-    tx.execute(
-      sql`update dive_bookings set status = 'booked', hold_until = null where id = ${p.bookingId}`,
-    ),
-  );
+  if (pending || comp)
+    await guarded(() =>
+      tx.execute(
+        sql`update dive_bookings
+            set status = case when status = 'pending_payment' then 'booked' else status end,
+                hold_until = null, price_agorot = ${comp ? 0 : b.price}
+            where id = ${p.bookingId}`,
+      ),
+    );
   await recordSale(tx, ctx, {
     diverId: b.diverId,
     kind: b.kind,
     description: b.title,
-    amount: b.price,
+    amount: comp ? 0 : b.price,
     method: p.method,
     programId: b.programId,
     sessionId: b.sessionId,
@@ -271,6 +301,49 @@ async function confirmPayment(
     idempotencyKey: `dive.booking_paid:${p.bookingId}`,
   });
   return { confirmed: true };
+}
+
+export const PassSale = z.object({
+  diverId: id,
+  kind: z.enum(DIVE_PASS_KINDS),
+  /** `comp`: given without charge (a zero sale records who gave it). */
+  method: z.enum(['card', 'cash', 'bit', 'comp']).default('card'),
+  /** What the receipt line says (the pass's name in the club's language). */
+  label: z.string().min(1).max(120),
+});
+
+/**
+ * A pass for a diver, from the club's price list (rules.passes): valid from today for its number of days, rung up
+ * as a sale. The desk sells or gives one; online, the provider's callback sells it to the diver who paid.
+ */
+export async function sellPass(tx: Tx, ctx: ServiceContext, raw: z.input<typeof PassSale>) {
+  const input = PassSale.parse(raw);
+  const { rules } = await loadRules(tx);
+  const product = rules.passes[input.kind];
+  const comp = input.method === 'comp';
+  const amount = comp ? 0 : product.price_agorot;
+  const r = await one<{ id: string }>(
+    tx,
+    sql`insert into dive_passes (organization_id, diver_id, kind, sessions_total, valid_from, valid_until, price_agorot)
+        values (${ctx.orgId}, ${input.diverId}, ${input.kind}, ${product.sessions}, app.today(),
+                app.today() + ${product.valid_days}::int, ${amount})
+        returning id`,
+  );
+  await recordSale(tx, ctx, {
+    diverId: input.diverId,
+    kind: 'pass',
+    description: input.label,
+    amount,
+    method: input.method,
+  });
+  const passId = (r as { id: string }).id;
+  await emit(tx, {
+    organizationId: ctx.orgId,
+    type: 'dive.pass_sold',
+    payload: { passId, diverId: input.diverId, kind: input.kind, amount, method: input.method },
+    idempotencyKey: `dive.pass_sold:${passId}`,
+  });
+  return { passId };
 }
 
 async function isCustomer(tx: Tx): Promise<boolean> {

@@ -1,0 +1,2 @@
+ALTER TABLE "dive_sales" DROP CONSTRAINT "dive_sales_method_check";--> statement-breakpoint
+ALTER TABLE "dive_sales" ADD CONSTRAINT "dive_sales_method_check" CHECK (method in ('card', 'cash', 'bit', 'transfer', 'pass', 'comp'));

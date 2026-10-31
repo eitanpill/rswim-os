@@ -5,7 +5,7 @@
  */
 import type { Db } from '@rswim/db';
 import { withOrg } from '@rswim/db/service';
-import { confirmOnlinePayment } from './actions';
+import { confirmOnlinePayment, sellPass } from './actions';
 
 export async function confirmCheckout(
   db: Db,
@@ -19,6 +19,24 @@ export async function confirmCheckout(
         tx,
         { orgId: p.orgId, userId: p.userId },
         { bookingId: p.bookingId, externalId: p.externalId },
+      ),
+    { actorId: p.userId },
+  );
+}
+
+/** The diver paid online for a pass: it is issued to them as the system for that one club. */
+export async function confirmPassCheckout(
+  db: Db,
+  p: { orgId: string; userId: string; diverId: string; kind: string; label: string },
+): Promise<{ passId: string }> {
+  return withOrg(
+    db,
+    p.orgId,
+    (tx) =>
+      sellPass(
+        tx,
+        { orgId: p.orgId, userId: p.userId },
+        { diverId: p.diverId, kind: p.kind as 'punch10', method: 'card', label: p.label },
       ),
     { actorId: p.userId },
   );
