@@ -31,7 +31,14 @@ export type DiveLevel = (typeof DIVE_LEVELS)[number];
 export const DIVE_SESSION_STATUSES = ['scheduled', 'go', 'hold', 'cancelled', 'done'] as const;
 export type DiveSessionStatus = (typeof DIVE_SESSION_STATUSES)[number];
 
-export const DIVE_BOOKING_STATUSES = ['booked', 'checked_in', 'no_show', 'cancelled'] as const;
+/** `pending_payment` holds a seat until `hold_until`; it is not a confirmed booking until it is paid. */
+export const DIVE_BOOKING_STATUSES = [
+  'pending_payment',
+  'booked',
+  'checked_in',
+  'no_show',
+  'cancelled',
+] as const;
 export type DiveBookingStatus = (typeof DIVE_BOOKING_STATUSES)[number];
 
 export const DIVE_BOOKED_VIA = ['office', 'online', 'instructor', 'whatsapp'] as const;
@@ -224,6 +231,15 @@ export const DiveRules = z
       })
       .partial()
       .strict(),
+    booking: z
+      .object({
+        /** A paid session is confirmed only once paid; until then it holds the seat. */
+        require_payment: z.boolean(),
+        /** How long an online booking holds its seat while the diver pays. */
+        payment_hold_minutes: int(5, 1440),
+      })
+      .partial()
+      .strict(),
   })
   .partial()
   .strict();
@@ -236,6 +252,7 @@ export interface ResolvedDiveRules {
   paperwork: Required<NonNullable<DiveRules['paperwork']>>;
   staff: Required<NonNullable<DiveRules['staff']>>;
   gear: Required<NonNullable<DiveRules['gear']>>;
+  booking: Required<NonNullable<DiveRules['booking']>>;
 }
 
 /** Sensible defaults for an Eilat club (fake demo numbers, not safety advice). */
@@ -253,6 +270,7 @@ export const DEFAULT_DIVE_RULES: ResolvedDiveRules = {
   paperwork: { medical_valid_months: 12, waiver_valid_months: 12, medical_warn_days: 30 },
   staff: { cert_warn_days: 30 },
   gear: { rental_grace_min: 30 },
+  booking: { require_payment: true, payment_hold_minutes: 30 },
 };
 
 /** A stored version's overrides on top of the defaults. */
@@ -265,5 +283,6 @@ export function resolveDiveRules(rules: DiveRules | null | undefined): ResolvedD
     paperwork: { ...DEFAULT_DIVE_RULES.paperwork, ...r.paperwork },
     staff: { ...DEFAULT_DIVE_RULES.staff, ...r.staff },
     gear: { ...DEFAULT_DIVE_RULES.gear, ...r.gear },
+    booking: { ...DEFAULT_DIVE_RULES.booking, ...r.booking },
   };
 }

@@ -267,6 +267,8 @@ export const diveBookings = pgTable(
     /** The rule set the booking was checked against. */
     ruleSetId: uuid('rule_set_id'),
     checkedInAt: timestamp('checked_in_at', { withTimezone: true }),
+    /** While `pending_payment`: the seat is held until then; afterwards it is free again. */
+    holdUntil: timestamp('hold_until', { withTimezone: true }),
     createdBy: uuid('created_by'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

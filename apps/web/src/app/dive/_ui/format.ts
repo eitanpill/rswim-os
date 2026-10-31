@@ -71,3 +71,8 @@ export function pctChange(now: number, before: number): number | null {
   if (before <= 0) return null;
   return Math.round(((now - before) / before) * 100);
 }
+
+/** A seat held for hours (pay on arrival) reads as "until the session"; a short online hold counts down. */
+export function heldLong(until: string | Date): boolean {
+  return new Date(until).getTime() - Date.now() > 2 * 3600_000;
+}

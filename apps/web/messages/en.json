@@ -3948,7 +3948,8 @@
       "surface": "Surface",
       "noLead": "No lead instructor",
       "minLevel": "From {level}",
-      "booked": "{booked} of {capacity} places"
+      "booked": "{booked} of {capacity} places",
+      "pending": "{count, plural, one {1 awaiting payment} other {# awaiting payment}}"
     },
     "level": {
       "0": "Not certified",
@@ -3969,7 +3970,8 @@
       "booked": "Booked",
       "checked_in": "Arrived",
       "no_show": "No-show",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "pending_payment": "Awaiting payment"
     },
     "ratio": {
       "short": "Short of instructors ({needed})",
@@ -4049,7 +4051,11 @@
         "title": "{days} days without a safety incident",
         "body": "The crew is doing great work. Tell them."
       },
-      "more": "{count, plural, one {and one more} other {and # more}}"
+      "more": "{count, plural, one {and one more} other {and # more}}",
+      "payments_pending": {
+        "title": "{count, plural, one {One booking is awaiting payment} other {# bookings are awaiting payment}} ({amount})",
+        "body": "They're not confirmed yet and the seat is only held for a while. The desk can take payment and confirm in one tap."
+      }
     },
     "owner": {
       "kicker": "The bridge",
@@ -4257,7 +4263,10 @@
         "contacted": "Talked",
         "booked": "Booked",
         "lost": "Not relevant"
-      }
+      },
+      "unpaid": "Unpaid · {amount}",
+      "settle": "Take payment",
+      "unpaidSub": "{count, plural, one {1 hasn't paid} other {# haven't paid}} ({amount})"
     },
     "payMethod": {
       "card": "Card",
@@ -4416,7 +4425,15 @@
       "nothingToBook": "No open training in the next ten days.",
       "onPass": "On your pass",
       "spots": "{count, plural, one {last place} other {# places}}",
-      "bookIt": "Book"
+      "bookIt": "Book",
+      "confirmed": "Confirmed",
+      "payNow": "Pay {amount}",
+      "heldFor": "Your seat is held for",
+      "bookAndPay": "Book & pay",
+      "paidBanner": "Payment received and your booking is confirmed. See you in the water!",
+      "unpaidTitle": "{count, plural, one {One booking is waiting for payment} other {# bookings are waiting for payment}}",
+      "unpaidSub": "A booking counts only once it is paid. Until then your seat is held for a short while, then it goes back to others.",
+      "payOnArrival": "Your seat is held until the session. Pay now or on arrival."
     },
     "passKind": {
       "punch5": "5-session pass",
@@ -4474,7 +4491,8 @@
       "reported": "Incident recorded in the safety log",
       "conditions": "Sea posted: {call}",
       "lines": "Lines assigned",
-      "waiver": "Thanks! Waiver signed"
+      "waiver": "Thanks! Waiver signed",
+      "paid": "Paid. Booking confirmed"
     },
     "errors": {
       "sessionFull": "The session is full",
@@ -4485,7 +4503,8 @@
       "sessionPast": "The session has already started",
       "alreadyBooked": "Already booked",
       "levelTooLow": "Needs a higher level",
-      "measureRequired": "Enter a depth, distance or time"
+      "measureRequired": "Enter a depth, distance or time",
+      "holdLapsed": "The hold has expired. Book again if there is still room."
     },
     "levelShort": {
       "0": "None",
@@ -4494,6 +4513,29 @@
       "3": "Intermediate",
       "4": "Advanced",
       "5": "Instructor"
+    },
+    "pay": {
+      "kicker": "Payment",
+      "title": "Complete your booking",
+      "secure": "Secure payment",
+      "total": "Total",
+      "heldFor": "Seat held for",
+      "lapsedShort": "expired",
+      "card": "Credit card",
+      "demo": "Grow · demo",
+      "cardNumber": "Card number",
+      "expiry": "Expiry",
+      "cvv": "CVV",
+      "payNow": "Pay {amount} and confirm",
+      "note": "This is a demo checkout: no card is charged. Once the club's Grow account is connected, payment goes through it and the booking confirms automatically.",
+      "alreadyPaid": "Paid. Your booking is confirmed",
+      "lapsed": "The hold has expired",
+      "lapsedHelp": "The seat is no longer held for you. You can book again from your page if there is still room.",
+      "notLive": "Online payment isn't connected yet. Pay at the club's desk and the booking is confirmed right away.",
+      "notFound": "We couldn't find this booking.",
+      "back": "Back to my page",
+      "heldUntil": "Seat held",
+      "untilSession": "Until the session · or pay on arrival"
     }
   }
 }

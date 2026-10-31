@@ -17,7 +17,7 @@ import {
 } from '@rswim/contracts';
 import { sql, type Tx } from '@rswim/db';
 import { DomainError, emit, type ServiceContext } from '@rswim/domain-core';
-import { bookingDecision, passBalance, planLines, seaCall } from '../policies';
+import { bookingConfirmation, bookingDecision, passBalance, planLines, seaCall } from '../policies';
 import { lineup } from './reads';
 import { guarded, loadRules, myDiverId, one, rows, todayIL } from './shared';
 
@@ -62,7 +62,8 @@ export async function cancelBooking(tx: Tx, raw: z.input<typeof BookingRef>) {
   const { bookingId } = BookingRef.parse(raw);
   await guarded(() =>
     tx.execute(
-      sql`update dive_bookings set status = 'cancelled' where id = ${bookingId} and status = 'booked'`,
+      sql`update dive_bookings set status = 'cancelled', hold_until = null
+          where id = ${bookingId} and status in ('booked', 'pending_payment')`,
     ),
   );
 }
@@ -83,11 +84,12 @@ export async function bookSession(tx: Tx, ctx: ServiceContext, raw: z.input<type
   const diverId = input.diverId ?? (await myDiverId(tx));
   if (!diverId) throw new DomainError('dive.errors.noDiver');
   const today = await todayIL(tx);
-  const { ruleSetId } = await loadRules(tx);
+  const { rules, ruleSetId } = await loadRules(tx);
   const s = await one<{
     capacity: number;
     status: string;
     startsAt: string;
+    endsAt: string;
     minLevel: number;
     kind: string;
     price: number;
@@ -96,9 +98,9 @@ export async function bookSession(tx: Tx, ctx: ServiceContext, raw: z.input<type
     booked: number;
   }>(
     tx,
-    sql`select x.capacity, x.status, x.starts_at as "startsAt", p.min_level as "minLevel", p.kind,
+    sql`select x.capacity, x.status, x.starts_at as "startsAt", x.ends_at as "endsAt", p.min_level as "minLevel", p.kind,
                p.price_agorot as price, p.id as "programId", coalesce(x.title, p.name_he) as title,
-               (select count(*)::int from dive_bookings b where b.session_id = x.id and b.status in ('booked', 'checked_in')) as booked
+               app.dive_seats_taken(x.id) as booked
         from dive_sessions x join dive_programs p on p.id = x.program_id where x.id = ${input.sessionId}`,
   );
   const d = await one<{ level: number; existing: string | null }>(
@@ -144,23 +146,38 @@ export async function bookSession(tx: Tx, ctx: ServiceContext, raw: z.input<type
   }
   const price = passId ? 0 : s.price;
   const via = ctx.userId && (await isCustomer(tx)) ? 'online' : 'office';
+  // Unpaid, it only holds the seat: confirmed once the money is in (desk, or the provider's callback).
+  const confirm = bookingConfirmation(
+    {
+      price,
+      coveredByPass: passId !== null,
+      paidNow: via === 'office' && input.method !== 'none',
+      online: via === 'online',
+      startsAt: new Date(s.startsAt),
+      endsAt: new Date(s.endsAt),
+    },
+    new Date(),
+    rules.booking,
+  );
+  const hold = confirm.holdUntil?.toISOString() ?? null;
   const bookingId = await guarded(async () => {
     if (d.existing) {
       await tx.execute(
-        sql`update dive_bookings set status = 'booked', pass_id = ${passId}, price_agorot = ${price}, rule_set_id = ${ruleSetId}
+        sql`update dive_bookings set status = ${confirm.status}, hold_until = ${hold}, pass_id = ${passId},
+                   price_agorot = ${price}, rule_set_id = ${ruleSetId}
             where id = ${d.existing}`,
       );
       return d.existing;
     }
     const r = await one<{ id: string }>(
       tx,
-      sql`insert into dive_bookings (organization_id, session_id, diver_id, pass_id, price_agorot, booked_via, rule_set_id, created_by)
-          values (${ctx.orgId}, ${input.sessionId}, ${diverId}, ${passId}, ${price}, ${via}, ${ruleSetId}, ${ctx.userId})
+      sql`insert into dive_bookings (organization_id, session_id, diver_id, status, hold_until, pass_id, price_agorot, booked_via, rule_set_id, created_by)
+          values (${ctx.orgId}, ${input.sessionId}, ${diverId}, ${confirm.status}, ${hold}, ${passId}, ${price}, ${via}, ${ruleSetId}, ${ctx.userId})
           returning id`,
     );
     return (r as { id: string }).id;
   });
-  if (!passId && price > 0 && input.method !== 'none') {
+  if (via === 'office' && !passId && price > 0 && input.method !== 'none') {
     await recordSale(tx, ctx, {
       diverId,
       kind: s.kind as 'training',
@@ -174,10 +191,86 @@ export async function bookSession(tx: Tx, ctx: ServiceContext, raw: z.input<type
   await emit(tx, {
     organizationId: ctx.orgId,
     type: 'dive.booking_created',
-    payload: { bookingId, sessionId: input.sessionId, diverId, via },
+    payload: { bookingId, sessionId: input.sessionId, diverId, via, status: confirm.status },
     idempotencyKey: `dive.booking_created:${bookingId}:${Date.now()}`,
   });
-  return bookingId;
+  return { bookingId, status: confirm.status };
+}
+
+export const SettleInput = z.object({
+  bookingId: id,
+  method: z.enum(['card', 'cash', 'bit']).default('card'),
+});
+
+/** The desk takes the money for a booking waiting for payment: the sale is rung up and the booking confirmed. */
+export async function settleBooking(tx: Tx, ctx: ServiceContext, raw: z.input<typeof SettleInput>) {
+  const input = SettleInput.parse(raw);
+  return confirmPayment(tx, ctx, { bookingId: input.bookingId, method: input.method });
+}
+
+export const OnlinePayment = z.object({ bookingId: id, externalId: z.string().min(1).max(120) });
+
+/**
+ * The payment provider says a booking was paid online (its callback, run as the system for the club). Idempotent:
+ * a second callback for the same booking finds it confirmed and does nothing.
+ */
+export async function confirmOnlinePayment(
+  tx: Tx,
+  ctx: ServiceContext,
+  raw: z.input<typeof OnlinePayment>,
+) {
+  const input = OnlinePayment.parse(raw);
+  return confirmPayment(tx, ctx, {
+    bookingId: input.bookingId,
+    method: 'card',
+    externalId: input.externalId,
+  });
+}
+
+async function confirmPayment(
+  tx: Tx,
+  ctx: ServiceContext,
+  p: { bookingId: string; method: string; externalId?: string },
+): Promise<{ confirmed: boolean }> {
+  const b = await one<{
+    status: string;
+    diverId: string;
+    sessionId: string;
+    price: number;
+    programId: string;
+    kind: string;
+    title: string;
+  }>(
+    tx,
+    sql`select b.status, b.diver_id as "diverId", b.session_id as "sessionId", b.price_agorot as price,
+               p.id as "programId", p.kind, coalesce(x.title, p.name_he) as title
+        from dive_bookings b join dive_sessions x on x.id = b.session_id join dive_programs p on p.id = x.program_id
+        where b.id = ${p.bookingId}`,
+  );
+  if (!b) throw new DomainError('common.errors.notFound');
+  if (b.status !== 'pending_payment') return { confirmed: false };
+  // Confirming re-checks the seat (a lapsed hold may have been taken meanwhile); the money is only rung up after.
+  await guarded(() =>
+    tx.execute(
+      sql`update dive_bookings set status = 'booked', hold_until = null where id = ${p.bookingId}`,
+    ),
+  );
+  await recordSale(tx, ctx, {
+    diverId: b.diverId,
+    kind: b.kind,
+    description: b.title,
+    amount: b.price,
+    method: p.method,
+    programId: b.programId,
+    sessionId: b.sessionId,
+  });
+  await emit(tx, {
+    organizationId: ctx.orgId,
+    type: 'dive.booking_paid',
+    payload: { bookingId: p.bookingId, method: p.method, externalId: p.externalId ?? null },
+    idempotencyKey: `dive.booking_paid:${p.bookingId}`,
+  });
+  return { confirmed: true };
 }
 
 async function isCustomer(tx: Tx): Promise<boolean> {

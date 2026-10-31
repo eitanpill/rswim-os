@@ -46,12 +46,32 @@ stops under `prefers-reduced-motion`.
 `dive_enrollments` (skills ticked) · `dive_gear` · `dive_rentals` · `dive_sales` (append-only) · `dive_conditions` ·
 `dive_leads` · `dive_staff_certs`.
 
-The database guards what matters: capacity on booking, a customer may only book themself and cancel, a customer edits
+The database guards what matters: capacity on booking (seats held for payment count), a customer may only book themself and cancel, a customer edits
 only their own paperwork fields, gear can't go out twice, personal bests follow clean dives, sales never change.
+
+## Paying for a booking
+
+A booking for a paid session counts only once it is paid. Until then it is `pending_payment` and holds the seat until
+`hold_until`; after that the seat is free again and the diver must book again.
+
+- Online, the diver goes from "להרשמה ותשלום" straight to the checkout (`/dive/me/pay/[bookingId]`), and the seat is
+  held for `booking.payment_hold_minutes` (30 by default) or until the session starts.
+- The desk can book without taking money ("לגבות בהגעה"): the seat is held until the session ends, and the arrival
+  shows "לא שולם" with "גבייה ואישור".
+- A pass, a free session or a payment at the desk confirms the booking at once.
+- A customer can never confirm their own booking, because `guard_dive_booking` forces their bookings to pending. The
+  desk confirms (`settleBooking`), and so does the payment provider's callback, which runs as the system for that one
+  club (`@rswim/domain-dive/checkout`). Confirming checks capacity again and records the sale.
+- Until the club's Grow account is connected, the checkout is the payment fake. It runs locally with
+  `RSWIM_GROW_FAKE=1`, in E2E and in the live demo, and charges nothing. Without the fake it tells the diver to pay
+  at the desk.
+- The owner's feed shows how many bookings wait for payment and how much they add up to.
+- A club that lets divers pay later turns this off with `booking.require_payment = false`.
 
 ## Rules (`packages/domain/dive/src/policies.ts`, pure, 100% branch coverage)
 
-`seaCall`, `allowedDepth`, `readiness`, `bookingDecision`, `ratioCheck`, `passBalance`, `planLines`, `clubInsights`.
+`seaCall`, `allowedDepth`, `readiness`, `bookingDecision`, `bookingConfirmation`, `ratioCheck`, `passBalance`,
+`planLines`, `clubInsights`.
 Each takes the rules version in force; defaults live in `@rswim/contracts` (`DEFAULT_DIVE_RULES`).
 
 ## Demo

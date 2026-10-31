@@ -107,3 +107,30 @@ export function Dismissible({
     </div>
   );
 }
+
+/**
+ * Minutes and seconds left on a seat held for payment, ticking down. The server renders the starting value; at zero
+ * it shows `expired` (the page reloads on the next visit and the seat is offered to others).
+ */
+export function HoldCountdown({ until, expired }: { until: string; expired: string }) {
+  const left = () => Math.max(0, Math.floor((new Date(until).getTime() - Date.now()) / 1000));
+  const [sec, setSec] = useState(left);
+  useEffect(() => {
+    const id = window.setInterval(() => setSec(left()), 1000);
+    return () => window.clearInterval(id);
+    // `until` is the only input.
+  }, [until]);
+  if (sec <= 0) return <span>{expired}</span>;
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  const text =
+    h > 0
+      ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      : `${m}:${String(s).padStart(2, '0')}`;
+  return (
+    <span dir="ltr" className="tabular-nums" suppressHydrationWarning>
+      {text}
+    </span>
+  );
+}

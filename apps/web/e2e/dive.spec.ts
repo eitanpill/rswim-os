@@ -69,11 +69,45 @@ test('the diver sees her depth and books training', async ({ page }) => {
   await expect(page.getByTestId('depth-chart').locator('svg[role="img"]')).toBeVisible();
   const next = page.getByTestId('my-next').getByRole('button', { name: 'ביטול הרשמה' });
   const booked = await next.count();
-  await page.getByTestId('bookable').getByTestId('book').first().click();
+  // Training on her punch card is confirmed at once; nothing to pay.
+  await page
+    .getByTestId('bookable')
+    .getByRole('button', { name: 'להירשם', exact: true })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/dive\/me\?booked=1$/);
   await expect(next).toHaveCount(Math.min(booked + 1, 5));
   // A diver has no business on the staff screens.
   await page.goto('/dive/owner');
   await expect(page).toHaveURL(/\/dive\/me$/);
+});
+
+test('a booking counts only once the diver pays for it', async ({ page }) => {
+  await page.goto('/dev/login?as=diveCustomer');
+  await expect(page).toHaveURL(/\/dive\/me$/);
+  // The workshop the office booked her into on WhatsApp still waits for her money.
+  await expect(page.getByTestId('unpaid')).toBeVisible();
+  await expect(page.getByTestId('my-next')).toContainText('ממתין לתשלום');
+  await page.getByTestId('pay-link').first().click();
+  await expect(page).toHaveURL(/\/dive\/me\/pay\//);
+  await expect(page.getByTestId('checkout-amount')).toContainText('₪');
+  await page.getByTestId('pay-now').click();
+  await expect(page).toHaveURL(/\/dive\/me\?paid=/);
+  await expect(page.getByTestId('paid-banner')).toContainText('ההרשמה אושרה');
+  await expect(page.getByTestId('unpaid')).toHaveCount(0);
+  await expect(page.getByTestId('my-next')).not.toContainText('ממתין לתשלום');
+});
+
+test('the desk takes payment and confirms the booking', async ({ page }) => {
+  await page.goto('/dev/login?as=diveOffice');
+  await expect(page).toHaveURL(/\/dive\/office$/);
+  const settle = page.getByTestId('settle');
+  const before = await settle.count();
+  expect(before).toBeGreaterThan(0);
+  const till = await page.getByTestId('till').innerText();
+  await settle.first().getByTestId('settle-submit').click();
+  await expect(settle).toHaveCount(before - 1);
+  await expect(page.getByTestId('till')).not.toHaveText(till);
 });
 
 test('swim and dive stay apart, and the platform sees both', async ({ page }) => {

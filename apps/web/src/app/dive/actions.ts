@@ -7,6 +7,7 @@ import {
   BookingRef,
   cancelBooking,
   checkIn,
+  checkoutView,
   closeIncident,
   ConditionsInput,
   IncidentClose,
@@ -27,14 +28,24 @@ import {
   SessionStatusInput,
   setSessionStatus,
   setTarget,
+  SettleInput,
+  settleBooking,
   signWaiver,
   SkillToggle,
   TargetInput,
   toggleSkill,
   updateMedical,
 } from '@rswim/domain-dive';
+import { confirmCheckout } from '@rswim/domain-dive/checkout';
+import { toDomainError } from '@rswim/domain-core';
+import { randomUUID } from 'node:crypto';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 import type { FormState } from '@/lib/form-state';
+import { db, withSession } from '@/lib/db';
+import { fakeCheckout } from '@/lib/dive-payments';
 import { runForm } from '@/lib/forms';
 
 /**
@@ -65,6 +76,60 @@ export async function cancelBookingAction(_: FormState, fd: FormData) {
 
 export async function bookAction(_: FormState, fd: FormData) {
   return runForm(fd, BookInput, (tx, ctx, i) => bookSession(tx, ctx, i), opts('dive.done.booked'));
+}
+
+/** The diver books online: a paid session goes straight to checkout, since it only counts once it is paid. */
+export async function bookOnlineAction(_: FormState, fd: FormData) {
+  return runForm(fd, BookInput, (tx, ctx, i) => bookSession(tx, ctx, i), {
+    ...opts('dive.done.booked'),
+    redirectTo: (r) =>
+      r.status === 'pending_payment' ? `/dive/me/pay/${r.bookingId}` : '/dive/me?booked=1',
+  });
+}
+
+/** The desk takes the money for a booking waiting for payment, which confirms it. */
+export async function settleBookingAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    SettleInput,
+    (tx, ctx, i) => settleBooking(tx, ctx, i),
+    opts('dive.done.paid'),
+  );
+}
+
+/**
+ * The diver pays on the checkout page. Only the payment fake answers here (local, E2E, the live demo): the booking is
+ * checked as the diver (their own, still held), then confirmed the way the provider's callback will confirm it.
+ */
+export async function payCheckoutAction(_: FormState, fd: FormData): Promise<FormState> {
+  const t = await getTranslations();
+  const fail = (key: string) => ({ ok: false, errors: {}, message: t(key) });
+  if (!fakeCheckout()) return fail('dive.pay.notLive');
+  const bookingId = z.uuid().safeParse(fd.get('bookingId'));
+  if (!bookingId.success) return fail('common.errors.notFound');
+  const found = await withSession(async (tx, ctx, session) => ({
+    view: await checkoutView(tx, bookingId.data),
+    orgId: ctx.orgId,
+    userId: session.userId,
+  }));
+  if (!found.view) return fail('common.errors.notFound');
+  if (found.view.status === 'pending_payment') {
+    if (!found.view.holding) return fail('dive.errors.holdLapsed');
+    try {
+      await confirmCheckout(db(), {
+        orgId: found.orgId,
+        userId: found.userId,
+        bookingId: bookingId.data,
+        externalId: `demo_${randomUUID()}`,
+      });
+    } catch (e) {
+      const de = toDomainError(e);
+      if (!de) throw e;
+      return fail(t.has(de.code) ? de.code : 'forms.errors.invalid');
+    }
+  }
+  for (const p of ALL) revalidatePath(p);
+  redirect(`/dive/me?paid=${bookingId.data}`);
 }
 
 export async function rentAction(_: FormState, fd: FormData) {

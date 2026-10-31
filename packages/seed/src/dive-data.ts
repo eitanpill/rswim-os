@@ -224,6 +224,7 @@ interface Session {
   kind: string;
   date: string;
   startsAt: Date;
+  endsAt: Date;
   capacity: number;
   minLevel: number;
   lead: string;
@@ -971,6 +972,7 @@ async function seedClub(
       kind: p.kind,
       date,
       startsAt,
+      endsAt: plusMinutes(startsAt, minutes),
       capacity,
       minLevel: p.minLevel,
       lead,
@@ -1143,6 +1145,8 @@ async function seedClub(
   const enrollRows: unknown[][] = [];
   const booked = new Map<string, Set<string>>();
   const course = new Map<string, string[]>(); // title -> divers
+  // Dana owes for one workshop or trip the office booked her into on WhatsApp: it isn't confirmed until she pays.
+  let danaUnpaid: string | null = null;
   const eligible = (s: Session) =>
     divers.filter((d) => {
       if (s.kind === 'experience') return d.level <= 1 && d !== dana;
@@ -1221,6 +1225,19 @@ async function seedClub(
       if ((d < 0 && weekday(s.date) === 5 && Math.abs(d) % 14 < 7) || d === 1)
         chosen = [dana, ...chosen.filter((x) => x !== dana)].slice(0, s.capacity);
     }
+    const ahead = Math.round((Date.parse(s.date) - Date.parse(today)) / 86_400_000);
+    if (
+      dana &&
+      !danaUnpaid &&
+      (s.kind === 'workshop' || s.kind === 'trip') &&
+      s.status !== 'cancelled' &&
+      ahead >= 2 &&
+      ahead <= 7 &&
+      s.minLevel <= dana.level
+    ) {
+      danaUnpaid = s.id;
+      chosen = [dana, ...chosen.filter((x) => x !== dana)].slice(0, s.capacity);
+    }
     for (const d of chosen) {
       if (set.has(d.id)) continue;
       set.add(d.id);
@@ -1246,6 +1263,27 @@ async function seedClub(
         d.passLeft--;
       }
       const price = passId ? 0 : s.kind === 'course' ? 0 : s.price;
+      // A paid session counts only once it is paid. Today some still pay at the desk; ahead, a few will pay on
+      // arrival and a few are at the online checkout right now. The rest paid when they booked.
+      let via = d.origin === 'abroad' ? 'whatsapp' : chance(0.55) ? 'online' : 'office';
+      let hold: Date | null = null;
+      let unpaid = false;
+      if (status === 'booked' && price > 0) {
+        const r = random();
+        if (d === dana && s.id === danaUnpaid) {
+          unpaid = true;
+          via = 'whatsapp';
+          hold = s.endsAt;
+        } else if (isToday ? r < 0.2 : r < 0.05) {
+          unpaid = true;
+          via = 'office';
+          hold = s.endsAt;
+        } else if (!isToday && r < 0.08) {
+          unpaid = true;
+          via = 'online';
+          hold = new Date(Date.now() + between(12, 28) * 60_000);
+        }
+      }
       const target =
         s.kind === 'training' && s.programCode !== 'pool' && d.pb
           ? Math.min(s.maxDepth, d.pb + (chance(0.5) ? 1 : 2))
@@ -1255,23 +1293,30 @@ async function seedClub(
         orgId,
         s.id,
         d.id,
-        status,
+        unpaid ? 'pending_payment' : status,
+        hold,
         d === dana && s.date > today && s.programCode === 'line' ? 26 : target,
         passId,
         price,
-        d.origin === 'abroad' ? 'whatsapp' : chance(0.55) ? 'online' : 'office',
+        via,
         rulesId,
         status === 'checked_in' ? plusMinutes(s.startsAt, -between(5, 25)) : null,
-        plusMinutes(s.startsAt, -between(60 * 6, 60 * 24 * 9)),
+        unpaid && via === 'online'
+          ? new Date(Date.now() - between(2, 15) * 60_000)
+          : plusMinutes(s.startsAt, -between(60 * 6, 60 * 24 * 9)),
       ]);
       // Money: pay-as-you-go divers pay per session; courses once per cohort (below).
-      if (status !== 'cancelled' && price > 0 && (past || isToday || chance(0.35)))
+      if (status !== 'cancelled' && price > 0 && !unpaid)
         sale(
           d.id,
           s.kind,
           s.title ?? need(programs[s.programCode]).he,
           price,
-          plusMinutes(s.startsAt, -between(10, 60 * 48)),
+          // Paid ahead for a later session: rung up when they booked, never in the future.
+          ((at) =>
+            at.getTime() < Date.now() ? at : plusMinutes(new Date(), -between(5, 60 * 72)))(
+            plusMinutes(s.startsAt, -between(10, 60 * 48)),
+          ),
           payMethod(),
           s.programId,
           s.id,
@@ -1522,6 +1567,7 @@ async function seedClub(
       'session_id',
       'diver_id',
       'status',
+      'hold_until',
       'target_depth_m',
       'pass_id',
       'price_agorot',

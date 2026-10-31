@@ -1,7 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { ConditionsRow, Insight, ReadinessItem, SessionCard } from '@rswim/domain-dive';
 import { cn } from '@rswim/ui';
-import { dayLabel, hhmm } from './format';
+import { dayLabel, hhmm, shekels } from './format';
 import { di } from './icons';
 import { Avatar, CallBadge, Chip, Meter, type Tone } from './kit';
 
@@ -151,6 +151,7 @@ const INSIGHT_ICON: Record<Insight['kind'], React.ReactNode> = {
   staff_cert: di.alert,
   gear_service: di.gear,
   rentals_overdue: di.gear,
+  payments_pending: di.coin,
   leads: di.phone,
   safety_streak: di.shield,
   graduates: di.spark,
@@ -163,6 +164,7 @@ const INSIGHT_LINK: Partial<Record<Insight['kind'], string>> = {
   staff_cert: '/dive/manager',
   gear_service: '/dive/manager',
   rentals_overdue: '/dive/office',
+  payments_pending: '/dive/office',
   leads: '/dive/office',
 };
 
@@ -183,6 +185,7 @@ export async function InsightList({
       const p = { ...i.params } as Record<string, string | number>;
       if (typeof p.date === 'string') p.date = dayLabel(p.date, locale);
       if (typeof p.call === 'string') p.call = t(`call.${p.call}`);
+      if (i.kind === 'payments_pending') p.amount = shekels(Number(p.amount), locale);
       const key = i.kind === 'staff_cert' && Number(p.days) < 0 ? 'staff_cert_expired' : i.kind;
       if (key === 'staff_cert_expired') p.days = Math.abs(Number(p.days));
       const href = INSIGHT_LINK[i.kind];
@@ -308,6 +311,14 @@ export async function SessionRow({ s, children }: { s: SessionCard; children?: R
           >
             {s.booked}/{s.capacity}
           </p>
+          {s.pending > 0 ? (
+            <p
+              className="text-[11px] text-[var(--dive-coral)] tabular-nums"
+              data-testid="session-pending"
+            >
+              {t('common.pending', { count: s.pending })}
+            </p>
+          ) : null}
           <Meter
             value={s.booked}
             max={s.capacity}

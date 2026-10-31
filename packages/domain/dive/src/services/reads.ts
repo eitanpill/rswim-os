@@ -17,7 +17,7 @@ import {
   type Insight,
   type ReadinessItem,
 } from '../policies';
-import { loadRules, one, rows, todayIL } from './shared';
+import { loadRules, myDiverId, one, rows, todayIL } from './shared';
 
 // ─── Shared shapes ──────────────────────────────────────────────────────────
 
@@ -63,6 +63,8 @@ export interface SessionCard {
   status: string;
   capacity: number;
   booked: number;
+  /** Seats held for divers who have not paid yet (part of `booked`). */
+  pending: number;
   checkedIn: number;
   title: string;
   programKind: DiveProgramKind;
@@ -83,7 +85,8 @@ async function sessionCards(tx: Tx, where: ReturnType<typeof sql>): Promise<Sess
     tx,
     sql`select x.id, x.starts_at as "startsAt", x.ends_at as "endsAt",
                (x.starts_at at time zone 'Asia/Jerusalem')::date::text as day, x.status, x.capacity,
-               (select count(*)::int from dive_bookings b where b.session_id = x.id and b.status in ('booked', 'checked_in')) as booked,
+               (select count(*)::int from dive_bookings b where b.session_id = x.id and app.dive_holds_seat(b.status, b.hold_until)) as booked,
+               (select count(*)::int from dive_bookings b where b.session_id = x.id and b.status = 'pending_payment' and app.dive_holds_seat(b.status, b.hold_until)) as pending,
                (select count(*)::int from dive_bookings b where b.session_id = x.id and b.status = 'checked_in') as "checkedIn",
                coalesce(x.title, p.name_he) as title, p.kind as "programKind", p.code as "programCode", p.color,
                p.min_level as "minLevel", s.name as "siteName", s.kind as "siteKind",
@@ -153,7 +156,7 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
       (select count(*)::int from dive_sessions where status <> 'cancelled'
          and (starts_at at time zone 'Asia/Jerusalem')::date between app.today() and app.today() + 6) as "sessionsWeek",
       (select coalesce(round(100.0 * sum(b) / nullif(sum(c), 0)), 0)::int from (
-         select x.capacity as c, (select count(*) from dive_bookings b where b.session_id = x.id and b.status in ('booked', 'checked_in')) as b
+         select x.capacity as c, (select count(*) from dive_bookings b where b.session_id = x.id and app.dive_holds_seat(b.status, b.hold_until)) as b
          from dive_sessions x where x.status <> 'cancelled'
            and (x.starts_at at time zone 'Asia/Jerusalem')::date between app.today() and app.today() + 6) w) as "fillWeekPct",
       (select (app.today() - max((occurred_at at time zone 'Asia/Jerusalem')::date))::int from dive_incidents) as "daysSinceIncident",
@@ -219,12 +222,14 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
     overdue: number;
     leads: number;
     idle: number;
+    pendingCount: number;
+    pendingAmount: number;
   }>(
     tx,
     sql`select
       (select count(distinct d.id)::int from dive_divers d join dive_bookings b on b.diver_id = d.id
          join dive_sessions x on x.id = b.session_id
-         where b.status = 'booked' and x.starts_at > now()
+         where (b.status = 'booked' or app.dive_holds_seat(b.status, b.hold_until)) and x.starts_at > now()
            and (d.medical_expires_on is null or d.medical_expires_on < app.today() + ${rules.paperwork.medical_warn_days}::int)) as medicals,
       (select count(*)::int from dive_gear where status <> 'retired' and service_every_days is not null
          and coalesce(last_service_on, purchased_on) + service_every_days < app.today()) as gear,
@@ -233,7 +238,11 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
       (select count(*)::int from dive_leads where stage = 'new' and created_at < now() - interval '1 day') as leads,
       (select count(*)::int from dive_enrollments e where e.status = 'completed' and e.completed_on > app.today() - 90
          and not exists (select 1 from dive_bookings b join dive_sessions x on x.id = b.session_id
-                         where b.diver_id = e.diver_id and x.starts_at > (e.completed_on + 1)::timestamptz)) as idle`,
+                         where b.diver_id = e.diver_id and x.starts_at > (e.completed_on + 1)::timestamptz)) as idle,
+      (select count(*)::int from dive_bookings b join dive_sessions x on x.id = b.session_id
+         where b.status = 'pending_payment' and b.hold_until > now() and x.starts_at > now()) as "pendingCount",
+      (select coalesce(sum(b.price_agorot), 0)::int from dive_bookings b join dive_sessions x on x.id = b.session_id
+         where b.status = 'pending_payment' and b.hold_until > now() and x.starts_at > now()) as "pendingAmount"`,
   );
   const forecast = await rows<{
     date: string;
@@ -245,7 +254,7 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
     sql`select distinct on (c.observed_on) c.observed_on::text as date, c.call, c.wind_kts as "windKts",
                (select count(*)::int from dive_bookings b join dive_sessions x on x.id = b.session_id
                   join dive_sites s on s.id = x.site_id
-                where s.kind <> 'pool' and b.status = 'booked'
+                where s.kind <> 'pool' and (b.status = 'booked' or app.dive_holds_seat(b.status, b.hold_until))
                   and (x.starts_at at time zone 'Asia/Jerusalem')::date = c.observed_on) as "seaBookings"
         from dive_conditions c where c.observed_on between app.today() + 1 and app.today() + 4
         order by c.observed_on, c.is_forecast, c.recorded_at desc`,
@@ -253,7 +262,7 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
   const courses = await rows<{ title: string; date: string; booked: number; capacity: number }>(
     tx,
     sql`select coalesce(x.title, p.name_he) as title, (x.starts_at at time zone 'Asia/Jerusalem')::date::text as date,
-               (select count(*)::int from dive_bookings b where b.session_id = x.id and b.status in ('booked', 'checked_in')) as booked,
+               (select count(*)::int from dive_bookings b where b.session_id = x.id and app.dive_holds_seat(b.status, b.hold_until)) as booked,
                x.capacity
         from dive_sessions x join dive_programs p on p.id = x.program_id
         where p.kind = 'course' and x.status <> 'cancelled' and x.starts_at > now()
@@ -278,6 +287,7 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
     leadsWaiting: facts?.leads ?? 0,
     daysSinceIncident: k.daysSinceIncident,
     graduatesIdle: facts?.idle ?? 0,
+    paymentsPending: { count: facts?.pendingCount ?? 0, amount: facts?.pendingAmount ?? 0 },
   });
   const todaySessions = await sessionCards(
     tx,
@@ -381,7 +391,7 @@ export async function opsBoard(tx: Tx): Promise<OpsBoard> {
                (x.starts_at at time zone 'Asia/Jerusalem')::date::text as on, coalesce(x.title, p.name_he) as "sessionTitle"
         from dive_bookings b join dive_divers d on d.id = b.diver_id
         join dive_sessions x on x.id = b.session_id join dive_programs p on p.id = x.program_id
-        where b.status = 'booked' and x.starts_at between now() and now() + interval '14 days'
+        where (b.status = 'booked' or app.dive_holds_seat(b.status, b.hold_until)) and x.starts_at between now() and now() + interval '14 days'
           and (d.waiver_signed_on is null
                or d.waiver_signed_on + make_interval(months => ${rules.paperwork.waiver_valid_months}::int) < x.starts_at
                or d.medical_expires_on is null
@@ -433,6 +443,9 @@ export interface ArrivalRow {
   checkedInAt: string | null;
   certLevel: number;
   passLeft: number | null;
+  /** What a pending booking still owes, in agorot. */
+  price: number;
+  holdUntil: string | null;
   ready: boolean;
   items: ReadinessItem[];
 }
@@ -497,21 +510,23 @@ async function arrivals(
     minLevel: number;
     paid: boolean;
     passLeft: number | null;
+    price: number;
+    holdUntil: string | null;
   }>(
     tx,
     sql`select b.session_id as "sessionId", b.id as "bookingId", d.id as "diverId",
                d.first_name || ' ' || d.last_name as name, d.phone_e164 as phone, d.origin, b.status,
-               b.checked_in_at as "checkedInAt", d.cert_level as "certLevel",
+               b.checked_in_at as "checkedInAt", d.cert_level as "certLevel", b.price_agorot as price, b.hold_until as "holdUntil",
                d.waiver_signed_on::text as "waiverSignedOn", d.medical_expires_on::text as "medicalExpiresOn",
                p.min_level as "minLevel",
-               (b.pass_id is not null or exists (select 1 from dive_sales s where s.diver_id = d.id
+               b.status <> 'pending_payment' and (b.pass_id is not null or exists (select 1 from dive_sales s where s.diver_id = d.id
                   and (s.session_id = b.session_id or (s.program_id = x.program_id and p.kind = 'course')))) as paid,
                (select (ps.sessions_total - (select count(*) from dive_bookings u where u.pass_id = ps.id and u.status in ('booked', 'checked_in', 'no_show')))::int
                   from dive_passes ps where ps.id = b.pass_id) as "passLeft"
         from dive_bookings b join dive_divers d on d.id = b.diver_id
         join dive_sessions x on x.id = b.session_id join dive_programs p on p.id = x.program_id
         where b.session_id = any(string_to_array(${sessionIds.join(',')}, ',')::uuid[])
-          and b.status <> 'cancelled'
+          and b.status <> 'cancelled' and (b.status <> 'pending_payment' or b.hold_until > now())
         order by d.first_name`,
   );
   const out = new Map<string, ArrivalRow[]>();
@@ -536,6 +551,8 @@ async function arrivals(
       checkedInAt: r.checkedInAt,
       certLevel: r.certLevel,
       passLeft: r.passLeft,
+      price: r.price,
+      holdUntil: r.holdUntil,
       ready: ready.ready,
       items: ready.items,
     };
@@ -590,7 +607,7 @@ export async function frontDesk(tx: Tx): Promise<FrontDesk> {
     sql`select x.id, to_char(x.starts_at at time zone 'Asia/Jerusalem', 'DD.MM HH24:MI') || ' · ' || coalesce(x.title, p.name_he) as label
         from dive_sessions x join dive_programs p on p.id = x.program_id
         where x.starts_at > now() and x.starts_at < now() + interval '10 days' and x.status <> 'cancelled'
-          and (select count(*) from dive_bookings b where b.session_id = x.id and b.status in ('booked', 'checked_in')) < x.capacity
+          and (select count(*) from dive_bookings b where b.session_id = x.id and app.dive_holds_seat(b.status, b.hold_until)) < x.capacity
         order by x.starts_at`,
   );
   return {
@@ -789,6 +806,10 @@ export interface DiverHome {
     siteName: string;
     meetingPoint: string | null;
     status: string;
+    /** `pending_payment` until it is paid; then `booked` or `checked_in`. */
+    bookingStatus: string;
+    holdUntil: string | null;
+    price: number;
     targetDepthM: number | null;
     lineLabel: string | null;
     leadName: string | null;
@@ -879,6 +900,37 @@ async function diverRecord(tx: Tx, diverId: string): Promise<DiverRecord | undef
   );
 }
 
+export interface CheckoutView {
+  bookingId: string;
+  status: string;
+  /** Whether the seat is still held for payment (a lapsed hold must be booked again). */
+  holding: boolean;
+  holdUntil: string | null;
+  price: number;
+  title: string;
+  startsAt: string;
+  siteName: string;
+  diverName: string;
+  email: string | null;
+}
+
+/** One of the signed-in diver's own bookings, for the checkout page (RLS shows a customer only their own). */
+export async function checkoutView(tx: Tx, bookingId: string): Promise<CheckoutView | null> {
+  const diverId = await myDiverId(tx);
+  if (!diverId) return null;
+  const v = await one<CheckoutView>(
+    tx,
+    sql`select b.id as "bookingId", b.status, app.dive_holds_seat(b.status, b.hold_until) as holding,
+               b.hold_until as "holdUntil", b.price_agorot as price, coalesce(x.title, p.name_he) as title,
+               x.starts_at as "startsAt", s.name as "siteName", d.first_name || ' ' || d.last_name as "diverName",
+               d.email
+        from dive_bookings b join dive_sessions x on x.id = b.session_id join dive_programs p on p.id = x.program_id
+        join dive_sites s on s.id = x.site_id join dive_divers d on d.id = b.diver_id
+        where b.id = ${bookingId} and b.diver_id = ${diverId}`,
+  );
+  return v ?? null;
+}
+
 export async function diverHome(tx: Tx, diverId: string): Promise<DiverHome | null> {
   const today = await todayIL(tx);
   const { rules } = await loadRules(tx);
@@ -889,10 +941,11 @@ export async function diverHome(tx: Tx, diverId: string): Promise<DiverHome | nu
     tx,
     sql`select b.id as "bookingId", x.id as "sessionId", x.starts_at as "startsAt", coalesce(x.title, p.name_he) as title,
                s.name as "siteName", s.meeting_point as "meetingPoint", x.status, b.target_depth_m as "targetDepthM",
+               b.status as "bookingStatus", b.hold_until as "holdUntil", b.price_agorot as price,
                b.line_label as "lineLabel", m.first_name as "leadName"
         from dive_bookings b join dive_sessions x on x.id = b.session_id join dive_programs p on p.id = x.program_id
         join dive_sites s on s.id = x.site_id left join staff_members m on m.id = x.lead_staff_id
-        where b.diver_id = ${diverId} and b.status in ('booked', 'checked_in') and x.ends_at > now()
+        where b.diver_id = ${diverId} and app.dive_holds_seat(b.status, b.hold_until) and x.ends_at > now()
         order by x.starts_at limit 5`,
   );
   const passes = (
@@ -970,8 +1023,9 @@ export async function diverHome(tx: Tx, diverId: string): Promise<DiverHome | nu
     tx,
     sql`select x.id, x.starts_at as "startsAt", coalesce(x.title, p.name_he) as title, s.name as "siteName", p.kind,
                x.capacity, x.status, p.min_level as "minLevel", p.price_agorot as price,
-               (select count(*)::int from dive_bookings b where b.session_id = x.id and b.status in ('booked', 'checked_in')) as booked,
-               exists (select 1 from dive_bookings b where b.session_id = x.id and b.diver_id = ${diverId} and b.status <> 'cancelled') as mine
+               app.dive_seats_taken(x.id) as booked,
+               exists (select 1 from dive_bookings b where b.session_id = x.id and b.diver_id = ${diverId}
+                         and b.status <> 'cancelled' and (b.status <> 'pending_payment' or b.hold_until > now())) as mine
         from dive_sessions x join dive_programs p on p.id = x.program_id join dive_sites s on s.id = x.site_id
         where x.starts_at between now() and now() + interval '10 days' and p.kind in ('training', 'workshop', 'trip')
           and x.status <> 'cancelled'

@@ -153,6 +153,36 @@ describe('freediving club roles', () => {
     });
   });
 
+  it('a paid booking waits for payment, the customer cannot confirm it, and staff can', async () => {
+    await as(A.users.parent, A.orgId, async (run) => {
+      await run(`update dive_bookings set status = 'cancelled' where id = $1`, [d.bookingMine]);
+      // Booking it again: the session costs money, so it only holds the seat.
+      const [held] = await run<{ status: string; hold_until: Date | null; price_agorot: number }>(
+        `update dive_bookings set status = 'booked' where id = $1 returning status, hold_until, price_agorot`,
+        [d.bookingMine],
+      );
+      expect(held?.status).toBe('pending_payment');
+      expect(held?.hold_until).not.toBeNull();
+      expect(held?.price_agorot).toBe(18000);
+      await expect(
+        run(`update dive_bookings set status = 'booked' where id = $1`, [d.bookingMine]),
+      ).rejects.toThrow(/customerCannotChange/);
+      // Someone else's seat is invisible to them, but still counted.
+      expect((await run('select app.dive_seats_taken($1) as n', [d.full]))[0]).toEqual({ n: 1 });
+    });
+    await as(A.users.admin, A.orgId, async (run) => {
+      await run(
+        `update dive_bookings set status = 'pending_payment', hold_until = now() + interval '1 hour' where id = $1`,
+        [d.bookingMine],
+      );
+      const [paid] = await run<{ status: string; hold_until: Date | null }>(
+        `update dive_bookings set status = 'booked' where id = $1 returning status, hold_until`,
+        [d.bookingMine],
+      );
+      expect(paid).toEqual({ status: 'booked', hold_until: null });
+    });
+  });
+
   it('a full session refuses another booking', async () => {
     await as(A.users.admin, A.orgId, async (run) => {
       await expect(
