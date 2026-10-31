@@ -104,6 +104,49 @@ export type GearStatus = (typeof GEAR_STATUSES)[number];
 export const DIVER_ORIGINS = ['eilat', 'israel', 'abroad'] as const;
 export type DiverOrigin = (typeof DIVER_ORIGINS)[number];
 
+/**
+ * Filters on the staff's diver list. Every one is optional and they combine (all must hold). The windows below define
+ * what the list calls "recent", "lapsed" and "ending soon"; they describe a view, not a club rule.
+ */
+export const DIVER_FILTER_WINDOWS = { recentDays: 30, lapsedDays: 90, passEndingDays: 14 } as const;
+export const DIVER_FILTER_MEDICAL = ['ok', 'warn', 'expired', 'missing'] as const;
+export const DIVER_FILTER_WAIVER = ['valid', 'missing'] as const;
+export const DIVER_FILTER_PASS = ['active', 'ending', 'none'] as const;
+export const DIVER_FILTER_BALANCE = ['owes', 'clear'] as const;
+export const DIVER_FILTER_ACTIVITY = ['recent', 'lapsed', 'never'] as const;
+export const DIVER_FILTER_UPCOMING = ['booked', 'none'] as const;
+export const DIVER_SORTS = ['value', 'name', 'last', 'pb', 'level'] as const;
+export type DiverSort = (typeof DIVER_SORTS)[number];
+
+const blankToUndefined = (v: unknown) => (v === '' || v === null ? undefined : v);
+const optionalEnum = <T extends readonly [string, ...string[]]>(values: T) =>
+  z.preprocess(blankToUndefined, z.enum(values).optional()).catch(undefined);
+
+export const DiverFilterSchema = z.object({
+  q: z.preprocess(blankToUndefined, z.string().trim().max(80).optional()).catch(undefined),
+  level: z
+    .preprocess(blankToUndefined, z.coerce.number().int().min(0).max(5).optional())
+    .catch(undefined),
+  origin: optionalEnum(DIVER_ORIGINS),
+  medical: optionalEnum(DIVER_FILTER_MEDICAL),
+  waiver: optionalEnum(DIVER_FILTER_WAIVER),
+  pass: optionalEnum(DIVER_FILTER_PASS),
+  balance: optionalEnum(DIVER_FILTER_BALANCE),
+  activity: optionalEnum(DIVER_FILTER_ACTIVITY),
+  upcoming: optionalEnum(DIVER_FILTER_UPCOMING),
+  tag: z
+    .preprocess(
+      blankToUndefined,
+      z
+        .string()
+        .regex(/^[a-z_]{1,40}$/)
+        .optional(),
+    )
+    .catch(undefined),
+  sort: z.preprocess(blankToUndefined, z.enum(DIVER_SORTS).default('value')).catch('value'),
+});
+export type DiverFilter = z.infer<typeof DiverFilterSchema>;
+
 export const LEAD_STAGES = ['new', 'contacted', 'booked', 'lost'] as const;
 export type LeadStage = (typeof LEAD_STAGES)[number];
 export const LEAD_SOURCES = [

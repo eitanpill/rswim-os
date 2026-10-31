@@ -5,6 +5,9 @@
 import {
   COURSE_SKILLS,
   DIVE_PASS_KINDS,
+  DIVER_FILTER_WINDOWS,
+  DiverFilterSchema,
+  type DiverFilter,
   type DivePassKind,
   type DiveProgramKind,
   type ResolvedDiveRules,
@@ -1172,27 +1175,100 @@ export interface DiverListRow {
   value: number;
   medical: string;
   tags: string[];
+  /** Has a booking that still owes money (no pass, a price, no sale). */
+  owes: boolean;
+  pass: 'active' | 'ending' | 'none';
+  /** The next session the diver holds a seat in, if any. */
+  nextOn: string | null;
 }
 
-export async function listDivers(tx: Tx, q?: string): Promise<DiverListRow[]> {
-  const today = await todayIL(tx);
+const DIVER_ORDER = {
+  value: sql`value desc, name`,
+  name: sql`name`,
+  last: sql`"lastDive" desc nulls last, name`,
+  pb: sql`"pbCwtM" desc nulls last, name`,
+  level: sql`"certLevel" desc, name`,
+} as const;
+
+/**
+ * The staff's diver list. Every filter is optional and they combine; see `DiverFilterSchema`. A raw string is still
+ * read as a name or phone search.
+ */
+export async function listDivers(
+  tx: Tx,
+  raw: Partial<DiverFilter> | string = {},
+): Promise<DiverListRow[]> {
+  const f = DiverFilterSchema.parse(typeof raw === 'string' ? { q: raw } : raw);
   const { rules } = await loadRules(tx);
-  const like = q ? `%${q}%` : null;
-  const list = await rows<Omit<DiverListRow, 'medical'> & { medicalExpiresOn: string | null }>(
+  const like = f.q ? `%${f.q}%` : null;
+  const w = DIVER_FILTER_WINDOWS;
+  return rows<DiverListRow>(
     tx,
-    sql`select d.id, d.first_name || ' ' || d.last_name as name, d.origin, d.city, d.cert_level as "certLevel",
-               d.cert_name as "certName", d.pb_cwt_m as "pbCwtM", d.tags, d.medical_expires_on::text as "medicalExpiresOn",
-               (select max(dived_on)::text from dive_logs l where l.diver_id = d.id) as "lastDive",
-               (select count(*)::int from dive_logs l where l.diver_id = d.id) as dives,
-               (select coalesce(sum(amount_agorot), 0)::int from dive_sales s where s.diver_id = d.id) as value
-        from dive_divers d
-        where ${like}::text is null or (d.first_name || ' ' || d.last_name) ilike ${like} or d.phone_e164 ilike ${like}
-        order by value desc, d.first_name limit 200`,
+    sql`with base as (
+          select d.id, d.first_name || ' ' || d.last_name as name, d.origin, d.city, d.cert_level as "certLevel",
+                 d.cert_name as "certName", d.pb_cwt_m as "pbCwtM", d.tags,
+                 case when d.medical_expires_on is null then 'missing'
+                      when d.medical_expires_on < app.today() then 'expired'
+                      when d.medical_expires_on <= app.today() + ${rules.paperwork.medical_warn_days}::int then 'warn'
+                      else 'ok' end as medical,
+                 d.waiver_signed_on is not null
+                   and d.waiver_signed_on + make_interval(months => ${rules.paperwork.waiver_valid_months}::int) >= app.today() as waiver,
+                 (select max(dived_on)::text from dive_logs l where l.diver_id = d.id) as "lastDive",
+                 (select count(*)::int from dive_logs l where l.diver_id = d.id) as dives,
+                 (select coalesce(sum(amount_agorot), 0)::int from dive_sales s where s.diver_id = d.id) as value,
+                 exists (
+                   select 1 from dive_bookings b join dive_sessions x on x.id = b.session_id
+                     join dive_programs p on p.id = x.program_id
+                   where b.diver_id = d.id and b.pass_id is null and b.price_agorot > 0
+                     and (b.status in ('booked', 'checked_in', 'no_show') or app.dive_holds_seat(b.status, b.hold_until))
+                     and not exists (select 1 from dive_sales s where s.diver_id = d.id
+                       and (s.session_id = b.session_id or (s.program_id = x.program_id and p.kind = 'course')))
+                 ) as owes,
+                 coalesce((
+                   select case when count(*) = 0 then null
+                               when bool_or(ps.valid_until > app.today() + ${w.passEndingDays}::int
+                                            and (ps.sessions_total is null or ps.sessions_total - ps.used > 1))
+                               then 'active' else 'ending' end
+                   from (select q.valid_until, q.sessions_total,
+                                (select count(*)::int from dive_bookings u where u.pass_id = q.id
+                                  and u.status in ('booked', 'checked_in', 'no_show')) as used
+                         from dive_passes q where q.diver_id = d.id and q.valid_until >= app.today()) ps
+                   where ps.sessions_total is null or ps.sessions_total > ps.used
+                 ), 'none') as pass,
+                 (select min(x.starts_at at time zone 'Asia/Jerusalem')::date::text from dive_bookings b
+                    join dive_sessions x on x.id = b.session_id
+                  where b.diver_id = d.id and x.starts_at > now() and x.status <> 'cancelled'
+                    and app.dive_holds_seat(b.status, b.hold_until)) as "nextOn"
+          from dive_divers d
+          where ${like}::text is null or (d.first_name || ' ' || d.last_name) ilike ${like} or d.phone_e164 ilike ${like}
+        )
+        select id, name, origin, city, "certLevel", "certName", "pbCwtM", tags, medical, "lastDive", dives, value,
+               owes, pass, "nextOn"
+        from base
+        where (${f.level ?? null}::int is null or "certLevel" = ${f.level ?? null}::int)
+          and (${f.origin ?? null}::text is null or origin = ${f.origin ?? null}::text)
+          and (${f.medical ?? null}::text is null or medical = ${f.medical ?? null}::text)
+          and (${f.waiver ?? null}::text is null or waiver = (${f.waiver ?? null}::text = 'valid'))
+          and (${f.pass ?? null}::text is null or pass = ${f.pass ?? null}::text
+               or (${f.pass ?? null}::text = 'active' and pass = 'ending'))
+          and (${f.balance ?? null}::text is null or owes = (${f.balance ?? null}::text = 'owes'))
+          and (${f.activity ?? null}::text is null
+               or (${f.activity ?? null}::text = 'recent' and "lastDive"::date > app.today() - ${w.recentDays}::int)
+               or (${f.activity ?? null}::text = 'lapsed' and "lastDive"::date <= app.today() - ${w.lapsedDays}::int)
+               or (${f.activity ?? null}::text = 'never' and "lastDive" is null))
+          and (${f.upcoming ?? null}::text is null or ("nextOn" is not null) = (${f.upcoming ?? null}::text = 'booked'))
+          and (${f.tag ?? null}::text is null or ${f.tag ?? null}::text = any(tags))
+        order by ${DIVER_ORDER[f.sort]} limit 200`,
   );
-  return list.map(({ medicalExpiresOn, ...r }) => ({
-    ...r,
-    medical: expiryState(medicalExpiresOn, today, rules.paperwork.medical_warn_days),
-  }));
+}
+
+/** The tags in use on the club's divers, for the list's tag filter. */
+export async function diverTags(tx: Tx): Promise<string[]> {
+  const list = await rows<{ tag: string }>(
+    tx,
+    sql`select distinct unnest(tags) as tag from dive_divers order by 1`,
+  );
+  return list.map((r) => r.tag);
 }
 
 /** The whole season at a glance, for the owner: days since the club's first session, divers, deepest dive. */

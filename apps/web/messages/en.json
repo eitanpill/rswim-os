@@ -4464,9 +4464,73 @@
         "dives": "Dives",
         "last": "Last",
         "value": "Revenue",
-        "medical": "Medical"
+        "medical": "Medical",
+        "status": "Status"
       },
-      "privacy": "Only this club's divers are shown. Every name in the demo is invented."
+      "privacy": "Only this club's divers are shown. Every name in the demo is invented.",
+      "subFiltered": "{count, plural, one {One diver matches} other {# divers match}}",
+      "quickTitle": "Quick views:",
+      "quick": {
+        "owes": "Owe money",
+        "passEnding": "Pass ending",
+        "medicalExpired": "Medical expired",
+        "upcoming": "Booked to dive",
+        "lapsed": "No dive in 90 days"
+      },
+      "removeFilter": "Remove filter {name}",
+      "clear": "Clear all filters",
+      "f": {
+        "any": "All",
+        "level": "Level",
+        "origin": "From",
+        "medical": "Medical",
+        "waiver": "Waiver",
+        "pass": "Pass / membership",
+        "balance": "Payment",
+        "activity": "Activity",
+        "upcoming": "Upcoming",
+        "tag": "Tag",
+        "sort": "Sort by",
+        "waiverIs": {
+          "valid": "Signed and valid",
+          "missing": "Missing or expired"
+        },
+        "passIs": {
+          "active": "Has a valid one",
+          "ending": "Ending soon",
+          "none": "None"
+        },
+        "balanceIs": {
+          "owes": "Owes money",
+          "clear": "All paid"
+        },
+        "activityIs": {
+          "recent": "Dived in the last 30 days",
+          "lapsed": "No dive in 90+ days",
+          "never": "Never dived"
+        },
+        "upcomingIs": {
+          "booked": "Booked to dive soon",
+          "none": "Nothing booked"
+        },
+        "sortBy": {
+          "value": "Revenue",
+          "name": "Name",
+          "last": "Last dive",
+          "pb": "Best depth",
+          "level": "Level"
+        },
+        "all": "All filters ({count})",
+        "activeCount": "{count} active"
+      },
+      "state": {
+        "owes": "Owes",
+        "pass": {
+          "active": "Pass",
+          "ending": "Pass ending"
+        },
+        "next": "Next {date}"
+      }
     },
     "medicalState": {
       "ok": "Valid",
