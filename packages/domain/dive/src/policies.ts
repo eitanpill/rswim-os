@@ -3,7 +3,14 @@
  * ready to get in the water, whether a booking is allowed, instructor ratios, pass balances, the instructor's line
  * plan and the owner's advisory insights. Each takes the resolved rules (dive_rule_sets) and explains itself.
  */
-import type { DiveLevel, DiveProgramKind, ResolvedDiveRules, SeaCall } from '@rswim/contracts';
+import type {
+  DiveFormKind,
+  DiveFormReview,
+  DiveLevel,
+  DiveProgramKind,
+  ResolvedDiveRules,
+  SeaCall,
+} from '@rswim/contracts';
 
 export interface Reason {
   code: string;
@@ -111,9 +118,11 @@ export interface ReadinessFacts {
   certLevel: number;
   /** Paid for this session, or holds a pass that covers it. */
   paid: boolean;
+  /** The diver's own insurance; left out where the caller does not check it. */
+  insuranceExpiresOn?: string | null;
 }
 
-export type ReadinessKey = 'waiver' | 'medical' | 'level' | 'payment';
+export type ReadinessKey = 'waiver' | 'medical' | 'level' | 'payment' | 'insurance';
 export interface ReadinessItem {
   key: ReadinessKey;
   state: 'ok' | 'warn' | 'missing';
@@ -149,7 +158,78 @@ export function readiness(
     params: { need: session.minLevel, has: facts.certLevel },
   });
   items.push({ key: 'payment', state: facts.paid ? 'ok' : 'missing' });
+  if (facts.insuranceExpiresOn !== undefined) {
+    const ins = insuranceReadiness(facts.insuranceExpiresOn, session.onDate, rules);
+    if (ins) items.push(ins);
+  }
   return { ready: items.every((i) => i.state !== 'missing'), items };
+}
+
+/**
+ * The diver's insurance on a date, by the club's mode: not asked (no item), tracked (a warning, never blocks) or
+ * required (no valid policy keeps them out of the water). Running out within the warning days is a warning.
+ */
+export function insuranceReadiness(
+  expiresOn: string | null,
+  onDate: string,
+  rules: ResolvedDiveRules['paperwork'],
+): ReadinessItem | null {
+  if (rules.insurance === 'off') return null;
+  const st = expiryState(expiresOn, onDate, rules.insurance_warn_days);
+  if (st === 'ok') return { key: 'insurance', state: 'ok' };
+  if (st === 'warn')
+    return {
+      key: 'insurance',
+      state: 'warn',
+      params: { days: daysBetween(onDate, expiresOn as string) },
+    };
+  return rules.insurance === 'require'
+    ? { key: 'insurance', state: 'missing' }
+    : { key: 'insurance', state: 'warn', params: { days: 'none' } };
+}
+
+// ─── Forms ──────────────────────────────────────────────────────────────────
+
+/** The latest signature of one form kind, as the diver's paperwork list needs it. */
+export interface SignedFormFacts {
+  validUntil: string | null;
+  review: DiveFormReview;
+}
+
+export type PaperworkState = 'ok' | 'warn' | 'expired' | 'missing' | 'pending' | 'refused';
+
+/**
+ * Where one of the diver's forms stands today: never signed, waiting for the club's medical clearance, not cleared,
+ * valid, running out soon (the rules' warning days) or out of date. Says until when and how many days are left.
+ */
+export function formState(
+  kind: DiveFormKind,
+  latest: SignedFormFacts | null,
+  today: string,
+  rules: ResolvedDiveRules['paperwork'],
+): { state: PaperworkState; until: string | null; days: number | null } {
+  if (!latest) return { state: 'missing', until: null, days: null };
+  if (latest.review === 'pending') return { state: 'pending', until: null, days: null };
+  if (latest.review === 'refused') return { state: 'refused', until: null, days: null };
+  const warnDays =
+    kind === 'health'
+      ? rules.medical_warn_days
+      : kind === 'insurance'
+        ? rules.insurance_warn_days
+        : 0;
+  const st = expiryState(latest.validUntil, today, warnDays);
+  const days = latest.validUntil ? daysBetween(today, latest.validUntil) : null;
+  return { state: st, until: latest.validUntil, days };
+}
+
+/** What a set of forms asks of the diver now: the kinds to sign (missing, out of date or refused), in order. */
+export function formsToSign(
+  states: Record<DiveFormKind, PaperworkState>,
+  rules: ResolvedDiveRules['paperwork'],
+): DiveFormKind[] {
+  const kinds: DiveFormKind[] =
+    rules.insurance === 'off' ? ['health', 'waiver'] : ['health', 'waiver', 'insurance'];
+  return kinds.filter((k) => ['missing', 'expired', 'refused', 'warn'].includes(states[k]));
 }
 
 // ─── Booking ────────────────────────────────────────────────────────────────
@@ -298,6 +378,10 @@ export interface ClubFacts {
   graduatesIdle: number;
   /** Upcoming bookings still waiting for payment (seats held, not confirmed). */
   paymentsPending: { count: number; amount: number };
+  /** Health declarations waiting for the club's medical clearance. */
+  formsPending?: number;
+  /** Active divers whose insurance runs out within the warning days, or has. */
+  insuranceExpiring?: number;
 }
 
 export interface Insight {
@@ -311,7 +395,9 @@ export interface Insight {
     | 'leads'
     | 'safety_streak'
     | 'graduates'
-    | 'payments_pending';
+    | 'payments_pending'
+    | 'forms_pending'
+    | 'insurance';
   severity: 'info' | 'attention' | 'urgent';
   params: Record<string, string | number>;
 }
@@ -340,6 +426,10 @@ export function clubInsights(f: ClubFacts): Insight[] {
   }
   if (f.medicalsExpiring > 0)
     out.push({ kind: 'medicals', severity: 'attention', params: { count: f.medicalsExpiring } });
+  if (f.formsPending)
+    out.push({ kind: 'forms_pending', severity: 'attention', params: { count: f.formsPending } });
+  if (f.insuranceExpiring)
+    out.push({ kind: 'insurance', severity: 'info', params: { count: f.insuranceExpiring } });
   for (const s of f.staffCertsExpiring)
     out.push({
       kind: 'staff_cert',

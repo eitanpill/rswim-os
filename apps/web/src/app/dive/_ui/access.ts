@@ -4,7 +4,7 @@ import { requireSurface } from '@/lib/auth/session';
 import type { Session } from '@/lib/auth/types';
 
 /** The club's screens, and who opens each. The database (RLS) is the real gate; this keeps people on their own page. */
-export type DivePage = 'owner' | 'manager' | 'office' | 'instructor' | 'me' | 'divers';
+export type DivePage = 'owner' | 'manager' | 'office' | 'instructor' | 'me' | 'divers' | 'forms';
 
 export type DiveRole = 'owner' | 'manager' | 'office' | 'instructor' | 'customer';
 
@@ -16,9 +16,9 @@ export function diveRole(s: Session): DiveRole {
 }
 
 const PAGES: Record<DiveRole, DivePage[]> = {
-  owner: ['owner', 'manager', 'office', 'instructor', 'divers'],
-  manager: ['manager', 'office', 'instructor', 'divers'],
-  office: ['office', 'divers'],
+  owner: ['owner', 'manager', 'office', 'instructor', 'divers', 'forms'],
+  manager: ['manager', 'office', 'instructor', 'divers', 'forms'],
+  office: ['office', 'divers', 'forms'],
   instructor: ['instructor', 'divers'],
   customer: ['me'],
 };
@@ -44,3 +44,9 @@ export async function requireDivePage(
   if (!PAGES[role].includes(page)) redirect(`/dive/${HOME[role]}`);
   return { session, role };
 }
+
+/** Who may change the texts of the club's forms (the database checks `settings.write` too). */
+export const canEditForms = (role: DiveRole) => role === 'owner' || role === 'manager';
+/** Who records signatures at the desk and clears health declarations. */
+export const isOffice = (role: DiveRole) =>
+  role === 'owner' || role === 'manager' || role === 'office';

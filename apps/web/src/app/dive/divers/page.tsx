@@ -61,6 +61,7 @@ export default async function Divers({
     level: DIVE_LEVELS.map((l) => ({ value: String(l), label: t(`level.${l}`) })),
     origin: DIVER_ORIGINS.map((o) => ({ value: o, label: t(`origin.${o}`) })),
     medical: DIVER_FILTER_MEDICAL.map((m) => ({ value: m, label: t(`medicalState.${m}`) })),
+    insurance: DIVER_FILTER_MEDICAL.map((m) => ({ value: m, label: t(`forms.state.${m}`) })),
     waiver: DIVER_FILTER_WAIVER.map((v) => ({ value: v, label: t(`divers.f.waiverIs.${v}`) })),
     pass: DIVER_FILTER_PASS.map((v) => ({ value: v, label: t(`divers.f.passIs.${v}`) })),
     balance: DIVER_FILTER_BALANCE.map((v) => ({ value: v, label: t(`divers.f.balanceIs.${v}`) })),

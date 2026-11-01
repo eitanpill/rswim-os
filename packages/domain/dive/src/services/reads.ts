@@ -239,9 +239,18 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
     idle: number;
     pendingCount: number;
     pendingAmount: number;
+    formsPending: number;
+    insurance: number;
   }>(
     tx,
     sql`select
+      (select count(*)::int from dive_form_signatures where review = 'pending') as "formsPending",
+      (select count(*)::int from dive_divers d where ${rules.paperwork.insurance} <> 'off'
+         and d.insurance_expires_on is not null
+         and d.insurance_expires_on <= app.today() + ${rules.paperwork.insurance_warn_days}::int
+         and (exists (select 1 from dive_logs l where l.diver_id = d.id and l.dived_on > app.today() - 90)
+              or exists (select 1 from dive_bookings b join dive_sessions x on x.id = b.session_id
+                         where b.diver_id = d.id and b.status in ('booked', 'pending_payment') and x.starts_at > now()))) as insurance,
       (select count(distinct d.id)::int from dive_divers d join dive_bookings b on b.diver_id = d.id
          join dive_sessions x on x.id = b.session_id
          where (b.status = 'booked' or app.dive_holds_seat(b.status, b.hold_until)) and x.starts_at > now()
@@ -296,6 +305,8 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
     forecast,
     courses,
     medicalsExpiring: facts?.medicals ?? 0,
+    formsPending: facts?.formsPending ?? 0,
+    insuranceExpiring: facts?.insurance ?? 0,
     staffCertsExpiring: certs,
     gearServiceDue: facts?.gear ?? 0,
     rentalsOverdue: facts?.overdue ?? 0,
@@ -542,6 +553,7 @@ async function arrivals(
     certLevel: number;
     waiverSignedOn: string | null;
     medicalExpiresOn: string | null;
+    insuranceExpiresOn: string | null;
     minLevel: number;
     paid: boolean;
     passLeft: number | null;
@@ -553,7 +565,7 @@ async function arrivals(
                d.first_name || ' ' || d.last_name as name, d.phone_e164 as phone, d.origin, b.status,
                b.checked_in_at as "checkedInAt", d.cert_level as "certLevel", b.price_agorot as price, b.hold_until as "holdUntil",
                d.waiver_signed_on::text as "waiverSignedOn", d.medical_expires_on::text as "medicalExpiresOn",
-               p.min_level as "minLevel",
+               d.insurance_expires_on::text as "insuranceExpiresOn", p.min_level as "minLevel",
                b.status <> 'pending_payment' and (b.pass_id is not null or b.price_agorot = 0 or exists (select 1 from dive_sales s where s.diver_id = d.id
                   and (s.session_id = b.session_id or (s.program_id = x.program_id and p.kind = 'course')))) as paid,
                (select (ps.sessions_total - (select count(*) from dive_bookings u where u.pass_id = ps.id and u.status in ('booked', 'checked_in', 'no_show')))::int
@@ -570,6 +582,7 @@ async function arrivals(
       {
         waiverSignedOn: r.waiverSignedOn,
         medicalExpiresOn: r.medicalExpiresOn,
+        insuranceExpiresOn: r.insuranceExpiresOn,
         certLevel: r.certLevel,
         paid: r.paid,
       },
@@ -919,6 +932,7 @@ export interface DiverRecord {
   depthLimitM: number | null;
   medicalExpiresOn: string | null;
   waiverSignedOn: string | null;
+  insuranceExpiresOn: string | null;
   emergencyName: string | null;
   emergencyPhone: string | null;
   source: string | null;
@@ -934,7 +948,8 @@ async function diverRecord(tx: Tx, diverId: string): Promise<DiverRecord | undef
                cert_level as "certLevel", cert_agency as "certAgency", cert_name as "certName", cert_number as "certNumber",
                pb_cwt_m as "pbCwtM", pb_fim_m as "pbFimM", pb_sta_sec as "pbStaSec", pb_dyn_m as "pbDynM",
                depth_limit_m as "depthLimitM", medical_expires_on::text as "medicalExpiresOn",
-               waiver_signed_on::text as "waiverSignedOn", emergency_name as "emergencyName",
+               waiver_signed_on::text as "waiverSignedOn", insurance_expires_on::text as "insuranceExpiresOn",
+               emergency_name as "emergencyName",
                emergency_phone as "emergencyPhone", source, tags, notes, joined_on::text as "joinedOn"
         from dive_divers where id = ${diverId}`,
   );
@@ -1102,12 +1117,13 @@ export async function diverHome(tx: Tx, diverId: string): Promise<DiverHome | nu
     {
       waiverSignedOn: diver.waiverSignedOn,
       medicalExpiresOn: diver.medicalExpiresOn,
+      insuranceExpiresOn: diver.insuranceExpiresOn,
       certLevel: diver.certLevel,
       paid: true,
     },
     { onDate: nextDate, minLevel: 0 },
     rules.paperwork,
-  ).items.filter((i) => i.key === 'waiver' || i.key === 'medical');
+  ).items.filter((i) => i.key === 'waiver' || i.key === 'medical' || i.key === 'insurance');
   return {
     today,
     diver,
@@ -1179,6 +1195,7 @@ export interface DiverListRow {
   dives: number;
   value: number;
   medical: string;
+  insurance: string;
   tags: string[];
   /** Has a booking that still owes money (no pass, a price, no sale). */
   owes: boolean;
@@ -1216,6 +1233,10 @@ export async function listDivers(
                       when d.medical_expires_on < app.today() then 'expired'
                       when d.medical_expires_on <= app.today() + ${rules.paperwork.medical_warn_days}::int then 'warn'
                       else 'ok' end as medical,
+                 case when d.insurance_expires_on is null then 'missing'
+                      when d.insurance_expires_on < app.today() then 'expired'
+                      when d.insurance_expires_on <= app.today() + ${rules.paperwork.insurance_warn_days}::int then 'warn'
+                      else 'ok' end as insurance,
                  d.waiver_signed_on is not null
                    and d.waiver_signed_on + make_interval(months => ${rules.paperwork.waiver_valid_months}::int) >= app.today() as waiver,
                  (select max(dived_on)::text from dive_logs l where l.diver_id = d.id) as "lastDive",
@@ -1247,12 +1268,13 @@ export async function listDivers(
           from dive_divers d
           where ${like}::text is null or (d.first_name || ' ' || d.last_name) ilike ${like} or d.phone_e164 ilike ${like}
         )
-        select id, name, origin, city, "certLevel", "certName", "pbCwtM", tags, medical, "lastDive", dives, value,
+        select id, name, origin, city, "certLevel", "certName", "pbCwtM", tags, medical, insurance, "lastDive", dives, value,
                owes, pass, "nextOn"
         from base
         where (${f.level ?? null}::int is null or "certLevel" = ${f.level ?? null}::int)
           and (${f.origin ?? null}::text is null or origin = ${f.origin ?? null}::text)
           and (${f.medical ?? null}::text is null or medical = ${f.medical ?? null}::text)
+          and (${f.insurance ?? null}::text is null or insurance = ${f.insurance ?? null}::text)
           and (${f.waiver ?? null}::text is null or waiver = (${f.waiver ?? null}::text = 'valid'))
           and (${f.pass ?? null}::text is null or pass = ${f.pass ?? null}::text
                or (${f.pass ?? null}::text = 'active' and pass = 'ending'))

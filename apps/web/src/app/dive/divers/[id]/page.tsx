@@ -1,23 +1,36 @@
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { diverFile } from '@rswim/domain-dive';
+import { diverFile, diverPaperwork } from '@rswim/domain-dive';
 import { withSession } from '@/lib/db';
-import { requireDivePage } from '../../_ui/access';
+import { isOffice, requireDivePage } from '../../_ui/access';
 import { CoursesPanel, DepthPanel, DiverBanner, LogbookPanel } from '../../_ui/diver';
 import { dateShort, shekels } from '../../_ui/format';
 import { di } from '../../_ui/icons';
 import { Chip, Empty, Panel } from '../../_ui/kit';
+import { PaperworkCards, SignatureHistory } from '../../_ui/paperwork';
 import { ReadinessChips } from '../../_ui/widgets';
 
 /** A diver's whole story for the staff: profile, paperwork, depth progress, courses, money, gear and safety. */
-export default async function DiverFilePage({ params }: { params: Promise<{ id: string }> }) {
-  await requireDivePage('divers');
+export default async function DiverFilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ signed?: string }>;
+}) {
+  const { role } = await requireDivePage('divers');
   const { id } = await params;
+  const sp = await searchParams;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const t = await getTranslations('dive');
   const locale = await getLocale();
-  const f = await withSession((tx) => diverFile(tx, id));
-  if (!f) notFound();
+  const data = await withSession(async (tx) => {
+    const file = await diverFile(tx, id);
+    return file ? { file, paperwork: await diverPaperwork(tx, id) } : null;
+  });
+  if (!data) notFound();
+  const { file: f, paperwork } = data;
+  const tf = await getTranslations('dive.forms');
   const d = f.diver;
   return (
     <div className="flex flex-col gap-5" data-testid="diver-file">
@@ -125,6 +138,32 @@ export default async function DiverFilePage({ params }: { params: Promise<{ id: 
           ) : null}
         </Panel>
       </div>
+
+      {sp.signed === 'health' || sp.signed === 'waiver' || sp.signed === 'insurance' ? (
+        <p
+          role="status"
+          className="flex items-center gap-2 rounded-2xl bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-4 py-3 font-semibold text-[color-mix(in_oklch,var(--dive-go)_70%,var(--ink))] [&_svg]:size-5"
+          data-testid="signed-banner"
+        >
+          {di.check}
+          {tf('deskSigned', { kind: tf(`kind.${sp.signed}`) })}
+        </p>
+      ) : null}
+      <Panel title={tf('fileTitle')} icon={di.doc} testId="diver-paperwork">
+        <PaperworkCards
+          paperwork={paperwork}
+          signHref={(k) => `/dive/divers/${id}/forms/${k}`}
+          canSign={isOffice(role)}
+        />
+        {paperwork.history.length ? (
+          <details className="mt-3 rounded-xl border border-line">
+            <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium">
+              {tf('historyCount', { count: paperwork.history.length })}
+            </summary>
+            <SignatureHistory paperwork={paperwork} />
+          </details>
+        ) : null}
+      </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <DepthPanel home={f} />

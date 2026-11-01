@@ -129,3 +129,4 @@ export interface DnsResolver {
   resolveTxt(name: string): Promise<string[][]>;
 }
 export * from './dns';
+export * from './storage';

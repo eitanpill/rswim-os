@@ -23,6 +23,20 @@ Proof: `packages/domain/dive/test/policies.test.ts` (100% coverage of the rules)
 (roles and tenants), `apps/web/e2e/dive.spec.ts` (every role's screen and the main taps). Not built yet: online
 payment for bookings (the desk records the method), WhatsApp reminders for the club, editing the rules in a screen.
 
+## Freediving: the club's forms (health declaration, waiver, insurance)
+
+Divers sign the health declaration, the waiver and their insurance details on their phone, or on the desk's tablet,
+with a drawn signature; the office clears health declarations that answered "yes" to a flagged question; the owner
+and the manager edit and publish the texts; every signed form has a printable copy; insurance has an end date the
+club tracks (not asked, tracked or required, by rule). Details in `docs/FREEDIVING.md` (Forms).
+Proof: `packages/db/test/rls/dive-forms.test.ts` (what the database stamps, who signs for whom, append-only, the
+review, uploads), `packages/seed/test/dive-forms.test.ts` (the seed agrees with every file, signing online and at the
+desk, clearing, publishing, the owner's feed), `packages/domain/dive/test/policies.test.ts` (100% of the new rules),
+`packages/integrations/test/storage.test.ts`, `apps/web/e2e/dive-forms.spec.ts` (a diver renews her insurance with a
+photo and her signature, a "yes" waits for the club, the office clears one and signs a waiver at the desk, the
+manager publishes a new waiver). Not verified yet: Supabase Storage itself (no project yet; the adapter is tested
+against a fake HTTP server).
+
 ## Live demo (for selling)
 
 A public demo that runs on fake data only: `docs/LIVE-DEMO.md` (Hebrew, for Pit) and `deploy/demo/`. One container

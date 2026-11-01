@@ -3887,7 +3887,8 @@
       "office": "Front desk",
       "instructor": "In the water",
       "me": "My diving",
-      "divers": "Divers"
+      "divers": "Divers",
+      "forms": "Paperwork"
     },
     "clubFallback": "Freediving club",
     "tagline": "Freediving · Gulf of Eilat",
@@ -4002,6 +4003,12 @@
         "ok": "Paid or on a pass",
         "warn": "Partial",
         "missing": "Not paid yet"
+      },
+      "insurance": {
+        "label": "Insurance",
+        "ok": "Valid",
+        "warn": "{days, select, none {Not on file (not blocking)} other {Ends in {days} days}}",
+        "missing": "No valid insurance"
       }
     },
     "severity": {
@@ -4056,6 +4063,14 @@
       "payments_pending": {
         "title": "{count, plural, one {One booking is awaiting payment} other {# bookings are awaiting payment}} ({amount})",
         "body": "They're not confirmed yet and the seat is only held for a while. The desk can take payment and confirm in one tap."
+      },
+      "forms_pending": {
+        "title": "{count, plural, one {One health declaration waits for clearance} other {# health declarations wait for clearance}}",
+        "body": "Divers who answered 'yes' to a medical question. Until you clear them (with a doctor's note) they are not ready for the water."
+      },
+      "insurance": {
+        "title": "{count, plural, one {One active diver's insurance is ending} other {# active divers' insurance is ending}}",
+        "body": "Ended or ending soon. They can update it from their phone, or at the desk."
       }
     },
     "owner": {
@@ -4465,7 +4480,12 @@
       "unpaidSub": "A booking counts only once it is paid. Until then your seat is held for a short while, then it goes back to others.",
       "payOnArrival": "Your seat is held until the session. Pay now or on arrival.",
       "buyPass": "Buy a pass or membership",
-      "passBanner": "Payment received and your pass is active. See you in the water!"
+      "passBanner": "Payment received and your pass is active. See you in the water!",
+      "insuranceSoon": "Your insurance ends in {days} days.",
+      "insuranceMissing": "You have no valid insurance on file.",
+      "updateInsurance": "Update insurance",
+      "fillHealth": "Fill in the health declaration",
+      "myForms": "My paperwork"
     },
     "passKind": {
       "punch5": "5-session pass",
@@ -4544,7 +4564,8 @@
           "level": "Level"
         },
         "all": "All filters ({count})",
-        "activeCount": "{count} active"
+        "activeCount": "{count} active",
+        "insurance": "Insurance"
       },
       "state": {
         "owes": "Owes",
@@ -4589,7 +4610,13 @@
       "lines": "Lines assigned",
       "waiver": "Thanks! Waiver signed",
       "paid": "Paid. Booking confirmed",
-      "passSold": "Added to the diver"
+      "passSold": "Added to the diver",
+      "review": {
+        "cleared": "Cleared. The declaration counts",
+        "refused": "Marked as not cleared"
+      },
+      "draftSaved": "Draft saved",
+      "formPublished": "Published. New signatures use this text"
     },
     "errors": {
       "sessionFull": "The session is full",
@@ -4601,7 +4628,19 @@
       "alreadyBooked": "Already booked",
       "levelTooLow": "Needs a higher level",
       "measureRequired": "Enter a depth, distance or time",
-      "holdLapsed": "The hold has expired. Book again if there is still room."
+      "holdLapsed": "The hold has expired. Book again if there is still room.",
+      "formLocked": "This text is published and frozen. Save a new version.",
+      "formNotPublished": "This form is not published yet.",
+      "signerName": "Write the signer's full name.",
+      "signatureMissing": "The signature is missing. Sign inside the box.",
+      "formIncomplete": "Answer every question and fill in every detail.",
+      "insuranceExpired": "The insurance end date has already passed.",
+      "reviewNotPending": "This declaration was already handled.",
+      "formBodyShort": "The text is too short.",
+      "mustAgree": "Tick that you have read it and the details are true.",
+      "uploadTooBig": "The file is too big (8MB at most).",
+      "uploadUnavailable": "File uploads are not set up for the club yet. You can sign without a file.",
+      "uploadKind": "Upload a photo (JPG, PNG, WEBP) or a PDF only."
     },
     "levelShort": {
       "0": "None",
@@ -4636,6 +4675,131 @@
       "passTitle": "Buy a pass",
       "passHolds": "{count} sessions · valid {days} days",
       "passUnlimited": "Unlimited sessions · valid {days} days"
+    },
+    "forms": {
+      "kicker": "Paperwork",
+      "kind": {
+        "health": "Health declaration",
+        "waiver": "Waiver and release of liability",
+        "insurance": "Dive insurance"
+      },
+      "state": {
+        "ok": "Valid",
+        "warn": "Ending soon",
+        "expired": "Expired",
+        "missing": "Missing",
+        "pending": "Awaiting clearance",
+        "refused": "Not cleared"
+      },
+      "pendingLine": "You answered 'yes' to a medical question. The club is reviewing it (a doctor's note helps).",
+      "refusedLine": "The club did not clear your last declaration. Please talk to us.",
+      "expiredOn": "Expired on {date}",
+      "validUntil2": "Valid until {date} ({days} days left)",
+      "missingLine": {
+        "health": "You have not filled in a health declaration yet.",
+        "waiver": "You have not signed the waiver yet.",
+        "insurance": "You have not added your insurance yet."
+      },
+      "sign": "Fill in and sign",
+      "renew": "Renew",
+      "update": "Update",
+      "notPublished": "The club has not published this form yet",
+      "viewSigned": "Signed copy",
+      "version": "Version {v}",
+      "channel": {
+        "online": "Signed on the phone",
+        "desk": "Signed at the desk"
+      },
+      "until": "until {date}",
+      "review": {
+        "none": "Fine",
+        "pending": "Awaiting clearance",
+        "cleared": "Cleared",
+        "refused": "Not cleared"
+      },
+      "noDiver": "This account is not linked to a diver at the club yet.",
+      "backHome": "← Back to my diving",
+      "backForms": "← Back to paperwork",
+      "backDiver": "← Back to the diver's file",
+      "myTitle": "My paperwork",
+      "mySub": "Health declaration, waiver and insurance. Fill them in once and renew them when it is time.",
+      "signedBanner": "Thank you! The form is signed and saved.",
+      "signedPending": "Thank you! Saved. You answered 'yes' to a medical question, so the club will clear it before you dive.",
+      "history": "Every signature",
+      "noHistory": "No signatures yet.",
+      "historyCount": "{count, plural, one {One signature} other {# signatures}} so far",
+      "signSub": {
+        "health": "A few short questions about your health. 'Yes' does not rule you out; it means we check together.",
+        "waiver": "Read it carefully. The signature counts for a year.",
+        "insurance": "The policy that covers freediving."
+      },
+      "questionsTitle": "Questions",
+      "questionsHint": "Answer every question. If in doubt, answer 'yes'.",
+      "yes": "Yes",
+      "no": "No",
+      "policyTitle": "Policy details",
+      "insurer": "Insurer",
+      "insurerPlaceholder": "e.g. DAN",
+      "policyNumber": "Policy number",
+      "validUntil": "Valid until",
+      "uploadPolicy": "Photo of the policy (optional)",
+      "uploadDoctor": "Doctor's note (optional)",
+      "uploadHint": "A photo or a PDF, up to 8MB.",
+      "signTitle": "Signature",
+      "signerName": "Full name",
+      "signHere": "Sign here",
+      "signHint": "With a finger or the mouse, inside the box.",
+      "clear": "Clear",
+      "agree": {
+        "health": "I declare my answers are true and complete, and I will tell the club if anything changes.",
+        "waiver": "I have read and understood the risks and I agree to the terms.",
+        "insurance": "I declare the policy is valid and covers freediving."
+      },
+      "submit": "Sign and send",
+      "deskNote": "This is recorded as signed at the desk, with the name of the staff member who opened the form.",
+      "deskKicker": "Signing at the desk",
+      "deskSub": "Hand the tablet to {name}: they read, answer and sign by hand.",
+      "deskSigned": "{kind}: signed at the desk and saved.",
+      "fileTitle": "Paperwork",
+      "print": "Print / PDF",
+      "answers": "Answers",
+      "signedTitle": "Signature details",
+      "signedAt": "Signed",
+      "countsUntil": "Valid until",
+      "signatureOf": "Signature of {name}",
+      "attached": "Attached file",
+      "reviewTitle": "Medical clearance",
+      "pendingExplain": "The diver answered 'yes' to a medical question. Until you clear it, the declaration does not count and the diver is not ready for the water.",
+      "reviewNote": "Note",
+      "reviewNotePlaceholder": "e.g. doctor's note from 10 Oct",
+      "clearIt": "Clear",
+      "refuseIt": "Do not clear",
+      "centerTitle": "Paperwork",
+      "centerSub": "{pending} awaiting medical clearance · {missing} booked this week with a form missing · {insurance} insurances ending",
+      "pendingTitle": "Health declarations awaiting clearance",
+      "noPending": "Nothing waiting. 👌",
+      "signedOn": "Signed {date}",
+      "nextDive": "Dives on {date}",
+      "missingTitle": "Booked this week, a form missing",
+      "noMissing": "Everyone booked this week has valid forms.",
+      "insuranceTitle": "Insurance ending (active divers)",
+      "noInsurance": "No insurance ending soon.",
+      "textsTitle": "Form texts",
+      "textsSub": "Changing a text saves a draft. Once published, new signatures use it, and earlier ones stay on the text they signed.",
+      "textsReadOnly": "The owner and the operations manager edit the texts.",
+      "liveVersion": "Version {v} live",
+      "liveLine": "Published {date} · {count} signatures · {questions} questions",
+      "draftLine": "Draft (version {v}) not published yet",
+      "publish": "Publish",
+      "publishConfirm": "Publish? Every new signature will be on this text.",
+      "editDraft": "Edit the draft",
+      "newVersion": "New version",
+      "textTitle": "Title",
+      "textBody": "Text",
+      "textQuestions": "Questions (one per line)",
+      "textQuestionsHint": "A line starting with ! is a medical question: a 'yes' waits for the club's clearance.",
+      "saveDraft": "Save draft",
+      "readText": "Read the text"
     }
   }
 }

@@ -20,6 +20,19 @@ function I({ children, size = 20 }: { children: ReactNode; size?: number }) {
 }
 
 export const di = {
+  doc: (
+    <I>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6M9 17h4" />
+    </I>
+  ),
+  pen: (
+    <I>
+      <path d="M4 20c3-1 5-4 7-4s1 3 4 3 4-3 5-4" />
+      <path d="m14.5 4.5 3 3L9 16l-4 1 1-4z" />
+    </I>
+  ),
   bridge: (
     <I>
       <path d="M3 18c2 0 2-1.5 4.5-1.5S9.5 18 12 18s2.5-1.5 4.5-1.5S19 18 21 18" />

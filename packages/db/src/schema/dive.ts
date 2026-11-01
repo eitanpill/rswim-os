@@ -26,6 +26,9 @@ import {
   DIVE_BOOKING_STATUSES,
   DIVE_DISCIPLINES,
   DIVE_ENROLLMENT_STATUSES,
+  DIVE_FORM_CHANNELS,
+  DIVE_FORM_KINDS,
+  DIVE_FORM_REVIEWS,
   DIVE_INCIDENT_KINDS,
   DIVE_INCIDENT_STATUSES,
   DIVE_OUTCOMES,
@@ -47,7 +50,7 @@ import {
 } from '@rswim/contracts';
 import { createdAt, id, inList, orgId, updatedAt } from './_helpers';
 import { guardians, staffMembers } from './people';
-import { organizations } from './tenancy';
+import { files, organizations } from './tenancy';
 
 const orgRef = () => orgId().references(() => organizations.id, { onDelete: 'cascade' });
 const oneOf = (col: string, values: readonly string[]) => sql.raw(`${col} in (${inList(values)})`);
@@ -158,6 +161,8 @@ export const diveDivers = pgTable(
     depthLimitM: smallint('depth_limit_m'),
     medicalExpiresOn: date('medical_expires_on'),
     waiverSignedOn: date('waiver_signed_on'),
+    /** The diver's own insurance runs out on this day (from their latest insurance form). */
+    insuranceExpiresOn: date('insurance_expires_on'),
     emergencyName: text('emergency_name'),
     emergencyPhone: text('emergency_phone'),
     source: text('source'),
@@ -546,5 +551,94 @@ export const diveStaffCerts = pgTable(
       foreignColumns: [staffMembers.organizationId, staffMembers.id],
     }).onDelete('cascade'),
     check('dive_staff_certs_kind_check', oneOf('kind', STAFF_CERT_KINDS)),
+  ],
+);
+
+/**
+ * The text of one of the club's forms (health declaration, waiver, insurance), versioned. A published version is
+ * frozen; a new text is a new version, and a signature always points at the exact version the diver read.
+ */
+export const diveFormTemplates = pgTable(
+  'dive_form_templates',
+  {
+    id: id(),
+    organizationId: orgRef(),
+    kind: text('kind').notNull(),
+    version: smallint('version').notNull(),
+    title: text('title').notNull(),
+    body: text('body').notNull(),
+    /** Yes/no questions: [{ code, he, flag }]. A "yes" on a flagged one needs the club's medical clearance. */
+    questions: jsonb('questions').notNull().default([]),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    createdBy: uuid('created_by'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('dive_form_templates_org_id').on(t.organizationId, t.id),
+    unique('dive_form_templates_version').on(t.organizationId, t.kind, t.version),
+    check('dive_form_templates_kind_check', oneOf('kind', DIVE_FORM_KINDS)),
+    check('dive_form_templates_version_check', sql`version >= 1`),
+  ],
+);
+
+/**
+ * A diver's signature on one form version: the answers, the hash of the exact text, who signed (typed name and the
+ * drawn signature), where, and until when it counts. Append-only except the club's medical review.
+ */
+export const diveFormSignatures = pgTable(
+  'dive_form_signatures',
+  {
+    id: id(),
+    organizationId: orgRef(),
+    diverId: uuid('diver_id').notNull(),
+    templateId: uuid('template_id').notNull(),
+    kind: text('kind').notNull(),
+    answers: jsonb('answers').notNull().default({}),
+    /** sha256 of the title and body the diver saw. */
+    textHash: text('text_hash').notNull(),
+    signerName: text('signer_name').notNull(),
+    /** Strokes of [x, y] points on the 600x200 pad (SignatureStrokes). */
+    signature: jsonb('signature').notNull(),
+    signedAt: timestamp('signed_at', { withTimezone: true }).notNull().defaultNow(),
+    /** Last day this signature counts (set by the database from the rules, or the policy's end for insurance). */
+    validUntil: date('valid_until'),
+    channel: text('channel').notNull(),
+    recordedBy: uuid('recorded_by'),
+    insurer: text('insurer'),
+    policyNumber: text('policy_number'),
+    /** A photo or PDF the diver attached: the insurance policy, or a doctor's note for the health declaration. */
+    fileId: uuid('file_id'),
+    review: text('review').notNull().default('none'),
+    reviewNote: text('review_note'),
+    reviewedBy: uuid('reviewed_by'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('dive_form_signatures_org_id').on(t.organizationId, t.id),
+    index('dive_form_signatures_diver').on(t.organizationId, t.diverId, t.kind, t.signedAt),
+    foreignKey({
+      name: 'dive_form_signatures_diver_fk',
+      columns: [t.organizationId, t.diverId],
+      foreignColumns: [diveDivers.organizationId, diveDivers.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'dive_form_signatures_template_fk',
+      columns: [t.organizationId, t.templateId],
+      foreignColumns: [diveFormTemplates.organizationId, diveFormTemplates.id],
+    }),
+    foreignKey({
+      name: 'dive_form_signatures_file_fk',
+      columns: [t.organizationId, t.fileId],
+      foreignColumns: [files.organizationId, files.id],
+    }),
+    check('dive_form_signatures_kind_check', oneOf('kind', DIVE_FORM_KINDS)),
+    check('dive_form_signatures_channel_check', oneOf('channel', DIVE_FORM_CHANNELS)),
+    check('dive_form_signatures_review_check', oneOf('review', DIVE_FORM_REVIEWS)),
+    check(
+      'dive_form_signatures_insurance_check',
+      sql`kind <> 'insurance' or (insurer is not null and policy_number is not null and valid_until is not null)`,
+    ),
   ],
 );
