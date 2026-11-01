@@ -16,6 +16,7 @@ import {
   ratioCheck,
   readiness,
   seaCall,
+  welcomeSteps,
   type ClubFacts,
 } from '../src/policies';
 
@@ -212,6 +213,69 @@ describe('forms', () => {
   });
 });
 
+describe('welcomeSteps', () => {
+  const P = R.paperwork;
+  const fresh = {
+    hasEmergencyContact: true,
+    cert: 'none',
+    beginner: false,
+    forms: { health: 'missing', waiver: 'missing', insurance: 'missing' },
+    bookings: 0,
+  } as const;
+  const states = (f: Parameters<typeof welcomeSteps>[0], p = P) =>
+    welcomeSteps(f, p).steps.map((s) => `${s.key}:${s.state}`);
+
+  it('starts a new diver at their card, with insurance optional while the club only tracks it', () => {
+    expect(states(fresh)).toEqual([
+      'details:done',
+      'cert:todo',
+      'health:todo',
+      'waiver:todo',
+      'insurance:optional',
+      'book:todo',
+    ]);
+    expect(welcomeSteps(fresh, P)).toMatchObject({ next: 'cert', done: 2 });
+    expect(welcomeSteps({ ...fresh, hasEmergencyContact: false }, P).next).toBe('details');
+  });
+
+  it('a beginner skips the card; waiting steps are on the club; a required insurance is a step', () => {
+    const f = {
+      ...fresh,
+      beginner: true,
+      cert: 'rejected',
+      forms: { health: 'pending', waiver: 'ok', insurance: 'missing' },
+    } as const;
+    expect(states(f, { ...P, insurance: 'require' })).toEqual([
+      'details:done',
+      'cert:optional',
+      'health:waiting',
+      'waiver:done',
+      'insurance:todo',
+      'book:todo',
+    ]);
+    expect(states({ ...f, cert: 'pending' }, { ...P, insurance: 'off' })).toEqual([
+      'details:done',
+      'cert:waiting',
+      'health:waiting',
+      'waiver:done',
+      'book:todo',
+    ]);
+  });
+
+  it('is finished once everything is in and a first dive is booked', () => {
+    const r = welcomeSteps(
+      {
+        ...fresh,
+        cert: 'verified',
+        forms: { health: 'warn', waiver: 'ok', insurance: 'ok' },
+        bookings: 1,
+      },
+      { ...P, insurance: 'require' },
+    );
+    expect(r).toMatchObject({ next: null, done: 6 });
+  });
+});
+
 describe('bookingDecision', () => {
   const now = new Date('2026-10-09T10:00:00Z');
   const base = {
@@ -388,6 +452,7 @@ describe('clubInsights', () => {
       graduatesIdle: 6,
       paymentsPending: { count: 2, amount: 36000 },
       formsPending: 2,
+      certsPending: 3,
       insuranceExpiring: 7,
     });
     expect(out.map((i) => `${i.kind}:${i.severity}`)).toEqual([
@@ -398,6 +463,7 @@ describe('clubInsights', () => {
       'course_fill:attention',
       'medicals:attention',
       'forms_pending:attention',
+      'certs_pending:attention',
       'staff_cert:attention',
       'rentals_overdue:attention',
       'payments_pending:attention',

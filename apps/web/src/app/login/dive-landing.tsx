@@ -10,6 +10,7 @@ const ROLE_ICON: Record<string, ReactNode> = {
   diveOffice: di.desk,
   diveInstructor: di.water,
   diveCustomer: di.me,
+  diveNewcomer: di.spark,
 };
 
 /**

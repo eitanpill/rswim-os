@@ -118,6 +118,31 @@ export async function resetNewcomer(): Promise<void> {
   }
 }
 
+/** Takes the demo diver-to-be (Noam) out of every club they joined in an earlier run, so the join starts fresh. */
+export async function resetDiveNewcomer(): Promise<void> {
+  const client = new pg.Client({ connectionString: E2E_DB_URL });
+  await client.connect();
+  try {
+    await client.query('begin');
+    const { rows } = await client.query<{ guardian_id: string }>(
+      `delete from memberships where user_id = $1 and guardian_id is not null returning guardian_id`,
+      [ACCOUNT_PERSONAS.diveNewcomer.userId],
+    );
+    const guardians = rows.map((r) => r.guardian_id);
+    await client.query(`delete from dive_divers where guardian_id = any($1)`, [guardians]);
+    const hh = await client.query<{ household_id: string }>(
+      `delete from guardians where id = any($1) returning household_id`,
+      [guardians],
+    );
+    await client.query(`delete from households where id = any($1)`, [
+      hh.rows.map((r) => r.household_id),
+    ]);
+    await client.query('commit');
+  } finally {
+    await client.end();
+  }
+}
+
 /** The id of a school by its slug. */
 export function orgIdOf(slug: string): Promise<string> {
   return asWorker(async (_tx, orgId) => orgId, slug);

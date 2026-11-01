@@ -37,6 +37,19 @@ photo and her signature, a "yes" waits for the club, the office clears one and s
 manager publishes a new waiver). Not verified yet: Supabase Storage itself (no project yet; the adapter is tested
 against a fake HTTP server).
 
+## Freediving: joining the club on one's own
+
+A diver joins a club from its link (`/join/<club>`): signs in with their phone, fills in their details and an
+emergency contact, and lands on their first steps (card, health declaration, waiver, insurance, a first dive). They
+upload a photo of their certification card; the desk verifies it (correcting the level if needed) and the diver's
+level follows. Details in `docs/FREEDIVING.md` (Joining).
+Proof: `packages/db/test/rls/dive-signup.test.ts` (who may join, what is created, closed clubs, staff, bad details,
+cards pending until the office checks them once, the file follows), `packages/seed/test/dive-signup.test.ts` (the
+seed's cards agree with every file, the demo newcomer joins, fills in details, uploads, the desk verifies),
+`packages/domain/dive/test/policies.test.ts` (100% of `welcomeSteps`), `apps/web/e2e/dive-join.spec.ts` (a new
+diver joins from his phone, adds his card and signs the waiver; the desk verifies a card). Not verified yet: real SMS
+sign-up through Supabase (no project yet).
+
 ## Live demo (for selling)
 
 A public demo that runs on fake data only: `docs/LIVE-DEMO.md` (Hebrew, for Pit) and `deploy/demo/`. One container

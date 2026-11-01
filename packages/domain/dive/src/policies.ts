@@ -232,6 +232,66 @@ export function formsToSign(
   return kinds.filter((k) => ['missing', 'expired', 'refused', 'warn'].includes(states[k]));
 }
 
+// ─── Getting started ────────────────────────────────────────────────────────
+
+export type WelcomeStep = 'details' | 'cert' | 'health' | 'waiver' | 'insurance' | 'book';
+export type WelcomeStepState = 'done' | 'todo' | 'waiting' | 'optional';
+
+/** What a new diver has done so far, from their file, their cards, their forms and their bookings. */
+export interface WelcomeFacts {
+  hasEmergencyContact: boolean;
+  /** Their cards: none uploaded, one waiting for the club, or one the club verified (a beginner has none). */
+  cert: 'none' | 'pending' | 'verified' | 'rejected';
+  /** The diver said they are new to freediving (no card to upload). */
+  beginner: boolean;
+  forms: Record<DiveFormKind, PaperworkState>;
+  bookings: number;
+}
+
+/**
+ * The new diver's first steps, in order: their details, their certification card (skipped by a beginner), the three
+ * forms (insurance only when the club asks for it) and a first dive. `waiting` is done on the diver's side and
+ * waiting for the club. Says which step is next.
+ */
+export function welcomeSteps(
+  f: WelcomeFacts,
+  rules: ResolvedDiveRules['paperwork'],
+): {
+  steps: { key: WelcomeStep; state: WelcomeStepState }[];
+  next: WelcomeStep | null;
+  done: number;
+} {
+  const form = (k: DiveFormKind): WelcomeStepState =>
+    f.forms[k] === 'pending' ? 'waiting' : ['ok', 'warn'].includes(f.forms[k]) ? 'done' : 'todo';
+  const steps: { key: WelcomeStep; state: WelcomeStepState }[] = [
+    { key: 'details', state: f.hasEmergencyContact ? 'done' : 'todo' },
+    {
+      key: 'cert',
+      state:
+        f.cert === 'verified'
+          ? 'done'
+          : f.cert === 'pending'
+            ? 'waiting'
+            : f.beginner
+              ? 'optional'
+              : 'todo',
+    },
+    { key: 'health', state: form('health') },
+    { key: 'waiver', state: form('waiver') },
+  ];
+  if (rules.insurance !== 'off')
+    steps.push({
+      key: 'insurance',
+      state:
+        rules.insurance === 'track' && form('insurance') === 'todo'
+          ? 'optional'
+          : form('insurance'),
+    });
+  steps.push({ key: 'book', state: f.bookings > 0 ? 'done' : 'todo' });
+  const next = steps.find((s) => s.state === 'todo')?.key ?? null;
+  return { steps, next, done: steps.filter((s) => s.state !== 'todo').length };
+}
+
 // ─── Booking ────────────────────────────────────────────────────────────────
 
 export interface BookingFacts {
@@ -382,6 +442,8 @@ export interface ClubFacts {
   formsPending?: number;
   /** Active divers whose insurance runs out within the warning days, or has. */
   insuranceExpiring?: number;
+  /** Certification cards divers uploaded that the club has not checked yet. */
+  certsPending?: number;
 }
 
 export interface Insight {
@@ -397,6 +459,7 @@ export interface Insight {
     | 'graduates'
     | 'payments_pending'
     | 'forms_pending'
+    | 'certs_pending'
     | 'insurance';
   severity: 'info' | 'attention' | 'urgent';
   params: Record<string, string | number>;
@@ -428,6 +491,8 @@ export function clubInsights(f: ClubFacts): Insight[] {
     out.push({ kind: 'medicals', severity: 'attention', params: { count: f.medicalsExpiring } });
   if (f.formsPending)
     out.push({ kind: 'forms_pending', severity: 'attention', params: { count: f.formsPending } });
+  if (f.certsPending)
+    out.push({ kind: 'certs_pending', severity: 'attention', params: { count: f.certsPending } });
   if (f.insuranceExpiring)
     out.push({ kind: 'insurance', severity: 'info', params: { count: f.insuranceExpiring } });
   for (const s of f.staffCertsExpiring)

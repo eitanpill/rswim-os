@@ -19,6 +19,8 @@ export const PUBLIC_PREFIXES = [
   '/api/webhooks',
   '/offline',
   '/pass',
+  // A club's join link: anyone may read it; joining needs a sign-in (the page sends visitors to it).
+  '/join',
 ];
 
 export function surfaceForPath(pathname: string): Surface | 'platform' | null {

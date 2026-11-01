@@ -129,9 +129,36 @@ The demo seeds sample texts (invented, not legal or medical advice), a signature
 diver's file, an insurance policy for most active divers (Dana's ends in 12 days), two health declarations waiting
 for clearance and a waiver draft the manager has not published.
 
+## Joining the club on one's own: `/join/<club>`
+
+A club shares one link (Instagram bio, website, WhatsApp): `/join/<slug>`. Signed out, the page shows the club and how
+joining works, and sends the visitor to the phone sign-in with the club named (`/login/phone?join=<slug>`). Only from
+there, and only while the club takes sign-ups, does a new phone number become a new account (everywhere else the
+phone sign-in still refuses unknown numbers). Signed in, the visitor fills in their name, phone, date of birth, an
+emergency contact and "I'm new to freediving", and `public.dive_join_club` creates the household, the guardian (the
+diver is their own guardian), the customer membership and the diver's file (`source = join_link`, tag `self_signup`,
+and `beginner` when ticked), then points the next token at the club. Joining twice changes nothing; someone who
+already works in the club cannot join it as a customer. A club closes its link with the rule
+`registration.self_signup = false`.
+
+Then `/dive/me/welcome` lists the first steps (`welcomeSteps`): emergency contact, certification card (optional for a
+beginner), health declaration, waiver, insurance (optional while the club only tracks it) and a first dive. The
+diver's home links back to it until it is done.
+
+Certification cards (`dive_certifications`, RLS in `0036_dive_signup_security.sql`): the diver uploads a photo of the
+card (agency, level on the club's ladder, name, number, issue date) from `/dive/me/certs`; it always starts
+`pending`. The desk checks it under "תעודות לבדיקה" in `/dive/forms`, may correct the level, and verifies or rejects
+it once. A verified card at or above the diver's level becomes the level on their file (so their allowed depth
+follows it). The desk can also add a card from the diver's file and verify it on the spot. The owner's feed shows
+`certs_pending`.
+
+The demo seeds a verified card behind every certified diver, two divers who joined through the link this week with a
+card each, and a regular who uploaded a higher card, all waiting for the desk. Persona **נועם (צולל חדש)**
+(`diveNewcomer`) starts on the Eilat club's join link.
+
 ## Rules (`packages/domain/dive/src/policies.ts`, pure, 100% branch coverage)
 
-`seaCall`, `allowedDepth`, `readiness`, `insuranceReadiness`, `formState`, `formsToSign`, `bookingDecision`, `bookingConfirmation`, `ratioCheck`, `passBalance`,
+`seaCall`, `allowedDepth`, `readiness`, `insuranceReadiness`, `formState`, `formsToSign`, `welcomeSteps`, `bookingDecision`, `bookingConfirmation`, `ratioCheck`, `passBalance`,
 `planLines`, `clubInsights`.
 Each takes the rules version in force; defaults live in `@rswim/contracts` (`DEFAULT_DIVE_RULES`).
 

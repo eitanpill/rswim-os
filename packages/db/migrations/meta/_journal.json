@@ -246,6 +246,20 @@
       "when": 1793509280921,
       "tag": "0034_dive_forms_security",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793511385502,
+      "tag": "0035_dive_certifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793511387008,
+      "tag": "0036_dive_signup_security",
+      "breakpoints": true
     }
   ]
 }
