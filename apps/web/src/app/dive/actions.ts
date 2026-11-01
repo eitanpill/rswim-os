@@ -17,7 +17,6 @@ import {
   LogInput,
   logDive,
   markNoShow,
-  MedicalInput,
   moveLead,
   recordConditions,
   RentalRef,
@@ -33,11 +32,9 @@ import {
   setTarget,
   SettleInput,
   settleBooking,
-  signWaiver,
   SkillToggle,
   TargetInput,
   toggleSkill,
-  updateMedical,
 } from '@rswim/domain-dive';
 import { DIVE_PASS_KINDS } from '@rswim/contracts';
 import { confirmCheckout, confirmPassCheckout } from '@rswim/domain-dive/checkout';
@@ -226,12 +223,4 @@ export async function targetAction(_: FormState, fd: FormData) {
 
 export async function skillAction(_: FormState, fd: FormData) {
   return runForm(fd, SkillToggle, (tx, _c, i) => toggleSkill(tx, i), opts());
-}
-
-export async function waiverAction(_: FormState, fd: FormData) {
-  return runForm(fd, z.object({}), (tx) => signWaiver(tx), opts('dive.done.waiver'));
-}
-
-export async function medicalAction(_: FormState, fd: FormData) {
-  return runForm(fd, MedicalInput, (tx, _c, i) => updateMedical(tx, i), opts());
 }

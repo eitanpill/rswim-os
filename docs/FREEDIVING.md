@@ -24,10 +24,10 @@ the Red Sea; everything in it is invented.
 | Manager | admin + `settings.write` | `/dive/manager` (ops room) | The week against the sea forecast, holds and cancellations, the morning sea report, paperwork to chase, crew certificates, gear, rules, safety log |
 | Office | admin | `/dive/office` (front desk) | Who arrives and whether each is ready (waiver, medical, level, payment), check-in, quick booking, gear out and back, the till, leads |
 | Instructor | instructor | `/dive/instructor` (in the water) | My sessions, each diver's allowed depth and why, lines and buddies, dive log, course skills |
-| Customer | parent (a diver is their own guardian) | `/dive/me` | My best and today's allowed depth, next dives with the meeting point and line, my pass, booking, paperwork, logbook |
+| Customer | parent (a diver is their own guardian) | `/dive/me` | My best and today's allowed depth, next dives with the meeting point and line, my pass, booking, my paperwork (`/dive/me/forms`: sign, renew, update insurance), logbook |
 | Platform admin | `platform_admins` | `/platform` (network) | Every school and club side by side: customers, revenue, sessions, the coming week, safety |
 
-The owner sees every staff screen through the tabs. `/dive/divers` and `/dive/divers/[id]` are the staff's diver
+The owner, the manager and the front desk also have the paperwork center (`/dive/forms`). The owner sees every staff screen through the tabs. `/dive/divers` and `/dive/divers/[id]` are the staff's diver
 list and file.
 
 The diver list filters by level, origin, medical, waiver, pass (valid, ending soon, none), payment (owes or all
@@ -51,10 +51,10 @@ stops under `prefers-reduced-motion`.
 `dive_rule_sets` (versioned rules) · `dive_sites` · `dive_programs` · `dive_divers` · `dive_sessions` ·
 `dive_bookings` (line, buddy, target depth, pass, rule version) · `dive_passes` · `dive_logs` · `dive_incidents` ·
 `dive_enrollments` (skills ticked) · `dive_gear` · `dive_rentals` · `dive_sales` (append-only) · `dive_conditions` ·
-`dive_leads` · `dive_staff_certs`.
+`dive_leads` · `dive_staff_certs` · `dive_form_templates` · `dive_form_signatures` (forms, below).
 
 The database guards what matters: capacity on booking (seats held for payment count), a customer may only book themself and cancel, a customer edits
-only their own paperwork fields, gear can't go out twice, personal bests follow clean dives, sales never change.
+only their own contact details (paperwork dates come only from signed forms), gear can't go out twice, personal bests follow clean dives, sales never change.
 
 ## Paying for a booking
 
@@ -87,9 +87,51 @@ A booking for a paid session counts only once it is paid. Until then it is `pend
 - Everything given free is a zero sale with method `comp` and the person who gave it (`sold_by`), so the till and the
   owner can see what was given and by whom.
 
+## Forms: health declaration, waiver, insurance
+
+The club keeps three forms (`dive_form_templates`, `dive_form_signatures`, migrations 0033/0034,
+`packages/domain/dive/src/services/forms.ts`):
+
+- **Health declaration**: yes/no questions. A question can be flagged (a line starting with `!` in the editor): a
+  "yes" on it waits for the club ("ממתין לאישור") and does not count until the office clears it, usually with a
+  doctor's note, or refuses it. Valid for `paperwork.medical_valid_months`.
+- **Waiver** (כתב ויתור ושחרור מאחריות): read and sign. Valid for `paperwork.waiver_valid_months`.
+- **Insurance**: insurer, policy number and end date, with an optional photo or PDF of the policy. The club chooses in
+  the rules (`paperwork.insurance`) whether insurance is not asked (`off`), tracked with a warning that never blocks
+  (`track`, the default) or required to get in the water (`require`); `paperwork.insurance_warn_days` (30) is when
+  "ending soon" starts.
+
+Signing: the diver signs on their phone (`/dive/me/forms`), or the desk hands its tablet to the diver from the
+diver's file (`/dive/divers/[id]/forms/[kind]`, recorded as signed at the desk, with who opened it). The signature is
+drawn on a pad and stored as points, never as an image or markup, with the typed full name and "I have read". The
+database stamps what must not come from the signer: the sha256 of the exact text, the time, who recorded it, the
+medical review and until when it counts, and it refuses a missing answer, a draft text or an insurance that has
+already ended. Signatures are append-only; only the review of a pending health declaration changes, once, by the
+office. The diver's file follows the signatures (`waiver_signed_on`, `medical_expires_on`, `insurance_expires_on`), so
+readiness at the desk works as before. A customer can no longer set those dates directly.
+
+Every signed form opens as a printable copy (`/dive/signed/[id]`): the text of the version signed, the answers, the
+policy, the signature, when and where, the fingerprint, and the attached file.
+
+The paperwork center (`/dive/forms`, owner, manager, front desk): health declarations waiting for clearance (clear or
+refuse with a note and a doctor's note), divers booked this week with a form missing, and active divers whose
+insurance is ending. The owner and the manager edit the texts there: a change is a draft, publishing makes it the
+version new signatures use, and earlier signatures keep pointing at the text they signed. The owner's feed shows
+`forms_pending` and `insurance`; the diver list filters by insurance.
+
+Documents are stored through `FileStore` (`@rswim/integrations`): the local disk with `RSWIM_FILES_FAKE=1` (local, E2E)
+and on the live demo, or Supabase Storage (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, private bucket
+`RSWIM_FILES_BUCKET`, default `dive-documents`). Uploads are checked by their first bytes (JPG, PNG, WEBP, PDF, up to
+8MB) and served only through `/api/dive/files/[id]`, which reads the `files` row as the signed-in person (RLS: the
+club's staff, or the diver who uploaded it). Without a store, forms are signed without attachments.
+
+The demo seeds sample texts (invented, not legal or medical advice), a signature behind every date already on a
+diver's file, an insurance policy for most active divers (Dana's ends in 12 days), two health declarations waiting
+for clearance and a waiver draft the manager has not published.
+
 ## Rules (`packages/domain/dive/src/policies.ts`, pure, 100% branch coverage)
 
-`seaCall`, `allowedDepth`, `readiness`, `bookingDecision`, `bookingConfirmation`, `ratioCheck`, `passBalance`,
+`seaCall`, `allowedDepth`, `readiness`, `insuranceReadiness`, `formState`, `formsToSign`, `bookingDecision`, `bookingConfirmation`, `ratioCheck`, `passBalance`,
 `planLines`, `clubInsights`.
 Each takes the rules version in force; defaults live in `@rswim/contracts` (`DEFAULT_DIVE_RULES`).
 

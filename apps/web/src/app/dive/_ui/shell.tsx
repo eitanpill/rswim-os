@@ -17,6 +17,7 @@ const PAGE_ICON: Record<DivePage, ReactNode> = {
   instructor: di.water,
   me: di.me,
   divers: di.divers,
+  forms: di.doc,
 };
 
 /**

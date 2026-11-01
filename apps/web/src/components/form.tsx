@@ -6,6 +6,7 @@
  */
 import {
   createContext,
+  startTransition,
   useActionState,
   useContext,
   useEffect,
@@ -23,6 +24,8 @@ import { initialFormState, type FormState } from '@/lib/form-state';
 export type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
 
 const FormCtx = createContext<FormState>(initialFormState);
+/** Whether the form's action is running (also for `keepValues` forms, which submit outside a form action). */
+const PendingCtx = createContext(false);
 
 export const inputClass =
   'min-h-tap w-full rounded-xl border border-line bg-surface px-3 text-base focus-visible:outline-2 focus-visible:outline-brand-500 aria-[invalid=true]:border-danger';
@@ -32,41 +35,59 @@ export function ActionForm({
   children,
   className,
   resetOnSuccess = false,
+  keepValues = false,
   testId,
 }: {
   action: Action;
   children: ReactNode;
   className?: string;
   resetOnSuccess?: boolean;
+  /**
+   * Keep what was typed when the server answers with errors (React clears a form after its action runs). For long
+   * forms, e.g. a health declaration, where retyping everything would be the price of one mistake.
+   */
+  keepValues?: boolean;
   testId?: string;
 }) {
-  const [state, formAction] = useActionState(action, initialFormState);
+  const [state, formAction, isPending] = useActionState(action, initialFormState);
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (resetOnSuccess && state.ok) ref.current?.reset();
   }, [resetOnSuccess, state.ok, state.savedAt]);
   return (
     <FormCtx.Provider value={state}>
-      <form
-        ref={ref}
-        action={formAction}
-        className={cn('flex flex-col gap-3', className)}
-        data-testid={testId}
-        noValidate
-      >
-        {state.message ? (
-          <p
-            role={state.ok ? 'status' : 'alert'}
-            className={cn(
-              'rounded-xl px-3 py-2 text-sm',
-              state.ok ? 'bg-ok/10 text-ok' : 'bg-danger/10 text-danger',
-            )}
-          >
-            {state.message}
-          </p>
-        ) : null}
-        {children}
-      </form>
+      <PendingCtx.Provider value={isPending}>
+        <form
+          ref={ref}
+          action={keepValues ? undefined : formAction}
+          onSubmit={
+            keepValues
+              ? (e) => {
+                  e.preventDefault();
+                  const submitter = (e.nativeEvent as SubmitEvent).submitter;
+                  const fd = new FormData(e.currentTarget, submitter);
+                  startTransition(() => formAction(fd));
+                }
+              : undefined
+          }
+          className={cn('flex flex-col gap-3', className)}
+          data-testid={testId}
+          noValidate
+        >
+          {state.message ? (
+            <p
+              role={state.ok ? 'status' : 'alert'}
+              className={cn(
+                'rounded-xl px-3 py-2 text-sm',
+                state.ok ? 'bg-ok/10 text-ok' : 'bg-danger/10 text-danger',
+              )}
+            >
+              {state.message}
+            </p>
+          ) : null}
+          {children}
+        </form>
+      </PendingCtx.Provider>
     </FormCtx.Provider>
   );
 }
@@ -242,7 +263,9 @@ export function CheckboxGroup({
 }
 
 export function SubmitButton({ children, ...props }: ButtonProps) {
-  const { pending } = useFormStatus();
+  const status = useFormStatus();
+  const running = useContext(PendingCtx);
+  const pending = status.pending || running;
   return (
     <Button type="submit" disabled={pending} aria-busy={pending} {...props}>
       {children}

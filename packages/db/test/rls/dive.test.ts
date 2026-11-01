@@ -122,15 +122,21 @@ describe('freediving club roles', () => {
     });
   });
 
-  it('a customer signs their waiver but cannot change their certification level', async () => {
+  it('a customer cannot set their own paperwork dates or certification level', async () => {
     await as(A.users.parent, A.orgId, async (run) => {
-      const [row] = await run<{ waiver_signed_on: Date; cert_level: number }>(
-        `update dive_divers set waiver_signed_on = current_date, cert_level = 5 where id = $1
-         returning waiver_signed_on, cert_level`,
+      const [row] = await run<{
+        waiver_signed_on: Date | null;
+        cert_level: number;
+        phone_e164: string;
+      }>(
+        `update dive_divers set waiver_signed_on = current_date, medical_expires_on = current_date + 300,
+                cert_level = 5, phone_e164 = '+972501112233' where id = $1
+         returning waiver_signed_on, cert_level, phone_e164`,
         [d.mine],
       );
-      expect(row?.waiver_signed_on).not.toBeNull();
+      expect(row?.waiver_signed_on).toBeNull();
       expect(row?.cert_level).toBe(0);
+      expect(row?.phone_e164).toBe('+972501112233');
     });
   });
 

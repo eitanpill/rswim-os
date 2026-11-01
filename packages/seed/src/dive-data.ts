@@ -5,6 +5,7 @@
  * Dates are relative to the day the seed runs, so the demo always looks like "this week". Every name is invented.
  */
 import { randomUUID } from 'node:crypto';
+import { seedDiveForms } from './dive-forms-data';
 import type pg from 'pg';
 import { DIVE_MANAGER_PERMISSIONS, DIVE_ORG, DIVE_ORG_2, DIVE_PERSONAS } from '@rswim/db/personas';
 
@@ -2170,6 +2171,13 @@ export async function seedDiveData(client: pg.PoolClient): Promise<DiveDataSumma
     customerGuardianId: guardian,
   });
   const small = await seedClub(client, DIVE_ORG_2, { scale: 0.35, seed: 4242, hero: false });
+  await seedDiveForms(client, DIVE_ORG.id, {
+    seed: 9113,
+    hero: true,
+    deskUserId: DIVE_PERSONAS.diveOffice.userId,
+    ...(hero.dana ? { danaId: hero.dana } : {}),
+  });
+  await seedDiveForms(client, DIVE_ORG_2.id, { seed: 5150, hero: false });
 
   const m = (
     userId: string,

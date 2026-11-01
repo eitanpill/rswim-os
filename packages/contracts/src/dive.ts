@@ -129,6 +129,7 @@ export const DiverFilterSchema = z.object({
     .catch(undefined),
   origin: optionalEnum(DIVER_ORIGINS),
   medical: optionalEnum(DIVER_FILTER_MEDICAL),
+  insurance: optionalEnum(DIVER_FILTER_MEDICAL),
   waiver: optionalEnum(DIVER_FILTER_WAIVER),
   pass: optionalEnum(DIVER_FILTER_PASS),
   balance: optionalEnum(DIVER_FILTER_BALANCE),
@@ -191,6 +192,62 @@ export const STAFF_CERT_KINDS = [
   'boat_license',
 ] as const;
 export type StaffCertKind = (typeof STAFF_CERT_KINDS)[number];
+
+/**
+ * The club's forms a diver signs: the health declaration (yes/no questions; a "yes" on a flagged question waits for
+ * the club's medical clearance), the liability waiver, and the diver's own insurance (insurer, policy, valid until).
+ */
+export const DIVE_FORM_KINDS = ['health', 'waiver', 'insurance'] as const;
+export type DiveFormKind = (typeof DIVE_FORM_KINDS)[number];
+/** Where it was signed: by the diver on their phone, or on the club's tablet at the desk. */
+export const DIVE_FORM_CHANNELS = ['online', 'desk'] as const;
+export type DiveFormChannel = (typeof DIVE_FORM_CHANNELS)[number];
+/**
+ * `none` nothing to review; `pending` a flagged health answer waits for the club; `cleared` the club (with a
+ * doctor's note) let the diver in the water; `refused` not cleared, the declaration does not count.
+ */
+export const DIVE_FORM_REVIEWS = ['none', 'pending', 'cleared', 'refused'] as const;
+export type DiveFormReview = (typeof DIVE_FORM_REVIEWS)[number];
+/** How the club treats insurance: not asked, asked and tracked (warns), or required to get in the water. */
+export const DIVE_INSURANCE_MODES = ['off', 'track', 'require'] as const;
+export type DiveInsuranceMode = (typeof DIVE_INSURANCE_MODES)[number];
+
+/** A yes/no question on a form. `flag`: a "yes" needs the club's medical clearance. */
+export const DiveFormQuestion = z
+  .object({
+    code: z.string().regex(/^[a-z0-9_]{1,40}$/),
+    he: z.string().trim().min(1).max(400),
+    flag: z.boolean(),
+  })
+  .strict();
+export type DiveFormQuestion = z.infer<typeof DiveFormQuestion>;
+export const DiveFormQuestions = z.array(DiveFormQuestion).max(40);
+
+/**
+ * A drawn signature: strokes of points on a 600x200 pad. Stored as points, never as markup, and drawn back as SVG by
+ * the app.
+ */
+export const SIGNATURE_PAD = { width: 600, height: 200, maxPoints: 4000 } as const;
+export const SignatureStrokes = z
+  .array(
+    z
+      .array(
+        z.tuple([
+          z.int().min(0).max(SIGNATURE_PAD.width),
+          z.int().min(0).max(SIGNATURE_PAD.height),
+        ]),
+      )
+      .min(1)
+      .max(SIGNATURE_PAD.maxPoints),
+  )
+  .min(1)
+  .max(200)
+  .refine(
+    (s) => s.reduce((n, x) => n + x.length, 0) <= SIGNATURE_PAD.maxPoints,
+    'dive.errors.signatureMissing',
+  )
+  .refine((s) => s.reduce((n, x) => n + x.length, 0) >= 8, 'dive.errors.signatureMissing');
+export type SignatureStrokes = z.infer<typeof SignatureStrokes>;
 
 /** Course skills an instructor ticks off, per level (agency-neutral wording). */
 export const COURSE_SKILLS = {
@@ -268,6 +325,9 @@ export const DiveRules = z
         medical_valid_months: int(1, 36),
         waiver_valid_months: int(1, 36),
         medical_warn_days: int(0, 90),
+        /** Insurance: not asked, tracked (warns), or required to get in the water. */
+        insurance: z.enum(DIVE_INSURANCE_MODES),
+        insurance_warn_days: int(0, 90),
       })
       .partial()
       .strict(),
@@ -335,7 +395,13 @@ export const DEFAULT_DIVE_RULES: ResolvedDiveRules = {
   },
   ratio: { experience: 4, course: 4, training: 6, workshop: 16, trip: 8 },
   depth: { progression_step_m: 3, level_max_m: [5, 10, 20, 30, 40, 100] },
-  paperwork: { medical_valid_months: 12, waiver_valid_months: 12, medical_warn_days: 30 },
+  paperwork: {
+    medical_valid_months: 12,
+    waiver_valid_months: 12,
+    medical_warn_days: 30,
+    insurance: 'track',
+    insurance_warn_days: 30,
+  },
   staff: { cert_warn_days: 30 },
   gear: { rental_grace_min: 30 },
   booking: { require_payment: true, payment_hold_minutes: 30 },

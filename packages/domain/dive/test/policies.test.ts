@@ -8,6 +8,9 @@ import {
   clubInsights,
   daysBetween,
   expiryState,
+  formState,
+  formsToSign,
+  insuranceReadiness,
   passBalance,
   planLines,
   ratioCheck,
@@ -121,6 +124,91 @@ describe('readiness', () => {
       R.paperwork,
     );
     expect(old.items[0]?.state).toBe('missing');
+  });
+});
+
+describe('insurance', () => {
+  const P = R.paperwork;
+  it('is not asked when the club turns it off', () => {
+    expect(insuranceReadiness(null, '2026-10-10', { ...P, insurance: 'off' })).toBeNull();
+  });
+  it('is fine, warns when running out, and blocks only when required', () => {
+    expect(insuranceReadiness('2027-01-01', '2026-10-10', P)).toEqual({
+      key: 'insurance',
+      state: 'ok',
+    });
+    expect(insuranceReadiness('2026-10-20', '2026-10-10', P)).toEqual({
+      key: 'insurance',
+      state: 'warn',
+      params: { days: 10 },
+    });
+    expect(insuranceReadiness(null, '2026-10-10', P)).toEqual({
+      key: 'insurance',
+      state: 'warn',
+      params: { days: 'none' },
+    });
+    expect(insuranceReadiness('2026-01-01', '2026-10-10', { ...P, insurance: 'require' })).toEqual({
+      key: 'insurance',
+      state: 'missing',
+    });
+  });
+  it('joins readiness when the caller checks it', () => {
+    const facts = {
+      waiverSignedOn: '2026-03-01',
+      medicalExpiresOn: '2027-03-01',
+      certLevel: 2,
+      paid: true,
+    };
+    const on = { onDate: '2026-10-10', minLevel: 0 };
+    expect(readiness(facts, on, P).items).toHaveLength(4);
+    const req = { ...P, insurance: 'require' as const };
+    const r = readiness({ ...facts, insuranceExpiresOn: null }, on, req);
+    expect(r.items[4]).toEqual({ key: 'insurance', state: 'missing' });
+    expect(r.ready).toBe(false);
+    expect(
+      readiness({ ...facts, insuranceExpiresOn: null }, on, { ...P, insurance: 'off' }).items,
+    ).toHaveLength(4);
+  });
+});
+
+describe('forms', () => {
+  const P = R.paperwork;
+  const today = '2026-10-10';
+  it('says where each form stands', () => {
+    expect(formState('waiver', null, today, P)).toEqual({
+      state: 'missing',
+      until: null,
+      days: null,
+    });
+    expect(formState('health', { validUntil: null, review: 'pending' }, today, P).state).toBe(
+      'pending',
+    );
+    expect(
+      formState('health', { validUntil: '2027-01-01', review: 'refused' }, today, P).state,
+    ).toBe('refused');
+    expect(formState('health', { validUntil: '2026-10-30', review: 'cleared' }, today, P)).toEqual({
+      state: 'warn',
+      until: '2026-10-30',
+      days: 20,
+    });
+    expect(formState('waiver', { validUntil: '2026-10-30', review: 'none' }, today, P).state).toBe(
+      'ok',
+    );
+    expect(formState('insurance', { validUntil: '2026-10-01', review: 'none' }, today, P)).toEqual({
+      state: 'expired',
+      until: '2026-10-01',
+      days: -9,
+    });
+    expect(formState('insurance', { validUntil: null, review: 'none' }, today, P).days).toBeNull();
+  });
+  it('lists what the diver still has to sign', () => {
+    const states = { health: 'pending', waiver: 'expired', insurance: 'missing' } as const;
+    expect(formsToSign(states, P)).toEqual(['waiver', 'insurance']);
+    expect(formsToSign(states, { ...P, insurance: 'off' })).toEqual(['waiver']);
+    expect(formsToSign({ health: 'warn', waiver: 'ok', insurance: 'refused' }, P)).toEqual([
+      'health',
+      'insurance',
+    ]);
   });
 });
 
@@ -299,6 +387,8 @@ describe('clubInsights', () => {
       daysSinceIncident: 23,
       graduatesIdle: 6,
       paymentsPending: { count: 2, amount: 36000 },
+      formsPending: 2,
+      insuranceExpiring: 7,
     });
     expect(out.map((i) => `${i.kind}:${i.severity}`)).toEqual([
       'weather:urgent',
@@ -307,10 +397,12 @@ describe('clubInsights', () => {
       'weather:attention',
       'course_fill:attention',
       'medicals:attention',
+      'forms_pending:attention',
       'staff_cert:attention',
       'rentals_overdue:attention',
       'payments_pending:attention',
       'leads:attention',
+      'insurance:info',
       'gear_service:info',
       'graduates:info',
       'safety_streak:info',

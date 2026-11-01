@@ -155,12 +155,16 @@ const INSIGHT_ICON: Record<Insight['kind'], React.ReactNode> = {
   leads: di.phone,
   safety_streak: di.shield,
   graduates: di.spark,
+  forms_pending: di.doc,
+  insurance: di.doc,
 };
 
 const INSIGHT_LINK: Partial<Record<Insight['kind'], string>> = {
   weather: '/dive/manager',
   course_fill: '/dive/manager',
-  medicals: '/dive/office',
+  medicals: '/dive/forms',
+  forms_pending: '/dive/forms',
+  insurance: '/dive/forms',
   staff_cert: '/dive/manager',
   gear_service: '/dive/manager',
   rentals_overdue: '/dive/office',

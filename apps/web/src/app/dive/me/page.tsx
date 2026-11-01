@@ -1,9 +1,9 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { diverHome, myDiverId } from '@rswim/domain-dive';
 import { cn } from '@rswim/ui';
-import { ActionButton, ActionForm, Field, SubmitButton } from '@/components/form';
+import { ActionButton } from '@/components/form';
 import { withSession } from '@/lib/db';
-import { bookOnlineAction, cancelBookingAction, medicalAction, waiverAction } from '../actions';
+import { bookOnlineAction, cancelBookingAction } from '../actions';
 import { requireDivePage } from '../_ui/access';
 import { CoursesPanel, DepthPanel, DiverBanner, LogbookPanel } from '../_ui/diver';
 import { dateShort, dayLabel, heldLong, hhmm, localDay, shekels } from '../_ui/format';
@@ -41,7 +41,16 @@ export default async function MyDiving({
 
   return (
     <div className="flex flex-col gap-5" data-testid="my-diving">
-      <DiverBanner home={home} greeting={t('me.hello', { name: home.diver.firstName })} />
+      <DiverBanner home={home} greeting={t('me.hello', { name: home.diver.firstName })}>
+        <a
+          href="/dive/me/forms"
+          className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full bg-white/12 px-3 text-sm font-medium text-white hover:bg-white/20 [&_svg]:size-4"
+          data-testid="my-forms-link"
+        >
+          {di.doc}
+          {t('me.myForms')}
+        </a>
+      </DiverBanner>
 
       {sp.paid || sp.booked || sp.pass ? (
         <p
@@ -78,24 +87,32 @@ export default async function MyDiving({
             </span>
             {t('me.todoTitle')}
           </p>
-          {todos.map((i) =>
-            i.key === 'waiver' ? (
-              <div key="waiver" className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm">{t('me.waiverMissing')}</p>
-                <ActionButton action={waiverAction}>{t('me.signWaiver')}</ActionButton>
-              </div>
-            ) : (
-              <ActionForm key="medical" action={medicalAction} className="sm:flex-row sm:items-end">
-                <p className="text-sm sm:flex-1">
-                  {i.state === 'warn'
-                    ? t('me.medicalSoon', { days: Number(i.params?.days ?? 0) })
-                    : t('me.medicalMissing')}
-                </p>
-                <Field name="medicalExpiresOn" label={t('me.medicalUntil')} type="date" required />
-                <SubmitButton variant="secondary">{t('me.medicalSave')}</SubmitButton>
-              </ActionForm>
-            ),
-          )}
+          {todos.map((i) => (
+            <div key={i.key} className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm">
+                {i.key === 'waiver'
+                  ? t('me.waiverMissing')
+                  : i.key === 'insurance'
+                    ? i.state === 'warn' && i.params?.days !== 'none'
+                      ? t('me.insuranceSoon', { days: Number(i.params?.days ?? 0) })
+                      : t('me.insuranceMissing')
+                    : i.state === 'warn'
+                      ? t('me.medicalSoon', { days: Number(i.params?.days ?? 0) })
+                      : t('me.medicalMissing')}
+              </p>
+              <a
+                href={`/dive/me/forms/${i.key === 'medical' ? 'health' : i.key}`}
+                className={btn.primary}
+                data-testid={`todo-${i.key}`}
+              >
+                {i.key === 'waiver'
+                  ? t('me.signWaiver')
+                  : i.key === 'insurance'
+                    ? t('me.updateInsurance')
+                    : t('me.fillHealth')}
+              </a>
+            </div>
+          ))}
         </section>
       ) : null}
 

@@ -1,6 +1,6 @@
 /**
  * What people do in the club: check divers in, book and cancel, log dives, report incidents, post the sea call, rent
- * and return gear, move leads, plan the lines, tick course skills, sign the waiver. Every change runs as the signed-in
+ * and return gear, move leads, plan the lines, tick course skills. (Forms are signed in ./forms.) Every change runs as the signed-in
  * user under RLS; the database guards capacity, gear availability, personal bests and what a customer may change.
  */
 import { z } from 'zod';
@@ -627,32 +627,6 @@ export async function toggleSkill(tx: Tx, raw: z.input<typeof SkillToggle>) {
                                               then array_remove(skills, ${input.skill})
                                               else array_append(skills, ${input.skill}) end
           where id = ${input.enrollmentId}`,
-    ),
-  );
-}
-
-// ─── Customer ───────────────────────────────────────────────────────────────
-
-/** The customer signs the club's waiver for themself (valid for the rules' months). */
-export async function signWaiver(tx: Tx) {
-  const diverId = await myDiverId(tx);
-  if (!diverId) throw new DomainError('dive.errors.noDiver');
-  await guarded(() =>
-    tx.execute(sql`update dive_divers set waiver_signed_on = app.today() where id = ${diverId}`),
-  );
-}
-
-export const MedicalInput = z.object({
-  medicalExpiresOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-});
-
-export async function updateMedical(tx: Tx, raw: z.input<typeof MedicalInput>) {
-  const input = MedicalInput.parse(raw);
-  const diverId = await myDiverId(tx);
-  if (!diverId) throw new DomainError('dive.errors.noDiver');
-  await guarded(() =>
-    tx.execute(
-      sql`update dive_divers set medical_expires_on = ${input.medicalExpiresOn}::date where id = ${diverId}`,
     ),
   );
 }
