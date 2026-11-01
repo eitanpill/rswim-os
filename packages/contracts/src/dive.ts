@@ -212,6 +212,16 @@ export type DiveFormReview = (typeof DIVE_FORM_REVIEWS)[number];
 export const DIVE_INSURANCE_MODES = ['off', 'track', 'require'] as const;
 export type DiveInsuranceMode = (typeof DIVE_INSURANCE_MODES)[number];
 
+/**
+ * A diver's certification card as they uploaded it: `pending` until the club checks it, then `verified` (the diver's
+ * level follows it) or `rejected`. The desk may record a card it saw as verified right away.
+ */
+export const DIVE_CERT_STATUSES = ['pending', 'verified', 'rejected'] as const;
+export type DiveCertStatus = (typeof DIVE_CERT_STATUSES)[number];
+/** Agencies a diver may hold a card from: the club's teaching agencies, CMAS, or another one. */
+export const DIVE_CERT_AGENCIES = ['molchanovs', 'aida', 'ssi', 'padi', 'cmas', 'other'] as const;
+export type DiveCertAgency = (typeof DIVE_CERT_AGENCIES)[number];
+
 /** A yes/no question on a form. `flag`: a "yes" needs the club's medical clearance. */
 export const DiveFormQuestion = z
   .object({
@@ -352,6 +362,13 @@ export const DiveRules = z
       })
       .partial()
       .strict(),
+    registration: z
+      .object({
+        /** Anyone with the club's join link may sign up as a diver. */
+        self_signup: z.boolean(),
+      })
+      .partial()
+      .strict(),
     /** What each pass costs, how many sessions it holds (none = unlimited) and how long it is valid. */
     passes: z
       .object({
@@ -380,6 +397,7 @@ export interface ResolvedDiveRules {
   staff: Required<NonNullable<DiveRules['staff']>>;
   gear: Required<NonNullable<DiveRules['gear']>>;
   booking: Required<NonNullable<DiveRules['booking']>>;
+  registration: Required<NonNullable<DiveRules['registration']>>;
   passes: Record<DivePassKind, PassProduct>;
 }
 
@@ -405,6 +423,7 @@ export const DEFAULT_DIVE_RULES: ResolvedDiveRules = {
   staff: { cert_warn_days: 30 },
   gear: { rental_grace_min: 30 },
   booking: { require_payment: true, payment_hold_minutes: 30 },
+  registration: { self_signup: true },
   passes: {
     punch5: { price_agorot: 82000, sessions: 5, valid_days: 120 },
     punch10: { price_agorot: 150000, sessions: 10, valid_days: 120 },
@@ -424,6 +443,7 @@ export function resolveDiveRules(rules: DiveRules | null | undefined): ResolvedD
     staff: { ...DEFAULT_DIVE_RULES.staff, ...r.staff },
     gear: { ...DEFAULT_DIVE_RULES.gear, ...r.gear },
     booking: { ...DEFAULT_DIVE_RULES.booking, ...r.booking },
+    registration: { ...DEFAULT_DIVE_RULES.registration, ...r.registration },
     passes: { ...DEFAULT_DIVE_RULES.passes, ...r.passes },
   };
 }

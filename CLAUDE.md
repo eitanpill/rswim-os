@@ -83,7 +83,8 @@ Plan limits are a database trigger; plan features gate screens through `requireF
 
 Freediving (`docs/FREEDIVING.md`): `organizations.vertical = 'freediving'` sends a club's people to `/dive` (owner,
 manager, office, instructor, customer screens; `packages/domain/dive`). Dev personas **🤿 …** sign in to the seeded Eilat club.
-Divers sign the club's forms (health, waiver, insurance) with uploads stored on the local disk with `RSWIM_FILES_FAKE=1`
+New divers join a club from its link `/join/<slug>` (dev persona **נועם (צולל חדש)**) and upload their certification
+cards for the desk to verify. Divers sign the club's forms (health, waiver, insurance) with uploads stored on the local disk with `RSWIM_FILES_FAKE=1`
 (and on the live demo), or in Supabase Storage with `SUPABASE_SERVICE_ROLE_KEY` (bucket `RSWIM_FILES_BUCKET`).
 
 Live demo (`docs/LIVE-DEMO.md`): `deploy/demo/Dockerfile` builds one container (Postgres, Inngest dev server, worker,

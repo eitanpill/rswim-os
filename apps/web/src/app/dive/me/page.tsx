@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from 'next-intl/server';
-import { diverHome, myDiverId } from '@rswim/domain-dive';
+import { diverHome, myDiverId, myWelcome } from '@rswim/domain-dive';
 import { cn } from '@rswim/ui';
 import { ActionButton } from '@/components/form';
 import { withSession } from '@/lib/db';
@@ -25,9 +25,9 @@ export default async function MyDiving({
   const sp = await searchParams;
   const t = await getTranslations('dive');
   const locale = await getLocale();
-  const home = await withSession(async (tx) => {
+  const [home, welcome] = await withSession(async (tx) => {
     const id = await myDiverId(tx);
-    return id ? diverHome(tx, id) : null;
+    return id ? Promise.all([diverHome(tx, id), myWelcome(tx)]) : [null, null];
   });
   if (!home) {
     return (
@@ -51,6 +51,22 @@ export default async function MyDiving({
           {t('me.myForms')}
         </a>
       </DiverBanner>
+
+      {welcome?.joinedViaLink && welcome.next ? (
+        <a
+          href="/dive/me/welcome"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--dive-sea)] bg-[color-mix(in_oklch,var(--dive-sea)_7%,var(--surface-raised))] px-4 py-3"
+          data-testid="welcome-link"
+        >
+          <span className="flex items-center gap-2 font-semibold [&_svg]:size-5">
+            <span className="text-[var(--dive-sea)]">{di.spark}</span>
+            {t('welcome.homeLink', { done: welcome.done, total: welcome.steps.length })}
+          </span>
+          <span className="text-sm text-[var(--dive-sea)]">
+            {t(`welcome.step.${welcome.next}.title`)}
+          </span>
+        </a>
+      ) : null}
 
       {sp.paid || sp.booked || sp.pass ? (
         <p

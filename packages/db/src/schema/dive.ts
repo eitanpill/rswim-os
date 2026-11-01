@@ -24,6 +24,8 @@ import {
   DIVE_AGENCIES,
   DIVE_BOOKED_VIA,
   DIVE_BOOKING_STATUSES,
+  DIVE_CERT_AGENCIES,
+  DIVE_CERT_STATUSES,
   DIVE_DISCIPLINES,
   DIVE_ENROLLMENT_STATUSES,
   DIVE_FORM_CHANNELS,
@@ -640,5 +642,50 @@ export const diveFormSignatures = pgTable(
       'dive_form_signatures_insurance_check',
       sql`kind <> 'insurance' or (insurer is not null and policy_number is not null and valid_until is not null)`,
     ),
+  ],
+);
+
+/**
+ * A diver's certification card (agency, level, number, a photo or PDF of it). A diver uploads their own as `pending`;
+ * the club verifies or rejects it, and a verified card lifts the diver's level on their file.
+ */
+export const diveCertifications = pgTable(
+  'dive_certifications',
+  {
+    id: id(),
+    organizationId: orgRef(),
+    diverId: uuid('diver_id').notNull(),
+    agency: text('agency').notNull(),
+    /** On the club's ladder (DIVE_LEVELS); the club may correct it when verifying. */
+    level: smallint('level').notNull(),
+    name: text('name').notNull(),
+    number: text('number'),
+    issuedOn: date('issued_on'),
+    fileId: uuid('file_id'),
+    status: text('status').notNull().default('pending'),
+    reviewNote: text('review_note'),
+    submittedBy: uuid('submitted_by'),
+    reviewedBy: uuid('reviewed_by'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('dive_certifications_org_id').on(t.organizationId, t.id),
+    index('dive_certifications_diver').on(t.organizationId, t.diverId),
+    index('dive_certifications_status').on(t.organizationId, t.status),
+    foreignKey({
+      name: 'dive_certifications_diver_fk',
+      columns: [t.organizationId, t.diverId],
+      foreignColumns: [diveDivers.organizationId, diveDivers.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'dive_certifications_file_fk',
+      columns: [t.organizationId, t.fileId],
+      foreignColumns: [files.organizationId, files.id],
+    }),
+    check('dive_certifications_agency_check', oneOf('agency', DIVE_CERT_AGENCIES)),
+    check('dive_certifications_status_check', oneOf('status', DIVE_CERT_STATUSES)),
+    check('dive_certifications_level_check', sql`level between 0 and 5`),
   ],
 );

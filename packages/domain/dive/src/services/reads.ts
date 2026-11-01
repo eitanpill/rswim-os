@@ -240,11 +240,13 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
     pendingCount: number;
     pendingAmount: number;
     formsPending: number;
+    certsPending: number;
     insurance: number;
   }>(
     tx,
     sql`select
       (select count(*)::int from dive_form_signatures where review = 'pending') as "formsPending",
+      (select count(*)::int from dive_certifications where status = 'pending') as "certsPending",
       (select count(*)::int from dive_divers d where ${rules.paperwork.insurance} <> 'off'
          and d.insurance_expires_on is not null
          and d.insurance_expires_on <= app.today() + ${rules.paperwork.insurance_warn_days}::int
@@ -306,6 +308,7 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
     courses,
     medicalsExpiring: facts?.medicals ?? 0,
     formsPending: facts?.formsPending ?? 0,
+    certsPending: facts?.certsPending ?? 0,
     insuranceExpiring: facts?.insurance ?? 0,
     staffCertsExpiring: certs,
     gearServiceDue: facts?.gear ?? 0,

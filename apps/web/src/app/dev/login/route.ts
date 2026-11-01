@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { DIVE_ORG } from '@rswim/db/personas';
 import { redirectTo } from '@/lib/redirect';
 import { DEV_COOKIE, devSessionFor, isDevAuthEnabled, isPersonaKey } from '@/lib/auth/dev';
 import { homePath } from '@/lib/auth/routing';
@@ -8,7 +9,10 @@ export function GET(request: NextRequest) {
   const as = request.nextUrl.searchParams.get('as');
   if (!isDevAuthEnabled() || !isPersonaKey(as))
     return new NextResponse('Not found', { status: 404 });
-  const response = redirectTo(homePath(devSessionFor(as)));
+  // The diver-to-be starts on the Eilat club's join link, as if they had followed it from the club's Instagram.
+  const response = redirectTo(
+    as === 'diveNewcomer' ? `/join/${DIVE_ORG.slug}` : homePath(devSessionFor(as)),
+  );
   response.cookies.set(DEV_COOKIE, as, { path: '/', httpOnly: true, sameSite: 'lax' });
   return response;
 }

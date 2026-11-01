@@ -1,7 +1,9 @@
 'use server';
 
 import { PhoneE164 } from '@rswim/contracts';
+import { clubForJoin } from '@rswim/domain-dive';
 import { redirect } from 'next/navigation';
+import { withAnon } from '@/lib/db';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const safeNext = (v: FormDataEntryValue | null) =>
@@ -18,27 +20,45 @@ export async function signInWithPassword(formData: FormData) {
   redirect(safeNext(formData.get('next')));
 }
 
+/**
+ * The club a visitor came to join (the `join` field carries its slug from the join page), only while that club takes
+ * sign-ups; otherwise null.
+ */
+async function joiningClub(v: FormDataEntryValue | null): Promise<string | null> {
+  if (typeof v !== 'string' || !/^[a-z0-9-]{2,60}$/.test(v)) return null;
+  const club = await withAnon((tx) => clubForJoin(tx, v));
+  return club?.open ? v : null;
+}
+
+const phonePage = (params: Record<string, string | null>) =>
+  `/login/phone?${new URLSearchParams(
+    Object.entries(params).filter((e): e is [string, string] => e[1] !== null),
+  ).toString()}`;
+
 export async function sendPhoneCode(formData: FormData) {
+  const join = await joiningClub(formData.get('join'));
   const phone = PhoneE164.safeParse(String(formData.get('phone') ?? ''));
-  if (!phone.success) redirect('/login/phone?error=phone');
+  if (!phone.success) redirect(phonePage({ error: 'phone', join }));
   const supabase = await createSupabaseServerClient();
-  if (!supabase) redirect('/login/phone?error=not_configured');
-  // shouldCreateUser: false — parents get an account when the school adds them, not by typing a number.
+  if (!supabase) redirect(phonePage({ error: 'not_configured', join }));
+  // Parents get an account when the school adds them, not by typing a number. The one exception is a freediving
+  // club's join link, while that club takes sign-ups: there the number becomes a new account.
   const { error } = await supabase.auth.signInWithOtp({
     phone: phone.data,
-    options: { shouldCreateUser: false },
+    options: { shouldCreateUser: join !== null },
   });
-  if (error) redirect('/login/phone?error=phone');
-  redirect(`/login/phone?phone=${encodeURIComponent(phone.data)}`);
+  if (error) redirect(phonePage({ error: 'phone', join }));
+  redirect(phonePage({ phone: phone.data, join }));
 }
 
 export async function verifyPhoneCode(formData: FormData) {
+  const join = await joiningClub(formData.get('join'));
   const phone = PhoneE164.safeParse(String(formData.get('phone') ?? ''));
   const token = String(formData.get('code') ?? '').trim();
-  if (!phone.success) redirect('/login/phone?error=phone');
+  if (!phone.success) redirect(phonePage({ error: 'phone', join }));
   const supabase = await createSupabaseServerClient();
-  if (!supabase) redirect('/login/phone?error=not_configured');
+  if (!supabase) redirect(phonePage({ error: 'not_configured', join }));
   const { error } = await supabase.auth.verifyOtp({ phone: phone.data, token, type: 'sms' });
-  if (error) redirect(`/login/phone?phone=${encodeURIComponent(phone.data)}&error=code`);
-  redirect('/');
+  if (error) redirect(phonePage({ phone: phone.data, error: 'code', join }));
+  redirect(join ? `/join/${join}` : '/');
 }

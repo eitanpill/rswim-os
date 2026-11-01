@@ -5,7 +5,8 @@
  * The personas match the fake seed data (packages/db/src/personas.ts).
  *
  * The cookie holds a persona key. A newcomer who has just opened a school holds `newcomer@<orgId>`: they are that
- * school's owner (the database checks the membership on every statement regardless).
+ * school's owner. Someone who has just joined a freediving club through its link holds `diveNewcomer@<orgId>`: they
+ * are a diver (customer) there. The database checks the membership on every statement regardless.
  */
 import {
   ACCOUNT_PERSONAS,
@@ -65,6 +66,19 @@ export function devSessionFor(key: DevKey, orgId?: string): Session {
       mode: 'dev',
     };
   }
+  if (key === 'diveNewcomer') {
+    const joined = orgId !== undefined;
+    return {
+      userId: ACCOUNT_PERSONAS.diveNewcomer.userId,
+      orgId: joined ? orgId : null,
+      role: joined ? 'parent' : null,
+      permissions: [],
+      isPlatformAdmin: false,
+      displayName: ACCOUNT_PERSONAS.diveNewcomer.name,
+      ...(joined ? { vertical: 'freediving' as const } : {}),
+      mode: 'dev',
+    };
+  }
   if (isDivePersona(key)) {
     const d = DIVE_PERSONAS[key];
     return {
@@ -100,6 +114,7 @@ export function readDevCookie(value: string | undefined): Session | null {
   if (!value || !isDevAuthEnabled()) return null;
   const [key, orgId] = value.split('@');
   if (!isPersonaKey(key)) return null;
-  if (orgId !== undefined && (key !== 'newcomer' || !UUID.test(orgId))) return null;
+  if (orgId !== undefined && ((key !== 'newcomer' && key !== 'diveNewcomer') || !UUID.test(orgId)))
+    return null;
   return devSessionFor(key, orgId);
 }

@@ -6,9 +6,11 @@ import { inputClass, LoginFrame } from '../login-frame';
 export default async function PhoneLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ phone?: string; error?: string }>;
+  searchParams: Promise<{ phone?: string; error?: string; join?: string }>;
 }) {
-  const { phone, error } = await searchParams;
+  const { phone, error, join } = await searchParams;
+  // Came from a club's join link: the actions check the club and send the visitor back to it.
+  const joinField = join ? <input type="hidden" name="join" value={join} /> : null;
   const t = await getTranslations('login');
   return (
     <LoginFrame title={t('phoneTitle')} error={error}>
@@ -16,6 +18,7 @@ export default async function PhoneLoginPage({
         <form action={verifyPhoneCode} className="flex flex-col gap-3">
           <p className="text-sm text-ink-muted">{t('codeSent', { phone })}</p>
           <input type="hidden" name="phone" value={phone} />
+          {joinField}
           <label className="flex flex-col gap-1">
             <span className="text-sm font-medium">{t('code')}</span>
             <input
@@ -35,6 +38,7 @@ export default async function PhoneLoginPage({
         </form>
       ) : (
         <form action={sendPhoneCode} className="flex flex-col gap-3">
+          {joinField}
           <label className="flex flex-col gap-1">
             <span className="text-sm font-medium">{t('phone')}</span>
             <input

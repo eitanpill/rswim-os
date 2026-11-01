@@ -108,12 +108,15 @@ async function DemoLogin({ resetting }: { resetting: boolean }) {
     role: tRole(PERSONAS[key as keyof typeof PERSONAS].role),
     sees: t(`sees.${key}`),
   }));
-  const dive = (Object.keys(DIVE_PERSONAS) as DevKey[]).map((key) => ({
+  // The diver-to-be joins the club through its link, so they stand with the club's people.
+  const dive = ([...Object.keys(DIVE_PERSONAS), 'diveNewcomer'] as DevKey[]).map((key) => ({
     key,
     role: t(`diveRole.${key}`),
     sees: t(`dive.${key}`),
   }));
-  const account = (Object.keys(ACCOUNT_PERSONAS) as DevKey[]).map((key) => ({
+  const account = (
+    Object.keys(ACCOUNT_PERSONAS).filter((k) => k !== 'diveNewcomer') as DevKey[]
+  ).map((key) => ({
     key,
     role: t(`account.${key}`),
     sees: t(`sees.${key}`),

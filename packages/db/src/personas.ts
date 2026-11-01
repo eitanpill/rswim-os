@@ -66,8 +66,8 @@ export const PERSONAS = {
 export type PersonaKey = keyof typeof PERSONAS;
 
 /**
- * Phase 10 demo accounts without a school role: someone about to open a new swim school (no membership yet), and
- * the platform's own admin (sees every school in /platform).
+ * Demo accounts without a school role: someone about to open a new swim school (no membership yet), the platform's
+ * own admin (sees every school in /platform), and someone about to join the Eilat club through its link.
  */
 export const ACCOUNT_PERSONAS = {
   newcomer: {
@@ -79,6 +79,12 @@ export const ACCOUNT_PERSONAS = {
     userId: '00000000-0000-4000-8000-000000000202',
     name: 'מנהל/ת הפלטפורמה (דמו)',
     email: 'platform@demo.rswim.test',
+  },
+  /** Someone who found the Eilat club's join link: signs in, joins as a diver, uploads a card, signs the forms. */
+  diveNewcomer: {
+    userId: '00000000-0000-4000-8000-000000000203',
+    name: 'נועם (דמו, צולל חדש)',
+    phone: '+972500000203',
   },
 } as const;
 

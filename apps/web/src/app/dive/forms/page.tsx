@@ -1,11 +1,17 @@
 import { getTranslations } from 'next-intl/server';
 import { DIVE_FORM_KINDS } from '@rswim/contracts';
-import { listFormTemplates, paperworkQueue, type FormTemplate } from '@rswim/domain-dive';
+import {
+  listFormTemplates,
+  paperworkQueue,
+  pendingCerts,
+  type FormTemplate,
+} from '@rswim/domain-dive';
 import { ActionButton, ActionForm, Field, SubmitButton, TextareaField } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { fileStore } from '@/lib/dive-files';
 import { publishFormAction, saveDraftAction } from '../forms-actions';
 import { canEditForms, requireDivePage } from '../_ui/access';
+import { CertReview } from '../_ui/certs';
 import { dateShort } from '../_ui/format';
 import { di } from '../_ui/icons';
 import { Chip, Empty, Hero, Panel } from '../_ui/kit';
@@ -22,9 +28,11 @@ const questionsText = (t: FormTemplate) =>
 export default async function FormsCenter() {
   const { role } = await requireDivePage('forms');
   const t = await getTranslations('dive.forms');
-  const [queue, templates] = await withSession((tx) =>
-    Promise.all([paperworkQueue(tx), listFormTemplates(tx)]),
+  const [queue, templates, certs] = await withSession((tx) =>
+    Promise.all([paperworkQueue(tx), listFormTemplates(tx), pendingCerts(tx)]),
   );
+  const tc = await getTranslations('dive.certs');
+  const tLevel = await getTranslations('dive.level');
   const uploads = fileStore() !== null;
   const editable = canEditForms(role);
   return (
@@ -77,6 +85,55 @@ export default async function FormsCenter() {
                   ))}
                 </ul>
                 <ReviewForm signatureId={p.signatureId} uploads={uploads} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+
+      <Panel title={tc('queueTitle')} icon={di.doc} testId="pending-certs">
+        {certs.length === 0 ? (
+          <Empty>{tc('queueEmpty')}</Empty>
+        ) : (
+          <ul className="grid gap-3 lg:grid-cols-2">
+            {certs.map((c) => (
+              <li
+                key={c.id}
+                className="flex flex-col gap-3 rounded-xl border border-line p-3"
+                data-testid="pending-cert"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <a href={`/dive/divers/${c.diverId}`} className="min-w-0 hover:underline">
+                    <PersonLine
+                      name={c.diverName}
+                      sub={`${tc('sentOn', { date: dateShort(c.createdAt) })}${
+                        c.nextOn ? ` · ${t('nextDive', { date: dateShort(c.nextOn) })}` : ''
+                      }`}
+                    />
+                  </a>
+                  {c.fileId ? (
+                    <a
+                      href={`/api/dive/files/${c.fileId}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 text-sm text-[var(--dive-sea)] hover:underline"
+                      data-testid="cert-photo"
+                    >
+                      {tc('viewPhoto')}
+                    </a>
+                  ) : (
+                    <Chip tone="caution">{tc('noPhoto')}</Chip>
+                  )}
+                </div>
+                <p className="text-sm">
+                  <span className="font-semibold">{c.name}</span> · {tc(`agencies.${c.agency}`)}
+                  {c.number ? ` · ${c.number}` : ''}
+                  <br />
+                  <span className="text-ink-muted">
+                    {tc('claims', { level: tLevel(String(c.level)) })}
+                  </span>
+                </p>
+                <CertReview cert={c} />
               </li>
             ))}
           </ul>

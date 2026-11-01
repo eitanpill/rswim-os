@@ -30,6 +30,8 @@ describe('decideRoute', () => {
     expect(decideRoute('/login/phone', null)).toEqual({ action: 'next' });
     expect(decideRoute('/api/health', null)).toEqual({ action: 'next' });
     expect(decideRoute('/api/webhooks/ghl', null)).toEqual({ action: 'next' });
+    expect(decideRoute('/join/eilat-deep-blue', null)).toEqual({ action: 'next' });
+    expect(decideRoute('/joined', null)).toMatchObject({ action: 'redirect' });
   });
 
   it('sends anonymous users to login with a return path', () => {

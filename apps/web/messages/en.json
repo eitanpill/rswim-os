@@ -62,7 +62,8 @@
     "poweredBy": "Powered by R-SWIM OS",
     "devAccount": {
       "newcomer": "New school (sign-up)",
-      "platform": "Platform admin"
+      "platform": "Platform admin",
+      "diveNewcomer": "🤿 New diver (joining)"
     },
     "demo": {
       "title": "Enter the demo",
@@ -91,14 +92,16 @@
         "diveManager": "Ops room: the week against the sea forecast, morning report, paperwork, crew certificates, gear",
         "diveOffice": "Front desk: who's coming and ready, one-tap check-in, booking, gear rental, till and leads",
         "diveInstructor": "In the water: my divers, each one's allowed depth, lines, dive log and course skills",
-        "diveCustomer": "The diver's app: personal best, today's allowed depth, pass, booking and logbook"
+        "diveCustomer": "The diver's app: personal best, today's allowed depth, pass, booking and logbook",
+        "diveNewcomer": "Joins from the club's link: details, a photo of the card, health declaration and waiver, all from the phone"
       },
       "diveRole": {
         "diveOwner": "Owner",
         "diveManager": "Operations manager",
         "diveOffice": "Office & desk",
         "diveInstructor": "Instructor",
-        "diveCustomer": "Diver"
+        "diveCustomer": "Diver",
+        "diveNewcomer": "New diver"
       },
       "landing": {
         "club": "Deep Blue Eilat",
@@ -4071,6 +4074,10 @@
       "insurance": {
         "title": "{count, plural, one {One active diver's insurance is ending} other {# active divers' insurance is ending}}",
         "body": "Ended or ending soon. They can update it from their phone, or at the desk."
+      },
+      "certs_pending": {
+        "title": "{count, plural, one {One certification card waits to be checked} other {# certification cards wait to be checked}}",
+        "body": "Divers who joined or moved up a level uploaded a card. Until you verify it, their allowed depth stays at their previous level."
       }
     },
     "owner": {
@@ -4332,7 +4339,8 @@
       "referral": "Referral",
       "hotel": "Hotel",
       "walk_in": "Walked in",
-      "whatsapp": "WhatsApp"
+      "whatsapp": "WhatsApp",
+      "join_link": "Join link"
     },
     "instructor": {
       "kicker": "In the water",
@@ -4376,7 +4384,9 @@
       "motion_sickness": "Seasick",
       "recent_incident": "Incident in 6 months",
       "last_dive_issue": "Last dive not clean",
-      "first_timer": "First time"
+      "first_timer": "First time",
+      "self_signup": "Joined via link",
+      "beginner": "New to freediving"
     },
     "outcome": {
       "clean": "Clean",
@@ -4616,7 +4626,14 @@
         "refused": "Marked as not cleared"
       },
       "draftSaved": "Draft saved",
-      "formPublished": "Published. New signatures use this text"
+      "formPublished": "Published. New signatures use this text",
+      "detailsSaved": "Details saved",
+      "certSent": "Card sent. The club will check and verify it",
+      "certRecorded": "Card added to the file",
+      "cert": {
+        "verified": "Card verified. The level on file was updated",
+        "rejected": "Marked as not verified"
+      }
     },
     "errors": {
       "sessionFull": "The session is full",
@@ -4640,7 +4657,19 @@
       "mustAgree": "Tick that you have read it and the details are true.",
       "uploadTooBig": "The file is too big (8MB at most).",
       "uploadUnavailable": "File uploads are not set up for the club yet. You can sign without a file.",
-      "uploadKind": "Upload a photo (JPG, PNG, WEBP) or a PDF only."
+      "uploadKind": "Upload a photo (JPG, PNG, WEBP) or a PDF only.",
+      "clubNotFound": "Club not found.",
+      "alreadyMember": "This account is already in the club with another role.",
+      "signupClosed": "The club isn't taking sign-ups through its link right now.",
+      "joinName": "First and last name are needed.",
+      "joinPhone": "That phone number doesn't look right.",
+      "joinDob": "That date of birth doesn't look right.",
+      "emergency": "An emergency contact name is needed.",
+      "certName": "The certification name is needed.",
+      "certIssued": "The issue date can't be in the future.",
+      "certNotPending": "This card was already checked.",
+      "certAgency": "Pick an agency.",
+      "certLevel": "Pick a level."
     },
     "levelShort": {
       "0": "None",
@@ -4800,6 +4829,145 @@
       "textQuestionsHint": "A line starting with ! is a medical question: a 'yes' waits for the club's clearance.",
       "saveDraft": "Save draft",
       "readText": "Read the text"
+    },
+    "join": {
+      "kicker": "Join the club",
+      "title": "Join {club}",
+      "sub": "A few minutes on your phone and you're in: your details, certification card, health declaration and waiver. Nothing to fill in on the beach.",
+      "formSub": "One more step: your details, then we'll go through your card and forms together.",
+      "how": {
+        "signIn": "Sign in with your phone number (SMS code)",
+        "details": "Fill in your details and an emergency contact",
+        "card": "Upload a photo of your certification card",
+        "forms": "Sign the health declaration and the waiver"
+      },
+      "signIn": "Sign in with your phone",
+      "demo": "Demo: join as Noam, a new diver",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Mobile phone",
+      "email": "Email (optional)",
+      "dob": "Date of birth",
+      "emergency": "Emergency contact",
+      "emergencyName": "Name",
+      "emergencyPhone": "Phone",
+      "beginner": "I'm new to freediving (no certification yet)",
+      "agree": "I agree that {club} keeps my details to run my dives",
+      "submit": "Join the club",
+      "privacy": "Your details stay with the club and are used only for your dives.",
+      "notFoundTitle": "Club not found",
+      "notFound": "The link is wrong or the club is no longer active. Ask the club for a new link.",
+      "closedTitle": "Sign-ups are closed",
+      "closed": "The club isn't taking sign-ups through its link right now. Message them on WhatsApp or come to the desk.",
+      "staffTitle": "You're already part of the club",
+      "staff": "This account is already in the club, so there's no need to sign up again.",
+      "toApp": "Go to my screen"
+    },
+    "welcome": {
+      "title": "Welcome, {name}!",
+      "sub": "A few short steps, and on dive day you just show up, suit up and get in the water.",
+      "allDone": "All set. See you in the water!",
+      "progress": "{done} of {total} done",
+      "homeLink": "First steps at the club: {done} of {total}",
+      "noDiver": "We couldn't find a diver card in your name. The office will sort it out in a second.",
+      "state": {
+        "done": "Done",
+        "todo": "To do",
+        "waiting": "With the club",
+        "optional": "Optional"
+      },
+      "step": {
+        "details": {
+          "title": "Emergency contact",
+          "done": "We know who to call if needed.",
+          "todo": "Who should we call if something happens in the water?"
+        },
+        "cert": {
+          "title": "Certification card",
+          "done": "The club verified your card. Your allowed depth follows it.",
+          "todo": "Take a photo of your card (Molchanovs, AIDA, SSI, PADI…).",
+          "waiting": "Card received. The club will check and verify it.",
+          "optional": "No card? No problem, we'll start from the basics."
+        },
+        "health": {
+          "title": "Health declaration",
+          "done": "Valid.",
+          "todo": "A few yes/no questions and a signature.",
+          "waiting": "You answered 'yes' to a medical question. The club will get back to you."
+        },
+        "waiver": {
+          "title": "Waiver",
+          "done": "Signed.",
+          "todo": "Read it and sign with your finger."
+        },
+        "insurance": {
+          "title": "Dive insurance",
+          "done": "Your insurance is valid.",
+          "todo": "The club asks for valid dive insurance.",
+          "optional": "Have dive insurance? Worth adding it."
+        },
+        "book": {
+          "title": "First dive",
+          "done": "Booked. See you in the water!",
+          "todo": "Pick a training or a course and book it."
+        }
+      },
+      "detailsTitle": "My details",
+      "detailsSub": "Who to call if something happens in the water, and an email for receipts.",
+      "emergencyName": "Emergency contact",
+      "emergencyPhone": "Their phone",
+      "email": "Email",
+      "saveDetails": "Save"
+    },
+    "certs": {
+      "kicker": "Certifications",
+      "myTitle": "My certification cards",
+      "mySub": "The club checks every card. Once verified, your allowed depth follows it.",
+      "backWelcome": "Back to first steps",
+      "noDiver": "We couldn't find a diver card in your name.",
+      "addTitle": "Add a card",
+      "listTitle": "My cards",
+      "none": "You haven't uploaded a card yet.",
+      "agency": "Agency",
+      "level": "Level",
+      "levelHint": "Roughly. The club checks it against the card.",
+      "name": "Certification name",
+      "number": "Card number",
+      "issuedOn": "Issued on",
+      "photo": "Photo of the card",
+      "photoHint": "A photo of the card or a PDF, up to 8MB.",
+      "sawIt": "I saw the card, verify it now",
+      "send": "Send for checking",
+      "record": "Add to file",
+      "issued": "issued {date}",
+      "viewPhoto": "View the card",
+      "noPhoto": "No photo",
+      "status": {
+        "pending": "Waiting for check",
+        "verified": "Verified",
+        "rejected": "Not verified"
+      },
+      "agencies": {
+        "molchanovs": "Molchanovs",
+        "aida": "AIDA",
+        "ssi": "SSI",
+        "padi": "PADI",
+        "cmas": "CMAS",
+        "other": "Other"
+      },
+      "fileTitle": "Certification cards",
+      "noneOnFile": "No cards on file.",
+      "deskAdd": "Add a card at the desk",
+      "queueTitle": "Cards to check",
+      "queueEmpty": "No cards waiting to be checked.",
+      "sentOn": "sent {date}",
+      "claims": "Level the diver gave: {level}",
+      "levelOnFile": "Level to record on file",
+      "levelNow": "On file today: {level}",
+      "reviewNote": "Note",
+      "reviewNotePlaceholder": "e.g. checked on the agency's site",
+      "verify": "Verify card",
+      "reject": "Don't verify"
     }
   }
 }

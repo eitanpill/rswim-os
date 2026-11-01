@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { diverFile, diverPaperwork } from '@rswim/domain-dive';
+import { diverCerts, diverFile, diverPaperwork } from '@rswim/domain-dive';
 import { withSession } from '@/lib/db';
+import { fileStore } from '@/lib/dive-files';
 import { isOffice, requireDivePage } from '../../_ui/access';
+import { CertForm, CertList } from '../../_ui/certs';
 import { CoursesPanel, DepthPanel, DiverBanner, LogbookPanel } from '../../_ui/diver';
 import { dateShort, shekels } from '../../_ui/format';
 import { di } from '../../_ui/icons';
@@ -26,10 +28,13 @@ export default async function DiverFilePage({
   const locale = await getLocale();
   const data = await withSession(async (tx) => {
     const file = await diverFile(tx, id);
-    return file ? { file, paperwork: await diverPaperwork(tx, id) } : null;
+    if (!file) return null;
+    const [paperwork, certs] = await Promise.all([diverPaperwork(tx, id), diverCerts(tx, id)]);
+    return { file, paperwork, certs };
   });
   if (!data) notFound();
-  const { file: f, paperwork } = data;
+  const { file: f, paperwork, certs } = data;
+  const tc = await getTranslations('dive.certs');
   const tf = await getTranslations('dive.forms');
   const d = f.diver;
   return (
@@ -161,6 +166,20 @@ export default async function DiverFilePage({
               {tf('historyCount', { count: paperwork.history.length })}
             </summary>
             <SignatureHistory paperwork={paperwork} />
+          </details>
+        ) : null}
+      </Panel>
+
+      <Panel title={tc('fileTitle')} icon={di.shield} testId="diver-certs" flush>
+        {certs.length ? <CertList certs={certs} /> : <Empty>{tc('noneOnFile')}</Empty>}
+        {isOffice(role) ? (
+          <details className="mx-4 mb-4 rounded-xl border border-line">
+            <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium text-[var(--dive-sea)]">
+              {tc('deskAdd')}
+            </summary>
+            <div className="p-3">
+              <CertForm diverId={id} uploads={fileStore() !== null} />
+            </div>
           </details>
         ) : null}
       </Panel>
