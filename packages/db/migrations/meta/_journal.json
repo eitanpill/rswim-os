@@ -260,6 +260,34 @@
       "when": 1793511387008,
       "tag": "0036_dive_signup_security",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793638237513,
+      "tag": "0037_parent_slot_booking",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793638238896,
+      "tag": "0038_parent_slot_booking_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793638621280,
+      "tag": "0039_dive_rules_editing",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793638973162,
+      "tag": "0040_dive_reminder_template",
+      "breakpoints": true
     }
   ]
 }

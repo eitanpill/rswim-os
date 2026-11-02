@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
   check,
   date,
   foreignKey,
@@ -389,6 +390,8 @@ export const privateSlots = pgTable(
     status: text('status').notNull().default('open'),
     /** Slots opened together ("every Monday 18:00 for 8 weeks") share a series id. */
     seriesId: uuid('series_id'),
+    /** Families can book this slot themselves from the parent portal (the office opts in per slot). */
+    parentBookable: boolean('parent_bookable').notNull().default(false),
     notes: text('notes'),
     createdBy: uuid('created_by'),
     createdAt: createdAt(),

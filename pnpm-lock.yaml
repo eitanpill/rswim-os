@@ -195,6 +195,9 @@ importers:
       '@rswim/domain-crm':
         specifier: workspace:*
         version: link:../../packages/domain/crm
+      '@rswim/domain-dive':
+        specifier: workspace:*
+        version: link:../../packages/domain/dive
       '@rswim/domain-institutions':
         specifier: workspace:*
         version: link:../../packages/domain/institutions
@@ -514,6 +517,9 @@ importers:
       '@rswim/config':
         specifier: workspace:*
         version: link:../../config
+      '@rswim/domain-dive':
+        specifier: workspace:*
+        version: link:../dive
       '@rswim/domain-staff':
         specifier: workspace:*
         version: link:../staff

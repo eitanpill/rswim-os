@@ -17,6 +17,11 @@ import {
   withdrawPortalRequest,
 } from '@rswim/domain-billing';
 import { SubmissionInput, submitForm } from '@rswim/domain-enrollment';
+import {
+  PortalBookSlotInput,
+  portalBookSlot,
+  portalCancelSlotBooking,
+} from '@rswim/domain-scheduling';
 import { answersFrom } from '@/lib/answers';
 import type { FormState } from '@/lib/form-state';
 import { runForm } from '@/lib/forms';
@@ -94,5 +99,22 @@ export async function parentWithdrawRequestAction(_: FormState, fd: FormData) {
     {
       revalidate: childPath(fd),
     },
+  );
+}
+
+/** The family books a private / pair lesson the office opened to families; billing counts it like any slot. */
+export async function parentBookSlotAction(_: FormState, fd: FormData) {
+  return runForm(fd, PortalBookSlotInput, (tx, _ctx, input) => portalBookSlot(tx, input), {
+    redirectTo: () => '/parent/book?booked=1',
+  });
+}
+
+/** The family cancels a lesson they booked themselves, up to a day before. */
+export async function parentCancelSlotAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    z.object({ id: z.uuid() }),
+    (tx, _ctx, { id }) => portalCancelSlotBooking(tx, id),
+    { revalidate: '/parent/book', success: 'parent.book.cancelled' },
   );
 }

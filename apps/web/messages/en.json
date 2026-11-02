@@ -7,7 +7,6 @@
     "signOut": "Sign out",
     "language": "עברית",
     "switchOrg": "Switch organization",
-    "comingSoon": "Coming in a later phase",
     "offline": "You're offline. Your changes are saved and will sync when you reconnect.",
     "mainNav": "Main navigation",
     "role": {
@@ -156,7 +155,6 @@
       "seatsChange": "{n, plural, =0 {no change this month} other {{s} in the last month}}",
       "trials": "Trial lessons this month"
     },
-    "placeholder": "This screen arrives in Phase {phase}",
     "more": {
       "title": "More",
       "venues": {
@@ -336,6 +334,26 @@
       "lesson": "{group} · {venue}",
       "when": "{date} {from}–{to}",
       "taken": "Someone else took it"
+    },
+    "profile": {
+      "title": "My profile",
+      "noStaff": "Your account isn't linked to an instructor record yet. The office links it.",
+      "details": "My details",
+      "detailsHint": "Something wrong? Tell the office and they'll update it.",
+      "groups": "My groups",
+      "noGroups": "No regular groups in the next two weeks",
+      "noCerts": "No certifications on file. Send the office a photo of yours.",
+      "certRenew": "Renew in time and send the office the new certificate, or you won't be scheduled for groups that need it.",
+      "availability": "When I can teach",
+      "availabilityHint": "The office offers you swaps and new groups by these hours.",
+      "until": "until {date}",
+      "timeOff": "Time off and changes",
+      "timeOffHint": "Going on vacation or free on an extra day? Add it here and the office sees it when scheduling.",
+      "noTimeOff": "No upcoming time off or changes",
+      "addTimeOff": "Add time off or a change",
+      "rates": "My rates",
+      "ratesHint": "Rates are set by the office. The monthly pay breakdown is on the Hours screen.",
+      "saved": "Saved"
     }
   },
   "transport": {
@@ -623,6 +641,29 @@
       "amount": "Amount",
       "back": "Back to payments",
       "notes": "Notes"
+    },
+    "book": {
+      "title": "Private lesson",
+      "subtitle": "Open times the school offers for booking. Pick a time and book in one tap.",
+      "empty": "We couldn't find your family. Please contact the office.",
+      "booked": "Lesson booked! A confirmation is on its way on WhatsApp.",
+      "cancelled": "Lesson cancelled",
+      "mine": "Your private lessons",
+      "open": "Open times",
+      "none": "No open times to book right now",
+      "noneHint": "New times open every week. You can also message the office.",
+      "with": "with {name}",
+      "seatsLeft": "{n, plural, one {1 seat} other {# seats}}",
+      "child": "For whom?",
+      "book": "Book",
+      "bookFor": "Book for {name}",
+      "cancel": "Cancel",
+      "cancelConfirm": "Cancel this lesson?",
+      "tooLate": "Less than a day before; contact the office to cancel",
+      "byOffice": "Booked by the office",
+      "terms": "Charged by the school's price list. You can cancel yourself up to 24 hours before the lesson.",
+      "cta": "Want a private lesson?",
+      "ctaHint": "{n, plural, =0 {Book a private or pair lesson} one {1 open time in the next 4 weeks} other {# open times in the next 4 weeks}}"
     }
   },
   "platform": {
@@ -1273,7 +1314,8 @@
       "transport_dropped_off": "Dropped off",
       "venue_migration": "Venue move",
       "venue_migration_reverted": "Venue move cancelled",
-      "bot_handoff": "Bot passed it to the team"
+      "bot_handoff": "Bot passed it to the team",
+      "dive_reminder": "Dive reminder for tomorrow"
     },
     "messageStatus": {
       "queued": "Queued",
@@ -1820,7 +1862,7 @@
       "title": "Pay rules",
       "empty": "No pay rules",
       "add": "New pay rule",
-      "hint": "A new rule from a date ends the previous one in the same slot. Payroll itself arrives in Phase 6.",
+      "hint": "A new rule from a date ends the previous one in the same slot.",
       "amount": "Amount (₪)",
       "basis": "Basis",
       "routing": "Paid via",
@@ -2271,7 +2313,9 @@
       "slotNotOpen": "The slot is no longer open",
       "slotPast": "The slot is in the past",
       "alreadyBooked": "The child is already booked into this slot",
-      "alreadyWaiting": "The child is already on the waitlist for this program"
+      "alreadyWaiting": "The child is already on the waitlist for this program",
+      "portalCancelLate": "Less than a day before the lesson. Contact the office to cancel",
+      "portalCancelOffice": "The office booked this lesson. Contact the office to cancel"
     },
     "board": {
       "title": "Group board",
@@ -2454,7 +2498,9 @@
       "capacity": "Places",
       "capacityHint": "Empty = by kind (private 1, pair 2, trio 3)",
       "notes": "Notes",
-      "parentBookingLater": "parents booking themselves from the portal"
+      "parentBookable": "Families can book it themselves in the portal",
+      "parentBookableHint": "Families see this slot in their portal and can book it (and cancel up to 24 hours before).",
+      "openToFamilies": "Open to families"
     },
     "waitlist": {
       "title": "Waitlist",
@@ -3175,7 +3221,8 @@
       "transport_left_pool": "The ride left the pool",
       "transport_rider_dropped": "A child got off at their point",
       "scheduling_venue_migrated": "Venue move done",
-      "scheduling_venue_migration_reverted": "Venue move reverted"
+      "scheduling_venue_migration_reverted": "Venue move reverted",
+      "dive_session_reminder": "Daily diver reminder (day before)"
     },
     "decision": {
       "send": "Sent now",
@@ -4209,7 +4256,8 @@
       "kind": "Kind",
       "severity": "Severity",
       "description": "What happened",
-      "reportSubmit": "Record incident"
+      "reportSubmit": "Record incident",
+      "editRules": "Edit rules"
     },
     "gearStatus": {
       "available": "Available",
@@ -4968,6 +5016,91 @@
       "reviewNotePlaceholder": "e.g. checked on the agency's site",
       "verify": "Verify card",
       "reject": "Don't verify"
+    },
+    "rules": {
+      "kicker": "Club settings",
+      "title": "Club rules",
+      "inEffectSince": "The version in effect since {date}. A change is saved as a new version from a date you pick.",
+      "defaults": "No version saved yet; the system runs on the defaults.",
+      "back": "Back to the ops room",
+      "upcoming": "A scheduled version takes effect on {date}. The form shows today's version.",
+      "readOnly": "Only the owner and the operations manager can change the rules.",
+      "saved": "Rules saved",
+      "sea": {
+        "title": "Sea conditions",
+        "hint": "The system decides go, caution or no-go by these numbers.",
+        "cautionWind": "Wind: caution above (kts)",
+        "maxWind": "Wind: closed above (kts)",
+        "minVisibility": "Minimum visibility (m)",
+        "cautionWave": "Waves: caution above (cm)",
+        "maxWave": "Waves: closed above (cm)",
+        "currentNoGo": "A strong current closes the sea"
+      },
+      "ratio": {
+        "title": "Divers per instructor",
+        "hint": "The most divers on one instructor in the water, by activity.",
+        "experience": "Experience",
+        "course": "Course",
+        "training": "Training",
+        "workshop": "Workshop",
+        "trip": "Trip"
+      },
+      "depth": {
+        "title": "Depth",
+        "hint": "How much deeper than their personal best a diver may target in one session, and the deepest target per level.",
+        "step": "Max progression (m)",
+        "ceilings": "Deepest target per level (m)"
+      },
+      "paperwork": {
+        "title": "Paperwork and certificates",
+        "medicalMonths": "Health declaration valid (months)",
+        "waiverMonths": "Waiver valid (months)",
+        "medicalWarn": "Warn before a declaration expires (days)",
+        "insurance": "Insurance",
+        "insuranceMode": {
+          "off": "Not asked",
+          "track": "Tracked with warnings",
+          "require": "Required to dive"
+        },
+        "insuranceWarn": "Warn before insurance expires (days)",
+        "staffCertWarn": "Warn before an instructor's certificate expires (days)"
+      },
+      "booking": {
+        "title": "Bookings and sign-up",
+        "holdMinutes": "Minutes a seat is held until payment",
+        "rentalGrace": "Gear return grace (minutes)",
+        "requirePayment": "A booking counts only once paid",
+        "selfSignup": "Divers can join from the club's link"
+      },
+      "passes": {
+        "title": "Passes",
+        "hint": "Price, sessions (empty = unlimited) and days valid.",
+        "price": "Price (₪)",
+        "sessions": "Sessions",
+        "unlimited": "Unlimited",
+        "days": "Days valid"
+      },
+      "save": {
+        "title": "Save",
+        "from": "In effect from",
+        "fromHint": "Today or a future date. A version on the same date is updated; earlier ones never change.",
+        "notes": "What changed and why (optional)",
+        "submit": "Save rules"
+      },
+      "history": {
+        "title": "Version history",
+        "none": "No saved versions yet",
+        "from": "From {date}",
+        "summary": "Closed at {wind} kts · course 1:{course} · step {step} m",
+        "current": "In effect",
+        "scheduled": "Scheduled",
+        "past": "Ended"
+      },
+      "errors": {
+        "past": "A version can start today or later. Earlier versions are kept as they were.",
+        "cautionAboveMax": "The caution limit is above the closing limit",
+        "levelsOrder": "A higher level can't have a shallower limit than the level before it"
+      }
     }
   }
 }

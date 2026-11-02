@@ -38,6 +38,7 @@ import {
   platformMonthlyBilling,
   platformSchoolCreated,
 } from './platform';
+import { diveDailyReminders } from './dive';
 import { transportPlanRuns } from './transport';
 
 export const functions = [
@@ -73,6 +74,7 @@ export const functions = [
   billingDailyDunning,
   billingPortalRequest,
   billingPortalRequestSweep,
+  diveDailyReminders,
   ...commsAutomations,
   commsDispatch,
   commsHolidayNotice,

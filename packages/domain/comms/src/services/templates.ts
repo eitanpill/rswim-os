@@ -114,6 +114,10 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
     he: 'תודה {{guardian_name}}, קיבלנו את ההודעה 🙏 העברנו אותה לצוות ונחזור אליך בהקדם. {{school_name}}',
     en: 'Thanks {{guardian_name}}, we got your message 🙏 We passed it to the team and will get back to you soon. {{school_name}}',
   },
+  dive_reminder: {
+    he: 'היי {{diver_name}} 🌊 תזכורת: מחר ({{date}}) בשעה {{time}} {{session}} ב{{site}}. {{pay_note}}כדאי להגיע 15 דקות לפני. לא מגיעים? עונים להודעה הזו ונפנה את המקום למישהו אחר. {{school_name}}',
+    en: "Hi {{diver_name}} 🌊 A reminder: tomorrow ({{date}}) at {{time}}, {{session}} at {{site}}. {{pay_note}}Please come 15 minutes early. Can't make it? Reply here and we'll give the spot to someone else. {{school_name}}",
+  },
   free_text: { he: '{{text}}', en: '{{text}}' },
 };
 
@@ -137,6 +141,7 @@ export const DEFAULT_AUTOMATIONS: [eventType: string, templateKey: Key][] = [
   ['transport.rider_dropped', 'transport_dropped_off'],
   ['scheduling.venue_migrated', 'venue_migration'],
   ['scheduling.venue_migration_reverted', 'venue_migration_reverted'],
+  ['dive.session_reminder', 'dive_reminder'],
 ];
 
 /** Gives an organization every template and automation it lacks. Running it twice changes nothing. */

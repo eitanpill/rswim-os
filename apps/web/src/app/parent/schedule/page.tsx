@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { portalOpenSlots } from '@rswim/domain-scheduling';
 import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import { ActionButton } from '@/components/form';
 import { sessionWhen } from '@/lib/attendance';
@@ -14,7 +16,10 @@ export default async function ParentSchedule({
 }) {
   const { booked } = await searchParams;
   const t = await getTranslations('parent.schedule');
-  const data = await withSession((tx) => familyOverview(tx));
+  const tb = await getTranslations('parent.book');
+  const [data, openSlots] = await withSession((tx) =>
+    Promise.all([familyOverview(tx), portalOpenSlots(tx)]),
+  );
   const live = data?.bookings.filter((b) => b.status === 'booked') ?? [];
   const credits = new Map(data?.credits.map((c) => [c.id, c]) ?? []);
   const name = new Map(data?.family.students.map((s) => [s.id, s.firstName]) ?? []);
@@ -28,6 +33,17 @@ export default async function ParentSchedule({
             {t('booked')}
           </p>
         ) : null}
+        <Link
+          href="/parent/book"
+          className="flex min-h-tap items-center justify-between gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-brand-800 hover:bg-brand-100 dark:border-line dark:bg-surface dark:text-ink"
+          data-testid="book-private-cta"
+        >
+          <span>
+            <span className="block font-semibold">{tb('cta')}</span>
+            <span className="text-sm">{tb('ctaHint', { n: openSlots.length })}</span>
+          </span>
+          <span aria-hidden>‹</span>
+        </Link>
         {live.length ? (
           <Card data-testid="parent-makeups">
             <CardTitle>{t('makeups')}</CardTitle>

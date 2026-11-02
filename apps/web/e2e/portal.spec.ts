@@ -118,3 +118,28 @@ test('the companion pass: the parent sees it, and the entrance checks it without
   await expect(check).toContainText('הכרטיס לא תקין');
   await gate.close();
 });
+
+test('a family books a private lesson the office opened to families, sees it, and cancels it', async ({
+  page,
+}) => {
+  page.on('dialog', (d) => void d.accept());
+  await page.goto('/dev/login?as=parent');
+  await page.goto('/parent/schedule');
+  await page.getByTestId('book-private-cta').click();
+  await expect(page).toHaveURL(/\/parent\/book$/);
+  const slot = page.getByTestId('open-slot').last();
+  await expect(slot).toBeVisible();
+  const before = await page.getByTestId('open-slot').count();
+  const child = slot.getByLabel('למי?');
+  if (await child.count()) await child.selectOption({ index: 0 });
+  await slot.getByRole('button', { name: /הזמנה/ }).click();
+  await expect(page.getByRole('status')).toContainText('השיעור נקבע');
+  await expect(page.getByTestId('open-slot')).toHaveCount(before - 1);
+  const mine = page.getByTestId('my-private-lesson').filter({
+    has: page.getByRole('button', { name: 'ביטול' }),
+  });
+  await expect(mine).toHaveCount(1);
+  await mine.getByRole('button', { name: 'ביטול' }).click();
+  await expect(mine).toHaveCount(0);
+  await expect(page.getByTestId('open-slot')).toHaveCount(before);
+});

@@ -39,13 +39,20 @@ export const SlotInput = z
     endsAt: TimeOfDay,
     capacity: optionalInt(1, 10),
     repeatWeeks: requiredInt(1, 26).default(1),
+    /** A ticked checkbox posts "on"; unticked posts nothing. */
+    parentBookable: z
+      .union([z.boolean(), z.literal('on')])
+      .optional()
+      .transform((v) => v === true || v === 'on'),
     notes: optionalText(300),
   })
   .refine((s) => toMinutes(s.endsAt) > toMinutes(s.startsAt), {
     message: 'forms.errors.timesReversed',
     path: ['endsAt'],
   });
-export type SlotInput = z.infer<typeof SlotInput>;
+export type SlotInput = Omit<z.infer<typeof SlotInput>, 'parentBookable'> & {
+  parentBookable?: boolean;
+};
 
 /** Is the instructor teaching (a group session or another slot) at this time on this date? */
 async function busyAt(tx: Tx, staffId: string, date: string, startsAt: string, endsAt: string) {
@@ -132,6 +139,7 @@ export async function openSlots(tx: Tx, ctx: ServiceContext, input: SlotInput): 
         endsAt: localInstant(date, input.endsAt),
         capacity: input.capacity ?? SLOT_DEFAULT_CAPACITY[input.kind],
         seriesId,
+        parentBookable: input.parentBookable ?? false,
         notes: input.notes,
         createdBy: ctx.userId,
       })
@@ -253,4 +261,95 @@ export async function cancelSlot(tx: Tx, ctx: ServiceContext, slotId: string) {
     payload: { slotId, studentIds: cancelled.map((c) => c.studentId) },
     idempotencyKey: `scheduling.slot_cancelled:${slotId}`,
   });
+}
+
+// ─── The parent portal: families book slots the office opened to them ───────
+// Parents cannot read the slot tables (other families' bookings), so these go through definer functions (0038).
+
+export interface PortalSlot {
+  id: string;
+  kind: string;
+  date: string;
+  startsAt: Date;
+  endsAt: Date;
+  venueName: string;
+  programName: string | null;
+  instructorFirstName: string;
+  capacity: number;
+  seatsLeft: number;
+}
+
+export interface PortalSlotBooking {
+  id: string;
+  slotId: string;
+  studentId: string;
+  kind: string;
+  date: string;
+  startsAt: Date;
+  endsAt: Date;
+  venueName: string;
+  instructorFirstName: string;
+  bookedByFamily: boolean;
+  canCancel: boolean;
+}
+
+const asDate = (v: unknown) => (v instanceof Date ? v : new Date(String(v)));
+const asDay = (v: unknown) =>
+  v instanceof Date ? v.toISOString().slice(0, 10) : String(v).slice(0, 10);
+
+/** Open slots the signed-in parent may book over the next four weeks (empty for anyone else). */
+export async function portalOpenSlots(tx: Tx): Promise<PortalSlot[]> {
+  const r = await tx.execute<Record<string, unknown>>(
+    sql`select * from public.portal_open_slots()`,
+  );
+  return r.rows.map((x) => ({
+    id: String(x.id),
+    kind: String(x.kind),
+    date: asDay(x.date),
+    startsAt: asDate(x.starts_at),
+    endsAt: asDate(x.ends_at),
+    venueName: String(x.venue_name),
+    programName: x.program_name == null ? null : String(x.program_name),
+    instructorFirstName: String(x.instructor_first_name),
+    capacity: Number(x.capacity),
+    seatsLeft: Number(x.seats_left),
+  }));
+}
+
+/** The family's upcoming slot bookings, and which of them they may still cancel themselves. */
+export async function portalMySlotBookings(tx: Tx): Promise<PortalSlotBooking[]> {
+  const r = await tx.execute<Record<string, unknown>>(
+    sql`select * from public.portal_my_slot_bookings()`,
+  );
+  return r.rows.map((x) => ({
+    id: String(x.id),
+    slotId: String(x.slot_id),
+    studentId: String(x.student_id),
+    kind: String(x.kind),
+    date: asDay(x.date),
+    startsAt: asDate(x.starts_at),
+    endsAt: asDate(x.ends_at),
+    venueName: String(x.venue_name),
+    instructorFirstName: String(x.instructor_first_name),
+    bookedByFamily: x.booked_by_family === true,
+    canCancel: x.can_cancel === true,
+  }));
+}
+
+export const PortalBookSlotInput = z.object({ slotId: z.uuid(), studentId: z.uuid() });
+
+/** The parent books their child into an open slot; the database checks seat, time and that it is their child. */
+export async function portalBookSlot(
+  tx: Tx,
+  input: z.infer<typeof PortalBookSlotInput>,
+): Promise<string> {
+  const r = await tx.execute<{ id: string }>(
+    sql`select public.portal_book_slot(${input.slotId}, ${input.studentId}) as id`,
+  );
+  return String(r.rows[0]?.id);
+}
+
+/** The parent cancels a booking they made, up to a day before the lesson. */
+export async function portalCancelSlotBooking(tx: Tx, bookingId: string) {
+  await tx.execute(sql`select public.portal_cancel_slot_booking(${bookingId})`);
 }
