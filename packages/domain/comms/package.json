@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@rswim/config": "workspace:*",
+    "@rswim/domain-dive": "workspace:*",
     "@rswim/domain-staff": "workspace:*",
     "@rswim/domain-venues": "workspace:*",
     "@types/node": "^22.0.0",

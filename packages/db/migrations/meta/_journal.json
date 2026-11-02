@@ -281,6 +281,13 @@
       "when": 1793638621280,
       "tag": "0039_dive_rules_editing",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793638973162,
+      "tag": "0040_dive_reminder_template",
+      "breakpoints": true
     }
   ]
 }

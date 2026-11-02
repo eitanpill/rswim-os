@@ -31,6 +31,7 @@ export const TEMPLATE_KEYS = [
   'venue_migration',
   'venue_migration_reverted',
   'bot_handoff',
+  'dive_reminder',
   'free_text',
 ] as const;
 export const TemplateKey = z.enum(TEMPLATE_KEYS);

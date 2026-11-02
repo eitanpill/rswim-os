@@ -23,9 +23,7 @@ test('the manager schedules a new rules version from a future date', async ({ pa
   await form.getByLabel('מה השתנה ולמה (לא חובה)').fill('יחס קורס מחמיר (בדיקה)');
   await form.getByRole('button', { name: 'שמירת החוקים' }).click();
   await expect(form.getByRole('status')).toContainText('החוקים נשמרו');
-  const scheduled = page
-    .getByTestId('rules-version')
-    .filter({ hasText: 'יחס קורס מחמיר (בדיקה)' });
+  const scheduled = page.getByTestId('rules-version').filter({ hasText: 'יחס קורס מחמיר (בדיקה)' });
   await expect(scheduled).toContainText('מתוזמנת');
   await expect(page.getByTestId('rules-upcoming')).toBeVisible();
 });

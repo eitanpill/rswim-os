@@ -5,3 +5,4 @@ export * from './services/actions';
 export * from './services/forms';
 export * from './services/signup';
 export * from './services/rules';
+export * from './services/reminders';

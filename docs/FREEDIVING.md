@@ -162,6 +162,17 @@ card each, and a regular who uploaded a higher card, all waiting for the desk. P
 `planLines`, `clubInsights`.
 Each takes the rules version in force; defaults live in `@rswim/contracts` (`DEFAULT_DIVE_RULES`).
 
+The owner and the manager edit the rules on `/dive/rules` (from the ops room's rules panel): every rule, saved as a
+version from today or a later date. A version that already took effect is history and the database refuses to change
+it (migration 0039, `settings.write` only). The front desk reads them.
+
+## Reminders
+
+Every day at 17:00 (Israel) the worker reminds each diver booked for tomorrow on WhatsApp (`dive.session_reminder`,
+template `dive_reminder`, one per booking): time, session, site, and a payment nudge for a seat still held for payment.
+It goes through the club's messaging automations, so it can be switched off or reworded there, and respects the send
+window. Divers with no household to reach are skipped.
+
 ## Demo
 
 Seeded by `packages/seed/src/dive-data.ts`: "כחול עמוק אילת (דמו)" (about 110 divers, eight weeks back and two ahead,

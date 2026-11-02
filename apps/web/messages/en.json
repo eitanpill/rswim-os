@@ -1314,7 +1314,8 @@
       "transport_dropped_off": "Dropped off",
       "venue_migration": "Venue move",
       "venue_migration_reverted": "Venue move cancelled",
-      "bot_handoff": "Bot passed it to the team"
+      "bot_handoff": "Bot passed it to the team",
+      "dive_reminder": "Dive reminder for tomorrow"
     },
     "messageStatus": {
       "queued": "Queued",
@@ -3220,7 +3221,8 @@
       "transport_left_pool": "The ride left the pool",
       "transport_rider_dropped": "A child got off at their point",
       "scheduling_venue_migrated": "Venue move done",
-      "scheduling_venue_migration_reverted": "Venue move reverted"
+      "scheduling_venue_migration_reverted": "Venue move reverted",
+      "dive_session_reminder": "Daily diver reminder (day before)"
     },
     "decision": {
       "send": "Sent now",

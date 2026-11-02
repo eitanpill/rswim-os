@@ -20,8 +20,9 @@ A freediving club runs on the same platform with its own module and screens (`do
 bridge, the ops room, the front desk, the instructor's day in the water and the diver's own app, plus a network view
 for the platform admin across swim schools and clubs. Seeded with the Eilat demo club and a small Haifa club.
 Proof: `packages/domain/dive/test/policies.test.ts` (100% coverage of the rules), `packages/db/test/rls/dive.test.ts`
-(roles and tenants), `apps/web/e2e/dive.spec.ts` (every role's screen and the main taps). Not built yet: online
-payment for bookings (the desk records the method), WhatsApp reminders for the club, editing the rules in a screen.
+(roles and tenants), `apps/web/e2e/dive.spec.ts` (every role's screen and the main taps). Since then: payment
+before a booking counts (Grow fake), the rules edited in a screen as dated versions (`/dive/rules`, owner and
+manager), and a WhatsApp reminder the day before each booked dive (worker, 17:00).
 
 ## Freediving: the club's forms (health declaration, waiver, insurance)
 
@@ -236,3 +237,13 @@ Coverage is 100% (statements and branches) on `money`, `contracts`, `calendar` a
 ## Next
 Phase 5: messaging (WhatsApp and SMS through the outbox: absence answers, makeup offers, payment links, the
 update-card step of dunning, schedule changes).
+
+## Screens completed after the phases (2026-11)
+
+- Instructor profile (`/instructor/profile`): details, regular groups, certifications with expiry warnings, the
+  availability and time off the instructor keeps themselves, and current rates. Proof: `e2e/staffops.spec.ts`.
+- Families book private lessons from the portal (`/parent/book`): the office ticks "open to families" on a slot;
+  families book their own children and cancel up to 24 hours before (definer functions, migration 0038). Proof:
+  `packages/db/test/rls/portal-slots.test.ts`, `e2e/portal.spec.ts`.
+- Freediving rules editor and day-before reminders: `packages/domain/dive/test/rules.test.ts`,
+  `packages/db/test/rls/dive-rules.test.ts`, `e2e/dive-rules.spec.ts`, `packages/domain/comms/test/dive-reminder.test.ts`.

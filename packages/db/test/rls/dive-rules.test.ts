@@ -38,7 +38,9 @@ describe('club rules versions', () => {
       expect(
         await run(`update dive_rule_sets set rules = '{}' where id = $1 returning id`, [past]),
       ).toHaveLength(0);
-      expect(await run(`delete from dive_rule_sets where id = $1 returning id`, [past])).toHaveLength(0);
+      expect(
+        await run(`delete from dive_rule_sets where id = $1 returning id`, [past]),
+      ).toHaveLength(0);
       await expect(
         run(
           `insert into dive_rule_sets (organization_id, effective_from, rules) values ($1, '2021-01-01', '{}')`,

@@ -1314,7 +1314,8 @@
       "transport_dropped_off": "ירד/ה מההסעה",
       "venue_migration": "מעבר בריכה",
       "venue_migration_reverted": "ביטול מעבר בריכה",
-      "bot_handoff": "הבוט העביר לצוות"
+      "bot_handoff": "הבוט העביר לצוות",
+      "dive_reminder": "תזכורת לצלילה מחר"
     },
     "messageStatus": {
       "queued": "בתור",
@@ -3220,7 +3221,8 @@
       "transport_left_pool": "ההסעה יצאה מהבריכה",
       "transport_rider_dropped": "ילד/ה ירד/ה בנקודת ההורדה",
       "scheduling_venue_migrated": "מעבר בריכה בוצע",
-      "scheduling_venue_migration_reverted": "מעבר בריכה בוטל"
+      "scheduling_venue_migration_reverted": "מעבר בריכה בוטל",
+      "dive_session_reminder": "תזכורת יומית לצוללים (יום לפני)"
     },
     "decision": {
       "send": "נשלח מיד",

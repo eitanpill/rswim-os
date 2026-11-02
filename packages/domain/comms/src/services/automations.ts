@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { addDays } from '@rswim/calendar';
 import type { TemplateKey } from '@rswim/contracts';
-import { eq, schema, type Tx } from '@rswim/db';
+import { eq, schema, sql, type Tx } from '@rswim/db';
 import type { ServiceContext } from '@rswim/domain-core';
 import { guardiansOfHouseholds, staffNames, studentsByIds } from '@rswim/domain-people';
 import {
@@ -92,6 +92,58 @@ const lessonVars =
     venue: l.venueName,
   });
 
+/** The day-before reminder for a freediving booking: the diver's household hears when, what and where. */
+const diveReminder: Resolver = async (tx, raw) => {
+  const p = z.looseObject({ bookingId: uuid }).parse(raw);
+  const r = await tx.execute<{
+    household_id: string;
+    diver_name: string;
+    status: string;
+    starts_at: Date | string;
+    session_he: string;
+    session_en: string;
+    site_he: string;
+    site_en: string;
+  }>(
+    sql`select g.household_id, d.first_name as diver_name, b.status, s.starts_at,
+               coalesce(s.title, p.name_he) as session_he, coalesce(s.title, p.name_en) as session_en,
+               t.name as site_he, coalesce(t.name_en, t.name) as site_en
+        from dive_bookings b
+        join dive_divers d on d.id = b.diver_id
+        join guardians g on g.id = d.guardian_id
+        join dive_sessions s on s.id = b.session_id
+        join dive_programs p on p.id = s.program_id
+        join dive_sites t on t.id = s.site_id
+        where b.id = ${p.bookingId}
+          and b.status in ('booked', 'pending_payment')
+          and s.status not in ('cancelled', 'done')
+          and s.starts_at > now()`,
+  );
+  const row = r.rows[0];
+  if (!row) return [];
+  const at = new Date(row.starts_at);
+  const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(at);
+  const unpaid = row.status === 'pending_payment';
+  return [
+    {
+      key: p.bookingId,
+      householdId: row.household_id,
+      vars: (l) => ({
+        diver_name: row.diver_name,
+        date: messageDate(day, l),
+        time: clock(at),
+        session: l === 'he' ? row.session_he : row.session_en,
+        site: l === 'he' ? row.site_he : row.site_en,
+        pay_note: unpaid
+          ? l === 'he'
+            ? 'המקום עוד שמור לתשלום, אפשר לשלם באפליקציה או בדלפק. '
+            : 'Your spot is held until you pay, in the app or at the desk. '
+          : '',
+      }),
+    },
+  ];
+};
+
 /** A venue migration (or its revert): one personal message per child, from the migration's notices. */
 const venueMigration: Resolver = async (tx, raw) => {
   const p = z.looseObject({ migrationId: uuid }).parse(raw);
@@ -105,6 +157,7 @@ const venueMigration: Resolver = async (tx, raw) => {
 
 /** The events that message families, and how each finds its audience and words. */
 export const RESOLVERS: Record<string, Resolver> = {
+  'dive.session_reminder': diveReminder,
   'scheduling.venue_migrated': venueMigration,
   'scheduling.venue_migration_reverted': venueMigration,
   'enrollment.trial_booked': async (tx, raw) => {
