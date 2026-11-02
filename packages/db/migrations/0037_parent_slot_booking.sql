@@ -1,0 +1,1 @@
+ALTER TABLE "private_slots" ADD COLUMN "parent_bookable" boolean DEFAULT false NOT NULL;

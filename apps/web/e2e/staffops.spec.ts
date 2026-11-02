@@ -83,3 +83,26 @@ test('the instructor sees last month and the hours to confirm', async ({ page })
   await expect(page.getByTestId('my-month')).toHaveCount(2);
   await expect(page.getByTestId('my-statements')).toBeVisible();
 });
+
+test('the instructor keeps their own profile: details, groups, certifications and time off', async ({
+  page,
+}) => {
+  await page.goto('/dev/login?as=instructor');
+  await page.goto('/instructor/profile');
+  await expect(page.getByTestId('my-details')).toBeVisible();
+  await expect(page.getByTestId('my-groups')).toBeVisible();
+  await expect(page.getByTestId('my-certs')).toBeVisible();
+  await expect(page.getByText('המסך הזה ייבנה')).toHaveCount(0);
+
+  // Time off far in the future, so no other test's schedule is touched; then it is removed again.
+  const timeOff = page.getByTestId('my-time-off');
+  await timeOff.locator('summary').click();
+  await timeOff.getByLabel('מתאריך').fill('2030-08-01');
+  await timeOff.getByLabel('עד תאריך').fill('2030-08-10');
+  await timeOff.getByLabel('סיבה').fill('טיול משפחתי (בדיקה)');
+  await timeOff.getByRole('button', { name: 'הוספת חופשה או שינוי' }).click();
+  const row = page.getByTestId('my-time-off-row').filter({ hasText: 'טיול משפחתי (בדיקה)' });
+  await expect(row).toBeVisible();
+  await row.getByRole('button', { name: 'מחיקה' }).click();
+  await expect(row).toHaveCount(0);
+});

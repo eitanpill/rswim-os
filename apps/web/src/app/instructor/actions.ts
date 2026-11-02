@@ -10,7 +10,15 @@ import {
   answerSubstituteOffer,
   OfferAnswer,
 } from '@rswim/domain-scheduling';
-import { myStaffId } from '@rswim/domain-staff';
+import {
+  addAvailabilityException,
+  addAvailabilityRule,
+  AvailabilityExceptionInput,
+  AvailabilityRuleInput,
+  deleteAvailabilityException,
+  deleteAvailabilityRule,
+  myStaffId,
+} from '@rswim/domain-staff';
 import type { FormState } from '@/lib/form-state';
 import { runForm } from '@/lib/forms';
 
@@ -48,5 +56,41 @@ export async function answerOfferAction(_: FormState, fd: FormData) {
     OfferAnswer,
     async (tx, ctx, input) => answerSubstituteOffer(tx, ctx, await ownStaffId(tx), input),
     { redirectTo: (r) => `/instructor/swaps?answered=${r}` },
+  );
+}
+
+// ─── My profile: the instructor keeps their own availability current (RLS limits them to their own rows) ──────
+
+const ProfileId = z.object({ id: z.uuid() });
+const profileDone = { revalidate: '/instructor/profile', success: 'instructor.profile.saved' };
+
+export async function addMyAvailabilityAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    AvailabilityRuleInput,
+    async (tx, ctx, input) => addAvailabilityRule(tx, ctx, await ownStaffId(tx), input),
+    profileDone,
+  );
+}
+
+export async function deleteMyAvailabilityAction(_: FormState, fd: FormData) {
+  return runForm(fd, ProfileId, (tx, _ctx, { id }) => deleteAvailabilityRule(tx, id), profileDone);
+}
+
+export async function addMyExceptionAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    AvailabilityExceptionInput,
+    async (tx, ctx, input) => addAvailabilityException(tx, ctx, await ownStaffId(tx), input),
+    profileDone,
+  );
+}
+
+export async function deleteMyExceptionAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    ProfileId,
+    (tx, _ctx, { id }) => deleteAvailabilityException(tx, id),
+    profileDone,
   );
 }

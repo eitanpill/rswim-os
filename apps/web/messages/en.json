@@ -7,7 +7,6 @@
     "signOut": "Sign out",
     "language": "עברית",
     "switchOrg": "Switch organization",
-    "comingSoon": "Coming in a later phase",
     "offline": "You're offline. Your changes are saved and will sync when you reconnect.",
     "mainNav": "Main navigation",
     "role": {
@@ -156,7 +155,6 @@
       "seatsChange": "{n, plural, =0 {no change this month} other {{s} in the last month}}",
       "trials": "Trial lessons this month"
     },
-    "placeholder": "This screen arrives in Phase {phase}",
     "more": {
       "title": "More",
       "venues": {
@@ -336,6 +334,26 @@
       "lesson": "{group} · {venue}",
       "when": "{date} {from}–{to}",
       "taken": "Someone else took it"
+    },
+    "profile": {
+      "title": "My profile",
+      "noStaff": "Your account isn't linked to an instructor record yet. The office links it.",
+      "details": "My details",
+      "detailsHint": "Something wrong? Tell the office and they'll update it.",
+      "groups": "My groups",
+      "noGroups": "No regular groups in the next two weeks",
+      "noCerts": "No certifications on file. Send the office a photo of yours.",
+      "certRenew": "Renew in time and send the office the new certificate, or you won't be scheduled for groups that need it.",
+      "availability": "When I can teach",
+      "availabilityHint": "The office offers you swaps and new groups by these hours.",
+      "until": "until {date}",
+      "timeOff": "Time off and changes",
+      "timeOffHint": "Going on vacation or free on an extra day? Add it here and the office sees it when scheduling.",
+      "noTimeOff": "No upcoming time off or changes",
+      "addTimeOff": "Add time off or a change",
+      "rates": "My rates",
+      "ratesHint": "Rates are set by the office. The monthly pay breakdown is on the Hours screen.",
+      "saved": "Saved"
     }
   },
   "transport": {
@@ -623,6 +641,29 @@
       "amount": "Amount",
       "back": "Back to payments",
       "notes": "Notes"
+    },
+    "book": {
+      "title": "Private lesson",
+      "subtitle": "Open times the school offers for booking. Pick a time and book in one tap.",
+      "empty": "We couldn't find your family. Please contact the office.",
+      "booked": "Lesson booked! A confirmation is on its way on WhatsApp.",
+      "cancelled": "Lesson cancelled",
+      "mine": "Your private lessons",
+      "open": "Open times",
+      "none": "No open times to book right now",
+      "noneHint": "New times open every week. You can also message the office.",
+      "with": "with {name}",
+      "seatsLeft": "{n, plural, one {1 seat} other {# seats}}",
+      "child": "For whom?",
+      "book": "Book",
+      "bookFor": "Book for {name}",
+      "cancel": "Cancel",
+      "cancelConfirm": "Cancel this lesson?",
+      "tooLate": "Less than a day before; contact the office to cancel",
+      "byOffice": "Booked by the office",
+      "terms": "Charged by the school's price list. You can cancel yourself up to 24 hours before the lesson.",
+      "cta": "Want a private lesson?",
+      "ctaHint": "{n, plural, =0 {Book a private or pair lesson} one {1 open time in the next 4 weeks} other {# open times in the next 4 weeks}}"
     }
   },
   "platform": {
@@ -1820,7 +1861,7 @@
       "title": "Pay rules",
       "empty": "No pay rules",
       "add": "New pay rule",
-      "hint": "A new rule from a date ends the previous one in the same slot. Payroll itself arrives in Phase 6.",
+      "hint": "A new rule from a date ends the previous one in the same slot.",
       "amount": "Amount (₪)",
       "basis": "Basis",
       "routing": "Paid via",
@@ -2271,7 +2312,9 @@
       "slotNotOpen": "The slot is no longer open",
       "slotPast": "The slot is in the past",
       "alreadyBooked": "The child is already booked into this slot",
-      "alreadyWaiting": "The child is already on the waitlist for this program"
+      "alreadyWaiting": "The child is already on the waitlist for this program",
+      "portalCancelLate": "Less than a day before the lesson. Contact the office to cancel",
+      "portalCancelOffice": "The office booked this lesson. Contact the office to cancel"
     },
     "board": {
       "title": "Group board",
@@ -2454,7 +2497,9 @@
       "capacity": "Places",
       "capacityHint": "Empty = by kind (private 1, pair 2, trio 3)",
       "notes": "Notes",
-      "parentBookingLater": "parents booking themselves from the portal"
+      "parentBookable": "Families can book it themselves in the portal",
+      "parentBookableHint": "Families see this slot in their portal and can book it (and cancel up to 24 hours before).",
+      "openToFamilies": "Open to families"
     },
     "waitlist": {
       "title": "Waitlist",

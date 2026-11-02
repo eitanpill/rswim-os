@@ -7,7 +7,14 @@ import { listPrograms } from '@rswim/domain-settings';
 import { listStaff } from '@rswim/domain-staff';
 import { listVenues } from '@rswim/domain-venues';
 import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
-import { ActionButton, ActionForm, Field, SelectField, SubmitButton } from '@/components/form';
+import {
+  ActionButton,
+  ActionForm,
+  CheckboxField,
+  Field,
+  SelectField,
+  SubmitButton,
+} from '@/components/form';
 import { withSession } from '@/lib/db';
 import { dmy, enumLabel, enumOptions, todayIL } from '@/lib/options';
 import { clockIL, staffNames } from '@/lib/scheduling';
@@ -16,7 +23,6 @@ import { bookSlotAction, cancelBookingAction, cancelSlotAction, openSlotsAction 
 /** Private, pair, therapy and trial slots for the next four weeks: open, book, cancel. */
 export default async function SlotsPage() {
   const t = await getTranslations('scheduling.slots');
-  const tc = await getTranslations('common');
   const label = await enumLabel();
   const today = todayIL();
   const data = await withSession(async (tx) => {
@@ -57,6 +63,7 @@ export default async function SlotsPage() {
                     </p>
                     <div className="flex gap-1">
                       <Badge>{label('slotKind', s.kind)}</Badge>
+                      {s.parentBookable ? <Badge tone="ok">{t('openToFamilies')}</Badge> : null}
                       <Badge tone={s.status === 'open' ? 'ok' : 'warn'}>
                         {label('slotStatus', s.status)}
                       </Badge>
@@ -161,13 +168,12 @@ export default async function SlotsPage() {
               hint={t('capacityHint')}
             />
             <Field name="notes" label={t('notes')} />
+            <CheckboxField name="parentBookable" label={t('parentBookable')} />
+            <p className="-mt-2 text-xs text-ink-muted">{t('parentBookableHint')}</p>
             <div>
               <SubmitButton>{t('open')}</SubmitButton>
             </div>
           </ActionForm>
-          <p className="mt-2 text-xs text-ink-muted">
-            {tc('comingSoon')}: {t('parentBookingLater')}
-          </p>
         </Card>
       </div>
     </>

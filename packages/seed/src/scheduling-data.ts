@@ -359,6 +359,8 @@ export async function seedSchedulingData(
     capacity: null,
     repeatWeeks: 4,
     notes: null,
+    // Open to families, so the parent portal has times to book.
+    parentBookable: true,
   });
   summary.slots = slotIds.length;
   const [privateStudent] = await rows<{ id: string }>(
