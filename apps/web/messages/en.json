@@ -4254,7 +4254,8 @@
       "kind": "Kind",
       "severity": "Severity",
       "description": "What happened",
-      "reportSubmit": "Record incident"
+      "reportSubmit": "Record incident",
+      "editRules": "Edit rules"
     },
     "gearStatus": {
       "available": "Available",
@@ -5013,6 +5014,91 @@
       "reviewNotePlaceholder": "e.g. checked on the agency's site",
       "verify": "Verify card",
       "reject": "Don't verify"
+    },
+    "rules": {
+      "kicker": "Club settings",
+      "title": "Club rules",
+      "inEffectSince": "The version in effect since {date}. A change is saved as a new version from a date you pick.",
+      "defaults": "No version saved yet; the system runs on the defaults.",
+      "back": "Back to the ops room",
+      "upcoming": "A scheduled version takes effect on {date}. The form shows today's version.",
+      "readOnly": "Only the owner and the operations manager can change the rules.",
+      "saved": "Rules saved",
+      "sea": {
+        "title": "Sea conditions",
+        "hint": "The system decides go, caution or no-go by these numbers.",
+        "cautionWind": "Wind: caution above (kts)",
+        "maxWind": "Wind: closed above (kts)",
+        "minVisibility": "Minimum visibility (m)",
+        "cautionWave": "Waves: caution above (cm)",
+        "maxWave": "Waves: closed above (cm)",
+        "currentNoGo": "A strong current closes the sea"
+      },
+      "ratio": {
+        "title": "Divers per instructor",
+        "hint": "The most divers on one instructor in the water, by activity.",
+        "experience": "Experience",
+        "course": "Course",
+        "training": "Training",
+        "workshop": "Workshop",
+        "trip": "Trip"
+      },
+      "depth": {
+        "title": "Depth",
+        "hint": "How much deeper than their personal best a diver may target in one session, and the deepest target per level.",
+        "step": "Max progression (m)",
+        "ceilings": "Deepest target per level (m)"
+      },
+      "paperwork": {
+        "title": "Paperwork and certificates",
+        "medicalMonths": "Health declaration valid (months)",
+        "waiverMonths": "Waiver valid (months)",
+        "medicalWarn": "Warn before a declaration expires (days)",
+        "insurance": "Insurance",
+        "insuranceMode": {
+          "off": "Not asked",
+          "track": "Tracked with warnings",
+          "require": "Required to dive"
+        },
+        "insuranceWarn": "Warn before insurance expires (days)",
+        "staffCertWarn": "Warn before an instructor's certificate expires (days)"
+      },
+      "booking": {
+        "title": "Bookings and sign-up",
+        "holdMinutes": "Minutes a seat is held until payment",
+        "rentalGrace": "Gear return grace (minutes)",
+        "requirePayment": "A booking counts only once paid",
+        "selfSignup": "Divers can join from the club's link"
+      },
+      "passes": {
+        "title": "Passes",
+        "hint": "Price, sessions (empty = unlimited) and days valid.",
+        "price": "Price (₪)",
+        "sessions": "Sessions",
+        "unlimited": "Unlimited",
+        "days": "Days valid"
+      },
+      "save": {
+        "title": "Save",
+        "from": "In effect from",
+        "fromHint": "Today or a future date. A version on the same date is updated; earlier ones never change.",
+        "notes": "What changed and why (optional)",
+        "submit": "Save rules"
+      },
+      "history": {
+        "title": "Version history",
+        "none": "No saved versions yet",
+        "from": "From {date}",
+        "summary": "Closed at {wind} kts · course 1:{course} · step {step} m",
+        "current": "In effect",
+        "scheduled": "Scheduled",
+        "past": "Ended"
+      },
+      "errors": {
+        "past": "A version can start today or later. Earlier versions are kept as they were.",
+        "cautionAboveMax": "The caution limit is above the closing limit",
+        "levelsOrder": "A higher level can't have a shallower limit than the level before it"
+      }
     }
   }
 }

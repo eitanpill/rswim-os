@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { CURRENTS, DIVE_INCIDENT_KINDS, DIVE_SEVERITIES, WIND_DIRS } from '@rswim/contracts';
 import { opsBoard } from '@rswim/domain-dive';
@@ -371,7 +372,20 @@ export default async function OpsRoom() {
           ) : null}
         </Panel>
 
-        <Panel title={t('manager.rules')} icon={di.shield} testId="rules">
+        <Panel
+          title={t('manager.rules')}
+          icon={di.shield}
+          testId="rules"
+          action={
+            <Link
+              href="/dive/rules"
+              className="text-sm font-medium text-[var(--dive-sea)] hover:underline"
+              data-testid="edit-rules"
+            >
+              {t('manager.editRules')}
+            </Link>
+          }
+        >
           <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
             <dt className="text-ink-muted">{t('manager.rule.wind')}</dt>
             <dd className="text-end tabular-nums">
