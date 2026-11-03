@@ -1149,6 +1149,12 @@ async function seedClub(
   const course = new Map<string, string[]>(); // title -> divers
   // Dana owes for one workshop or trip the office booked her into on WhatsApp: it isn't confirmed until she pays.
   let danaUnpaid: string | null = null;
+  let deskUnpaidToday = false;
+  // The session that gets it: today's first paid one that has not ended yet, else today's last.
+  const todays = sessions.filter(
+    (x) => x.date === today && x.status !== 'cancelled' && x.kind !== 'course' && x.price > 0,
+  );
+  const deskSession = (todays.find((x) => x.endsAt.getTime() > Date.now()) ?? todays.at(-1))?.id;
   const eligible = (s: Session) =>
     divers.filter((d) => {
       if (s.kind === 'experience') return d.level <= 1 && d !== dana;
@@ -1245,7 +1251,7 @@ async function seedClub(
       set.add(d.id);
       const past = s.date < today;
       const isToday = s.date === today;
-      const status =
+      let status =
         s.status === 'cancelled'
           ? 'cancelled'
           : past
@@ -1270,7 +1276,21 @@ async function seedClub(
       let via = d.origin === 'abroad' ? 'whatsapp' : chance(0.55) ? 'online' : 'office';
       let hold: Date | null = null;
       let unpaid = false;
-      if (status === 'booked' && price > 0) {
+      // The desk always has someone to collect from today, whatever the hour the seed runs at (who arrived already is
+      // random by the clock, so without this an afternoon run could leave nobody owing).
+      if (
+        s.id === deskSession &&
+        !deskUnpaidToday &&
+        price > 0 &&
+        status !== 'cancelled' &&
+        d !== dana
+      ) {
+        deskUnpaidToday = true;
+        status = 'booked';
+        unpaid = true;
+        via = 'office';
+        hold = s.endsAt;
+      } else if (status === 'booked' && price > 0) {
         const r = random();
         if (d === dana && s.id === danaUnpaid) {
           unpaid = true;
