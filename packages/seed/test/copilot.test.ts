@@ -9,13 +9,20 @@ import { asUser, type Tx } from '@rswim/db';
 import { DEMO_ORG, PERSONAS } from '@rswim/db/personas';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import {
+  applyAgentProfile,
   askCopilot,
   confirmCopilotAction,
   dismissCopilotAction,
   FakeCopilotModel,
+  getAgentSettings,
+  listAgentActions,
   listCopilot,
+  saveAgentSettings,
+  setAgentPaused,
   undoCopilotAction,
+  waitingActionsCount,
 } from '@rswim/domain-copilot';
+import { AGENT_PROFILE_LEVELS } from '@rswim/contracts';
 import { toDomainError, type ServiceContext } from '@rswim/domain-core';
 import { previewPlacement, todayIL } from '@rswim/domain-scheduling';
 import type { CopilotModel } from '@rswim/integrations';
@@ -217,5 +224,122 @@ describe('owner copilot', () => {
     );
     expect(await as('admin', (tx) => listCopilot(tx))).toEqual([]);
     expect(await as('instructor', (tx) => listCopilot(tx))).toEqual([]);
+  });
+});
+
+describe('the business brain (docs/AI-BRAIN.md)', () => {
+  const settings = {
+    profile: 'autopilot' as const,
+    levels: AGENT_PROFILE_LEVELS.autopilot,
+    maxAutoPerDay: 30,
+    maxAutoPaymentAgorot: 30000,
+    paused: false,
+  };
+
+  it('starts careful: the chat only proposes, as before', async () => {
+    const s = await owner((tx) => getAgentSettings(tx));
+    expect(s).toMatchObject({ profile: 'careful', matches: 'careful', paused: false });
+    expect(s.effective.move_student).toBe('approve');
+    expect(s.effective.report_absence).toBe('auto');
+  });
+
+  it('on autopilot runs a move at once, journals it as done alone, and undoes it', async () => {
+    await owner((tx) => applyAgentProfile(tx, ctx, 'autopilot'));
+    const r = await ask(`תעביר את ${move.student} ל${move.to}`);
+    expect(r.answer).toContain('העברתי');
+    expect(r.actions[0]).toMatchObject({ kind: 'move_student', status: 'confirmed' });
+    expect(await groupsOf(move.studentId)).toEqual([move.toId]);
+    const [row] = await owner((tx) => listAgentActions(tx, { limit: 1 }));
+    expect(row).toMatchObject({
+      source: 'owner_chat',
+      autonomy: 'auto',
+      ranAlone: true,
+      status: 'confirmed',
+      prompt: `תעביר את ${move.student} ל${move.to}`,
+    });
+    const [db] = await q(`select decided_by from copilot_actions where id = $1`, [row!.id]);
+    expect(db.decided_by).toBeNull();
+    await owner((tx) => undoCopilotAction(tx, ctx, row!.id));
+    expect(await groupsOf(move.studentId)).toEqual([move.fromId]);
+  });
+
+  it('sends a payment link alone under the cap, waits above it, and cancels one on undo', async () => {
+    const small = await ask(`תשלח קישור תשלום להורים של ${move.student} על 120`);
+    expect(small.actions[0]).toMatchObject({ kind: 'payment_link', status: 'confirmed' });
+    expect(small.answer).toContain('שלחתי');
+    const { linkId } = small.actions[0]!.result as { linkId: string };
+    const link = async () =>
+      (await q(`select amount_agorot, status from payment_links where id = $1`, [linkId]))[0];
+    expect(await link()).toEqual({ amount_agorot: 12000, status: 'open' });
+    await owner((tx) => undoCopilotAction(tx, ctx, small.actions[0]!.id));
+    expect((await link()).status).toBe('cancelled');
+
+    const big = await ask(`תשלח קישור תשלום להורים של ${move.student} על 500`);
+    expect(big.actions[0]).toMatchObject({
+      status: 'proposed',
+      result: { waitReason: 'amount_cap' },
+    });
+    expect(big.answer).toContain('מחכה לאישור');
+    expect(await owner((tx) => waitingActionsCount(tx))).toBeGreaterThan(0);
+    await owner((tx) => dismissCopilotAction(tx, ctx, big.actions[0]!.id));
+  });
+
+  it('never sends free text alone, and waits for the owner while paused', async () => {
+    const msg = await ask(`תשלח להורים של ${move.student}: בדיקה (דמו)`);
+    expect(msg.actions[0]).toMatchObject({ status: 'proposed' });
+    const [m] = await owner((tx) => listAgentActions(tx, { limit: 1 }));
+    expect(m).toMatchObject({ kind: 'message_family', autonomy: 'approve', ranAlone: false });
+    await owner((tx) => dismissCopilotAction(tx, ctx, m!.id));
+
+    await owner((tx) => setAgentPaused(tx, ctx, true));
+    const r = await ask(`תעביר את ${move.student} ל${move.to}`);
+    expect(r.actions[0]).toMatchObject({ status: 'proposed', result: { waitReason: 'paused' } });
+    expect(await groupsOf(move.studentId)).toEqual([move.fromId]);
+    await owner((tx) => dismissCopilotAction(tx, ctx, r.actions[0]!.id));
+    await owner((tx) => setAgentPaused(tx, ctx, false));
+  });
+
+  it('refuses a kind that is off, and stops running alone at the daily cap', async () => {
+    await owner((tx) =>
+      saveAgentSettings(tx, ctx, {
+        ...settings,
+        levels: { ...settings.levels, move_student: 'off' },
+      }),
+    );
+    const off = await ask(`תעביר את ${move.student} ל${move.to}`);
+    expect(off.actions).toEqual([]);
+    expect(off.trace.at(-1)).toMatchObject({ error: true, output: 'agent.errors.off' });
+    expect((await owner((tx) => getAgentSettings(tx))).matches).toBeNull();
+
+    await owner((tx) => saveAgentSettings(tx, ctx, { ...settings, maxAutoPerDay: 0 }));
+    const capped = await ask(`תעביר את ${move.student} ל${move.to}`);
+    expect(capped.actions[0]).toMatchObject({
+      status: 'proposed',
+      result: { waitReason: 'daily_cap' },
+    });
+    await owner((tx) => dismissCopilotAction(tx, ctx, capped.actions[0]!.id));
+  });
+
+  it("refuses a level above a ceiling, and keeps the settings and journal the owner's", async () => {
+    expect(
+      await code(
+        owner((tx) =>
+          saveAgentSettings(tx, ctx, {
+            ...settings,
+            levels: { ...settings.levels, cancel_lessons: 'auto' },
+          }),
+        ),
+      ),
+    ).toBe('agent.errors.aboveCeiling');
+    const admin = { orgId: ctx.orgId, userId: PERSONAS.admin.userId };
+    // The admin sees the defaults (not the owner's row) and cannot write them.
+    expect((await as('admin', (tx) => getAgentSettings(tx))).profile).toBe('careful');
+    await expect(as('admin', (tx) => setAgentPaused(tx, admin, true))).rejects.toThrow();
+    expect(await as('admin', (tx) => listAgentActions(tx))).toEqual([]);
+    const [audit] = await q(
+      `select count(*)::int n from audit_log where subject_type = 'agent_settings'`,
+    );
+    expect(audit.n).toBeGreaterThanOrEqual(3);
+    await owner((tx) => applyAgentProfile(tx, ctx, 'careful'));
   });
 });

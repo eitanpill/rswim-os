@@ -9,11 +9,12 @@ const STUDENT = 'אורי לוי';
 const GROUP = 'אופק – כיתות ג׳';
 
 const ask = async (page: Page, prompt: string) => {
-  const before = await page.getByTestId('copilot-exchange').count();
   await page.getByTestId('copilot-form').locator('textarea[name="prompt"]').fill(prompt);
   await page.getByTestId('copilot-form').getByRole('button').click();
-  await expect(page.getByTestId('copilot-exchange')).toHaveCount(before + 1);
-  return page.getByTestId('copilot-exchange').filter({ hasText: prompt }).first();
+  // The brain spec asks in parallel on the same school, so find this exchange by its words, not by a count.
+  const exchange = page.getByTestId('copilot-exchange').filter({ hasText: prompt }).first();
+  await expect(exchange).toBeVisible();
+  return exchange;
 };
 
 test('the owner confirms, undoes and messages through the copilot', async ({ page }) => {

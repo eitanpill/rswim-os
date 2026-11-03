@@ -288,6 +288,20 @@
       "when": 1793638973162,
       "tag": "0040_dive_reminder_template",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793689796577,
+      "tag": "0041_ai_brain",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793689813561,
+      "tag": "0042_ai_brain_security",
+      "breakpoints": true
     }
   ]
 }

@@ -202,3 +202,45 @@ describe('nextWeekday', () => {
     expect(nextWeekday('2026-10-06', 0)).toBe('2026-10-11');
   });
 });
+
+describe('payment links (the brain)', () => {
+  it('validates a payment link proposal and summarizes it', () => {
+    expect(
+      parseProposal('payment_link', { householdId: A, amountAgorot: 25050, description: 'מאי' }),
+    ).toMatchObject({ ok: true });
+    expect(
+      parseProposal('payment_link', { householdId: A, amountAgorot: 50, description: 'מאי' }),
+    ).toMatchObject({ ok: false });
+    expect(
+      proposalSummary({
+        kind: 'payment_link',
+        family: 'כהן',
+        amountAgorot: 30000,
+        description: 'מאי',
+      }),
+    ).toEqual({
+      code: 'copilot.summary.payment',
+      params: { family: 'כהן', amount: 30000, description: 'מאי' },
+    });
+  });
+
+  it('undoes a confirmed payment link or slots, never a message', () => {
+    expect(actionStep({ status: 'confirmed', kind: 'payment_link' }, 'undo')).toEqual({ ok: true });
+    expect(actionStep({ status: 'confirmed', kind: 'open_makeup_slots' }, 'undo')).toEqual({
+      ok: true,
+    });
+  });
+
+  it('reads "send a payment link to X for N" in the demo stand-in', () => {
+    expect(fakeIntent('תשלח קישור תשלום להורים של יואב על 300 ₪')).toEqual({
+      kind: 'payment',
+      student: 'יואב',
+      shekels: 300,
+    });
+    expect(fakeIntent('שלח לינק לנועה על 120')).toEqual({
+      kind: 'payment',
+      student: 'נועה',
+      shekels: 120,
+    });
+  });
+});

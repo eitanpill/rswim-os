@@ -13,5 +13,6 @@ export * from './payroll';
 export * from './transport';
 export * from './institutions';
 export * from './copilot';
+export * from './agent';
 export * from './platform';
 export * from './dive';

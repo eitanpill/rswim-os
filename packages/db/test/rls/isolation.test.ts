@@ -127,6 +127,7 @@ const TENANT_TABLES = [
   'venue_migration_items',
   'copilot_requests',
   'copilot_actions',
+  'agent_settings',
   'bot_replies',
   'bot_knowledge',
   'weekly_digests',

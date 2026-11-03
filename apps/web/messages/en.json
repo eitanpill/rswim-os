@@ -276,6 +276,10 @@
       "templates": {
         "title": "Template marketplace",
         "hint": "Ready-made regulations, catalog and messages"
+      },
+      "brain": {
+        "title": "The business brain",
+        "hint": "What the AI does on its own, what waits for you, journal and undo"
       }
     }
   },
@@ -3812,7 +3816,7 @@
   },
   "copilot": {
     "title": "AI copilot",
-    "subtitle": "Ask in plain words. The copilot checks and proposes; nothing happens without your confirmation.",
+    "subtitle": "Ask in Hebrew. The assistant checks and acts by the brain's settings: what it may do runs at once, everything else waits for your approval.",
     "prompt": "What should I do?",
     "promptHint": "E.g. \"Move Yoav to the Tuesday group\", \"Who owes us?\", \"Message Noa's parents: ...\"",
     "ask": "Send",
@@ -3820,11 +3824,11 @@
     "trace": "What was checked ({n})",
     "confirm": "Confirm and run",
     "dismiss": "Not now",
-    "undo": "Undo the move",
-    "undoConfirm": "Move the child back to the previous group?",
+    "undo": "Undo",
+    "undoConfirm": "Undo this action and put things back?",
     "confirmed": "Done",
-    "undone": "Move undone",
-    "note": "The copilot only reads and proposes. Every action passes the same rules as the screens and is logged.",
+    "undone": "The action was undone",
+    "note": "The assistant acts only through the same rules as the screens, and every action is logged in the brain's journal.",
     "tools": {
       "find_students": "Find children",
       "find_groups": "Find groups",
@@ -3834,13 +3838,15 @@
       "closures": "Closures",
       "propose_move_student": "Propose a group move",
       "propose_message_family": "Propose a family message",
-      "propose_open_makeup_slots": "Propose makeup slots"
+      "propose_open_makeup_slots": "Propose makeup slots",
+      "propose_payment_link": "Payment link"
     },
     "summary": {
       "move": "Move {student} from {from} to {to}, from {date}",
       "add": "Place {student} in {to}, from {date}",
       "message": "Message the {family} family: \"{text}\"",
-      "slots": "Open makeup slots with {staff} at {venue}, {date} {from}-{to} ({capacity} children)"
+      "slots": "Open makeup slots with {staff} at {venue}, {date} {from}-{to} ({capacity} children)",
+      "payment": "Send the {family} family a payment link for {amount} ({description})"
     },
     "errors": {
       "ownerOnly": "The copilot is for the owner only",
@@ -3855,7 +3861,8 @@
       "prompt": "Write up to 2,000 characters",
       "modelFailed": "The copilot couldn't answer. Try again",
       "incomplete": "The copilot didn't finish. Try a shorter request"
-    }
+    },
+    "brainLink": "Brain settings"
   },
   "insights": {
     "title": "Worth your attention",
@@ -5101,6 +5108,156 @@
         "cautionAboveMax": "The caution limit is above the closing limit",
         "levelsOrder": "A higher level can't have a shallower limit than the level before it"
       }
+    }
+  },
+  "agent": {
+    "title": "The business brain",
+    "subtitle": "What the brain does on its own, what waits for you, and how much freedom it has per kind of action",
+    "ownerOnly": "The brain's settings and journal are for the owner only",
+    "pause": "Stop everything",
+    "resume": "Resume",
+    "activeTitle": "The brain is on",
+    "pausedTitle": "The brain is stopped",
+    "activeHint": "{alone} actions ran on their own today, out of up to {max} a day.",
+    "pausedHint": "Nothing runs on its own. Every action waits for your approval. Your settings are kept.",
+    "waiting": {
+      "title": "Waiting for you ({n})",
+      "empty": "Nothing is waiting for you",
+      "homeTitle": "The brain is waiting for your approval",
+      "all": "All settings"
+    },
+    "profiles": {
+      "title": "Ready-made profiles",
+      "current": "Active",
+      "apply": "Apply",
+      "custom": "You changed rows in the table, so the settings are custom. You can always go back to a profile.",
+      "careful": {
+        "label": "Careful",
+        "hint": "Only absence notices and reminders run on their own. Everything else needs your approval."
+      },
+      "balanced": {
+        "label": "Balanced",
+        "hint": "Makeup bookings and payment links up to the cap run on their own too."
+      },
+      "autopilot": {
+        "label": "Autopilot",
+        "hint": "Everything allowed runs on its own and is reported. Free text and cancelled lessons always need approval."
+      }
+    },
+    "table": {
+      "title": "How much freedom per action",
+      "hint": "Pick a level for each kind of action. A level can't go above what that action allows.",
+      "level": "Level",
+      "soon": "Soon",
+      "alwaysHuman": "Leaving the school, refunds or credits, and sensitive topics (health, complaints, safety) always go to a person, whatever the settings."
+    },
+    "levels": {
+      "off": {
+        "label": "Off",
+        "hint": "The brain doesn't touch it"
+      },
+      "suggest": {
+        "label": "Suggest only",
+        "hint": "Prepares a proposal and waits for you"
+      },
+      "approve": {
+        "label": "With approval",
+        "hint": "Everything is ready; runs on your tap"
+      },
+      "auto": {
+        "label": "On its own",
+        "hint": "Runs at once and shows in the journal, with undo"
+      }
+    },
+    "caps": {
+      "perDay": "Most actions on its own per day",
+      "perDayHint": "Beyond that, every action waits for you",
+      "payment": "Payment link on its own up to (₪)",
+      "paymentHint": "A link for more waits for you"
+    },
+    "kinds": {
+      "report_absence": {
+        "label": "Absence notice",
+        "hint": "A parent says the child won't come: the absence and its makeup credit are recorded by policy"
+      },
+      "book_makeup": {
+        "label": "Book a makeup",
+        "hint": "Booking a makeup lesson in a free seat at the parent's request"
+      },
+      "lesson_reminder": {
+        "label": "Reminders",
+        "hint": "Lesson and payment reminders, from the templates"
+      },
+      "payment_link": {
+        "label": "Payment link",
+        "hint": "Sending a family a payment link"
+      },
+      "freeze": {
+        "label": "Freeze",
+        "hint": "Freezing a membership at the parent's request, by policy"
+      },
+      "move_student": {
+        "label": "Move between groups",
+        "hint": "Moving a child to another group, under the placement rules"
+      },
+      "message_family": {
+        "label": "Free-text message",
+        "hint": "A message the brain wrote to a family or instructor. Always read by a person first"
+      },
+      "substitute": {
+        "label": "Substitute instructor",
+        "hint": "An instructor can't come: a substitute request and a note to parents"
+      },
+      "cancel_lessons": {
+        "label": "Cancel lessons",
+        "hint": "Cancelling a lesson or a day and telling everyone affected. Always with approval"
+      },
+      "open_makeup_slots": {
+        "label": "Open makeup slots",
+        "hint": "Opening makeup slots with an instructor"
+      }
+    },
+    "status": {
+      "proposed": "Waiting for you",
+      "confirmed": "Done",
+      "failed": "Refused by the rules",
+      "dismissed": "Dismissed",
+      "undone": "Undone"
+    },
+    "source": {
+      "owner_chat": "From your chat",
+      "parent_whatsapp": "From a parent's WhatsApp",
+      "staff": "From staff",
+      "morning_check": "From the morning check"
+    },
+    "wait": {
+      "paused": "Waiting because the brain is stopped",
+      "daily_cap": "Waiting because today's actions on its own are used up",
+      "amount_cap": "Waiting because the amount is above your cap"
+    },
+    "ranAlone": "Done on its own",
+    "approve": "Approve and run",
+    "dismiss": "Not now",
+    "undo": "Undo",
+    "undoConfirm": "Undo this action and put things back?",
+    "undone": "The action was undone",
+    "saved": "Settings saved",
+    "profileApplied": "Profile applied",
+    "save": "Save",
+    "journal": {
+      "link": "Action journal",
+      "title": "The brain's journal",
+      "subtitle": "Everything the brain proposed and did, from every channel, with one-tap undo",
+      "back": "Brain settings",
+      "filter": "Filter by status",
+      "all": "All",
+      "empty": "No actions in the journal yet"
+    },
+    "errors": {
+      "off": "This action is off in the brain's settings",
+      "aboveCeiling": "That level is higher than this action allows",
+      "slotsBooked": "{n} lessons are already booked in these slots, so they can't be undone from here",
+      "cap": "Not a valid number"
     }
   }
 }

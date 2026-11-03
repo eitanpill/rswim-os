@@ -6,6 +6,7 @@
  */
 import { z } from 'zod';
 import { TimeOfDay, type CopilotActionKind, type CopilotActionStatus } from '@rswim/contracts';
+import { undoable } from './agent-policies';
 
 export type Check = { ok: true } | { ok: false; code: string };
 export type Explanation = { code: string; params: Record<string, string | number> };
@@ -54,16 +55,26 @@ export const SlotsProposal = z
   .strict()
   .refine((v) => v.endsAt > v.startsAt);
 
+export const PaymentProposal = z
+  .object({
+    householdId: z.uuid(),
+    amountAgorot: z.int().min(100).max(10_000_000),
+    description: z.string().trim().min(1).max(200),
+  })
+  .strict();
+
 export const PROPOSALS = {
   move_student: MoveProposal,
   message_family: MessageProposal,
   open_makeup_slots: SlotsProposal,
+  payment_link: PaymentProposal,
 } as const;
 
 export type ProposalParams = {
   move_student: z.infer<typeof MoveProposal>;
   message_family: z.infer<typeof MessageProposal>;
   open_makeup_slots: z.infer<typeof SlotsProposal>;
+  payment_link: z.infer<typeof PaymentProposal>;
 };
 
 /** Validates what the model proposed; anything off-shape is refused rather than repaired. */
@@ -82,6 +93,7 @@ export function proposalSummary(
   p:
     | { kind: 'move_student'; student: string; from: string | null; to: string; date: string }
     | { kind: 'message_family'; family: string; text: string }
+    | { kind: 'payment_link'; family: string; amountAgorot: number; description: string }
     | {
         kind: 'open_makeup_slots';
         staff: string;
@@ -102,6 +114,12 @@ export function proposalSummary(
           };
     case 'message_family':
       return { code: 'copilot.summary.message', params: { family: p.family, text: p.text } };
+    case 'payment_link':
+      return {
+        code: 'copilot.summary.payment',
+        // Agorot: the screens show money params in shekels.
+        params: { family: p.family, amount: p.amountAgorot, description: p.description },
+      };
     default:
       return {
         code: 'copilot.summary.slots',
@@ -122,15 +140,15 @@ export function proposalSummary(
 export type ActionStep = 'confirm' | 'dismiss' | 'undo';
 
 /**
- * proposed → confirmed | dismissed (and failed when the service refuses); only a confirmed move can be undone, and
- * only once.
+ * proposed → confirmed | dismissed (and failed when the service refuses); a confirmed action of an undoable kind (a
+ * move, makeup slots, a payment link) can be undone, once.
  */
 export function actionStep(
   a: { status: CopilotActionStatus; kind: CopilotActionKind },
   step: ActionStep,
 ): Check {
   if (step === 'undo') {
-    if (a.kind !== 'move_student') return refuse('notUndoable');
+    if (!undoable(a.kind)) return refuse('notUndoable');
     return a.status === 'confirmed' ? ok : refuse('notConfirmed');
   }
   return a.status === 'proposed' ? ok : refuse('alreadyDecided');
@@ -144,9 +162,12 @@ export function copilotSystem(c: { today: string; school: string }): string {
 usually in Hebrew; always answer in the owner's language, briefly and plainly. Today is ${c.today} (Asia/Jerusalem).
 
 - Read only through the tools. Never guess ids: find children, groups and staff with the find tools first.
-- You cannot change anything yourself. To move a child, message a family or open makeup slots, call the matching
-  propose_ tool; the owner sees a card and decides. Say that the proposal is waiting for their confirmation.
+- You change things only through the propose_ tools (move a child, message a family, open makeup slots, send a
+  payment link). The owner's settings decide what happens next, and the tool's answer says it: status "done" means
+  it already ran; "waiting" means it waits for the owner's confirmation on a card; "failed" means the rules refused
+  it. Tell the owner exactly that, never more.
 - A proposal the tools refuse is not made: tell the owner why, in their words.
+- Amounts are in agorot in the tools (100 agorot = 1 shekel); speak to the owner in shekels.
 - Dates are YYYY-MM-DD and times HH:MM. When the owner gives no date for a move, use the next lesson date of the
   target group that is at least today.
 - Never invent prices, debts or policies; if a tool does not tell you, say you don't know.`;
@@ -158,6 +179,7 @@ export type FakeIntent =
   | { kind: 'move'; splits: { student: string; group: string }[]; date: string | null }
   | { kind: 'message'; student: string; text: string }
   | { kind: 'slots'; staff: string; date: string; from: string; to: string }
+  | { kind: 'payment'; student: string; shekels: number }
   | { kind: 'debts' }
   | { kind: 'lessons'; date: string | null }
   | { kind: 'help' };
@@ -183,6 +205,12 @@ export function fakeIntent(prompt: string): FakeIntent {
     }));
     return { kind: 'move', splits, date: move[2] ?? null };
   }
+  const payment =
+    /^(?:תשלח|שלח|לשלוח) (?:קישור|לינק) (?:ל?תשלום )?ל(?:הורים של |משפחה של )?(.+?) על (\d+)(?: ?₪| שקל(?:ים)?)?[.!]?$/.exec(
+      text,
+    );
+  if (payment)
+    return { kind: 'payment', student: payment[1] as string, shekels: Number(payment[2]) };
   const message = /^(?:תשלח|שלח|לשלוח)(?: הודעה)? ל(?:הורים של |משפחה של )?(.+?): (.+)$/.exec(text);
   if (message)
     return { kind: 'message', student: message[1] as string, text: message[2] as string };
