@@ -77,3 +77,18 @@ test('the office admin cannot see or change the brain', async ({ page }) => {
   await expect(page.getByTestId('brain-owner-only')).toBeVisible();
   await expect(page.getByTestId('brain-settings')).toHaveCount(0);
 });
+
+test('the owner sets the WhatsApp number that approves waiting actions', async ({ page }) => {
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin/brain');
+  const card = page.getByTestId('brain-whatsapp');
+  await card.locator('input[name="phone"]').fill('123');
+  await card.getByTestId('brain-whatsapp-save').click();
+  await expect(card.getByRole('alert')).toContainText('מספר טלפון לא תקין');
+  await card.locator('input[name="phone"]').fill('050-999-0001');
+  await card.getByTestId('brain-whatsapp-save').click();
+  await expect(card.getByRole('status')).toContainText('המספר נשמר');
+  await expect(card).toContainText('נשלחות גם לוואטסאפ');
+  await page.reload();
+  await expect(card.locator('input[name="phone"]')).toHaveValue('+972509990001');
+});

@@ -268,3 +268,14 @@ what the bot did. Proof: `packages/domain/copilot/test/bot-policies.test.ts`, `p
 `packages/seed/test/bot-actions.test.ts` (absence alone under careful, makeup waits then runs on the owner's tap and is
 undone, freeze alone and undone, off leaves the inbox draft, another family's child refused), `apps/web/e2e/bot.spec.ts`.
 Not verified yet: real Claude choosing the tools (rules-based fake here).
+
+## The business brain, stage 3 (requests from the owner and the instructors)
+
+The owner's chat cancels lessons on a day or a range (a closure event, always on her approval) and asks for substitutes.
+An instructor's WhatsApp ("אני חולה היום") opens a substitute search per lesson they lead that day. Waiting actions a
+family or an instructor asked for go to the owner's WhatsApp with a number; "כן N" / "לא N" from her approvals number
+(set on `/admin/brain`) decides them. Proof: `packages/domain/copilot/test/agent-policies.test.ts`, `policies.test.ts`
+(100%), `packages/seed/test/brain-staff.test.ts` (instructor's message → waiting searches and approval messages, "כן"
+runs as the owner and undo withdraws, "לא" drops, the parents' bot skips the answer, chat substitutes, chat cancels a
+day only after confirming), `apps/web/e2e/brain.spec.ts`. Not verified yet: real WhatsApp through GHL (fake provider
+here) and real Claude choosing the new tools.

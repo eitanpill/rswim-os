@@ -35,6 +35,7 @@ import {
   type CopilotTraceStep,
 } from '@rswim/integrations';
 import { getAgentSettings } from './agent';
+import { isOwnerReply } from './brain-inbound';
 import {
   agentKindOfDraft,
   BotAnswer,
@@ -469,6 +470,8 @@ export async function runParentBot(
     .from(botReplies)
     .where(eq(botReplies.inboundMessageId, row.id));
   if (done) return { outcome: 'skipped', reason: 'already' };
+  // The owner answering a waiting action on WhatsApp is the brain's (brain-inbound.ts), not a family's question.
+  if (await isOwnerReply(tx, row)) return { outcome: 'skipped', reason: 'owner_reply' };
   const drafted = await tx
     .select({ id: triageActions.id, kind: triageActions.kind })
     .from(triageActions)

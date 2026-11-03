@@ -3851,7 +3851,10 @@
       "payment": "Send the {family} family a payment link for {amount} ({description})",
       "absence": "Record that {student} misses {group} on {date} {time}",
       "makeup": "Book a makeup for {student} in {group}, {date} {time}",
-      "freeze": "Freeze {student}'s place in {group} from {date} to {until}"
+      "freeze": "Freeze {student}'s place in {group} from {date} to {until}",
+      "cancelLessons": "Cancel the lessons at {venue} from {date} to {until} ({sessions} lessons, {reason})",
+      "cancelLessonsAll": "Cancel all lessons from {date} to {until} ({sessions} lessons, {reason})",
+      "substitute": "Find a substitute for {staff} in {group}, {date} {time}"
     },
     "errors": {
       "ownerOnly": "The copilot is for the owner only",
@@ -5262,7 +5265,18 @@
       "off": "This action is off in the brain's settings",
       "aboveCeiling": "That level is higher than this action allows",
       "slotsBooked": "{n} lessons are already booked in these slots, so they can't be undone from here",
-      "cap": "Not a valid number"
+      "cap": "Not a valid number",
+      "noLessons": "There are no lessons to cancel on these dates",
+      "phone": "Invalid phone number"
+    },
+    "whatsapp": {
+      "title": "Approvals on WhatsApp",
+      "hint": "When an action waits for you (asked by a parent or an instructor), the brain sends it to this number. Reply \"yes 12\" to approve or \"no 12\" to drop it.",
+      "phone": "Your phone",
+      "save": "Save",
+      "saved": "Number saved",
+      "on": "Actions that wait for you also go to WhatsApp.",
+      "off": "Without a number, actions that wait for you show only here."
     }
   }
 }

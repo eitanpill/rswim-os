@@ -18,6 +18,7 @@ import {
   commsAutomations,
   commsDispatch,
   commsHolidayNotice,
+  brainInbound,
   crmPipelineSync,
 } from './comms';
 import { corePing } from './core-ping';
@@ -80,5 +81,6 @@ export const functions = [
   commsHolidayNotice,
   commsAiTriage,
   commsParentBot,
+  brainInbound,
   crmPipelineSync,
 ];

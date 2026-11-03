@@ -4,3 +4,4 @@ export * from './agent-policies';
 export * from './agent';
 export * from './bot-policies';
 export * from './bot';
+export * from './brain-inbound';

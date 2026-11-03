@@ -7,6 +7,7 @@ import {
   AGENT_DEFAULT_SETTINGS,
   AGENT_PROFILE_LEVELS,
   AgentSettingsInput,
+  toE164IL,
   type AgentActionKind,
   type AgentProfile,
   type AgentSource,
@@ -34,6 +35,8 @@ export interface AgentSettingsState extends AgentSettingsView {
   effective: Record<AgentActionKind, AutonomyLevel>;
   /** The profile the table still matches, or null once the owner changed a row. */
   matches: AgentProfile | null;
+  /** The owner's WhatsApp for approvals, or null (approvals only on the screen). */
+  approvalPhoneE164: string | null;
 }
 
 /** The school's settings, or the careful defaults when the owner never saved any. */
@@ -48,7 +51,12 @@ export async function getAgentSettings(tx: Tx): Promise<AgentSettingsState> {
         paused: row.paused,
       }
     : { ...AGENT_DEFAULT_SETTINGS, levels: {} };
-  return { ...view, effective: effectiveLevels(view), matches: matchingProfile(view) };
+  return {
+    ...view,
+    effective: effectiveLevels(view),
+    matches: matchingProfile(view),
+    approvalPhoneE164: row?.approvalPhoneE164 ?? null,
+  };
 }
 
 async function upsert(
@@ -89,6 +97,17 @@ export async function setAgentPaused(tx: Tx, ctx: ServiceContext, paused: boolea
   await upsert(tx, ctx, { paused });
 }
 
+/**
+ * The owner's WhatsApp number for approvals: an action that waits is sent there, and "כן 12" / "לא 12" from that number
+ * decides it. Empty turns WhatsApp approvals off.
+ */
+export async function setApprovalPhone(tx: Tx, ctx: ServiceContext, raw: string | null) {
+  const text = (raw ?? '').trim();
+  const phone = text ? toE164IL(text) : null;
+  if (text && !phone) throw new DomainError('agent.errors.phone');
+  await upsert(tx, ctx, { approvalPhoneE164: phone });
+}
+
 // ─── The gate ───────────────────────────────────────────────────────────────
 
 /** Actions that ran without a person's tap today (Asia/Jerusalem), counted against the daily cap. */
@@ -123,6 +142,8 @@ export async function gateFor(
 
 export interface AgentActionRow {
   id: string;
+  /** The number the owner answers on WhatsApp. */
+  ref: number | null;
   kind: AgentActionKind;
   source: AgentSource;
   autonomy: AutonomyLevel | null;
@@ -169,6 +190,7 @@ export async function listAgentActions(
     .limit(opts.limit ?? 100);
   return rows.map(({ a, prompt, message }) => ({
     id: a.id,
+    ref: a.ref,
     kind: a.kind as AgentActionKind,
     source: a.source as AgentSource,
     autonomy: a.autonomy as AutonomyLevel | null,

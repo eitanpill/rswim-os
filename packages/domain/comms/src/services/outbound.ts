@@ -20,9 +20,10 @@ import { ensureCommsDefaults, templateFor } from './templates';
 
 const { messages, organizations } = schema;
 
+/** Who a message goes to: a guardian, or (with null ids) a staff member or the owner, by phone. */
 export interface Addressee {
-  id: string;
-  householdId: string;
+  id: string | null;
+  householdId: string | null;
   firstName: string;
   phoneE164: string | null;
   whatsappOptIn: boolean;

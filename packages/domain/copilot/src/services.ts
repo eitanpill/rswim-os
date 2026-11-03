@@ -8,13 +8,21 @@
  */
 import { randomUUID } from 'node:crypto';
 import {
+  CLOSURE_SOURCES,
   SLOT_DEFAULT_CAPACITY,
   type AgentSource,
   type CopilotActionKind,
   type CopilotActionStatus,
 } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
-import { bookMakeup, cancelMakeupBooking, reportAbsence } from '@rswim/domain-attendance';
+import {
+  bookMakeup,
+  cancelMakeupBooking,
+  createClosureEvent,
+  openClosureEvent,
+  previewClosure,
+  reportAbsence,
+} from '@rswim/domain-attendance';
 import {
   cancelPaymentLink,
   debtsDashboard,
@@ -22,14 +30,16 @@ import {
   requestFreeze,
   requestPaymentLink,
 } from '@rswim/domain-billing';
-import { schoolName, sendToTargets } from '@rswim/domain-comms';
+import { enqueueMessage, schoolName, sendToTargets } from '@rswim/domain-comms';
 import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
 import {
   cancelSlot,
+  cancelSubstituteRequest,
   openSlots,
   placeStudent,
   previewPlacement,
   removeStudent,
+  requestSubstitute,
   todayIL,
 } from '@rswim/domain-scheduling';
 import { resolvePolicyFor } from '@rswim/domain-settings';
@@ -40,11 +50,13 @@ import {
   type CopilotTool,
   type CopilotTraceStep,
 } from '@rswim/integrations';
-import { gateFor } from './agent';
+import { gateFor, getAgentSettings } from './agent';
+import { approvalText } from './agent-policies';
 import {
   actionStep,
   copilotGate,
   copilotSystem,
+  endOfNextMonth,
   fakeIntent,
   nextWeekday,
   parseProposal,
@@ -110,6 +122,20 @@ export const COPILOT_TOOLS: CopilotTool[] = [
     input_schema: obj({}, []),
   },
   {
+    name: 'find_venues',
+    description: 'Active venues (pools) by (part of) their name; an empty query lists them all.',
+    input_schema: obj({ query: str('Venue name or part of it, or empty') }, ['query']),
+  },
+  {
+    name: 'staff_lessons',
+    description:
+      "An instructor's group lessons on a date (YYYY-MM-DD) that they lead: sessionId, group, venue, time and status.",
+    input_schema: obj({ staffId: str('Instructor id'), date: str('YYYY-MM-DD') }, [
+      'staffId',
+      'date',
+    ]),
+  },
+  {
     name: 'propose_move_student',
     description:
       'Propose moving a child from one group to another from a date (fromGroupId null to add them). Checked against the placement rules; the owner confirms.',
@@ -143,6 +169,39 @@ export const COPILOT_TOOLS: CopilotTool[] = [
         description: str('What the payment is for, in Hebrew'),
       },
       ['householdId', 'amountAgorot', 'description'],
+    ),
+  },
+  {
+    name: 'propose_cancel_lessons',
+    description:
+      'Propose cancelling every lesson from one date to another, at one venue (venueId) or all venues (null). Children get makeup credits by the regulations and families are told. Always waits for the owner.',
+    input_schema: obj(
+      {
+        venueId: { type: ['string', 'null'], description: 'Venue id, or null for every venue' },
+        startsOn: str('YYYY-MM-DD'),
+        endsOn: str('YYYY-MM-DD, the same day for one day'),
+        reason: str('Why, in Hebrew; the families see it'),
+        source: {
+          type: 'string',
+          enum: [...CLOSURE_SOURCES],
+          description:
+            'Who closed: the school, the venue, an authority, a technical fault, water quality or a holiday',
+        },
+        makeupDeadline: str('YYYY-MM-DD, after endsOn: the last day to make the lessons up'),
+      },
+      ['venueId', 'startsOn', 'endsOn', 'reason', 'source', 'makeupDeadline'],
+    ),
+  },
+  {
+    name: 'propose_substitute',
+    description:
+      'Propose looking for a substitute for one lesson (sessionId from staff_lessons or lessons_on): qualified instructors get the offer; the first to accept takes it and the families are told.',
+    input_schema: obj(
+      {
+        sessionId: str('Lesson id'),
+        reason: { type: ['string', 'null'], description: 'Why, e.g. sick; or null' },
+      },
+      ['sessionId', 'reason'],
     ),
   },
   {
@@ -246,7 +305,7 @@ export function copilotToolbox(tx: Tx, ctx: ServiceContext, today: string, reque
       case 'lessons_on':
         return rows(
           tx,
-          sql`select t.name "group", v.name venue, to_char(s.starts_at at time zone 'Asia/Jerusalem', 'HH24:MI') "time",
+          sql`select s.id "sessionId", t.name "group", v.name venue, s.venue_id "venueId", to_char(s.starts_at at time zone 'Asia/Jerusalem', 'HH24:MI') "time",
                      s.status,
                      (select string_agg(m.first_name, ', ') from session_staff ss
                         join staff_members m on m.id = ss.staff_member_id where ss.session_id = s.id) staff
@@ -260,6 +319,27 @@ export function copilotToolbox(tx: Tx, ctx: ServiceContext, today: string, reque
               from venue_closures c join venues v on v.id = c.venue_id
               where c.ends_on >= ${today}::date order by c.starts_on limit 20`,
         );
+      case 'find_venues':
+        return rows(
+          tx,
+          sql`select id, name from venues where status = 'active' and name ilike ${like(a.query)}
+              order by name limit 20`,
+        );
+      case 'staff_lessons':
+        return rows(
+          tx,
+          sql`select s.id "sessionId", t.name "group", v.name venue,
+                     to_char(s.starts_at at time zone 'Asia/Jerusalem', 'HH24:MI') "time", s.status
+              from sessions s join class_templates t on t.id = s.class_template_id join venues v on v.id = s.venue_id
+              where s.date = ${String(a.date ?? today)}::date
+                and coalesce((select ss.staff_member_id from session_staff ss
+                              where ss.session_id = s.id and ss.role = 'lead'), t.lead_staff_id) = ${String(a.staffId ?? '')}::uuid
+              order by s.starts_at`,
+        );
+      case 'propose_cancel_lessons':
+        return propose('cancel_lessons', input);
+      case 'propose_substitute':
+        return propose('substitute', input);
       case 'propose_move_student':
         return propose('move_student', input);
       case 'propose_message_family':
@@ -273,9 +353,18 @@ export function copilotToolbox(tx: Tx, ctx: ServiceContext, today: string, reque
     }
   };
 
-  /** The kinds the owner's chat proposes; the parents' bot takes absences, makeups and freezes (bot.ts). */
+  /**
+   * The kinds the owner's chat proposes; the parents' bot takes absences, makeups and freezes (bot.ts), and an
+   * instructor's WhatsApp asks for substitutes (brain-inbound.ts).
+   */
   async function propose(
-    kind: 'move_student' | 'message_family' | 'open_makeup_slots' | 'payment_link',
+    kind:
+      | 'move_student'
+      | 'message_family'
+      | 'open_makeup_slots'
+      | 'payment_link'
+      | 'cancel_lessons'
+      | 'substitute',
     raw: unknown,
   ) {
     const parsed = parseProposal(kind, raw);
@@ -320,6 +409,13 @@ export function copilotToolbox(tx: Tx, ctx: ServiceContext, today: string, reque
         amountAgorot: p.amountAgorot,
         description: p.description,
       });
+    } else if (kind === 'cancel_lessons') {
+      summary = await cancelLessonsSummary(tx, parsed.params as ProposalParams['cancel_lessons']);
+    } else if (kind === 'substitute') {
+      summary = await substituteSummary(
+        tx,
+        (parsed.params as ProposalParams['substitute']).sessionId,
+      );
     } else {
       const p = parsed.params as ProposalParams['open_makeup_slots'];
       summary = proposalSummary({
@@ -351,6 +447,63 @@ export function copilotToolbox(tx: Tx, ctx: ServiceContext, today: string, reque
   return { call, proposals };
 }
 
+/** The card's sentence for cancelling lessons: the venue and how many lessons the range holds now. */
+export async function cancelLessonsSummary(
+  tx: Tx,
+  p: ProposalParams['cancel_lessons'],
+): Promise<Explanation> {
+  const preview = await previewClosure(tx, {
+    venueId: p.venueId,
+    startsOn: p.startsOn,
+    endsOn: p.endsOn,
+    source: p.source,
+  });
+  if (preview.totals.sessions === 0) throw new DomainError('agent.errors.noLessons');
+  const venue = p.venueId
+    ? one(await rows<{ n: string }>(tx, sql`select name n from venues where id = ${p.venueId}`)).n
+    : null;
+  return proposalSummary({
+    kind: 'cancel_lessons',
+    venue,
+    date: p.startsOn,
+    until: p.endsOn,
+    sessions: preview.totals.sessions,
+    reason: p.reason,
+  });
+}
+
+/** The card's sentence for a substitute: whose lesson, which group, when. Only a lesson still ahead qualifies. */
+export async function substituteSummary(tx: Tx, sessionId: string): Promise<Explanation> {
+  const l = one(
+    await rows<{
+      group: string;
+      date: string;
+      time: string;
+      staff: string | null;
+      status: string;
+      ahead: boolean;
+    }>(
+      tx,
+      sql`select t.name "group", s.date::text date, s.status, s.starts_at > now() ahead,
+                 to_char(s.starts_at at time zone 'Asia/Jerusalem', 'HH24:MI') "time",
+                 (select m.first_name || ' ' || m.last_name from staff_members m
+                  where m.id = coalesce((select ss.staff_member_id from session_staff ss
+                                         where ss.session_id = s.id and ss.role = 'lead'), t.lead_staff_id)) staff
+          from sessions s join class_templates t on t.id = s.class_template_id
+          where s.id = ${sessionId}`,
+    ),
+  );
+  if (l.status !== 'scheduled' || !l.ahead)
+    throw new DomainError('scheduling.substitute.notUpcoming');
+  return proposalSummary({
+    kind: 'substitute',
+    staff: l.staff ?? '',
+    group: l.group,
+    date: l.date,
+    time: l.time,
+  });
+}
+
 // ─── The rules-based stand-in ───────────────────────────────────────────────
 
 /**
@@ -369,7 +522,7 @@ export class FakeCopilotModel implements CopilotModel {
       return r.error ? null : (JSON.parse(r.text) as T);
     };
     const done = (answer: string) => ({ answer, trace, incomplete: false });
-    const intent = fakeIntent(input.prompt);
+    const intent = fakeIntent(input.prompt, this.today);
     type Student = { id: string; name: string; householdId: string; groups: { id: string }[] };
     switch (intent.kind) {
       case 'move': {
@@ -452,6 +605,55 @@ export class FakeCopilotModel implements CopilotModel {
               : `הכנתי הצעה לפתוח השלמות עם ${m.name}. היא מחכה לאישור שלך.`,
         );
       }
+      case 'cancel': {
+        type Venue = { id: string; name: string };
+        const venue = intent.venue
+          ? (await use<Venue[]>('find_venues', { query: intent.venue }))?.[0]
+          : null;
+        if (intent.venue && !venue) return done(`לא מצאתי בריכה בשם ${intent.venue}.`);
+        const out = await use<{ status: string }>('propose_cancel_lessons', {
+          venueId: venue?.id ?? null,
+          startsOn: intent.date,
+          endsOn: intent.date,
+          reason: intent.reason ?? 'ביטול של בית הספר',
+          source: 'school',
+          makeupDeadline: endOfNextMonth(intent.date),
+        });
+        const where = venue ? ` ב${venue.name}` : '';
+        return done(
+          !out
+            ? `אין שיעורים לבטל ב-${intent.date}${where}.`
+            : out.status === 'done'
+              ? `ביטלתי את השיעורים ב-${intent.date}${where} ועדכנתי את המשפחות.`
+              : `הכנתי ביטול של השיעורים ב-${intent.date}${where}. הוא מחכה לאישור שלך, ואחריו המשפחות יקבלו הודעה וזיכוי.`,
+        );
+      }
+      case 'substitute': {
+        const m = (
+          await use<{ id: string; name: string }[]>('find_staff', { query: intent.staff })
+        )?.[0];
+        if (!m) return done('לא מצאתי את המדריך/ה.');
+        const lessons =
+          (await use<{ sessionId: string; status: string }[]>('staff_lessons', {
+            staffId: m.id,
+            date: intent.date,
+          })) ?? [];
+        const statuses: string[] = [];
+        for (const l of lessons.filter((x) => x.status === 'scheduled')) {
+          const out = await use<{ status: string }>('propose_substitute', {
+            sessionId: l.sessionId,
+            reason: null,
+          });
+          if (out) statuses.push(out.status);
+        }
+        if (statuses.length === 0)
+          return done(`לא מצאתי ל${m.name} שיעורים קרובים ב-${intent.date}.`);
+        return done(
+          statuses.every((x) => x === 'done')
+            ? `פתחתי חיפוש מחליף ל-${statuses.length} השיעורים של ${m.name} ב-${intent.date}.`
+            : `הכנתי חיפוש מחליף ל-${statuses.length} השיעורים של ${m.name} ב-${intent.date}. הוא מחכה לאישור שלך.`,
+        );
+      }
       case 'debts': {
         const d = (await use<{ family: string; balanceAgorot: number }[]>('debts', {})) ?? [];
         return done(
@@ -472,7 +674,7 @@ export class FakeCopilotModel implements CopilotModel {
       }
       default:
         return done(
-          'אני (גרסת הדמו) מבין/ה: "תעביר את <ילד> ל<קבוצה>", "תשלח ל<ילד>: <הודעה>", "תפתח השלמות עם <מדריך> ב-<תאריך> <שעה>-<שעה>", "מי חייב", "מה יש היום".',
+          'אני (גרסת הדמו) מבין/ה: "תעביר את <ילד> ל<קבוצה>", "תשלח ל<ילד>: <הודעה>", "תפתח השלמות עם <מדריך> ב-<תאריך> <שעה>-<שעה>", "תבטל את השיעורים מחר", "תמצא מחליף ל<מדריך> היום", "מי חייב", "מה יש היום".',
         );
     }
   }
@@ -644,6 +846,7 @@ export async function takeAction(
       requestId: a.requestId,
       inboundMessageId: a.inboundMessageId ?? null,
       source: a.source,
+      ref: sql`(select coalesce(max(ref), 0) + 1 from copilot_actions)`,
       autonomy: level,
       kind: a.kind,
       params: a.params,
@@ -655,11 +858,46 @@ export async function takeAction(
     })
     .returning();
   const action = row as typeof copilotActions.$inferSelect;
-  if (decision.route === 'wait') return { id: action.id, status: 'waiting' };
+  if (decision.route === 'wait') {
+    // The owner is not in the chat when a family or an instructor asked: the request goes to their WhatsApp.
+    if (a.source !== 'owner_chat') await askOwnerOnWhatsApp(tx, ctx, action);
+    return { id: action.id, status: 'waiting' };
+  }
   const out = await runAction(tx, ctx, action, { alone: true });
   return out.status === 'confirmed'
     ? { id: action.id, status: 'done', result: out.result }
     : { id: action.id, status: 'failed', code: out.code };
+}
+
+/**
+ * Sends a waiting action to the owner's WhatsApp, when they set a number for approvals: the sentence and "כן 12" /
+ * "לא 12" (brain-inbound.ts reads the answer). Like every message it waits out quiet hours and Shabbat.
+ */
+async function askOwnerOnWhatsApp(
+  tx: Tx,
+  ctx: ServiceContext,
+  action: typeof copilotActions.$inferSelect,
+) {
+  const s = await getAgentSettings(tx);
+  if (!s.approvalPhoneE164 || action.ref === null) return;
+  await enqueueMessage(tx, ctx, {
+    guardian: {
+      id: null,
+      householdId: null,
+      firstName: '',
+      phoneE164: s.approvalPhoneE164,
+      whatsappOptIn: true,
+      locale: 'he',
+    },
+    templateKey: 'free_text',
+    vars: (locale) => ({
+      text: approvalText(
+        { ref: action.ref as number, summary: action.summary as Explanation },
+        locale,
+      ),
+    }),
+    idempotencyKey: `agent.approval:${action.id}`,
+  });
 }
 
 // ─── Deciding a proposal ────────────────────────────────────────────────────
@@ -728,6 +966,26 @@ async function apply(tx: Tx, ctx: ServiceContext, a: typeof copilotActions.$infe
     case 'freeze': {
       const p = a.params as ProposalParams['freeze'];
       return requestFreeze(tx, ctx, { ...p, note: null });
+    }
+    case 'cancel_lessons': {
+      const p = a.params as ProposalParams['cancel_lessons'];
+      const closureEventId = await createClosureEvent(tx, ctx, {
+        venueId: p.venueId,
+        startsOn: p.startsOn,
+        endsOn: p.endsOn,
+        source: p.source,
+        reason: p.reason,
+        makeupFrom: null,
+        makeupDeadline: p.makeupDeadline,
+        endRule: null,
+      });
+      await openClosureEvent(tx, ctx, closureEventId);
+      return { closureEventId };
+    }
+    case 'substitute': {
+      const p = a.params as ProposalParams['substitute'];
+      const r = await requestSubstitute(tx, ctx, p);
+      return { substituteRequestId: r.id, offered: r.offered };
     }
     default: {
       const p = a.params as ProposalParams['open_makeup_slots'];
@@ -805,7 +1063,7 @@ export async function dismissCopilotAction(tx: Tx, ctx: ServiceContext, id: stri
 /**
  * Takes a confirmed action back: a child returns to the group they left from the same date; makeup slots nobody booked
  * are cancelled; a payment link nobody paid is cancelled; a booked makeup is cancelled (the credit is open again); a
- * freeze is cancelled.
+ * freeze is cancelled; a substitute search nobody took yet is withdrawn.
  */
 export async function undoCopilotAction(tx: Tx, ctx: ServiceContext, id: string) {
   const a = await loadAction(tx, id, 'undo');
@@ -845,6 +1103,12 @@ export async function undoCopilotAction(tx: Tx, ctx: ServiceContext, id: string)
       break;
     case 'freeze':
       await decideFreeze(tx, ctx, (a.result as { freezeId: string }).freezeId, 'cancelled');
+      break;
+    case 'substitute':
+      await cancelSubstituteRequest(
+        tx,
+        (a.result as { substituteRequestId: string }).substituteRequestId,
+      );
       break;
     default: {
       const { linkId } = a.result as { linkId: string };
