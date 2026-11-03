@@ -40,3 +40,14 @@ in the bot demo.
    owner is already in the chat).
 5. Copilot: `תבטל את השיעורים ב-<date> בגלל תקלה בבריכה`: the card counts the lessons; approve it and the lessons are
    cancelled, credits issued, and families get the closure notice.
+
+## Stage 4: the daily rounds
+
+With the worker and the Inngest dev server running (`RSWIM_MESSAGING_FAKE=1`) and an approvals number set:
+
+1. Send the event `brain/morning.run` from the Inngest dev UI (or wait for 07:00). Families with debts older than the
+   insights' attention age get a payment link proposal, lessons without an instructor get a search; all wait on the
+   home card and arrive on the fake number with their numbers.
+2. Send it again: nothing new is proposed.
+3. Send `brain/evening.run` (or wait for 20:00): the fake number gets "🌙 היום של המוח" with the day's counts.
+4. Brain → untick "לשלוח לי סיכום של היום כל ערב" and save: the next evening sends nothing.

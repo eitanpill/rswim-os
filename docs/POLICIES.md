@@ -336,6 +336,11 @@ autopilot. Cancelling lessons always waits. With an approvals number set, every 
 instructor asked for goes to the owner's WhatsApp with its number; `כן <n>` / `לא <n>` from that number decides it.
 An instructor's message without a day means today.
 
+The morning check (07:00) proposes a payment link to each family whose debt is at least `insights.debt_attention_days`
+old (once per that many days, not while a link is unpaid) and an instructor search for each uncovered lesson of the
+coming week; each goes through the gate at its kind's level. The evening summary (20:00) goes to the approvals number
+unless turned off.
+
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.
 - Proration rounds per line; statement total = sum of rounded lines.

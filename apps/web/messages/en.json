@@ -3854,7 +3854,8 @@
       "freeze": "Freeze {student}'s place in {group} from {date} to {until}",
       "cancelLessons": "Cancel the lessons at {venue} from {date} to {until} ({sessions} lessons, {reason})",
       "cancelLessonsAll": "Cancel all lessons from {date} to {until} ({sessions} lessons, {reason})",
-      "substitute": "Find a substitute for {staff} in {group}, {date} {time}"
+      "substitute": "Find a substitute for {staff} in {group}, {date} {time}",
+      "substituteOpen": "Find an instructor for {group}, {date} {time}"
     },
     "errors": {
       "ownerOnly": "The copilot is for the owner only",
@@ -5271,12 +5272,13 @@
     },
     "whatsapp": {
       "title": "Approvals on WhatsApp",
-      "hint": "When an action waits for you (asked by a parent or an instructor), the brain sends it to this number. Reply \"yes 12\" to approve or \"no 12\" to drop it.",
+      "hint": "When an action waits for you (asked by a parent, an instructor or the morning check), the brain sends it to this number. Reply \"yes 12\" to approve or \"no 12\" to drop it.",
       "phone": "Your phone",
       "save": "Save",
       "saved": "Number saved",
       "on": "Actions that wait for you also go to WhatsApp.",
-      "off": "Without a number, actions that wait for you show only here."
+      "off": "Without a number, actions that wait for you show only here.",
+      "evening": "Send me a summary of the day every evening at 20:00"
     }
   }
 }

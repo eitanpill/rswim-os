@@ -472,8 +472,15 @@ export async function cancelLessonsSummary(
   });
 }
 
-/** The card's sentence for a substitute: whose lesson, which group, when. Only a lesson still ahead qualifies. */
-export async function substituteSummary(tx: Tx, sessionId: string): Promise<Explanation> {
+/**
+ * The card's sentence for a substitute: whose lesson, which group, when (`open`: a lesson nobody teaches yet). Only a
+ * lesson still ahead qualifies.
+ */
+export async function substituteSummary(
+  tx: Tx,
+  sessionId: string,
+  opts: { open?: boolean } = {},
+): Promise<Explanation> {
   const l = one(
     await rows<{
       group: string;
@@ -497,7 +504,7 @@ export async function substituteSummary(tx: Tx, sessionId: string): Promise<Expl
     throw new DomainError('scheduling.substitute.notUpcoming');
   return proposalSummary({
     kind: 'substitute',
-    staff: l.staff ?? '',
+    staff: opts.open ? null : l.staff,
     group: l.group,
     date: l.date,
     time: l.time,

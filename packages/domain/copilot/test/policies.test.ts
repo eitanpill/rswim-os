@@ -363,6 +363,18 @@ describe('stage 3: cancelling lessons and substitutes', () => {
       code: 'copilot.summary.substitute',
       params: { staff: 'דני לוי', group: 'כרישים', date: '2026-11-10', time: '16:00' },
     });
+    expect(
+      proposalSummary({
+        kind: 'substitute',
+        staff: null,
+        group: 'כרישים',
+        date: '2026-11-10',
+        time: '16:00',
+      }),
+    ).toEqual({
+      code: 'copilot.summary.substituteOpen',
+      params: { group: 'כרישים', date: '2026-11-10', time: '16:00' },
+    });
   });
 
   it('understands cancelling a day and finding a substitute in the fake', () => {

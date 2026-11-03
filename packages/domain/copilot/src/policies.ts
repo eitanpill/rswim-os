@@ -164,7 +164,7 @@ export function proposalSummary(
         sessions: number;
         reason: string;
       }
-    | { kind: 'substitute'; staff: string; group: string; date: string; time: string }
+    | { kind: 'substitute'; staff: string | null; group: string; date: string; time: string }
     | {
         kind: 'open_makeup_slots';
         staff: string;
@@ -219,10 +219,16 @@ export function proposalSummary(
             },
           };
     case 'substitute':
-      return {
-        code: 'copilot.summary.substitute',
-        params: { staff: p.staff, group: p.group, date: p.date, time: p.time },
-      };
+      // A lesson nobody teaches yet asks for an instructor, not a substitute for someone.
+      return p.staff === null
+        ? {
+            code: 'copilot.summary.substituteOpen',
+            params: { group: p.group, date: p.date, time: p.time },
+          }
+        : {
+            code: 'copilot.summary.substitute',
+            params: { staff: p.staff, group: p.group, date: p.date, time: p.time },
+          };
     default:
       return {
         code: 'copilot.summary.slots',

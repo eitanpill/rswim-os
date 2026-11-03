@@ -77,9 +77,10 @@ export async function setAgentPausedAction(_: FormState, fd: FormData) {
 export async function setApprovalPhoneAction(_: FormState, fd: FormData) {
   return runForm(
     fd,
-    z.object({ phone: z.string().max(30) }),
-    (tx, ctx, { phone }) => setApprovalPhone(tx, ctx, phone),
+    z.object({ phone: z.string().max(30), eveningSummary: z.boolean() }),
+    (tx, ctx, f) => setApprovalPhone(tx, ctx, f.phone, f.eveningSummary),
     { revalidate: PAGES, success: 'agent.whatsapp.saved' },
+    (raw) => ({ ...raw, eveningSummary: raw.eveningSummary === 'on' }),
   );
 }
 

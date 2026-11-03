@@ -21,6 +21,7 @@
     "@rswim/domain-comms": "workspace:*",
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-people": "workspace:*",
+    "@rswim/domain-reports": "workspace:*",
     "@rswim/domain-scheduling": "workspace:*",
     "@rswim/domain-settings": "workspace:*",
     "@rswim/integrations": "workspace:*",
