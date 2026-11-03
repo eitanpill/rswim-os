@@ -21,12 +21,18 @@ export const AGENT_ACTION_KINDS = [
 export const AgentActionKind = z.enum(AGENT_ACTION_KINDS);
 export type AgentActionKind = z.infer<typeof AgentActionKind>;
 
-/** The kinds the brain can already carry out (from the owner's chat); the rest join with the next stages. */
+/**
+ * The kinds the brain can already carry out: the owner's chat moves children, messages families, opens makeup slots and
+ * sends payment links; the parents' bot records absences, books makeups and asks for freezes. The rest join later.
+ */
 export const AGENT_WIRED_KINDS: readonly AgentActionKind[] = [
   'move_student',
   'message_family',
   'open_makeup_slots',
   'payment_link',
+  'report_absence',
+  'book_makeup',
+  'freeze',
 ];
 
 /** off: never; suggest: a proposal only; approve: ready, runs on the owner's tap; auto: runs at once and is reported. */

@@ -89,11 +89,16 @@ export function agentGate(f: GateFacts): GateDecision {
   return { route: 'run' };
 }
 
-/** Kinds whose effect the journal can take back with one tap. A message that went out cannot be unsent. */
+/**
+ * Kinds whose effect the journal can take back with one tap. A message that went out cannot be unsent, and an absence
+ * already decided the child's makeup credit (the office voids a credit on the child's page).
+ */
 const UNDOABLE: ReadonlySet<AgentActionKind> = new Set([
   'move_student',
   'open_makeup_slots',
   'payment_link',
+  'book_makeup',
+  'freeze',
 ]);
 
 export function undoable(kind: AgentActionKind): boolean {

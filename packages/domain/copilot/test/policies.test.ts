@@ -244,3 +244,67 @@ describe('payment links (the brain)', () => {
     });
   });
 });
+
+describe("the parents' bot actions (the brain)", () => {
+  it('validates an absence, a makeup booking and a freeze', () => {
+    expect(
+      parseProposal('report_absence', {
+        studentId: A,
+        sessionId: B,
+        receivedAt: '2026-11-03T08:15',
+        note: null,
+      }),
+    ).toMatchObject({ ok: true });
+    expect(
+      parseProposal('report_absence', {
+        studentId: A,
+        sessionId: B,
+        receivedAt: 'now',
+        note: null,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(parseProposal('book_makeup', { creditId: A, sessionId: B })).toMatchObject({ ok: true });
+    const freeze = {
+      enrollmentId: A,
+      fromDate: '2026-12-01',
+      toDate: '2026-12-31',
+      reason: 'vacation',
+    };
+    expect(parseProposal('freeze', freeze)).toMatchObject({ ok: true });
+    expect(parseProposal('freeze', { ...freeze, toDate: '2026-11-30' })).toMatchObject({
+      ok: false,
+    });
+  });
+
+  it('summarizes them from looked-up names', () => {
+    const lesson = { student: 'נועה כהן', group: 'כרישים', date: '2026-11-05', time: '16:00' };
+    expect(proposalSummary({ kind: 'report_absence', ...lesson })).toEqual({
+      code: 'copilot.summary.absence',
+      params: lesson,
+    });
+    expect(proposalSummary({ kind: 'book_makeup', ...lesson })).toEqual({
+      code: 'copilot.summary.makeup',
+      params: lesson,
+    });
+    expect(
+      proposalSummary({
+        kind: 'freeze',
+        student: 'נועה כהן',
+        group: 'כרישים',
+        date: '2026-12-01',
+        until: '2026-12-31',
+      }),
+    ).toEqual({
+      code: 'copilot.summary.freeze',
+      params: { student: 'נועה כהן', group: 'כרישים', date: '2026-12-01', until: '2026-12-31' },
+    });
+  });
+
+  it('undoes a booked makeup or a freeze, never an absence', () => {
+    expect(actionStep({ status: 'confirmed', kind: 'book_makeup' }, 'undo')).toEqual({ ok: true });
+    expect(actionStep({ status: 'confirmed', kind: 'freeze' }, 'undo')).toEqual({ ok: true });
+    expect(actionStep({ status: 'confirmed', kind: 'report_absence' }, 'undo')).toMatchObject({
+      ok: false,
+    });
+  });
+});

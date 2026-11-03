@@ -553,6 +553,9 @@ importers:
       '@rswim/db':
         specifier: workspace:*
         version: link:../../db
+      '@rswim/domain-attendance':
+        specifier: workspace:*
+        version: link:../attendance
       '@rswim/domain-billing':
         specifier: workspace:*
         version: link:../billing
@@ -1250,9 +1253,6 @@ importers:
       '@rswim/db':
         specifier: workspace:*
         version: link:../db
-      '@rswim/domain-attendance':
-        specifier: workspace:*
-        version: link:../domain/attendance
       '@rswim/domain-billing':
         specifier: workspace:*
         version: link:../domain/billing
@@ -1311,6 +1311,9 @@ importers:
       '@rswim/config':
         specifier: workspace:*
         version: link:../config
+      '@rswim/domain-attendance':
+        specifier: workspace:*
+        version: link:../domain/attendance
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.4

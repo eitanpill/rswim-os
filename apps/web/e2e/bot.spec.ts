@@ -87,3 +87,53 @@ test('the bot hands an unknown question to the owner and learns her answer', asy
       .first(),
   ).toHaveAttribute('data-outcome', 'answered');
 });
+
+/** A one-child family with a unique phone and a lesson ahead (from the other end of the list than pickPhones). */
+async function pickFamily(): Promise<{ phone: string; child: string }> {
+  const client = new pg.Client({ connectionString: DB_URL });
+  await client.connect();
+  try {
+    const r = await client.query<{ phone: string; child: string }>(
+      `select g.phone_e164 phone, st.first_name child from guardians g
+       join organizations o on o.id = g.organization_id and o.slug = 'rswim-demo'
+       join students st on st.household_id = g.household_id
+       join enrollments e on e.student_id = st.id and e.status = 'active'
+       where g.whatsapp_opt_in and g.phone_e164 is not null
+         and (select count(*) from guardians y where y.phone_e164 = g.phone_e164) = 1
+         and (select count(*) from students z where z.household_id = g.household_id) = 1
+         and exists (select 1 from sessions s where s.class_template_id = e.class_template_id
+                     and s.status = 'scheduled' and s.starts_at > now() + interval '1 hour'
+                     and s.date <= current_date + 13)
+       order by g.household_id limit 1`,
+    );
+    return r.rows[0]!;
+  } finally {
+    await client.end();
+  }
+}
+
+test("the bot records a family's absence through the brain and the owner sees it", async ({
+  page,
+  request,
+}) => {
+  const { phone, child } = await pickFamily();
+  const tag = randomUUID().slice(0, 4);
+  const text = `${child} לא יגיע לשיעור הבא ${tag}`;
+  const id = await whatsapp(request, phone, text);
+  expect(await runBot(id)).toMatchObject({ outcome: 'answered' });
+
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin/messages/bot');
+  const reply = page.getByTestId('bot-reply').filter({ hasText: tag });
+  // Careful profile: absences run on their own (or wait, while another test has the brain paused).
+  await expect(reply.getByTestId('bot-action')).toHaveAttribute(
+    'data-status',
+    /confirmed|proposed/,
+  );
+
+  await page.goto('/admin/brain/journal');
+  await expect(page.getByTestId('agent-action').filter({ hasText: tag }).first()).toHaveAttribute(
+    'data-kind',
+    'report_absence',
+  );
+});

@@ -6,6 +6,7 @@ import { Badge, Card, CardTitle, EmptyState, PageHeader, cn } from '@rswim/ui';
 import { ActionButton, ActionForm, SubmitButton, TextareaField } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { enumLabel } from '@/lib/options';
+import { ACTION_TONE, agentSummaryText } from '../../brain/summary';
 import { MessagesTabs, when } from '../tabs';
 import { knowledgeStatusAction, reviewBotReplyAction, saveKnowledgeAction } from './actions';
 
@@ -51,6 +52,8 @@ async function KnowledgeForm({
  */
 export default async function BotPage() {
   const t = await getTranslations('comms.bot');
+  const ta = await getTranslations('agent');
+  const explainSummary = await agentSummaryText();
   const label = await enumLabel();
   const { enabled, stats, replies, suggestions, knowledge } = await withSession(async (tx) => ({
     enabled: (await commsRules(tx)).botEnabled,
@@ -151,6 +154,29 @@ export default async function BotPage() {
                   <p className="whitespace-pre-wrap text-sm" dir="auto">
                     {r.answer ?? r.handoffSummary}
                   </p>
+                  {r.actions.length ? (
+                    <div className="mt-2" data-testid="bot-actions">
+                      <p className="text-xs text-ink-muted">
+                        {t('actions')}{' '}
+                        <Link href="/admin/brain/journal" className="text-brand-700 underline">
+                          {t('actionsJournal')}
+                        </Link>
+                      </p>
+                      <ul className="flex flex-col gap-1">
+                        {r.actions.map((a) => (
+                          <li
+                            key={a.id}
+                            className="flex flex-wrap items-center gap-2 text-sm"
+                            data-testid="bot-action"
+                            data-status={a.status}
+                          >
+                            <span>{explainSummary(a.summary)}</span>
+                            <Badge tone={ACTION_TONE[a.status]}>{ta(`status.${a.status}`)}</Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                   {r.outcome === 'answered' ? (
                     <div className="mt-2 flex flex-wrap gap-2">
                       <ActionButton

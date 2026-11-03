@@ -69,7 +69,8 @@ WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, 
 (`InboundMessage`). With the `comms.ai_triage` policy on, the worker re-classifies inbound messages with Claude using
 `ANTHROPIC_API_KEY`; without it the rules classifier decides alone. With `comms.bot_enabled` on, the parents' bot
 (`/admin/messages/bot`) answers families from their own data and the office's approved answers, with Claude
-(`ANTHROPIC_API_KEY`) or a rules-based fake (`RSWIM_BOT_FAKE=1`) in the worker, and hands the rest to the inbox. The business brain (`docs/AI-BRAIN.md`, `/admin/brain`, owner only, table `agent_settings`) decides per kind of action whether the AI acts alone, waits for the owner, or is off; its journal is `copilot_actions`. The owner copilot (`/admin/copilot`, policy `copilot.enabled`) runs on Claude when the web app has `ANTHROPIC_API_KEY`,
+(`ANTHROPIC_API_KEY`) or a rules-based fake (`RSWIM_BOT_FAKE=1`) in the worker, records absences, books makeups and asks
+for freezes at the brain's levels, and hands the rest to the inbox. The business brain (`docs/AI-BRAIN.md`, `/admin/brain`, owner only, table `agent_settings`) decides per kind of action whether the AI acts alone, waits for the owner, or is off; its journal is `copilot_actions`. The owner copilot (`/admin/copilot`, policy `copilot.enabled`) runs on Claude when the web app has `ANTHROPIC_API_KEY`,
 or on a rules-based fake with `RSWIM_COPILOT_FAKE=1` (demos and E2E). The owner's insights feed (command center, policy
 `insights.*`) is rule-based and advisory only; the worker refreshes it daily and, with `ANTHROPIC_API_KEY`, has Claude
 write each insight's explanation and next step. Trial pipeline moves need

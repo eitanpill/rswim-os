@@ -14,7 +14,14 @@ import {
   type CopilotActionStatus,
 } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
-import { cancelPaymentLink, debtsDashboard, requestPaymentLink } from '@rswim/domain-billing';
+import { bookMakeup, cancelMakeupBooking, reportAbsence } from '@rswim/domain-attendance';
+import {
+  cancelPaymentLink,
+  debtsDashboard,
+  decideFreeze,
+  requestFreeze,
+  requestPaymentLink,
+} from '@rswim/domain-billing';
 import { schoolName, sendToTargets } from '@rswim/domain-comms';
 import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
 import {
@@ -266,7 +273,11 @@ export function copilotToolbox(tx: Tx, ctx: ServiceContext, today: string, reque
     }
   };
 
-  async function propose(kind: CopilotActionKind, raw: unknown) {
+  /** The kinds the owner's chat proposes; the parents' bot takes absences, makeups and freezes (bot.ts). */
+  async function propose(
+    kind: 'move_student' | 'message_family' | 'open_makeup_slots' | 'payment_link',
+    raw: unknown,
+  ) {
     const parsed = parseProposal(kind, raw);
     if (!parsed.ok) throw new DomainError(parsed.code);
     let summary: Explanation;
@@ -610,12 +621,20 @@ export async function takeAction(
   a: {
     source: AgentSource;
     requestId: string | null;
+    /** The family's WhatsApp message, for actions the parents' bot took. */
+    inboundMessageId?: string | null;
     kind: CopilotActionKind;
     params: unknown;
     summary: Explanation;
     amountAgorot: number | null;
   },
-): Promise<{ id: string; status: 'done' | 'waiting' | 'failed'; code?: string }> {
+): Promise<{
+  id: string;
+  status: 'done' | 'waiting' | 'failed';
+  code?: string;
+  /** What the domain service returned, when it ran. */
+  result?: unknown;
+}> {
   const { level, decision } = await gateFor(tx, a.kind, a.amountAgorot);
   if (decision.route === 'refuse') throw new DomainError(decision.code);
   const [row] = await tx
@@ -623,6 +642,7 @@ export async function takeAction(
     .values({
       organizationId: ctx.orgId,
       requestId: a.requestId,
+      inboundMessageId: a.inboundMessageId ?? null,
       source: a.source,
       autonomy: level,
       kind: a.kind,
@@ -638,7 +658,7 @@ export async function takeAction(
   if (decision.route === 'wait') return { id: action.id, status: 'waiting' };
   const out = await runAction(tx, ctx, action, { alone: true });
   return out.status === 'confirmed'
-    ? { id: action.id, status: 'done' }
+    ? { id: action.id, status: 'done', result: out.result }
     : { id: action.id, status: 'failed', code: out.code };
 }
 
@@ -689,6 +709,25 @@ async function apply(tx: Tx, ctx: ServiceContext, a: typeof copilotActions.$infe
         requestId: a.id,
       });
       return { linkId };
+    }
+    case 'report_absence': {
+      const p = a.params as ProposalParams['report_absence'];
+      const o = await reportAbsence(tx, ctx, {
+        sessionId: p.sessionId,
+        studentId: p.studentId,
+        channel: 'whatsapp',
+        receivedAt: p.receivedAt,
+        note: p.note ?? undefined,
+      });
+      return { noticeId: o.noticeId, classification: o.classification, creditId: o.creditId };
+    }
+    case 'book_makeup': {
+      const p = a.params as ProposalParams['book_makeup'];
+      return { bookingId: await bookMakeup(tx, ctx, p) };
+    }
+    case 'freeze': {
+      const p = a.params as ProposalParams['freeze'];
+      return requestFreeze(tx, ctx, { ...p, note: null });
     }
     default: {
       const p = a.params as ProposalParams['open_makeup_slots'];
@@ -765,7 +804,8 @@ export async function dismissCopilotAction(tx: Tx, ctx: ServiceContext, id: stri
 
 /**
  * Takes a confirmed action back: a child returns to the group they left from the same date; makeup slots nobody booked
- * are cancelled; a payment link nobody paid is cancelled.
+ * are cancelled; a payment link nobody paid is cancelled; a booked makeup is cancelled (the credit is open again); a
+ * freeze is cancelled.
  */
 export async function undoCopilotAction(tx: Tx, ctx: ServiceContext, id: string) {
   const a = await loadAction(tx, id, 'undo');
@@ -800,6 +840,12 @@ export async function undoCopilotAction(tx: Tx, ctx: ServiceContext, id: string)
       for (const slotId of slotIds) await cancelSlot(tx, ctx, slotId);
       break;
     }
+    case 'book_makeup':
+      await cancelMakeupBooking(tx, ctx, (a.result as { bookingId: string }).bookingId);
+      break;
+    case 'freeze':
+      await decideFreeze(tx, ctx, (a.result as { freezeId: string }).freezeId, 'cancelled');
+      break;
     default: {
       const { linkId } = a.result as { linkId: string };
       await cancelPaymentLink(tx, linkId);

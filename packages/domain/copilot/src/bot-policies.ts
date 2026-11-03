@@ -1,10 +1,17 @@
 /**
  * Pure rules of the parents' WhatsApp bot (docs/POLICIES.md §19): which family messages it may answer, which go
  * straight to a person, what the model is told, how a learned answer is matched, and the rules-based stand-in used for
- * demos and tests. The bot reads the family's own data and the school's knowledge; it never changes anything.
+ * demos and tests. The bot reads the family's own data and the school's knowledge, and acts for the family (an absence,
+ * a makeup booking, a freeze) only through the business brain's gate (docs/AI-BRAIN.md).
  */
 import { z } from 'zod';
-import type { BotHandoffReason, InboundIntent, PolicyRules } from '@rswim/contracts';
+import type {
+  AgentActionKind,
+  BotHandoffReason,
+  InboundIntent,
+  PolicyRules,
+  TriageActionKind,
+} from '@rswim/contracts';
 
 // ─── Which messages the bot takes ───────────────────────────────────────────
 
@@ -18,6 +25,8 @@ export interface BotFacts {
   intent: InboundIntent;
   /** The inbox already drafted an action (an absence, a freeze…) the office approves with one tap. */
   actionDrafted: boolean;
+  /** The brain may take the drafted request (its kind is not off), so the bot handles it instead of the inbox draft. */
+  brainTakesDraft: boolean;
   text: string;
 }
 
@@ -40,12 +49,27 @@ export function sensitiveTopic(text: string): boolean {
   return SENSITIVE.test(text);
 }
 
+/** The brain's kind of action for an inbox draft the bot can carry out itself; the rest stay with the office. */
+export function agentKindOfDraft(kind: TriageActionKind): AgentActionKind | null {
+  switch (kind) {
+    case 'absence_notice':
+      return 'report_absence';
+    case 'makeup_request':
+      return 'book_makeup';
+    case 'freeze_request':
+      return 'freeze';
+    default:
+      return null;
+  }
+}
+
 /** Where a family message goes: skipped (the inbox handles it as before), straight to a person, or to the model. */
 export function botRoute(f: BotFacts): BotRoute {
   if (!f.enabled) return { route: 'skip', reason: 'off' };
   if (!f.family || f.isStaff) return { route: 'skip', reason: 'not_family' };
   if (!f.open) return { route: 'skip', reason: 'closed' };
-  if (f.actionDrafted) return { route: 'skip', reason: 'action_drafted' };
+  // A drafted request stays the office's one tap in the inbox, unless the brain handles that kind of action.
+  if (f.actionDrafted && !f.brainTakesDraft) return { route: 'skip', reason: 'action_drafted' };
   if (ALWAYS_HUMAN.has(f.intent) || sensitiveTopic(f.text))
     return { route: 'handoff', reason: 'sensitive' };
   return { route: 'ask' };
@@ -140,8 +164,16 @@ ${c.today} (Asia/Jerusalem). The parent writing is ${c.guardian}; their children
 How to work:
 - Answer only from the family tools and from the school's rules and knowledge below. Never guess dates, times,
   prices, balances or rules. If they don't give you the answer, hand off.
-- You cannot change anything: you cannot record an absence, book a makeup, freeze, cancel, refund or move a child.
-  If the parent wants something done, hand off with reason needs_action.
+- You can do three things for the family: record that a child will miss a lesson (report_absence), book an open
+  makeup credit into a lesson from makeup_options (book_makeup), and ask to freeze a child's place between two dates
+  (request_freeze). Take the ids from the family tools; never guess them. Act only when the parent clearly asked for
+  it and the child and the lesson or dates are clear; if not, ask the parent in reply_to_parent instead of guessing.
+- Each action tool answers with a status. "done": it happened; tell the parent in one short line (the school also
+  sends its usual confirmation). "waiting": the office confirms it soon; tell the parent exactly that. "failed": the
+  school's rules refused it; tell the parent why in plain words. "not_allowed": you may not do this; hand off with
+  reason needs_action.
+- Anything else the parent wants done (cancel, leave the school, refund, move a child, change details) is not yours:
+  hand off with reason needs_action.
 - Hand off with reason sensitive for health, injuries, complaints, refunds, billing disputes, safety, or a parent who
   sounds upset.
 - Finish by calling exactly one of reply_to_parent or hand_off_to_office. The handoff summary is for the office, in
@@ -196,12 +228,23 @@ export function matchKnowledge<T extends { question: string }>(
 
 // ─── The rules-based stand-in (RSWIM_BOT_FAKE=1) ─────────────────────────────
 
-export type FakeBotIntent = 'makeups' | 'balance' | 'lessons' | 'other';
+export type FakeBotIntent =
+  'absence' | 'book_makeup' | 'freeze' | 'makeups' | 'balance' | 'lessons' | 'other';
 
 /** What the stand-in thinks a family asks about, from a few fixed Hebrew words. */
 export function fakeBotIntent(text: string): FakeBotIntent {
+  if (/לא (?:י|ת|נ)גיע|לא (?:יבוא|תבוא|נבוא)|לא (?:יוכל|תוכל|נוכל) להגיע/.test(text))
+    return 'absence';
+  if (/להקפיא|הקפאה|תקפיא/.test(text)) return 'freeze';
+  if (/(?:לקבוע|תקבע|תקבעי|לתאם|להזמין|לשבץ).*השלמ/.test(text)) return 'book_makeup';
   if (/השלמ/.test(text)) return 'makeups';
   if (/חייב|חוב|יתרה|לשלם|תשלום/.test(text)) return 'balance';
   if (/מתי|באיזו שעה|באיזה יום|שיעור הבא|יש שיעור|מחר|השבוע/.test(text)) return 'lessons';
   return 'other';
+}
+
+/** "להקפיא את נועה מ-2026-12-01 עד 2026-12-31": the dates the stand-in freezes between, or null. */
+export function fakeFreezeDates(text: string): { from: string; to: string } | null {
+  const m = /מ-?(\d{4}-\d{2}-\d{2}) עד (\d{4}-\d{2}-\d{2})/.exec(text);
+  return m ? { from: m[1] as string, to: m[2] as string } : null;
 }

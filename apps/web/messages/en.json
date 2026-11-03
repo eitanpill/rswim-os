@@ -3133,7 +3133,7 @@
       "off": "The bot is off. When it is on, it answers parents by itself and passes you only what it does not know.",
       "turnOn": "Turn it on or off in Policies (messages)",
       "stats": "Last 30 days: {answered} answers, {handedOff} passed to the team, {unreviewed} answers not reviewed yet",
-      "howItWorks": "The bot only reads: it does not record absences, book makeups or change charges. Requests like these, complaints, and medical or money topics always reach the inbox with a summary.",
+      "howItWorks": "The bot records absences, books makeups and asks for freezes only at the level you set in the brain's settings: what it may do happens at once, the rest waits for your approval, and what is off goes to the inbox. Cancellations, charges, complaints, and medical or money topics always reach the inbox with a summary.",
       "suggestions": "Learning from your answers ({n})",
       "suggestionsHint": "When you answer a parent’s question that the bot passed on, the question and your answer land here. Once approved, the bot uses them. Remove personal details before approving.",
       "noSuggestions": "No new suggestions",
@@ -3160,7 +3160,9 @@
       "reviewed": "Thanks, noted",
       "empty": "The knowledge base is empty",
       "learned": "Learned from your answer",
-      "edit": "Edit"
+      "edit": "Edit",
+      "actions": "What the bot did",
+      "actionsJournal": "(in the brain's journal)"
     },
     "log": {
       "title": "Message log",
@@ -3846,7 +3848,10 @@
       "add": "Place {student} in {to}, from {date}",
       "message": "Message the {family} family: \"{text}\"",
       "slots": "Open makeup slots with {staff} at {venue}, {date} {from}-{to} ({capacity} children)",
-      "payment": "Send the {family} family a payment link for {amount} ({description})"
+      "payment": "Send the {family} family a payment link for {amount} ({description})",
+      "absence": "Record that {student} misses {group} on {date} {time}",
+      "makeup": "Book a makeup for {student} in {group}, {date} {time}",
+      "freeze": "Freeze {student}'s place in {group} from {date} to {until}"
     },
     "errors": {
       "ownerOnly": "The copilot is for the owner only",
