@@ -72,6 +72,8 @@ export const copilotActions = pgTable(
     /** The family's WhatsApp message that asked for it, for actions the parents' bot took. */
     inboundMessageId: uuid('inbound_message_id'),
     source: text('source').notNull().default('owner_chat'),
+    /** A short number the owner answers on WhatsApp ("כן 12"); per school, not unique once old ones are decided. */
+    ref: integer('ref'),
     autonomy: text('autonomy'),
     ranAlone: boolean('ran_alone').notNull().default(false),
     kind: text('kind').notNull(),
@@ -103,6 +105,7 @@ export const copilotActions = pgTable(
     index('copilot_actions_request').on(t.requestId),
     index('copilot_actions_inbound').on(t.inboundMessageId),
     index('copilot_actions_recent').on(t.organizationId, t.createdAt),
+    index('copilot_actions_ref').on(t.organizationId, t.ref),
     check('copilot_actions_kind_check', sql.raw(`kind in (${inList(AGENT_ACTION_KINDS)})`)),
     check('copilot_actions_source_check', sql.raw(`source in (${inList(AGENT_SOURCES)})`)),
     check(
@@ -133,6 +136,8 @@ export const agentSettings = pgTable(
     maxAutoPerDay: integer('max_auto_per_day').notNull().default(30),
     maxAutoPaymentAgorot: integer('max_auto_payment_agorot').notNull().default(30000),
     paused: boolean('paused').notNull().default(false),
+    /** The owner's WhatsApp: actions that wait are sent there, and "כן 12" / "לא 12" from it decides them. */
+    approvalPhoneE164: text('approval_phone_e164'),
     updatedBy: uuid('updated_by'),
     updatedAt: updatedAt(),
   },

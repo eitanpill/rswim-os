@@ -47,6 +47,7 @@ export async function AgentActionList({ actions }: { actions: AgentActionRow[] }
               </span>
             </div>
             <p className="mt-1 text-xs text-ink-muted">
+              {a.ref !== null ? <span data-testid="agent-ref">#{a.ref} · </span> : null}
               {t(`source.${a.source}`)} · {time.format(a.createdAt)}
               {a.prompt ? ` · "${a.prompt}"` : ''}
             </p>

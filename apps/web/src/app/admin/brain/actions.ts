@@ -8,6 +8,7 @@ import {
   dismissCopilotAction,
   saveAgentSettings,
   setAgentPaused,
+  setApprovalPhone,
   undoCopilotAction,
 } from '@rswim/domain-copilot';
 import type { FormState } from '@/lib/form-state';
@@ -69,6 +70,16 @@ export async function setAgentPausedAction(_: FormState, fd: FormData) {
     z.object({ paused: z.enum(['true', 'false']) }),
     (tx, ctx, { paused }) => setAgentPaused(tx, ctx, paused === 'true'),
     { revalidate: PAGES },
+  );
+}
+
+/** The owner's WhatsApp for approvals; empty turns them off. */
+export async function setApprovalPhoneAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    z.object({ phone: z.string().max(30) }),
+    (tx, ctx, { phone }) => setApprovalPhone(tx, ctx, phone),
+    { revalidate: PAGES, success: 'agent.whatsapp.saved' },
   );
 }
 

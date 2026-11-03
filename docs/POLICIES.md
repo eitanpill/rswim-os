@@ -331,6 +331,11 @@ and sensitive topics are never actions.
 Under the careful profile the parents' bot records absences on its own; makeup bookings and freezes wait for the
 owner. Balanced lets makeup bookings run alone too; autopilot also freezes.
 
+Substitute searches (from the chat or an instructor's WhatsApp) wait under careful and balanced and run alone under
+autopilot. Cancelling lessons always waits. With an approvals number set, every waiting action that a family or an
+instructor asked for goes to the owner's WhatsApp with its number; `כן <n>` / `לא <n>` from that number decides it.
+An instructor's message without a day means today.
+
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.
 - Proration rounds per line; statement total = sum of rounded lines.

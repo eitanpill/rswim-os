@@ -81,13 +81,38 @@ The inbox drafts absences, makeup requests and freeze requests for the office's 
 kind (its level is not off), the bot takes the message instead and the draft is set aside once the bot acted; when the
 kind is off, the bot leaves the message to the draft as before. Receipt requests stay with the office.
 
+## Requests from the owner and the instructors (stage 3)
+
+**The owner's chat** has two more propose tools, with `find_venues` and `staff_lessons` to look things up:
+
+| Tool | Kind | Domain service | Notes |
+|---|---|---|---|
+| `propose_cancel_lessons` | `cancel_lessons` | `createClosureEvent` + `openClosureEvent` | One day or a range, one venue or all. Sessions cancelled, credits by the regulations, `closure_notice` to the families. Always waits for the owner (ceiling); never undone from the journal (the closure screen handles what follows) |
+| `propose_substitute` | `substitute` | `requestSubstitute` | One lesson that has not started. Qualified instructors get the offer in waves; the first to accept takes it and the families get `instructor_change`. Undo withdraws a search nobody took yet |
+
+The summary of a cancellation counts the lessons it would cancel now; a range with none is refused. The makeup deadline
+defaults to the last day of the month after the closure.
+
+**An instructor's WhatsApp** (`brain-inbound.ts`, worker function `brain-inbound`): a message from a staff member's
+phone saying they cannot teach ("אני חולה היום", "לא אוכל להגיע מחר", "לא אגיע ב-5.11"; no day means today) becomes one
+`substitute` action per lesson they lead that day and that has not started, with source `staff` and the message in the
+journal. The instructor gets one line back. With no lesson that day the message stays in the inbox for a person; with
+substitutes off the brain stays out. Anything else a staff member writes stays in the inbox. Rules only, no model.
+
+**Approvals on WhatsApp**: the owner sets a number on `/admin/brain` (`agent_settings.approval_phone_e164`). Every
+action that waits and was not asked in the owner's own chat (a family's, an instructor's) is sent there with its number
+(`copilot_actions.ref`, per school) and `כן 12` / `לא 12`. The answer from that number runs or drops the newest action
+with that number, as the school's owner (`decided_by` is the owner's user), and the owner gets one line back (done,
+refused by the rules, dropped, not found, already decided). The parents' bot never answers those messages. Like every
+message, approval requests wait out quiet hours and Shabbat.
+
 ## Stages
 
 1. **Engine** (PR #26): gate, settings, journal and undo, the screens; the chat's moves, messages, makeup slots and
    payment links go through it.
-2. **The parents' bot acts** (this PR): absence notices, makeup bookings and freezes, by level.
-3. Requests from Reut and instructors (cancel a day and tell everyone, a sick instructor and a substitute), approval
-   from Reut's WhatsApp.
+2. **The parents' bot acts** (PR #27): absence notices, makeup bookings and freezes, by level.
+3. **Requests from Reut and instructors** (this PR): cancel a day and tell everyone, a sick instructor and a
+   substitute, approval from Reut's WhatsApp.
 4. The morning check acts (payment reminders, free seats to families waiting for a makeup, missing forms) and an
    evening summary.
 

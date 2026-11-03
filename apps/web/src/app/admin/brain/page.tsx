@@ -18,7 +18,12 @@ import { ActionButton, ActionForm, Field, SelectField, SubmitButton } from '@/co
 import { withSession } from '@/lib/db';
 import { shekelValue } from '@/lib/options';
 import { AgentActionList } from './action-list';
-import { applyAgentProfileAction, saveAgentSettingsAction, setAgentPausedAction } from './actions';
+import {
+  applyAgentProfileAction,
+  saveAgentSettingsAction,
+  setAgentPausedAction,
+  setApprovalPhoneAction,
+} from './actions';
 
 /**
  * The business brain (docs/AI-BRAIN.md): what waits for the owner, the stop switch, and how much the brain may do on
@@ -93,6 +98,29 @@ export default async function BrainPage() {
           ) : (
             <p className="text-sm text-ink-muted">{t('waiting.empty')}</p>
           )}
+        </Card>
+
+        <Card data-testid="brain-whatsapp">
+          <CardTitle>{t('whatsapp.title')}</CardTitle>
+          <p className="mb-3 text-sm text-ink-muted">{t('whatsapp.hint')}</p>
+          <ActionForm action={setApprovalPhoneAction} testId="brain-whatsapp-form">
+            <div className="flex flex-wrap items-end gap-3">
+              <Field
+                name="phone"
+                label={t('whatsapp.phone')}
+                type="tel"
+                dir="ltr"
+                defaultValue={settings.approvalPhoneE164 ?? ''}
+                placeholder="050-0000000"
+              />
+              <SubmitButton variant="secondary" data-testid="brain-whatsapp-save">
+                {t('whatsapp.save')}
+              </SubmitButton>
+            </div>
+          </ActionForm>
+          <p className="mt-2 text-xs text-ink-muted">
+            {settings.approvalPhoneE164 ? t('whatsapp.on') : t('whatsapp.off')}
+          </p>
         </Card>
 
         <Card>

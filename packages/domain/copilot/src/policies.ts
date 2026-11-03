@@ -6,6 +6,7 @@
  */
 import { z } from 'zod';
 import {
+  CLOSURE_SOURCES,
   FREEZE_REASONS,
   TimeOfDay,
   type CopilotActionKind,
@@ -90,6 +91,27 @@ export const FreezeProposal = z
   .strict()
   .refine((v) => v.toDate >= v.fromDate);
 
+/**
+ * Cancelling lessons on a day or a range, at one venue or everywhere: a closure event the brain opens (sessions
+ * cancelled, credits issued, families told by the closure template). The makeup window runs to `makeupDeadline`.
+ */
+export const CancelLessonsProposal = z
+  .object({
+    venueId: z.uuid().nullable(),
+    startsOn: Date_,
+    endsOn: Date_,
+    reason: z.string().trim().min(1).max(300),
+    source: z.enum(CLOSURE_SOURCES),
+    makeupDeadline: Date_,
+  })
+  .strict()
+  .refine((v) => v.endsOn >= v.startsOn && v.makeupDeadline > v.endsOn);
+
+/** An instructor cannot teach a lesson: the substitute finder offers it to qualified colleagues. */
+export const SubstituteProposal = z
+  .object({ sessionId: z.uuid(), reason: z.string().trim().max(300).nullable() })
+  .strict();
+
 export const PROPOSALS = {
   move_student: MoveProposal,
   message_family: MessageProposal,
@@ -98,6 +120,8 @@ export const PROPOSALS = {
   report_absence: AbsenceProposal,
   book_makeup: MakeupProposal,
   freeze: FreezeProposal,
+  cancel_lessons: CancelLessonsProposal,
+  substitute: SubstituteProposal,
 } as const;
 
 export type ProposalParams = {
@@ -108,6 +132,8 @@ export type ProposalParams = {
   report_absence: z.infer<typeof AbsenceProposal>;
   book_makeup: z.infer<typeof MakeupProposal>;
   freeze: z.infer<typeof FreezeProposal>;
+  cancel_lessons: z.infer<typeof CancelLessonsProposal>;
+  substitute: z.infer<typeof SubstituteProposal>;
 };
 
 /** Validates what the model proposed; anything off-shape is refused rather than repaired. */
@@ -130,6 +156,15 @@ export function proposalSummary(
     | { kind: 'report_absence'; student: string; group: string; date: string; time: string }
     | { kind: 'book_makeup'; student: string; group: string; date: string; time: string }
     | { kind: 'freeze'; student: string; group: string; date: string; until: string }
+    | {
+        kind: 'cancel_lessons';
+        venue: string | null;
+        date: string;
+        until: string;
+        sessions: number;
+        reason: string;
+      }
+    | { kind: 'substitute'; staff: string; group: string; date: string; time: string }
     | {
         kind: 'open_makeup_slots';
         staff: string;
@@ -166,6 +201,27 @@ export function proposalSummary(
       return {
         code: 'copilot.summary.freeze',
         params: { student: p.student, group: p.group, date: p.date, until: p.until },
+      };
+    case 'cancel_lessons':
+      return p.venue === null
+        ? {
+            code: 'copilot.summary.cancelLessonsAll',
+            params: { date: p.date, until: p.until, sessions: p.sessions, reason: p.reason },
+          }
+        : {
+            code: 'copilot.summary.cancelLessons',
+            params: {
+              venue: p.venue,
+              date: p.date,
+              until: p.until,
+              sessions: p.sessions,
+              reason: p.reason,
+            },
+          };
+    case 'substitute':
+      return {
+        code: 'copilot.summary.substitute',
+        params: { staff: p.staff, group: p.group, date: p.date, time: p.time },
       };
     default:
       return {
@@ -210,13 +266,17 @@ usually in Hebrew; always answer in the owner's language, briefly and plainly. T
 
 - Read only through the tools. Never guess ids: find children, groups and staff with the find tools first.
 - You change things only through the propose_ tools (move a child, message a family, open makeup slots, send a
-  payment link). The owner's settings decide what happens next, and the tool's answer says it: status "done" means
+  payment link, cancel lessons on a day, find a substitute for an instructor's lesson). The owner's settings decide what happens next, and the tool's answer says it: status "done" means
   it already ran; "waiting" means it waits for the owner's confirmation on a card; "failed" means the rules refused
   it. Tell the owner exactly that, never more.
 - A proposal the tools refuse is not made: tell the owner why, in their words.
 - Amounts are in agorot in the tools (100 agorot = 1 shekel); speak to the owner in shekels.
 - Dates are YYYY-MM-DD and times HH:MM. When the owner gives no date for a move, use the next lesson date of the
   target group that is at least today.
+- Cancelling lessons cancels every lesson in the range (at one venue, or all venues when venueId is null), gives the
+  children their makeup credits by the regulations and tells the families. Unless the owner says otherwise, the
+  makeup deadline is the last day of the month after the closure, and the source is "school".
+- For a substitute, find the instructor's lessons with staff_lessons and propose one substitute per lesson.
 - Never invent prices, debts or policies; if a tool does not tell you, say you don't know.`;
 }
 
@@ -227,6 +287,8 @@ export type FakeIntent =
   | { kind: 'message'; student: string; text: string }
   | { kind: 'slots'; staff: string; date: string; from: string; to: string }
   | { kind: 'payment'; student: string; shekels: number }
+  | { kind: 'cancel'; date: string; venue: string | null; reason: string | null }
+  | { kind: 'substitute'; staff: string; date: string }
   | { kind: 'debts' }
   | { kind: 'lessons'; date: string | null }
   | { kind: 'help' };
@@ -236,10 +298,26 @@ const DATE = '(\\d{4}-\\d{2}-\\d{2})';
 /**
  * Understands a few fixed Hebrew phrasings, enough to demo and test the confirm-before-act flow without a model:
  * "תעביר את <ילד> ל<קבוצה> [מ-<תאריך>]", "תשלח ל<ילד>: <טקסט>", "תפתח השלמות עם <מדריך> ב-<תאריך> <שעה>-<שעה>",
- * "מי חייב", "מה יש היום / ב-<תאריך>".
+ * "תבטל את השיעורים ב-<תאריך> [ב<בריכה>] [בגלל <סיבה>]", "תמצא מחליף ל<מדריך> ב-<תאריך>", "מי חייב",
+ * "מה יש היום / ב-<תאריך>". "היום" and "מחר" stand for dates.
  */
-export function fakeIntent(prompt: string): FakeIntent {
+export function fakeIntent(prompt: string, today: string): FakeIntent {
   const text = prompt.trim().replace(/\s+/g, ' ');
+  const day = (w: string) => (w === 'היום' ? today : w === 'מחר' ? addDays(today, 1) : w);
+  const cancel = new RegExp(
+    `^(?:תבטל|בטל|לבטל) (?:את )?(?:כל )?(?:ה)?שיעורים (?:ב-?)?(${DATE.slice(1, -1)}|היום|מחר)(?: ב(?!גלל)(.+?))?(?: (?:בגלל|כי) (.+?))?[.!]?$`,
+  ).exec(text);
+  if (cancel)
+    return {
+      kind: 'cancel',
+      date: day(cancel[1] as string),
+      venue: cancel[2] ?? null,
+      reason: cancel[3] ?? null,
+    };
+  const sub = new RegExp(
+    `^(?:תמצא|מצא|למצוא|תחפש|חפש) מחלי(?:ף|פ)\\S* ל(.+?) (?:ב-?)?(${DATE.slice(1, -1)}|היום|מחר)[.!]?$`,
+  ).exec(text);
+  if (sub) return { kind: 'substitute', staff: sub[1] as string, date: day(sub[2] as string) };
   const move = new RegExp(
     `^(?:תעביר|העבר|להעביר) את (.+? ל.+?)(?: (?:מ-?|החל מ-?)${DATE})?[.!]?$`,
   ).exec(text);
@@ -277,6 +355,17 @@ export function fakeIntent(prompt: string): FakeIntent {
   const date = new RegExp(DATE).exec(text);
   if (date || /היום|שיעורים/.test(text)) return { kind: 'lessons', date: date?.[1] ?? null };
   return { kind: 'help' };
+}
+
+/** A date plus whole days. */
+export function addDays(date: string, days: number): string {
+  return new Date(Date.parse(`${date}T12:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** The last day of the month after the one `date` falls in (a closure's default makeup deadline). */
+export function endOfNextMonth(date: string): string {
+  const [y, m] = date.split('-').map(Number) as [number, number];
+  return new Date(Date.UTC(y, m + 1, 0)).toISOString().slice(0, 10);
 }
 
 /** The first date on or after `from` that falls on a weekday (0 = Sunday). */

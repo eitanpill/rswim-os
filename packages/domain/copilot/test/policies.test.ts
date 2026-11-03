@@ -5,6 +5,8 @@ import {
   copilotSystem,
   fakeIntent,
   nextWeekday,
+  addDays,
+  endOfNextMonth,
   parseProposal,
   proposalSummary,
 } from '../src/policies';
@@ -156,12 +158,12 @@ describe('copilotSystem', () => {
 
 describe('fakeIntent', () => {
   it('understands the demo phrasings', () => {
-    expect(fakeIntent('תעביר את יואב כהן לקבוצת מעורבת ראשון')).toEqual({
+    expect(fakeIntent('תעביר את יואב כהן לקבוצת מעורבת ראשון', '2026-11-03')).toEqual({
       kind: 'move',
       splits: [{ student: 'יואב כהן', group: 'מעורבת ראשון' }],
       date: null,
     });
-    expect(fakeIntent('תעביר את יואב לוי לקבוצה מעורבת')).toEqual({
+    expect(fakeIntent('תעביר את יואב לוי לקבוצה מעורבת', '2026-11-03')).toEqual({
       kind: 'move',
       splits: [
         { student: 'יואב', group: 'וי לקבוצה מעורבת' },
@@ -169,30 +171,30 @@ describe('fakeIntent', () => {
       ],
       date: null,
     });
-    expect(fakeIntent('העבר את נועה למבוגרים גוש מ-2026-10-12.')).toEqual({
+    expect(fakeIntent('העבר את נועה למבוגרים גוש מ-2026-10-12.', '2026-11-03')).toEqual({
       kind: 'move',
       splits: [{ student: 'נועה', group: 'מבוגרים גוש' }],
       date: '2026-10-12',
     });
-    expect(fakeIntent('תשלח להורים של יואב: השיעור מחר מתחיל ב-17:00')).toEqual({
+    expect(fakeIntent('תשלח להורים של יואב: השיעור מחר מתחיל ב-17:00', '2026-11-03')).toEqual({
       kind: 'message',
       student: 'יואב',
       text: 'השיעור מחר מתחיל ב-17:00',
     });
-    expect(fakeIntent('תפתח השלמות עם דני ב-2026-10-13 16:00-16:30')).toEqual({
+    expect(fakeIntent('תפתח השלמות עם דני ב-2026-10-13 16:00-16:30', '2026-11-03')).toEqual({
       kind: 'slots',
       staff: 'דני',
       date: '2026-10-13',
       from: '16:00',
       to: '16:30',
     });
-    expect(fakeIntent('מי חייב לנו כסף?')).toEqual({ kind: 'debts' });
-    expect(fakeIntent('מה יש היום')).toEqual({ kind: 'lessons', date: null });
-    expect(fakeIntent('אילו שיעורים יש ב-2026-10-13')).toEqual({
+    expect(fakeIntent('מי חייב לנו כסף?', '2026-11-03')).toEqual({ kind: 'debts' });
+    expect(fakeIntent('מה יש היום', '2026-11-03')).toEqual({ kind: 'lessons', date: null });
+    expect(fakeIntent('אילו שיעורים יש ב-2026-10-13', '2026-11-03')).toEqual({
       kind: 'lessons',
       date: '2026-10-13',
     });
-    expect(fakeIntent('שלום')).toEqual({ kind: 'help' });
+    expect(fakeIntent('שלום', '2026-11-03')).toEqual({ kind: 'help' });
   });
 });
 
@@ -232,12 +234,12 @@ describe('payment links (the brain)', () => {
   });
 
   it('reads "send a payment link to X for N" in the demo stand-in', () => {
-    expect(fakeIntent('תשלח קישור תשלום להורים של יואב על 300 ₪')).toEqual({
+    expect(fakeIntent('תשלח קישור תשלום להורים של יואב על 300 ₪', '2026-11-03')).toEqual({
       kind: 'payment',
       student: 'יואב',
       shekels: 300,
     });
-    expect(fakeIntent('שלח לינק לנועה על 120')).toEqual({
+    expect(fakeIntent('שלח לינק לנועה על 120', '2026-11-03')).toEqual({
       kind: 'payment',
       student: 'נועה',
       shekels: 120,
@@ -306,5 +308,99 @@ describe("the parents' bot actions (the brain)", () => {
     expect(actionStep({ status: 'confirmed', kind: 'report_absence' }, 'undo')).toMatchObject({
       ok: false,
     });
+  });
+});
+
+describe('stage 3: cancelling lessons and substitutes', () => {
+  const cancel = {
+    venueId: A,
+    startsOn: '2026-11-10',
+    endsOn: '2026-11-10',
+    reason: 'תקלה במים',
+    source: 'venue',
+    makeupDeadline: '2026-12-31',
+  };
+
+  it('takes a closure with a later makeup deadline, and a lesson to cover', () => {
+    expect(parseProposal('cancel_lessons', cancel)).toMatchObject({ ok: true });
+    expect(parseProposal('cancel_lessons', { ...cancel, venueId: null })).toMatchObject({
+      ok: true,
+    });
+    expect(parseProposal('cancel_lessons', { ...cancel, makeupDeadline: '2026-11-10' })).toEqual({
+      ok: false,
+      code: 'copilot.errors.badProposal',
+    });
+    expect(parseProposal('cancel_lessons', { ...cancel, endsOn: '2026-11-09' })).toMatchObject({
+      ok: false,
+    });
+    expect(parseProposal('substitute', { sessionId: A, reason: null })).toMatchObject({
+      ok: true,
+    });
+    expect(parseProposal('substitute', { sessionId: 'x', reason: null })).toMatchObject({
+      ok: false,
+    });
+  });
+
+  it('summarises a closure at one venue or everywhere, and a substitute', () => {
+    const base = { date: '2026-11-10', until: '2026-11-10', sessions: 7, reason: 'תקלה' };
+    expect(proposalSummary({ kind: 'cancel_lessons', venue: 'אפרת', ...base })).toEqual({
+      code: 'copilot.summary.cancelLessons',
+      params: { venue: 'אפרת', ...base },
+    });
+    expect(proposalSummary({ kind: 'cancel_lessons', venue: null, ...base })).toEqual({
+      code: 'copilot.summary.cancelLessonsAll',
+      params: base,
+    });
+    expect(
+      proposalSummary({
+        kind: 'substitute',
+        staff: 'דני לוי',
+        group: 'כרישים',
+        date: '2026-11-10',
+        time: '16:00',
+      }),
+    ).toEqual({
+      code: 'copilot.summary.substitute',
+      params: { staff: 'דני לוי', group: 'כרישים', date: '2026-11-10', time: '16:00' },
+    });
+  });
+
+  it('understands cancelling a day and finding a substitute in the fake', () => {
+    const T = '2026-11-03';
+    expect(fakeIntent('תבטל את השיעורים מחר', T)).toEqual({
+      kind: 'cancel',
+      date: '2026-11-04',
+      venue: null,
+      reason: null,
+    });
+    expect(fakeIntent('בטל את כל השיעורים ב-2026-11-10 באפרת בגלל תקלה במים.', T)).toEqual({
+      kind: 'cancel',
+      date: '2026-11-10',
+      venue: 'אפרת',
+      reason: 'תקלה במים',
+    });
+    expect(fakeIntent('תבטל שיעורים היום כי אין חשמל', T)).toEqual({
+      kind: 'cancel',
+      date: T,
+      venue: null,
+      reason: 'אין חשמל',
+    });
+    expect(fakeIntent('תמצא מחליף לדני היום', T)).toEqual({
+      kind: 'substitute',
+      staff: 'דני',
+      date: T,
+    });
+    expect(fakeIntent('תחפש מחליפה למיכל ב-2026-11-12', T)).toEqual({
+      kind: 'substitute',
+      staff: 'מיכל',
+      date: '2026-11-12',
+    });
+  });
+
+  it('counts days and finds the end of the next month', () => {
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
+    expect(endOfNextMonth('2026-11-15')).toBe('2026-12-31');
+    expect(endOfNextMonth('2026-12-01')).toBe('2027-01-31');
+    expect(endOfNextMonth('2027-01-31')).toBe('2027-02-28');
   });
 });

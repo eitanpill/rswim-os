@@ -160,7 +160,32 @@ describe("the parents' bot acts through the brain", () => {
     // A family whose child has a free seat to make up in (which ones do depends on the day the test runs).
     const [{ d: expiresOn }] = await q(`select ($1::date + 30)::text d`, [today]);
     let found: { f: Family; creditId: string } | null = null;
-    for (const f of [fam[1]!, ...fam.slice(4)]) {
+    // Any child the family's message names alone, in a family with no open credit (so the bot books this one).
+    const candidates = (
+      await q(
+        `select h.id household_id, g.phone_e164 phone, st.id student_id, st.first_name child, ct.program_id
+         from students st join households h on h.id = st.household_id
+         join guardians g on g.household_id = h.id and g.phone_e164 is not null
+         join enrollments e on e.student_id = st.id and e.status = 'active'
+         join class_templates ct on ct.id = e.class_template_id
+         where (select count(*) from guardians x where x.phone_e164 = g.phone_e164) = 1
+           and (select count(*) from guardians x where x.household_id = h.id and x.phone_e164 is not null) = 1
+           and (select count(*) from students y where y.household_id = h.id and y.first_name = st.first_name) = 1
+           and (select count(*) from enrollments z where z.student_id = st.id and z.status = 'active') = 1
+           and not exists (select 1 from makeup_credits c join students z on z.id = c.student_id
+                           where z.household_id = h.id and c.status = 'open')
+           and h.id <> all($1::uuid[])
+         order by st.first_name, st.id limit 40`,
+        [[fam[0]!, fam[2]!, fam[3]!].map((x) => x.householdId)],
+      )
+    ).map((r) => ({
+      householdId: r.household_id,
+      phone: r.phone,
+      studentId: r.student_id,
+      child: r.child,
+      programId: r.program_id,
+    }));
+    for (const f of candidates) {
       const creditId = await as((tx) =>
         issueGoodwillCredit(tx, owner, {
           studentId: f.studentId,
