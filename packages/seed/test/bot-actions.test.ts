@@ -104,7 +104,7 @@ beforeAll(async () => {
      where (select count(*) from guardians x where x.phone_e164 = g.phone_e164) = 1
        and (select count(*) from students y where y.household_id = h.id) = 1
        and (select count(*) from enrollments z where z.student_id = st.id and z.status = 'active') = 1
-     order by h.id, g.created_at limit 6`,
+     order by h.id, g.created_at limit 12`,
     [today],
   );
   for (const r of rows)
@@ -157,25 +157,33 @@ describe("the parents' bot acts through the brain", () => {
   });
 
   it('books a makeup that waits for the owner, then runs on her tap and is undone', async () => {
-    const f = fam[1]!;
+    // A family whose child has a free seat to make up in (which ones do depends on the day the test runs).
     const [{ d: expiresOn }] = await q(`select ($1::date + 30)::text d`, [today]);
-    const creditId = await as((tx) =>
-      issueGoodwillCredit(tx, owner, {
-        studentId: f.studentId,
-        programId: f.programId,
-        expiresOn,
-        note: 'בדיקה',
-      }),
-    );
+    let found: { f: Family; creditId: string } | null = null;
+    for (const f of [fam[1]!, ...fam.slice(4)]) {
+      const creditId = await as((tx) =>
+        issueGoodwillCredit(tx, owner, {
+          studentId: f.studentId,
+          programId: f.programId,
+          expiresOn,
+          note: 'בדיקה',
+        }),
+      );
+      const options = await withOrg(t.db, DEMO_ORG.id, (tx) =>
+        botToolbox(tx, worker, f.householdId, today, [], {
+          id: randomUUID(),
+          body: '',
+          receivedAt: new Date(),
+        }).call('makeup_options', { creditId }),
+      );
+      if ((options as unknown[]).length > 0) {
+        found = { f, creditId };
+        break;
+      }
+    }
+    expect(found).not.toBeNull();
+    const { f, creditId } = found!;
     const r = await write(f, `אפשר לקבוע השלמה ל${f.child}?`);
-    const options = await withOrg(t.db, DEMO_ORG.id, (tx) =>
-      botToolbox(tx, worker, f.householdId, today, [], {
-        id: r.id,
-        body: '',
-        receivedAt: new Date(),
-      }).call('makeup_options', { creditId }),
-    );
-    expect((options as unknown[]).length).toBeGreaterThan(0);
     expect(r.actions).toHaveLength(1);
     expect(r.actions[0]).toMatchObject({
       kind: 'book_makeup',
