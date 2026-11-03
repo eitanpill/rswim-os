@@ -180,6 +180,17 @@ test('the desk decides what to charge: a pass given free, a booking collected at
   await expect(pass.getByRole('status')).toContainText('נוסף לצולל');
   await expect(page.getByTestId('till')).toBeVisible();
   const book = page.getByTestId('quick-book');
+  // A beginners' session on a later day: open to any diver, and untouched by today's sea call or the hour of the run
+  // (the first upcoming session may be one that needs a level the first diver lacks).
+  const session = book.getByLabel('מפגש', { exact: true });
+  const beginners = await session
+    .locator('option')
+    .evaluateAll((all) =>
+      all
+        .filter((o) => o.textContent?.includes('חוויית צלילה חופשית'))
+        .map((o) => (o as HTMLOptionElement).value),
+    );
+  await session.selectOption(beginners.at(-1) ?? '');
   await book.getByLabel('תשלום', { exact: true }).selectOption('collect');
   await book.getByRole('button', { name: 'לרשום' }).click();
   await expect(book.getByRole('status')).toContainText('נרשם');
