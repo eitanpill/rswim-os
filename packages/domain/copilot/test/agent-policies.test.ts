@@ -5,6 +5,8 @@ import {
   approvalText,
   capLevel,
   decisionText,
+  eveningText,
+  morningPlan,
   effectiveLevels,
   levelsWithinCeiling,
   matchingProfile,
@@ -203,5 +205,71 @@ describe("an instructor's message", () => {
     expect(en(0, 0)).toContain('no lessons');
     expect(en(2, 1)).toContain('approval');
     expect(en(2, 0)).toContain('looking for a substitute');
+  });
+});
+
+describe('the morning check', () => {
+  const base = {
+    debts: [
+      { householdId: 'a', balanceAgorot: 20000, oldestDays: 40 },
+      { householdId: 'b', balanceAgorot: 50000, oldestDays: 31 },
+      { householdId: 'c', balanceAgorot: 90000, oldestDays: 5 },
+      { householdId: 'd', balanceAgorot: 50, oldestDays: 90 },
+      { householdId: 'e', balanceAgorot: 30000, oldestDays: 60 },
+    ],
+    uncovered: [{ sessionId: 's1' }, { sessionId: 's2' }],
+    debtAttentionDays: 30,
+    askedHouseholds: ['e'],
+    coveredSessions: ['s2'],
+    levels: { payment_link: 'approve', substitute: 'auto' } as const,
+  };
+
+  it('asks old debts to pay, largest first, and looks for instructors for new gaps', () => {
+    expect(morningPlan(base)).toEqual({
+      payments: [
+        { householdId: 'b', amountAgorot: 50000 },
+        { householdId: 'a', amountAgorot: 20000 },
+      ],
+      substitutes: [{ sessionId: 's1' }],
+    });
+  });
+
+  it('proposes nothing of a kind the owner turned off', () => {
+    expect(morningPlan({ ...base, levels: { payment_link: 'off', substitute: 'off' } })).toEqual({
+      payments: [],
+      substitutes: [],
+    });
+  });
+});
+
+describe('the evening summary', () => {
+  const day = {
+    date: '2026-11-03',
+    alone: 4,
+    approved: 2,
+    waiting: 1,
+    failed: 0,
+    tomorrowLessons: 12,
+    tomorrowUncovered: 1,
+  };
+
+  it('counts the day and tomorrow, in both languages', () => {
+    expect(eveningText(day, 'he')).toBe(
+      [
+        '🌙 היום של המוח (03/11/2026)',
+        '• בוצעו לבד: 4',
+        '• אושרו על ידך: 2',
+        '• מחכות לך: 1 (לאישור השיבו "כן <מספר>")',
+        '• הכללים לא אפשרו: 0',
+        'מחר: 12 שיעורים, 1 בלי מדריך.',
+      ].join('\n'),
+    );
+    const quiet = { ...day, waiting: 0, tomorrowUncovered: 0 };
+    expect(eveningText(quiet, 'he')).toContain('מחכות לך: 0\n');
+    expect(eveningText(quiet, 'he')).toContain('מחר: 12 שיעורים.');
+    expect(eveningText(day, 'en')).toContain('1 without an instructor');
+    expect(eveningText(day, 'en')).toContain('reply "yes <number>"');
+    expect(eveningText(quiet, 'en')).toContain('Tomorrow: 12 lessons.');
+    expect(eveningText(quiet, 'en')).toContain('Waiting for you: 0\n');
   });
 });

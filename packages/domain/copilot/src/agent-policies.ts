@@ -126,6 +126,7 @@ const SUMMARY_TEXT: Record<Locale, Record<string, string>> = {
     cancelLessons: 'לבטל את השיעורים ב{venue} מ-{date} עד {until} ({sessions} שיעורים, {reason})',
     cancelLessonsAll: 'לבטל את כל השיעורים מ-{date} עד {until} ({sessions} שיעורים, {reason})',
     substitute: 'למצוא מחליף ל{staff} בשיעור {group}, {date} {time}',
+    substituteOpen: 'למצוא מדריך/ה לשיעור {group}, {date} {time}',
   },
   en: {
     move: 'Move {student} from {from} to {to}, from {date}',
@@ -140,6 +141,7 @@ const SUMMARY_TEXT: Record<Locale, Record<string, string>> = {
       'Cancel the lessons at {venue} from {date} to {until} ({sessions} lessons, {reason})',
     cancelLessonsAll: 'Cancel all lessons from {date} to {until} ({sessions} lessons, {reason})',
     substitute: 'Find a substitute for {staff} in {group}, {date} {time}',
+    substituteOpen: 'Find an instructor for {group}, {date} {time}',
   },
 };
 
@@ -252,4 +254,92 @@ export function staffReplyText(
   return r.waiting > 0
     ? `תודה, רפואה שלמה. ${r.lessons} שיעורים ב-${d}: חיפוש מחליף מחכה לאישור המשרד, וההורים יעודכנו.`
     : `תודה, רפואה שלמה. מחפשים מחליף ל-${r.lessons} השיעורים שלך ב-${d}, וההורים יעודכנו.`;
+}
+
+// ─── The morning check and the evening summary (stage 4) ────────────────────
+
+export interface MorningFacts {
+  /** Families that owe money, with the age of their oldest charge in days. */
+  debts: { householdId: string; balanceAgorot: number; oldestDays: number }[];
+  /** Lessons in the coming week with nobody to teach them. */
+  uncovered: { sessionId: string }[];
+  /** From the insights' rules: how old a debt must be before the brain asks the family to pay. */
+  debtAttentionDays: number;
+  /** Families the brain already asked to pay within debtAttentionDays, or who hold an unpaid link. */
+  askedHouseholds: readonly string[];
+  /** Lessons the brain already looks for an instructor for (or the owner dropped). */
+  coveredSessions: readonly string[];
+  levels: { payment_link: AutonomyLevel; substitute: AutonomyLevel };
+}
+
+export interface MorningPlan {
+  payments: { householdId: string; amountAgorot: number }[];
+  substitutes: { sessionId: string }[];
+}
+
+/** The smallest payment link (agorot); a smaller balance is not worth a link. */
+export const MIN_LINK_AGOROT = 100;
+
+/**
+ * What the morning check proposes: a payment link to each family whose debt reached the insights' attention age and
+ * who was not asked lately, and an instructor search for each uncovered lesson not already being handled. A kind the
+ * owner turned off proposes nothing. The gate then decides, per action, whether it runs or waits.
+ */
+export function morningPlan(f: MorningFacts): MorningPlan {
+  const asked = new Set(f.askedHouseholds);
+  const covered = new Set(f.coveredSessions);
+  return {
+    payments:
+      f.levels.payment_link === 'off'
+        ? []
+        : f.debts
+            .filter(
+              (d) =>
+                d.oldestDays >= f.debtAttentionDays &&
+                d.balanceAgorot >= MIN_LINK_AGOROT &&
+                !asked.has(d.householdId),
+            )
+            .sort((a, b) => b.balanceAgorot - a.balanceAgorot)
+            .map((d) => ({ householdId: d.householdId, amountAgorot: d.balanceAgorot })),
+    substitutes:
+      f.levels.substitute === 'off'
+        ? []
+        : f.uncovered
+            .filter((u) => !covered.has(u.sessionId))
+            .map((u) => ({ sessionId: u.sessionId })),
+  };
+}
+
+export interface DayFacts {
+  date: string;
+  /** Actions of the day that ran without a tap, that the owner approved, that wait now, and that the rules refused. */
+  alone: number;
+  approved: number;
+  waiting: number;
+  failed: number;
+  tomorrowLessons: number;
+  tomorrowUncovered: number;
+}
+
+/** The evening WhatsApp to the owner: what the brain did today and what tomorrow holds. */
+export function eveningText(d: DayFacts, locale: Locale): string {
+  const date = dmy(d.date);
+  if (locale === 'en') {
+    return [
+      `🌙 The brain's day (${date})`,
+      `• Done on its own: ${d.alone}`,
+      `• Approved by you: ${d.approved}`,
+      `• Waiting for you: ${d.waiting}${d.waiting ? ' (reply "yes <number>" to approve)' : ''}`,
+      `• Refused by the rules: ${d.failed}`,
+      `Tomorrow: ${d.tomorrowLessons} lessons${d.tomorrowUncovered ? `, ${d.tomorrowUncovered} without an instructor` : ''}.`,
+    ].join('\n');
+  }
+  return [
+    `🌙 היום של המוח (${date})`,
+    `• בוצעו לבד: ${d.alone}`,
+    `• אושרו על ידך: ${d.approved}`,
+    `• מחכות לך: ${d.waiting}${d.waiting ? ' (לאישור השיבו "כן <מספר>")' : ''}`,
+    `• הכללים לא אפשרו: ${d.failed}`,
+    `מחר: ${d.tomorrowLessons} שיעורים${d.tomorrowUncovered ? `, ${d.tomorrowUncovered} בלי מדריך` : ''}.`,
+  ].join('\n');
 }

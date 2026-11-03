@@ -14,7 +14,14 @@ import {
   ranAloneToday,
 } from '@rswim/domain-copilot';
 import { Badge, Card, CardTitle, PageHeader } from '@rswim/ui';
-import { ActionButton, ActionForm, Field, SelectField, SubmitButton } from '@/components/form';
+import {
+  ActionButton,
+  ActionForm,
+  CheckboxField,
+  Field,
+  SelectField,
+  SubmitButton,
+} from '@/components/form';
 import { withSession } from '@/lib/db';
 import { shekelValue } from '@/lib/options';
 import { AgentActionList } from './action-list';
@@ -117,6 +124,11 @@ export default async function BrainPage() {
                 {t('whatsapp.save')}
               </SubmitButton>
             </div>
+            <CheckboxField
+              name="eveningSummary"
+              label={t('whatsapp.evening')}
+              defaultChecked={settings.eveningSummary}
+            />
           </ActionForm>
           <p className="mt-2 text-xs text-ink-muted">
             {settings.approvalPhoneE164 ? t('whatsapp.on') : t('whatsapp.off')}

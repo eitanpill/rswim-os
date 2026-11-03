@@ -106,14 +106,33 @@ with that number, as the school's owner (`decided_by` is the owner's user), and 
 refused by the rules, dropped, not found, already decided). The parents' bot never answers those messages. Like every
 message, approval requests wait out quiet hours and Shabbat.
 
+## The daily rounds (stage 4)
+
+**Morning check** (`morning.ts`, worker function `brain-morning-check`, 07:00, after the insights feed at 06:30): the
+brain acts on what the insights see, through the gate with source `morning_check`:
+
+- A payment link for each family whose oldest unpaid charge reached `insights.debt_attention_days`, for its balance,
+  largest first. Not again for a family it asked within that many days, nor for one holding an unpaid link.
+- An instructor search (`substitute`, summary "למצוא מדריך/ה לשיעור…") for each lesson of the coming week with nobody
+  to teach it, unless a search is already open or the owner dropped one for that lesson.
+
+A kind the owner turned off proposes nothing. Under the careful profile everything waits, and with an approvals number
+each waiting action goes to the owner's WhatsApp like any other. With insights off the morning check does nothing.
+
+**Evening summary** (`brain-evening-summary`, 20:00): one WhatsApp to the approvals number with today's actions (done
+alone, approved, still waiting, refused) and tomorrow's lessons and gaps. Once a day; the owner can turn it off on the
+brain page (`agent_settings.evening_summary`). Like every message it waits out quiet hours and Shabbat.
+
+Missing forms are not part of the swim school's morning check: the forms flow exists only in the freediving vertical.
+
 ## Stages
 
 1. **Engine** (PR #26): gate, settings, journal and undo, the screens; the chat's moves, messages, makeup slots and
    payment links go through it.
 2. **The parents' bot acts** (PR #27): absence notices, makeup bookings and freezes, by level.
-3. **Requests from Reut and instructors** (this PR): cancel a day and tell everyone, a sick instructor and a
+3. **Requests from Reut and instructors** (PR #28): cancel a day and tell everyone, a sick instructor and a
    substitute, approval from Reut's WhatsApp.
-4. The morning check acts (payment reminders, free seats to families waiting for a makeup, missing forms) and an
-   evening summary.
+4. **The daily rounds** (this PR): the morning check asks old debts to pay and finds instructors for uncovered
+   lessons; the evening summary.
 
 Kinds not wired yet show as "soon" in the settings.

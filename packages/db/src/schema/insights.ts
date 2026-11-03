@@ -138,6 +138,8 @@ export const agentSettings = pgTable(
     paused: boolean('paused').notNull().default(false),
     /** The owner's WhatsApp: actions that wait are sent there, and "כן 12" / "לא 12" from it decides them. */
     approvalPhoneE164: text('approval_phone_e164'),
+    /** A short summary of the brain's day to the approvals number every evening. */
+    eveningSummary: boolean('evening_summary').notNull().default(true),
     updatedBy: uuid('updated_by'),
     updatedAt: updatedAt(),
   },

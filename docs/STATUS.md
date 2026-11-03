@@ -279,3 +279,11 @@ family or an instructor asked for go to the owner's WhatsApp with a number; "כ�
 runs as the owner and undo withdraws, "לא" drops, the parents' bot skips the answer, chat substitutes, chat cancels a
 day only after confirming), `apps/web/e2e/brain.spec.ts`. Not verified yet: real WhatsApp through GHL (fake provider
 here) and real Claude choosing the new tools.
+
+## The business brain, stage 4 (the daily rounds)
+
+At 07:00 the brain turns old debts into payment links and uncovered lessons into instructor searches through its gate
+(waiting for the owner, and her WhatsApp, under the careful profile); at 20:00 the approvals number gets a summary of
+the day. Proof: `packages/domain/copilot/test/agent-policies.test.ts` (100%), `packages/seed/test/brain-rounds.test.ts`
+(off proposes nothing, an old debt and a gap become waiting actions sent to WhatsApp, nothing repeats the next morning,
+the summary goes once and not when off or without a number). Not verified yet: the crons on a real Inngest account.

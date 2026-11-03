@@ -1,0 +1,1 @@
+ALTER TABLE "agent_settings" ADD COLUMN "evening_summary" boolean DEFAULT true NOT NULL;

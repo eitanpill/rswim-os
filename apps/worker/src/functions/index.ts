@@ -21,6 +21,7 @@ import {
   brainInbound,
   crmPipelineSync,
 } from './comms';
+import { brainEveningSummary, brainMorningCheck } from './brain';
 import { corePing } from './core-ping';
 import { crmApplyWebhook, crmImportContacts, crmPushGuardian } from './crm';
 import { outboxRelay } from './outbox-relay';
@@ -82,5 +83,7 @@ export const functions = [
   commsAiTriage,
   commsParentBot,
   brainInbound,
+  brainMorningCheck,
+  brainEveningSummary,
   crmPipelineSync,
 ];

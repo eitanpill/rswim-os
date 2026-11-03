@@ -37,6 +37,8 @@ export interface AgentSettingsState extends AgentSettingsView {
   matches: AgentProfile | null;
   /** The owner's WhatsApp for approvals, or null (approvals only on the screen). */
   approvalPhoneE164: string | null;
+  /** Whether that number gets the evening summary. */
+  eveningSummary: boolean;
 }
 
 /** The school's settings, or the careful defaults when the owner never saved any. */
@@ -56,6 +58,7 @@ export async function getAgentSettings(tx: Tx): Promise<AgentSettingsState> {
     effective: effectiveLevels(view),
     matches: matchingProfile(view),
     approvalPhoneE164: row?.approvalPhoneE164 ?? null,
+    eveningSummary: row?.eveningSummary ?? true,
   };
 }
 
@@ -99,13 +102,18 @@ export async function setAgentPaused(tx: Tx, ctx: ServiceContext, paused: boolea
 
 /**
  * The owner's WhatsApp number for approvals: an action that waits is sent there, and "כן 12" / "לא 12" from that number
- * decides it. Empty turns WhatsApp approvals off.
+ * decides it, and the evening summary goes there unless turned off. Empty turns WhatsApp approvals off.
  */
-export async function setApprovalPhone(tx: Tx, ctx: ServiceContext, raw: string | null) {
+export async function setApprovalPhone(
+  tx: Tx,
+  ctx: ServiceContext,
+  raw: string | null,
+  eveningSummary = true,
+) {
   const text = (raw ?? '').trim();
   const phone = text ? toE164IL(text) : null;
   if (text && !phone) throw new DomainError('agent.errors.phone');
-  await upsert(tx, ctx, { approvalPhoneE164: phone });
+  await upsert(tx, ctx, { approvalPhoneE164: phone, eveningSummary });
 }
 
 // ─── The gate ───────────────────────────────────────────────────────────────
