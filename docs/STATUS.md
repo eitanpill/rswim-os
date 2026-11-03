@@ -247,3 +247,14 @@ update-card step of dunning, schedule changes).
   `packages/db/test/rls/portal-slots.test.ts`, `e2e/portal.spec.ts`.
 - Freediving rules editor and day-before reminders: `packages/domain/dive/test/rules.test.ts`,
   `packages/db/test/rls/dive-rules.test.ts`, `e2e/dive-rules.spec.ts`, `packages/domain/comms/test/dive-reminder.test.ts`.
+
+## The business brain, stage 1 (engine)
+
+The owner decides per kind of action how much the AI does on its own (off, suggest, approve, auto), with ready-made
+profiles, caps and a stop switch; everything it proposes or does lands in one journal with undo
+(`docs/AI-BRAIN.md`). The owner's chat now runs through the gate, and also sends payment links. Screens:
+`/admin/brain`, `/admin/brain/journal`, and the "waiting for you" card on the owner's home.
+Proof: `packages/domain/copilot/test/agent-policies.test.ts` (100% of the gate), `packages/seed/test/copilot.test.ts`
+(careful by default, autopilot runs and undoes a move, payment links under and over the cap, free text never alone,
+paused, off, the daily cap, ceilings, owner only, audited), `packages/db/test/rls/isolation.test.ts`,
+`apps/web/e2e/brain.spec.ts`. Not verified yet: real Claude choosing the tools (runs on the rules-based fake here).

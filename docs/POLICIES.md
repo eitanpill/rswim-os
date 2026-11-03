@@ -309,6 +309,21 @@ with `RSWIM_BOT_FAKE=1`. Without either the bot stays out of the way and the inb
   entry. The office edits it (removing personal details) and approves it, and from then on the bot uses it. Entries the
   office writes itself are active at once. The office marks the bot's answers good or bad on `/admin/messages/bot`.
 
+## 20. The business brain (how much the AI does on its own)
+
+Owner only, in `agent_settings` (not a policy version: the stop switch acts at once). See `docs/AI-BRAIN.md`.
+
+| Setting | Default | Notes |
+|---|---|---|
+| Profile | careful | careful / balanced / autopilot fill the level table; the owner can change any row |
+| Level per kind | careful's table | off, suggest, approve, auto, never above the kind's ceiling |
+| Most actions on its own per day | 30 | Beyond it, every action waits |
+| Payment link on its own up to | ₪300 | A larger link waits |
+| Paused | no | Nothing runs on its own while paused |
+
+Ceilings: a free-text message and cancelling lessons always wait for a person. Leaving the school, refunds and credits,
+and sensitive topics are never actions.
+
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.
 - Proration rounds per line; statement total = sum of rounded lines.

@@ -5,10 +5,12 @@
  */
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
   check,
   date,
   foreignKey,
   index,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -17,7 +19,10 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import {
-  COPILOT_ACTION_KINDS,
+  AGENT_ACTION_KINDS,
+  AGENT_PROFILES,
+  AGENT_SOURCES,
+  AUTONOMY_LEVELS,
   COPILOT_ACTION_STATUSES,
   COPILOT_REQUEST_STATUSES,
   INSIGHT_KINDS,
@@ -52,12 +57,20 @@ export const copilotRequests = pgTable(
   ],
 );
 
+/**
+ * The brain's journal (docs/AI-BRAIN.md): every action it proposed or took, from any channel. A row from the owner's
+ * chat carries its request; `autonomy` is the level the gate applied, and `ran_alone` marks an action that ran
+ * without a person's tap (decided_by is then null).
+ */
 export const copilotActions = pgTable(
   'copilot_actions',
   {
     id: id(),
     organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
-    requestId: uuid('request_id').notNull(),
+    requestId: uuid('request_id'),
+    source: text('source').notNull().default('owner_chat'),
+    autonomy: text('autonomy'),
+    ranAlone: boolean('ran_alone').notNull().default(false),
     kind: text('kind').notNull(),
     params: jsonb('params').notNull(),
     /** What the owner reads before confirming: an i18n code and params built from the params, never the model's words. */
@@ -80,11 +93,43 @@ export const copilotActions = pgTable(
       foreignColumns: [copilotRequests.organizationId, copilotRequests.id],
     }).onDelete('cascade'),
     index('copilot_actions_request').on(t.requestId),
-    check('copilot_actions_kind_check', sql.raw(`kind in (${inList(COPILOT_ACTION_KINDS)})`)),
+    index('copilot_actions_recent').on(t.organizationId, t.createdAt),
+    check('copilot_actions_kind_check', sql.raw(`kind in (${inList(AGENT_ACTION_KINDS)})`)),
+    check('copilot_actions_source_check', sql.raw(`source in (${inList(AGENT_SOURCES)})`)),
+    check(
+      'copilot_actions_autonomy_check',
+      sql.raw(`autonomy is null or autonomy in (${inList(AUTONOMY_LEVELS)})`),
+    ),
+    check('copilot_actions_alone_check', sql`not ${t.ranAlone} or ${t.decidedBy} is null`),
     check(
       'copilot_actions_status_check',
       sql.raw(`status in (${inList(COPILOT_ACTION_STATUSES)})`),
     ),
+  ],
+);
+
+/**
+ * How much the brain may do on its own in one school (docs/AI-BRAIN.md): a level per kind of action, the caps above
+ * them and the stop switch. One row per school; no row means the careful profile.
+ */
+export const agentSettings = pgTable(
+  'agent_settings',
+  {
+    organizationId: uuid('organization_id')
+      .primaryKey()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    profile: text('profile').notNull().default('careful'),
+    /** { kind: level } for every kind the owner set; a missing kind takes the profile's level. */
+    levels: jsonb('levels').notNull().default({}),
+    maxAutoPerDay: integer('max_auto_per_day').notNull().default(30),
+    maxAutoPaymentAgorot: integer('max_auto_payment_agorot').notNull().default(30000),
+    paused: boolean('paused').notNull().default(false),
+    updatedBy: uuid('updated_by'),
+    updatedAt: updatedAt(),
+  },
+  () => [
+    check('agent_settings_profile_check', sql.raw(`profile in (${inList(AGENT_PROFILES)})`)),
+    check('agent_settings_caps_check', sql`max_auto_per_day >= 0 and max_auto_payment_agorot >= 0`),
   ],
 );
 

@@ -11,6 +11,7 @@ const LINKS = [
   'branding',
   'templates',
   'reports',
+  'brain',
   'copilot',
   'messages',
   'transport',
@@ -43,6 +44,7 @@ const HREF: Record<(typeof LINKS)[number], string> = {
   branding: '/admin/branding',
   templates: '/admin/templates',
   reports: '/admin/reports',
+  brain: '/admin/brain',
   copilot: '/admin/copilot',
   messages: '/admin/messages',
   transport: '/admin/transport',
@@ -73,6 +75,7 @@ const HREF: Record<(typeof LINKS)[number], string> = {
 /** Screens that exist only on plans that include them. */
 const FEATURE: Partial<Record<(typeof LINKS)[number], PlanFeature>> = {
   reports: 'reports',
+  brain: 'copilot',
   copilot: 'copilot',
   transport: 'transport',
   cohorts: 'courses',

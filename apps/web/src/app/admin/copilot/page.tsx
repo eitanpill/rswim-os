@@ -1,5 +1,11 @@
 import { getTranslations } from 'next-intl/server';
-import { copilotAvailable, listCopilot, type CopilotActionRow } from '@rswim/domain-copilot';
+import Link from 'next/link';
+import {
+  copilotAvailable,
+  listCopilot,
+  undoable,
+  type CopilotActionRow,
+} from '@rswim/domain-copilot';
 import { todayIL } from '@rswim/domain-scheduling';
 import { Badge, Card, EmptyState, PageHeader } from '@rswim/ui';
 import { ActionButton, ActionForm, SubmitButton, TextareaField } from '@/components/form';
@@ -23,8 +29,9 @@ const TONE = {
 } as const;
 
 /**
- * The owner's copilot (brief §6.15): ask in Hebrew; the model reads and proposes, and nothing happens until the owner
- * taps confirm. A confirmed move can be undone here.
+ * The owner's copilot (brief §6.15), the business brain's chat: ask in Hebrew; the model reads and acts through the
+ * brain's gate, so an action runs at once only when the owner let that kind run alone (docs/AI-BRAIN.md), otherwise
+ * it waits for the owner's tap. A confirmed move, slots or payment link can be undone here.
  */
 export default async function CopilotPage() {
   const t = await getTranslations('copilot');
@@ -42,7 +49,15 @@ export default async function CopilotPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={
+          <Link href="/admin/brain" className="text-sm text-brand-700 underline">
+            {t('brainLink')}
+          </Link>
+        }
+      />
       <div className="flex flex-col gap-4">
         {gate.ok ? (
           <Card>
@@ -127,7 +142,7 @@ export default async function CopilotPage() {
                           </ActionButton>
                         </>
                       ) : null}
-                      {a.status === 'confirmed' && a.kind === 'move_student' ? (
+                      {a.status === 'confirmed' && undoable(a.kind) ? (
                         <ActionButton
                           action={undoCopilotActionAction}
                           fields={{ id: a.id }}

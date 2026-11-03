@@ -1,20 +1,24 @@
 /**
- * The owner's copilot (brief §6.15). A request runs the model with read tools and propose tools inside the owner's own
- * transaction (RLS as the owner); proposals are stored and wait. Confirming one runs the same domain service the
- * screens use (placeStudent, sendToTargets, openSlots), as the owner, under the same policies; the copilot tables and
- * those services write the audit log. Read tools query as the owner, like the reports read model.
+ * The owner's copilot (brief §6.15), the business brain's chat (docs/AI-BRAIN.md). A request runs the model with read
+ * tools and propose tools inside the owner's own transaction (RLS as the owner). Each proposal passes the brain's gate:
+ * it runs at once when the owner let that kind run on its own, otherwise it waits for the owner's tap. Running one
+ * calls the same domain service the screens use (placeStudent, sendToTargets, openSlots, requestPaymentLink), as the
+ * owner, under the same policies; the copilot tables and those services write the audit log. Read tools query as the
+ * owner, like the reports read model.
  */
 import { randomUUID } from 'node:crypto';
 import {
   SLOT_DEFAULT_CAPACITY,
+  type AgentSource,
   type CopilotActionKind,
   type CopilotActionStatus,
 } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
-import { debtsDashboard } from '@rswim/domain-billing';
+import { cancelPaymentLink, debtsDashboard, requestPaymentLink } from '@rswim/domain-billing';
 import { schoolName, sendToTargets } from '@rswim/domain-comms';
 import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
 import {
+  cancelSlot,
   openSlots,
   placeStudent,
   previewPlacement,
@@ -29,6 +33,7 @@ import {
   type CopilotTool,
   type CopilotTraceStep,
 } from '@rswim/integrations';
+import { gateFor } from './agent';
 import {
   actionStep,
   copilotGate,
@@ -121,6 +126,19 @@ export const COPILOT_TOOLS: CopilotTool[] = [
     ]),
   },
   {
+    name: 'propose_payment_link',
+    description:
+      'Propose sending a family a payment link for an amount in agorot (100 = 1 shekel), with a short description the family sees. Use the debts tool for what they owe.',
+    input_schema: obj(
+      {
+        householdId: str('Family id'),
+        amountAgorot: { type: 'integer', description: 'Amount in agorot, at least 100' },
+        description: str('What the payment is for, in Hebrew'),
+      },
+      ['householdId', 'amountAgorot', 'description'],
+    ),
+  },
+  {
     name: 'propose_open_makeup_slots',
     description:
       'Propose opening makeup slots with an instructor at a venue on a date and time. The owner confirms.',
@@ -139,9 +157,9 @@ export const COPILOT_TOOLS: CopilotTool[] = [
 ];
 
 interface Proposal {
+  id: string;
   kind: CopilotActionKind;
-  params: unknown;
-  summary: Explanation;
+  status: 'done' | 'waiting' | 'failed';
 }
 
 const one = <T>(xs: T[], code = 'common.errors.notFound'): T => {
@@ -150,8 +168,11 @@ const one = <T>(xs: T[], code = 'common.errors.notFound'): T => {
   return x;
 };
 
-/** The tools bound to one request: reads run as the owner; proposals are checked and collected, never applied. */
-export function copilotToolbox(tx: Tx, today: string) {
+/**
+ * The tools bound to one request: reads run as the owner; each proposal is checked, passes the brain's gate and is
+ * stored on the request, and runs at once only when the gate says so.
+ */
+export function copilotToolbox(tx: Tx, ctx: ServiceContext, today: string, requestId: string) {
   const proposals: Proposal[] = [];
   const name = async (
     table: 'students' | 'class_templates' | 'staff_members' | 'venues',
@@ -238,6 +259,8 @@ export function copilotToolbox(tx: Tx, today: string) {
         return propose('message_family', input);
       case 'propose_open_makeup_slots':
         return propose('open_makeup_slots', input);
+      case 'propose_payment_link':
+        return propose('payment_link', input);
       default:
         throw new DomainError('copilot.errors.unknownTool');
     }
@@ -273,6 +296,19 @@ export function copilotToolbox(tx: Tx, today: string) {
       );
       if (!h) throw new DomainError('common.errors.notFound');
       summary = proposalSummary({ kind, family: h.n, text: p.text });
+    } else if (kind === 'payment_link') {
+      const p = parsed.params as ProposalParams['payment_link'];
+      const [h] = await rows<{ n: string }>(
+        tx,
+        sql`select display_name n from households where id = ${p.householdId}`,
+      );
+      if (!h) throw new DomainError('common.errors.notFound');
+      summary = proposalSummary({
+        kind,
+        family: h.n,
+        amountAgorot: p.amountAgorot,
+        description: p.description,
+      });
     } else {
       const p = parsed.params as ProposalParams['open_makeup_slots'];
       summary = proposalSummary({
@@ -285,8 +321,20 @@ export function copilotToolbox(tx: Tx, today: string) {
         capacity: p.capacity ?? SLOT_DEFAULT_CAPACITY.makeup,
       });
     }
-    proposals.push({ kind, params: parsed.params, summary });
-    return { proposed: true, waitsForOwner: true, summary };
+    const amount =
+      kind === 'payment_link'
+        ? (parsed.params as ProposalParams['payment_link']).amountAgorot
+        : null;
+    const taken = await takeAction(tx, ctx, {
+      source: 'owner_chat',
+      requestId,
+      kind,
+      params: parsed.params,
+      summary,
+      amountAgorot: amount,
+    });
+    proposals.push({ id: taken.id, kind, status: taken.status });
+    return { status: taken.status, summary, ...(taken.code ? { refusedBy: taken.code } : {}) };
   }
 
   return { call, proposals };
@@ -329,16 +377,20 @@ export class FakeCopilotModel implements CopilotModel {
         }
         if (!s || !g) return done('לא מצאתי את הילד/ה או את הקבוצה.');
         const onDate = intent.date ?? nextWeekday(this.today, g.weekday);
-        const out = await use('propose_move_student', {
+        const out = await use<{ status: string }>('propose_move_student', {
           studentId: s.id,
           fromGroupId: s.groups[0]?.id ?? null,
           toGroupId: g.id,
           onDate,
         });
         return done(
-          out
-            ? `הכנתי הצעה להעביר את ${s.name} ל${g.name} מ-${onDate}. היא מחכה לאישור שלך.`
-            : 'המעבר הזה לא עומד בכללים.',
+          !out
+            ? 'המעבר הזה לא עומד בכללים.'
+            : out.status === 'done'
+              ? `העברתי את ${s.name} ל${g.name} מ-${onDate}.`
+              : out.status === 'failed'
+                ? 'ניסיתי להעביר, אבל הכללים לא אפשרו את זה.'
+                : `הכנתי הצעה להעביר את ${s.name} ל${g.name} מ-${onDate}. היא מחכה לאישור שלך.`,
         );
       }
       case 'message': {
@@ -354,12 +406,27 @@ export class FakeCopilotModel implements CopilotModel {
             : 'לא הצלחתי להכין את ההודעה.',
         );
       }
+      case 'payment': {
+        const s = (await use<Student[]>('find_students', { query: intent.student }))?.[0];
+        if (!s) return done('לא מצאתי את הילד/ה.');
+        const out = await use<{ status: string }>('propose_payment_link', {
+          householdId: s.householdId,
+          amountAgorot: intent.shekels * 100,
+          description: `תשלום עבור ${s.name}`,
+        });
+        if (!out) return done('לא הצלחתי להכין את קישור התשלום.');
+        return done(
+          out.status === 'done'
+            ? `שלחתי קישור תשלום של ${intent.shekels} ₪ למשפחה של ${s.name}.`
+            : `הכנתי קישור תשלום של ${intent.shekels} ₪ למשפחה של ${s.name}. הוא מחכה לאישור שלך.`,
+        );
+      }
       case 'slots': {
         type Staff = { id: string; name: string; venues: { id: string }[] };
         const m = (await use<Staff[]>('find_staff', { query: intent.staff }))?.[0];
         const venueId = m?.venues[0]?.id;
         if (!m || !venueId) return done('לא מצאתי את המדריך/ה או בריכה שבה הוא/היא זמין/ה.');
-        const out = await use('propose_open_makeup_slots', {
+        const out = await use<{ status: string }>('propose_open_makeup_slots', {
           staffId: m.id,
           venueId,
           date: intent.date,
@@ -367,9 +434,11 @@ export class FakeCopilotModel implements CopilotModel {
           endsAt: intent.to,
         });
         return done(
-          out
-            ? `הכנתי הצעה לפתוח השלמות עם ${m.name}. היא מחכה לאישור שלך.`
-            : 'אי אפשר לפתוח את ההשלמות האלה.',
+          !out
+            ? 'אי אפשר לפתוח את ההשלמות האלה.'
+            : out.status === 'done'
+              ? `פתחתי השלמות עם ${m.name}.`
+              : `הכנתי הצעה לפתוח השלמות עם ${m.name}. היא מחכה לאישור שלך.`,
         );
       }
       case 'debts': {
@@ -447,7 +516,17 @@ export async function askCopilot(
   const text = prompt.trim();
   if (!text || text.length > 2000) throw new DomainError('copilot.errors.prompt');
   const today = await todayIL(tx);
-  const box = copilotToolbox(tx, today);
+  // The request row comes first: actions the gate runs during the model's turn hang on it.
+  const requestId = randomUUID();
+  await tx.insert(copilotRequests).values({
+    id: requestId,
+    organizationId: ctx.orgId,
+    userId: ctx.userId as string,
+    prompt: text,
+    model: (model as CopilotModel).name,
+    status: 'answered',
+  });
+  const box = copilotToolbox(tx, ctx, today, requestId);
   let out: { answer: string; trace: CopilotTraceStep[]; incomplete: boolean } | null = null;
   try {
     out = await (model as CopilotModel).run({
@@ -459,33 +538,19 @@ export async function askCopilot(
   } catch {
     out = null;
   }
-  const requestId = randomUUID();
-  await tx.insert(copilotRequests).values({
-    id: requestId,
-    organizationId: ctx.orgId,
-    userId: ctx.userId as string,
-    prompt: text,
-    model: (model as CopilotModel).name,
-    status: out ? 'answered' : 'failed',
-    answer: out?.answer ?? null,
-    trace: out?.trace ?? [],
-    errorCode: out
-      ? out.incomplete
-        ? 'copilot.errors.incomplete'
-        : null
-      : 'copilot.errors.modelFailed',
-  });
-  if (out && box.proposals.length) {
-    await tx.insert(copilotActions).values(
-      box.proposals.map((p) => ({
-        organizationId: ctx.orgId,
-        requestId,
-        kind: p.kind,
-        params: p.params,
-        summary: p.summary,
-      })),
-    );
-  }
+  await tx
+    .update(copilotRequests)
+    .set({
+      status: out ? 'answered' : 'failed',
+      answer: out?.answer ?? null,
+      trace: out?.trace ?? [],
+      errorCode: out
+        ? out.incomplete
+          ? 'copilot.errors.incomplete'
+          : null
+        : 'copilot.errors.modelFailed',
+    })
+    .where(eq(copilotRequests.id, requestId));
   return requestId;
 }
 
@@ -533,6 +598,50 @@ export async function listCopilot(tx: Tx, limit = 20): Promise<CopilotExchange[]
   }));
 }
 
+// ─── Taking an action ───────────────────────────────────────────────────────
+
+/**
+ * Records one action the brain wants to take and sends it through the gate: refused when its kind is off, run at once
+ * when the owner let it run alone (ran_alone, no decider), otherwise stored as a proposal for the owner.
+ */
+export async function takeAction(
+  tx: Tx,
+  ctx: ServiceContext,
+  a: {
+    source: AgentSource;
+    requestId: string | null;
+    kind: CopilotActionKind;
+    params: unknown;
+    summary: Explanation;
+    amountAgorot: number | null;
+  },
+): Promise<{ id: string; status: 'done' | 'waiting' | 'failed'; code?: string }> {
+  const { level, decision } = await gateFor(tx, a.kind, a.amountAgorot);
+  if (decision.route === 'refuse') throw new DomainError(decision.code);
+  const [row] = await tx
+    .insert(copilotActions)
+    .values({
+      organizationId: ctx.orgId,
+      requestId: a.requestId,
+      source: a.source,
+      autonomy: level,
+      kind: a.kind,
+      params: a.params,
+      summary: a.summary,
+      // Why it waits, when the level alone would have let it run.
+      ...(decision.route === 'wait' && decision.reason !== 'level'
+        ? { result: { waitReason: decision.reason } }
+        : {}),
+    })
+    .returning();
+  const action = row as typeof copilotActions.$inferSelect;
+  if (decision.route === 'wait') return { id: action.id, status: 'waiting' };
+  const out = await runAction(tx, ctx, action, { alone: true });
+  return out.status === 'confirmed'
+    ? { id: action.id, status: 'done' }
+    : { id: action.id, status: 'failed', code: out.code };
+}
+
 // ─── Deciding a proposal ────────────────────────────────────────────────────
 
 async function loadAction(tx: Tx, id: string, step: ActionStep) {
@@ -571,6 +680,16 @@ async function apply(tx: Tx, ctx: ServiceContext, a: typeof copilotActions.$infe
         },
       );
     }
+    case 'payment_link': {
+      const p = a.params as ProposalParams['payment_link'];
+      const linkId = await requestPaymentLink(tx, ctx, {
+        householdId: p.householdId,
+        amountAgorot: p.amountAgorot,
+        description: p.description,
+        requestId: a.id,
+      });
+      return { linkId };
+    }
     default: {
       const p = a.params as ProposalParams['open_makeup_slots'];
       const slotIds = await openSlots(tx, ctx, {
@@ -592,17 +711,26 @@ async function apply(tx: Tx, ctx: ServiceContext, a: typeof copilotActions.$infe
 }
 
 /**
- * The owner confirms: the action runs through its domain service as the owner. A refusal by the rules is stored on
- * the action (status failed, with the reason) instead of failing the request.
+ * Runs an action through its domain service. A refusal by the rules is stored on the action (status failed, with the
+ * reason) instead of failing the request. `alone` marks an action the gate ran without a person's tap.
  */
-export async function confirmCopilotAction(tx: Tx, ctx: ServiceContext, id: string) {
-  const a = await loadAction(tx, id, 'confirm');
+async function runAction(
+  tx: Tx,
+  ctx: ServiceContext,
+  a: typeof copilotActions.$inferSelect,
+  opts: { alone: boolean },
+) {
+  const decided = {
+    decidedBy: opts.alone ? null : ctx.userId,
+    decidedAt: new Date(),
+    ranAlone: opts.alone,
+  };
   try {
     const result = await tx.transaction((sp) => apply(sp, ctx, a));
     await tx
       .update(copilotActions)
-      .set({ status: 'confirmed', result, decidedBy: ctx.userId, decidedAt: new Date() })
-      .where(eq(copilotActions.id, id));
+      .set({ status: 'confirmed', result, ...decided })
+      .where(eq(copilotActions.id, a.id));
     return { status: 'confirmed' as const, result };
   } catch (e) {
     const de = toDomainError(e);
@@ -614,12 +742,17 @@ export async function confirmCopilotAction(tx: Tx, ctx: ServiceContext, id: stri
         errorCode: de.code,
         // The refusal's params, so the card can say it in full.
         result: { params: de.params ?? {} },
-        decidedBy: ctx.userId,
-        decidedAt: new Date(),
+        ...decided,
       })
-      .where(eq(copilotActions.id, id));
+      .where(eq(copilotActions.id, a.id));
     return { status: 'failed' as const, code: de.code, params: de.params ?? {} };
   }
+}
+
+/** The owner confirms: the action runs through its domain service as the owner. */
+export async function confirmCopilotAction(tx: Tx, ctx: ServiceContext, id: string) {
+  const a = await loadAction(tx, id, 'confirm');
+  return runAction(tx, ctx, a, { alone: false });
 }
 
 export async function dismissCopilotAction(tx: Tx, ctx: ServiceContext, id: string) {
@@ -630,24 +763,47 @@ export async function dismissCopilotAction(tx: Tx, ctx: ServiceContext, id: stri
     .where(and(eq(copilotActions.id, id)));
 }
 
-/** Undoes a confirmed move: the child goes back to the group they left, from the same date. */
+/**
+ * Takes a confirmed action back: a child returns to the group they left from the same date; makeup slots nobody booked
+ * are cancelled; a payment link nobody paid is cancelled.
+ */
 export async function undoCopilotAction(tx: Tx, ctx: ServiceContext, id: string) {
   const a = await loadAction(tx, id, 'undo');
-  const p = a.params as ProposalParams['move_student'];
-  if (p.fromGroupId) {
-    await placeStudent(tx, ctx, {
-      studentId: p.studentId,
-      fromTemplateId: p.toGroupId,
-      toTemplateId: p.fromGroupId,
-      onDate: p.onDate,
-      status: 'active',
-    });
-  } else {
-    await removeStudent(tx, ctx, {
-      studentId: p.studentId,
-      templateId: p.toGroupId,
-      onDate: p.onDate,
-    });
+  switch (a.kind as CopilotActionKind) {
+    case 'move_student': {
+      const p = a.params as ProposalParams['move_student'];
+      if (p.fromGroupId) {
+        await placeStudent(tx, ctx, {
+          studentId: p.studentId,
+          fromTemplateId: p.toGroupId,
+          toTemplateId: p.fromGroupId,
+          onDate: p.onDate,
+          status: 'active',
+        });
+      } else {
+        await removeStudent(tx, ctx, {
+          studentId: p.studentId,
+          templateId: p.toGroupId,
+          onDate: p.onDate,
+        });
+      }
+      break;
+    }
+    case 'open_makeup_slots': {
+      const { slotIds } = a.result as { slotIds: string[] };
+      const [{ n } = { n: 0 }] = await rows<{ n: number }>(
+        tx,
+        sql`select count(*)::int n from slot_bookings
+            where slot_id = any(${slotIds}::uuid[]) and status = 'booked'`,
+      );
+      if (n > 0) throw new DomainError('agent.errors.slotsBooked', { n });
+      for (const slotId of slotIds) await cancelSlot(tx, ctx, slotId);
+      break;
+    }
+    default: {
+      const { linkId } = a.result as { linkId: string };
+      await cancelPaymentLink(tx, linkId);
+    }
   }
   await tx
     .update(copilotActions)

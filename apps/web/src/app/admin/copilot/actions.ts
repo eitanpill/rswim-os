@@ -12,7 +12,8 @@ import { copilotModel } from '@/lib/copilot';
 import type { FormState } from '@/lib/form-state';
 import { runForm } from '@/lib/forms';
 
-const PAGE = '/admin/copilot';
+/** The chat, and every screen that shows the brain's actions (an action may have run or be waiting). */
+const PAGE = ['/admin/copilot', '/admin', '/admin/brain', '/admin/brain/journal'];
 const WithId = z.object({ id: z.uuid() });
 
 export async function askCopilotAction(_: FormState, fd: FormData) {
