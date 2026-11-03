@@ -258,3 +258,13 @@ Proof: `packages/domain/copilot/test/agent-policies.test.ts` (100% of the gate),
 (careful by default, autopilot runs and undoes a move, payment links under and over the cap, free text never alone,
 paused, off, the daily cap, ceilings, owner only, audited), `packages/db/test/rls/isolation.test.ts`,
 `apps/web/e2e/brain.spec.ts`. Not verified yet: real Claude choosing the tools (runs on the rules-based fake here).
+
+## The business brain, stage 2 (the parents' bot acts)
+
+The parents' WhatsApp bot records absences, books makeups and asks for freezes through the brain's gate, each at the
+owner's level: at once, waiting for her approval (the family is told), or handed to the office when off. Every action
+lands in the brain's journal with the family's message; makeup bookings and freezes can be undone. The bot screen shows
+what the bot did. Proof: `packages/domain/copilot/test/bot-policies.test.ts`, `policies.test.ts` (100%),
+`packages/seed/test/bot-actions.test.ts` (absence alone under careful, makeup waits then runs on the owner's tap and is
+undone, freeze alone and undone, off leaves the inbox draft, another family's child refused), `apps/web/e2e/bot.spec.ts`.
+Not verified yet: real Claude choosing the tools (rules-based fake here).

@@ -16,7 +16,6 @@
   "dependencies": {
     "@rswim/contracts": "workspace:*",
     "@rswim/db": "workspace:*",
-    "@rswim/domain-attendance": "workspace:*",
     "@rswim/domain-billing": "workspace:*",
     "@rswim/domain-comms": "workspace:*",
     "@rswim/domain-copilot": "workspace:*",
@@ -38,6 +37,7 @@
   },
   "devDependencies": {
     "@rswim/config": "workspace:*",
+    "@rswim/domain-attendance": "workspace:*",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.23.1",
     "eslint": "^9.39.5",

@@ -3,20 +3,12 @@ import { undoable, type AgentActionRow } from '@rswim/domain-copilot';
 import { Badge } from '@rswim/ui';
 import { ActionButton } from '@/components/form';
 import { explainer } from '@/lib/billing';
-import { dmy } from '@/lib/options';
 import {
   approveAgentActionAction,
   dismissAgentActionAction,
   undoAgentActionAction,
 } from './actions';
-
-const TONE = {
-  proposed: 'warn',
-  confirmed: 'ok',
-  failed: 'danger',
-  dismissed: 'neutral',
-  undone: 'neutral',
-} as const;
+import { ACTION_TONE, agentSummaryText } from './summary';
 
 const time = new Intl.DateTimeFormat('he-IL', {
   timeZone: 'Asia/Jerusalem',
@@ -33,11 +25,8 @@ const time = new Intl.DateTimeFormat('he-IL', {
 export async function AgentActionList({ actions }: { actions: AgentActionRow[] }) {
   const t = await getTranslations('agent');
   const explain = await explainer();
-  const summary = (a: AgentActionRow) => {
-    const p = { ...a.summary.params };
-    if (typeof p.date === 'string') p.date = dmy(p.date);
-    return explain({ code: a.summary.code, params: p });
-  };
+  const text = await agentSummaryText();
+  const summary = (a: AgentActionRow) => text(a.summary);
   return (
     <ul className="flex flex-col gap-2">
       {actions.map((a) => {
@@ -54,7 +43,7 @@ export async function AgentActionList({ actions }: { actions: AgentActionRow[] }
               <span className="text-sm">{summary(a)}</span>
               <span className="flex flex-wrap gap-1">
                 {a.ranAlone ? <Badge tone="neutral">{t('ranAlone')}</Badge> : null}
-                <Badge tone={TONE[a.status]}>{t(`status.${a.status}`)}</Badge>
+                <Badge tone={ACTION_TONE[a.status]}>{t(`status.${a.status}`)}</Badge>
               </span>
             </div>
             <p className="mt-1 text-xs text-ink-muted">

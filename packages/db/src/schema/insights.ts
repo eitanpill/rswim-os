@@ -30,6 +30,7 @@ import {
   INSIGHT_STATUSES,
 } from '@rswim/contracts';
 import { createdAt, id, inList, orgId, updatedAt } from './_helpers';
+import { inboundMessages } from './comms';
 import { organizations } from './tenancy';
 
 export const copilotRequests = pgTable(
@@ -68,6 +69,8 @@ export const copilotActions = pgTable(
     id: id(),
     organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
     requestId: uuid('request_id'),
+    /** The family's WhatsApp message that asked for it, for actions the parents' bot took. */
+    inboundMessageId: uuid('inbound_message_id'),
     source: text('source').notNull().default('owner_chat'),
     autonomy: text('autonomy'),
     ranAlone: boolean('ran_alone').notNull().default(false),
@@ -92,7 +95,13 @@ export const copilotActions = pgTable(
       columns: [t.organizationId, t.requestId],
       foreignColumns: [copilotRequests.organizationId, copilotRequests.id],
     }).onDelete('cascade'),
+    foreignKey({
+      name: 'copilot_actions_inbound_fk',
+      columns: [t.organizationId, t.inboundMessageId],
+      foreignColumns: [inboundMessages.organizationId, inboundMessages.id],
+    }).onDelete('cascade'),
     index('copilot_actions_request').on(t.requestId),
+    index('copilot_actions_inbound').on(t.inboundMessageId),
     index('copilot_actions_recent').on(t.organizationId, t.createdAt),
     check('copilot_actions_kind_check', sql.raw(`kind in (${inList(AGENT_ACTION_KINDS)})`)),
     check('copilot_actions_source_check', sql.raw(`source in (${inList(AGENT_SOURCES)})`)),

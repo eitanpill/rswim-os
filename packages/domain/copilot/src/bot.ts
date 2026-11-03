@@ -2,21 +2,28 @@
  * The parents' WhatsApp bot. A family's message arrives in the inbox as before; when the bot is on, the worker hands it
  * to a model with read tools that see only that family's lessons, balance and makeups, plus the school's rules and
  * knowledge. The bot either answers (queued like any reply, inside the send window) or hands the message to the office
- * with a short summary and tells the family someone will get back to them. It never changes data: anything that needs
- * doing waits for the office. The office's answers to handed-off questions become knowledge suggestions it approves.
+ * with a short summary and tells the family someone will get back to them. It acts for the family (an absence, a makeup
+ * booking, a freeze) only through the business brain's gate (docs/AI-BRAIN.md): each action runs at once, waits for the
+ * owner or is not allowed, as the owner set it, and lands in the brain's journal with the family's message. The
+ * office's answers to handed-off questions become knowledge suggestions it approves.
  */
 import { z } from 'zod';
 import {
   checkbox,
+  FREEZE_REASONS,
   requiredText,
   type BotHandoffReason,
   type BotKnowledgeStatus,
+  type AgentActionKind,
   type BotReview,
+  type CopilotActionStatus,
+  type TriageActionKind,
 } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
 import { ledgerOfHousehold } from '@rswim/domain-billing';
-import { commsRules, enqueueMessage, schoolName } from '@rswim/domain-comms';
-import { DomainError, type ServiceContext } from '@rswim/domain-core';
+import { makeupOffers } from '@rswim/domain-attendance';
+import { commsRules, enqueueMessage, israelLocalDateTime, schoolName } from '@rswim/domain-comms';
+import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
 import { guardiansOfHouseholds } from '@rswim/domain-people';
 import { todayIL } from '@rswim/domain-scheduling';
 import { resolvePolicyFor } from '@rswim/domain-settings';
@@ -27,16 +34,21 @@ import {
   type CopilotTool,
   type CopilotTraceStep,
 } from '@rswim/integrations';
+import { getAgentSettings } from './agent';
 import {
+  agentKindOfDraft,
   BotAnswer,
   BotHandoff,
   botRoute,
   botSystem,
   fakeBotIntent,
+  fakeFreezeDates,
   handoffNoteDue,
   matchKnowledge,
   policyFacts,
 } from './bot-policies';
+import { proposalSummary, type ProposalParams } from './policies';
+import { takeAction } from './services';
 
 const { botKnowledge, botReplies, inboundMessages, triageActions } = schema;
 
@@ -60,7 +72,7 @@ export const BOT_TOOLS: CopilotTool[] = [
   {
     name: 'family_lessons',
     description:
-      "The family's lessons in the next 14 days, per child: date, weekday (0=Sunday), Israel time, group, pool, and status (scheduled or cancelled, with the reason).",
+      "The family's lessons in the next 14 days, per child: ids (childId, sessionId, placeId), date, weekday (0=Sunday), Israel time, group, pool, and status (scheduled or cancelled, with the reason).",
     input_schema: obj({}, []),
   },
   {
@@ -72,7 +84,7 @@ export const BOT_TOOLS: CopilotTool[] = [
   {
     name: 'family_makeups',
     description:
-      "The children's makeup credits that are open or booked, with their expiry and the booked lesson.",
+      "The children's makeup credits that are open or booked (creditId), with their expiry and the booked lesson.",
     input_schema: obj({}, []),
   },
   {
@@ -86,6 +98,43 @@ export const BOT_TOOLS: CopilotTool[] = [
     input_schema: obj({ query: { type: 'string', description: 'Words from the question' } }, [
       'query',
     ]),
+  },
+  {
+    name: 'makeup_options',
+    description:
+      'Lessons an open makeup credit can be booked into, soonest first (sessionId, date, time, group, pool).',
+    input_schema: obj({ creditId: { type: 'string' } }, ['creditId']),
+  },
+  {
+    name: 'report_absence',
+    description:
+      'Record that a child will miss one lesson (from family_lessons). The school decides by its rules whether it earns a makeup.',
+    input_schema: obj({ childId: { type: 'string' }, sessionId: { type: 'string' } }, [
+      'childId',
+      'sessionId',
+    ]),
+  },
+  {
+    name: 'book_makeup',
+    description: 'Book an open makeup credit into one of its makeup_options.',
+    input_schema: obj({ creditId: { type: 'string' }, sessionId: { type: 'string' } }, [
+      'creditId',
+      'sessionId',
+    ]),
+  },
+  {
+    name: 'request_freeze',
+    description:
+      "Ask to freeze a child's place (placeId from family_lessons) between two dates (YYYY-MM-DD), from today on.",
+    input_schema: obj(
+      {
+        placeId: { type: 'string' },
+        fromDate: { type: 'string' },
+        toDate: { type: 'string' },
+        reason: { type: 'string', enum: [...FREEZE_REASONS] },
+      },
+      ['placeId', 'fromDate', 'toDate', 'reason'],
+    ),
   },
   {
     name: 'reply_to_parent',
@@ -123,15 +172,122 @@ interface Knowledge {
   answer: string;
 }
 
-/** The tools bound to one family: every read is filtered by the household; the decision is collected, not applied. */
-export function botToolbox(tx: Tx, householdId: string, today: string, knowledge: Knowledge[]) {
+const Ids = {
+  absence: z.object({ childId: z.uuid(), sessionId: z.uuid() }),
+  credit: z.object({ creditId: z.uuid() }),
+  makeup: z.object({ creditId: z.uuid(), sessionId: z.uuid() }),
+  freeze: z
+    .object({
+      placeId: z.uuid(),
+      fromDate: z.iso.date(),
+      toDate: z.iso.date(),
+      reason: z.enum(FREEZE_REASONS),
+    })
+    .refine((v) => v.toDate >= v.fromDate),
+};
+
+const parse = <T>(schema: z.ZodType<T>, input: unknown): T => {
+  const r = schema.safeParse(input);
+  if (!r.success) throw new DomainError('bot.errors.badAction');
+  return r.data;
+};
+
+/** An action the bot took through the brain's gate for this message. */
+export interface BotAction {
+  id: string;
+  kind: 'report_absence' | 'book_makeup' | 'freeze';
+  status: 'done' | 'waiting' | 'failed';
+}
+
+/** The family's message the bot works on: its actions record it, and an absence is received when it arrived. */
+export interface BotInbound {
+  id: string;
+  body: string;
+  receivedAt: Date;
+}
+
+/**
+ * The tools bound to one family: every read and every action is filtered by the household. The answer or handoff is
+ * collected, not applied; actions go through the brain's gate (takeAction) and are collected too.
+ */
+export function botToolbox(
+  tx: Tx,
+  ctx: ServiceContext,
+  householdId: string,
+  today: string,
+  knowledge: Knowledge[],
+  inbound: BotInbound,
+) {
   let decision: Decision | null = null;
+  const actions: BotAction[] = [];
+
+  /** A lesson of the family, with the names the owner reads on the action's card. */
+  const lessonOf = async (sessionId: string) => {
+    const [l] = await rows<{ group: string; date: string; time: string; started: boolean }>(
+      tx,
+      sql`select t.name "group", s.date::text date,
+                 to_char(s.starts_at at time zone 'Asia/Jerusalem', 'HH24:MI') time,
+                 s.starts_at <= now() started
+          from sessions s join class_templates t on t.id = s.class_template_id where s.id = ${sessionId}`,
+    );
+    if (!l) throw new DomainError('common.errors.notFound');
+    return { group: l.group, date: l.date, time: l.time, started: l.started };
+  };
+  const ownChild = async (studentId: string) => {
+    const [c] = await rows<{ name: string }>(
+      tx,
+      sql`select first_name || ' ' || last_name name from students
+          where id = ${studentId} and household_id = ${householdId}`,
+    );
+    if (!c) throw new DomainError('bot.errors.notYourChild');
+    return c.name;
+  };
+  const ownCredit = async (creditId: string) => {
+    const [c] = await rows<{ studentId: string }>(
+      tx,
+      sql`select c.student_id "studentId" from makeup_credits c join students st on st.id = c.student_id
+          where c.id = ${creditId} and st.household_id = ${householdId}`,
+    );
+    if (!c) throw new DomainError('bot.errors.notYourChild');
+    return c.studentId;
+  };
+  /** Clean fits only: a lesson the office would need to override a rule for is never offered by the bot. */
+  const cleanOffers = async (creditId: string) =>
+    (await makeupOffers(tx, creditId)).offers.filter(
+      (o) => o.decision.ok && o.decision.overridden.length === 0 && o.fit.soft.length === 0,
+    );
+
+  const act = async <K extends BotAction['kind']>(
+    kind: K,
+    params: ProposalParams[K],
+    summary: ReturnType<typeof proposalSummary>,
+  ) => {
+    try {
+      const r = await takeAction(tx, ctx, {
+        source: 'parent_whatsapp',
+        requestId: null,
+        inboundMessageId: inbound.id,
+        kind,
+        params,
+        summary,
+        amountAgorot: null,
+      });
+      actions.push({ id: r.id, kind, status: r.status });
+      if (r.status === 'failed') return { status: 'failed', refusedBy: r.code };
+      return r.status === 'done' ? { status: 'done', result: r.result } : { status: 'waiting' };
+    } catch (e) {
+      if (toDomainError(e)?.code === 'agent.errors.off') return { status: 'not_allowed' };
+      throw e;
+    }
+  };
+
   const call = async (tool: string, input: unknown): Promise<unknown> => {
     switch (tool) {
       case 'family_lessons':
         return rows(
           tx,
-          sql`select st.first_name child, s.date::text date, extract(dow from s.date)::int weekday,
+          sql`select st.id "childId", s.id "sessionId", e.id "placeId",
+                     st.first_name child, s.date::text date, extract(dow from s.date)::int weekday,
                      to_char(s.starts_at at time zone 'Asia/Jerusalem', 'HH24:MI') "startsAt",
                      to_char(s.ends_at at time zone 'Asia/Jerusalem', 'HH24:MI') "endsAt",
                      t.name "group", v.name pool, s.status, s.cancel_reason "cancelReason",
@@ -140,7 +296,7 @@ export function botToolbox(tx: Tx, householdId: string, today: string, knowledge
               join enrollments e on e.student_id = st.id
                 and e.status in ('trial_booked', 'active', 'frozen', 'cancel_requested')
               join sessions s on s.class_template_id = e.class_template_id
-                and s.date between ${today}::date and ${today}::date + 14
+                and s.date between ${today}::date and ${today}::date + 14 and s.ends_at > now()
                 and e.starts_on <= s.date and (e.ends_on is null or e.ends_on > s.date)
               join class_templates t on t.id = s.class_template_id
               join venues v on v.id = s.venue_id
@@ -157,7 +313,7 @@ export function botToolbox(tx: Tx, householdId: string, today: string, knowledge
       case 'family_makeups':
         return rows(
           tx,
-          sql`select st.first_name child, c.status, c.reason, c.expires_on::text "expiresOn",
+          sql`select c.id "creditId", st.first_name child, c.status, c.reason, c.expires_on::text "expiresOn",
                      (select s.date::text || ' ' || to_char(s.starts_at at time zone 'Asia/Jerusalem', 'HH24:MI')
                         || ' ' || t.name
                       from makeup_bookings b join sessions s on s.id = b.session_id
@@ -175,6 +331,69 @@ export function botToolbox(tx: Tx, householdId: string, today: string, knowledge
               from venue_closures c join venues v on v.id = c.venue_id
               where c.ends_on >= ${today}::date order by c.starts_on limit 10`,
         );
+      case 'makeup_options': {
+        const { creditId } = parse(Ids.credit, input);
+        await ownCredit(creditId);
+        return (await cleanOffers(creditId)).slice(0, 8).map((o) => ({
+          sessionId: o.sessionId,
+          date: o.date,
+          time: israelLocalDateTime(o.startsAt).slice(11),
+          group: o.groupName,
+          pool: o.venueName,
+        }));
+      }
+      case 'report_absence': {
+        const p = parse(Ids.absence, input);
+        const student = await ownChild(p.childId);
+        const { started, ...l } = await lessonOf(p.sessionId);
+        if (started) throw new DomainError('bot.errors.lessonStarted');
+        return act(
+          'report_absence',
+          {
+            studentId: p.childId,
+            sessionId: p.sessionId,
+            receivedAt: israelLocalDateTime(inbound.receivedAt),
+            note: inbound.body.slice(0, 500),
+          },
+          proposalSummary({ kind: 'report_absence', student, ...l }),
+        );
+      }
+      case 'book_makeup': {
+        const p = parse(Ids.makeup, input);
+        const student = await ownChild(await ownCredit(p.creditId));
+        if (!(await cleanOffers(p.creditId)).some((o) => o.sessionId === p.sessionId))
+          throw new DomainError('attendance.errors.notOffered');
+        const { started: _, ...l } = await lessonOf(p.sessionId);
+        return act(
+          'book_makeup',
+          { creditId: p.creditId, sessionId: p.sessionId },
+          proposalSummary({ kind: 'book_makeup', student, ...l }),
+        );
+      }
+      case 'request_freeze': {
+        const p = parse(Ids.freeze, input);
+        if (p.fromDate < today) throw new DomainError('bot.errors.pastDate');
+        const [place] = await rows<{ studentId: string; group: string }>(
+          tx,
+          sql`select e.student_id "studentId", t.name "group" from enrollments e
+              join students st on st.id = e.student_id and st.household_id = ${householdId}
+              join class_templates t on t.id = e.class_template_id
+              where e.id = ${p.placeId} and e.status in ('active', 'frozen')`,
+        );
+        if (!place) throw new DomainError('bot.errors.notYourChild');
+        const student = await ownChild(place.studentId);
+        return act(
+          'freeze',
+          { enrollmentId: p.placeId, fromDate: p.fromDate, toDate: p.toDate, reason: p.reason },
+          proposalSummary({
+            kind: 'freeze',
+            student,
+            group: place.group,
+            date: p.fromDate,
+            until: p.toDate,
+          }),
+        );
+      }
       case 'search_knowledge': {
         const q = String((input as { query?: unknown } | null)?.query ?? '');
         return matchKnowledge(q, knowledge, 0.34).slice(0, 5);
@@ -202,7 +421,7 @@ export function botToolbox(tx: Tx, householdId: string, today: string, knowledge
         throw new DomainError('copilot.errors.unknownTool');
     }
   };
-  return { call, decision: () => decision };
+  return { call, decision: () => decision, actions: () => actions };
 }
 
 // ─── Running the bot on one message ─────────────────────────────────────────
@@ -218,6 +437,16 @@ async function activeKnowledge(tx: Tx): Promise<Knowledge[]> {
     .where(eq(botKnowledge.status, 'active'))
     .orderBy(desc(botKnowledge.updatedAt))
     .limit(500);
+}
+
+/** Whether the brain handles every drafted request of the message (each maps to a kind the owner did not turn off). */
+async function brainTakes(tx: Tx, drafted: { kind: string }[]): Promise<boolean> {
+  if (drafted.length === 0) return false;
+  const levels = (await getAgentSettings(tx)).effective;
+  return drafted.every((d) => {
+    const kind = agentKindOfDraft(d.kind as TriageActionKind);
+    return kind !== null && levels[kind] !== 'off';
+  });
 }
 
 /**
@@ -241,7 +470,7 @@ export async function runParentBot(
     .where(eq(botReplies.inboundMessageId, row.id));
   if (done) return { outcome: 'skipped', reason: 'already' };
   const drafted = await tx
-    .select({ id: triageActions.id })
+    .select({ id: triageActions.id, kind: triageActions.kind })
     .from(triageActions)
     .where(and(eq(triageActions.inboundMessageId, row.id), eq(triageActions.status, 'pending')));
   const route = botRoute({
@@ -251,6 +480,7 @@ export async function runParentBot(
     open: row.status === 'new' || row.status === 'needs_human',
     intent: row.intent as Parameters<typeof botRoute>[0]['intent'],
     actionDrafted: drafted.length > 0,
+    brainTakesDraft: await brainTakes(tx, drafted),
     text: row.body,
   });
   if (route.route === 'skip') return { outcome: 'skipped', reason: route.reason };
@@ -262,6 +492,7 @@ export async function runParentBot(
   if (!guardian) return { outcome: 'skipped', reason: 'not_family' };
 
   let decision: Decision;
+  let actions: BotAction[] = [];
   let trace: CopilotTraceStep[] = [];
   let modelName = 'rules';
   if (route.route === 'handoff' || !model) {
@@ -278,7 +509,7 @@ export async function runParentBot(
       tx,
       sql`select first_name n from students where household_id = ${householdId} order by dob`,
     );
-    const box = botToolbox(tx, householdId, today, knowledge);
+    const box = botToolbox(tx, ctx, householdId, today, knowledge, row);
     const system = botSystem({
       school: await schoolName(tx, ctx.orgId),
       today,
@@ -299,12 +530,21 @@ export async function runParentBot(
     } catch {
       failed = true;
     }
+    actions = box.actions();
     decision = box.decision() ?? {
       kind: 'handoff',
       reason: failed ? 'model_failed' : 'unknown',
       summary: row.body.slice(0, 500),
     };
   }
+
+  // What the bot did through the brain replaces the inbox's draft of the same request.
+  const acted = actions.some((a) => a.status !== 'failed');
+  if (acted && drafted.length > 0)
+    await tx
+      .update(triageActions)
+      .set({ status: 'dismissed', decidedAt: new Date() })
+      .where(and(eq(triageActions.inboundMessageId, row.id), eq(triageActions.status, 'pending')));
 
   const addressee = { ...guardian, whatsappOptIn: true };
   let messageId: string | null = null;
@@ -317,10 +557,12 @@ export async function runParentBot(
       inboundMessageId: row.id,
     });
     messageId = m.id;
-    await tx
-      .update(inboundMessages)
-      .set({ status: 'actioned', handledAt: new Date() })
-      .where(eq(inboundMessages.id, row.id));
+    // A draft the office would approve stays in the inbox unless the bot acted on the message itself.
+    if (drafted.length === 0 || acted)
+      await tx
+        .update(inboundMessages)
+        .set({ status: 'actioned', handledAt: new Date() })
+        .where(eq(inboundMessages.id, row.id));
   } else {
     // The family hears once in a while that a person will answer, not after every message of a burst.
     const [last] = await rows<{ at: Date }>(
@@ -392,19 +634,95 @@ export class FakeParentBotModel implements CopilotModel {
       await use('hand_off_to_office', { summary, reason: 'unknown' });
       return { answer: '', trace, incomplete: false };
     };
+    type Lesson = {
+      childId: string;
+      sessionId: string;
+      placeId: string;
+      child: string;
+      date: string;
+      weekday: number;
+      startsAt: string;
+      group: string;
+      pool: string;
+      status: string;
+    };
+    type ActOut = { status: 'done' | 'waiting' | 'failed' | 'not_allowed' };
+    /** The scheduled lessons of the child the message names, or of every child when it names none. */
+    const lessonsOfNamed = async () => {
+      const l = ((await use<Lesson[]>('family_lessons', {})) ?? []).filter(
+        (x) => x.status === 'scheduled',
+      );
+      const named = l.filter((x) => input.prompt.includes(x.child));
+      return named.length ? named : l;
+    };
+    /** What the family hears after an action, by the brain's answer. */
+    const afterAct = (out: ActOut | null, done: string, what: string) => {
+      if (!out || out.status === 'not_allowed')
+        return handoff(`ההורה מבקש/ת ${what}: "${input.prompt}"`);
+      if (out.status === 'failed')
+        return reply(`לא הצלחתי ${what} לפי הכללים של בית הספר. נבדוק ונחזור אליכם.`);
+      return reply(out.status === 'done' ? done : `קיבלנו 🙏 ${what}: המשרד יאשר בקרוב.`);
+    };
+
     const [hit] = (await use<Knowledge[]>('search_knowledge', { query: input.prompt })) ?? [];
     if (hit) return reply(hit.answer, [hit.id]);
     switch (fakeBotIntent(input.prompt)) {
+      case 'absence': {
+        const [next] = await lessonsOfNamed();
+        if (!next) return handoff(`הודעה על היעדרות בלי שיעור קרוב: "${input.prompt}"`);
+        const out = await use<ActOut>('report_absence', {
+          childId: next.childId,
+          sessionId: next.sessionId,
+        });
+        return afterAct(
+          out,
+          `רשמנו ש${next.child} לא יגיע/תגיע ביום ${HE_DAYS[next.weekday]} ${dm(next.date)} 👍`,
+          `לרשום היעדרות של ${next.child}`,
+        );
+      }
+      case 'book_makeup': {
+        const credits =
+          (await use<{ creditId: string; child: string; status: string }[]>(
+            'family_makeups',
+            {},
+          )) ?? [];
+        const credit =
+          credits.find((c) => c.status === 'open' && input.prompt.includes(c.child)) ??
+          credits.find((c) => c.status === 'open');
+        if (!credit) return reply('כרגע אין שיעורי השלמה פתוחים לקבוע.');
+        const [first] =
+          (await use<{ sessionId: string; date: string; time: string; group: string }[]>(
+            'makeup_options',
+            { creditId: credit.creditId },
+          )) ?? [];
+        if (!first) return handoff(`ההורה רוצה לקבוע השלמה ל${credit.child} ואין מקום פנוי מתאים`);
+        const out = await use<ActOut>('book_makeup', {
+          creditId: credit.creditId,
+          sessionId: first.sessionId,
+        });
+        return afterAct(
+          out,
+          `קבענו ל${credit.child} השלמה ב-${dm(first.date)} בשעה ${first.time}, ${first.group} 🏊`,
+          `לקבוע השלמה ל${credit.child}`,
+        );
+      }
+      case 'freeze': {
+        const dates = fakeFreezeDates(input.prompt);
+        const [place] = await lessonsOfNamed();
+        if (!dates || !place) return handoff(`בקשת הקפאה: "${input.prompt}"`);
+        const out = await use<ActOut>('request_freeze', {
+          placeId: place.placeId,
+          fromDate: dates.from,
+          toDate: dates.to,
+          reason: 'other',
+        });
+        return afterAct(
+          out,
+          `רשמנו הקפאה ל${place.child} מ-${dm(dates.from)} עד ${dm(dates.to)}.`,
+          `להקפיא את ${place.child}`,
+        );
+      }
       case 'lessons': {
-        type Lesson = {
-          child: string;
-          date: string;
-          weekday: number;
-          startsAt: string;
-          group: string;
-          pool: string;
-          status: string;
-        };
         const l = (await use<Lesson[]>('family_lessons', {})) ?? [];
         const next = l.filter((x) => x.status === 'scheduled');
         if (!next.length)
@@ -487,12 +805,34 @@ export async function listBotReplies(
         .from(schema.households)
         .where(inArray(schema.households.id, households))
     : [];
+  // What the bot did through the brain; the journal is the owner's, so the office sees none.
+  const inboundIds = list.map((r) => r.reply.inboundMessageId);
+  const actions = inboundIds.length
+    ? await tx
+        .select({
+          id: schema.copilotActions.id,
+          inboundMessageId: schema.copilotActions.inboundMessageId,
+          kind: schema.copilotActions.kind,
+          status: schema.copilotActions.status,
+          summary: schema.copilotActions.summary,
+        })
+        .from(schema.copilotActions)
+        .where(inArray(schema.copilotActions.inboundMessageId, inboundIds))
+    : [];
   return list.map((r) => ({
     ...r.reply,
     body: r.body,
     receivedAt: r.receivedAt,
     inboundStatus: r.inboundStatus,
     family: names.find((n) => n.id === r.reply.householdId)?.n ?? null,
+    actions: actions
+      .filter((a) => a.inboundMessageId === r.reply.inboundMessageId)
+      .map((a) => ({
+        id: a.id,
+        kind: a.kind as AgentActionKind,
+        status: a.status as CopilotActionStatus,
+        summary: a.summary as { code: string; params: Record<string, string | number> },
+      })),
   }));
 }
 

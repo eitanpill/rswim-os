@@ -16,6 +16,7 @@
   "dependencies": {
     "@rswim/contracts": "workspace:*",
     "@rswim/db": "workspace:*",
+    "@rswim/domain-attendance": "workspace:*",
     "@rswim/domain-billing": "workspace:*",
     "@rswim/domain-comms": "workspace:*",
     "@rswim/domain-core": "workspace:*",

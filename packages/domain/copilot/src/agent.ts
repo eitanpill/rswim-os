@@ -131,7 +131,7 @@ export interface AgentActionRow {
   status: CopilotActionStatus;
   result: unknown;
   errorCode: string | null;
-  /** The owner's words, for actions that came from the chat. */
+  /** The words that asked for it: the owner's in the chat, or the family's WhatsApp message. */
   prompt: string | null;
   createdAt: Date;
   decidedAt: Date | null;
@@ -147,6 +147,7 @@ export async function listAgentActions(
     .select({
       a: copilotActions,
       prompt: schema.copilotRequests.prompt,
+      message: schema.inboundMessages.body,
     })
     .from(copilotActions)
     .leftJoin(
@@ -156,10 +157,17 @@ export async function listAgentActions(
         eq(schema.copilotRequests.id, copilotActions.requestId),
       ),
     )
+    .leftJoin(
+      schema.inboundMessages,
+      and(
+        eq(schema.inboundMessages.organizationId, copilotActions.organizationId),
+        eq(schema.inboundMessages.id, copilotActions.inboundMessageId),
+      ),
+    )
     .where(opts.statuses?.length ? inArray(copilotActions.status, opts.statuses) : undefined)
     .orderBy(desc(copilotActions.createdAt))
     .limit(opts.limit ?? 100);
-  return rows.map(({ a, prompt }) => ({
+  return rows.map(({ a, prompt, message }) => ({
     id: a.id,
     kind: a.kind as AgentActionKind,
     source: a.source as AgentSource,
@@ -169,7 +177,7 @@ export async function listAgentActions(
     status: a.status as CopilotActionStatus,
     result: a.result,
     errorCode: a.errorCode,
-    prompt,
+    prompt: prompt ?? message,
     createdAt: a.createdAt,
     decidedAt: a.decidedAt,
     undoneAt: a.undoneAt,

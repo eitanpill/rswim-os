@@ -5,7 +5,12 @@
  * ordinary domain service runs.
  */
 import { z } from 'zod';
-import { TimeOfDay, type CopilotActionKind, type CopilotActionStatus } from '@rswim/contracts';
+import {
+  FREEZE_REASONS,
+  TimeOfDay,
+  type CopilotActionKind,
+  type CopilotActionStatus,
+} from '@rswim/contracts';
 import { undoable } from './agent-policies';
 
 export type Check = { ok: true } | { ok: false; code: string };
@@ -63,11 +68,36 @@ export const PaymentProposal = z
   })
   .strict();
 
+/** One lesson a child will miss, as the family wrote it: received when the message arrived (Israel time). */
+export const AbsenceProposal = z
+  .object({
+    studentId: z.uuid(),
+    sessionId: z.uuid(),
+    receivedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+    note: z.string().trim().max(500).nullable(),
+  })
+  .strict();
+
+export const MakeupProposal = z.object({ creditId: z.uuid(), sessionId: z.uuid() }).strict();
+
+export const FreezeProposal = z
+  .object({
+    enrollmentId: z.uuid(),
+    fromDate: Date_,
+    toDate: Date_,
+    reason: z.enum(FREEZE_REASONS),
+  })
+  .strict()
+  .refine((v) => v.toDate >= v.fromDate);
+
 export const PROPOSALS = {
   move_student: MoveProposal,
   message_family: MessageProposal,
   open_makeup_slots: SlotsProposal,
   payment_link: PaymentProposal,
+  report_absence: AbsenceProposal,
+  book_makeup: MakeupProposal,
+  freeze: FreezeProposal,
 } as const;
 
 export type ProposalParams = {
@@ -75,6 +105,9 @@ export type ProposalParams = {
   message_family: z.infer<typeof MessageProposal>;
   open_makeup_slots: z.infer<typeof SlotsProposal>;
   payment_link: z.infer<typeof PaymentProposal>;
+  report_absence: z.infer<typeof AbsenceProposal>;
+  book_makeup: z.infer<typeof MakeupProposal>;
+  freeze: z.infer<typeof FreezeProposal>;
 };
 
 /** Validates what the model proposed; anything off-shape is refused rather than repaired. */
@@ -94,6 +127,9 @@ export function proposalSummary(
     | { kind: 'move_student'; student: string; from: string | null; to: string; date: string }
     | { kind: 'message_family'; family: string; text: string }
     | { kind: 'payment_link'; family: string; amountAgorot: number; description: string }
+    | { kind: 'report_absence'; student: string; group: string; date: string; time: string }
+    | { kind: 'book_makeup'; student: string; group: string; date: string; time: string }
+    | { kind: 'freeze'; student: string; group: string; date: string; until: string }
     | {
         kind: 'open_makeup_slots';
         staff: string;
@@ -119,6 +155,17 @@ export function proposalSummary(
         code: 'copilot.summary.payment',
         // Agorot: the screens show money params in shekels.
         params: { family: p.family, amount: p.amountAgorot, description: p.description },
+      };
+    case 'report_absence':
+    case 'book_makeup':
+      return {
+        code: p.kind === 'report_absence' ? 'copilot.summary.absence' : 'copilot.summary.makeup',
+        params: { student: p.student, group: p.group, date: p.date, time: p.time },
+      };
+    case 'freeze':
+      return {
+        code: 'copilot.summary.freeze',
+        params: { student: p.student, group: p.group, date: p.date, until: p.until },
       };
     default:
       return {

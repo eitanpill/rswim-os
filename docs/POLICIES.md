@@ -293,14 +293,18 @@ after the inbox has stored and classified it, with Claude when it has `ANTHROPIC
 with `RSWIM_BOT_FAKE=1`. Without either the bot stays out of the way and the inbox works as before.
 
 - **Which messages**: only from a guardian of a known family, while the message is still open. Staff, unknown numbers
-  and leads are left to the inbox. A message the inbox already drafted an action for (an absence, a freeze…) is left
-  for the office's one tap.
+  and leads are left to the inbox. A message the inbox already drafted an action for (an absence, a makeup or a
+  freeze request) is left for the office's one tap, unless the brain handles that kind (§20); a receipt request always
+  is.
 - **Straight to a person, without asking the model**: complaints, leaving the school, and any message about health,
   injuries, refunds or billing mistakes, safety, or unhappiness (a fixed word list).
 - **What the bot reads**: the writing family's lessons in the next 14 days, balance and unpaid charges, open makeup
   credits; pool closures; the school's rules from the policy in force (absence notice, makeups, billing day,
   cancellation cut-off, freezes, sibling discount, companions, health); and the active questions and answers.
-- **It never changes data.** A parent who wants something done is handed off (`needs_action`).
+- **What the bot does**: records an absence for a lesson that has not started, books an open makeup credit into a
+  clean fit, and asks for a freeze from today on, each only for the writing family's own children and only at the
+  level the owner set in the brain (§20): done at once, waiting for the owner (the family is told so), or, when off,
+  handed off (`needs_action`). Anything else a parent wants done is handed off.
 - **Answering**: the answer goes out as a free-text WhatsApp in the family's conversation (inside the 24-hour window),
   through the send window like every message (quiet hours, Shabbat and Yom Tov). The inbox message is closed.
 - **Handing off**: the message stays open in the inbox, marked for a person, with the bot's summary. The family gets
@@ -323,6 +327,9 @@ Owner only, in `agent_settings` (not a policy version: the stop switch acts at o
 
 Ceilings: a free-text message and cancelling lessons always wait for a person. Leaving the school, refunds and credits,
 and sensitive topics are never actions.
+
+Under the careful profile the parents' bot records absences on its own; makeup bookings and freezes wait for the
+owner. Balanced lets makeup bookings run alone too; autopilot also freezes.
 
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.

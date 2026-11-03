@@ -56,7 +56,7 @@ describe('demo seed', () => {
     expect(
       await one(`select count(*)::int n from organizations where id = $1`, [SECOND_ORG.id]),
     ).toEqual([{ n: 1 }]);
-  });
+  }, 180_000); // Two full seeds: like the other seeding hooks, not bound by the 30s per-test default.
 
   it('uses only fake 050-000xxxx phone numbers', async () => {
     const rows = (

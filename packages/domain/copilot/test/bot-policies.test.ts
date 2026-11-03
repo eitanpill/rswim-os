@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ORG_RULES } from '@rswim/contracts';
 import {
+  agentKindOfDraft,
   BotAnswer,
   BotHandoff,
   botRoute,
   botSystem,
   fakeBotIntent,
+  fakeFreezeDates,
   handoffNoteDue,
   keywords,
   matchKnowledge,
@@ -21,6 +23,7 @@ const base: BotFacts = {
   open: true,
   intent: 'schedule_question',
   actionDrafted: false,
+  brainTakesDraft: false,
   text: 'מתי השיעור הבא?',
 };
 
@@ -37,6 +40,17 @@ describe('botRoute', () => {
       route: 'skip',
       reason: 'action_drafted',
     });
+  });
+  it('takes a drafted request when the brain handles that kind of action', () => {
+    expect(botRoute({ ...base, actionDrafted: true, brainTakesDraft: true })).toEqual({
+      route: 'ask',
+    });
+  });
+  it("maps the inbox's drafts to the brain's kinds", () => {
+    expect(agentKindOfDraft('absence_notice')).toBe('report_absence');
+    expect(agentKindOfDraft('makeup_request')).toBe('book_makeup');
+    expect(agentKindOfDraft('freeze_request')).toBe('freeze');
+    expect(agentKindOfDraft('receipt_request')).toBeNull();
   });
   it('hands complaints, leaving and sensitive topics straight to a person', () => {
     const handoff = { route: 'handoff', reason: 'sensitive' };
@@ -181,5 +195,18 @@ describe('fakeBotIntent', () => {
     expect(fakeBotIntent('כמה אני חייבת?')).toBe('balance');
     expect(fakeBotIntent('מתי השיעור הבא?')).toBe('lessons');
     expect(fakeBotIntent('איפה חונים?')).toBe('other');
+  });
+  it('reads requests to act: an absence, a makeup booking, a freeze', () => {
+    expect(fakeBotIntent('דניאל לא יגיע מחר')).toBe('absence');
+    expect(fakeBotIntent('נועה לא תוכל להגיע לשיעור')).toBe('absence');
+    expect(fakeBotIntent('אפשר לקבוע השלמה לנועה?')).toBe('book_makeup');
+    expect(fakeBotIntent('רוצה להקפיא את איתי')).toBe('freeze');
+  });
+  it('reads the freeze dates', () => {
+    expect(fakeFreezeDates('להקפיא את נועה מ-2026-12-01 עד 2026-12-31')).toEqual({
+      from: '2026-12-01',
+      to: '2026-12-31',
+    });
+    expect(fakeFreezeDates('להקפיא את נועה')).toBeNull();
   });
 });

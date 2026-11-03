@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * What the owner's copilot (the brain's chat) can do today (brief §6.15). Each runs through the same domain service,
+ * What the brain can carry out today, from the owner's chat or a family's WhatsApp (brief §6.15). Each runs through the same domain service,
  * at once or on the owner's tap, as the brain's settings say (AGENT_ACTION_KINDS is the whole catalog).
  */
 export const COPILOT_ACTION_KINDS = [
@@ -9,6 +9,9 @@ export const COPILOT_ACTION_KINDS = [
   'message_family',
   'open_makeup_slots',
   'payment_link',
+  'report_absence',
+  'book_makeup',
+  'freeze',
 ] as const;
 export const CopilotActionKind = z.enum(COPILOT_ACTION_KINDS);
 export type CopilotActionKind = z.infer<typeof CopilotActionKind>;

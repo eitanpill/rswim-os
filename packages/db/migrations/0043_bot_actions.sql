@@ -1,0 +1,3 @@
+ALTER TABLE "copilot_actions" ADD COLUMN "inbound_message_id" uuid;--> statement-breakpoint
+ALTER TABLE "copilot_actions" ADD CONSTRAINT "copilot_actions_inbound_fk" FOREIGN KEY ("organization_id","inbound_message_id") REFERENCES "public"."inbound_messages"("organization_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "copilot_actions_inbound" ON "copilot_actions" USING btree ("inbound_message_id");

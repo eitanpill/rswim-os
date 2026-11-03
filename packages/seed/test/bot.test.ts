@@ -103,7 +103,11 @@ describe("parents' bot", () => {
 
   it("reads only the writing family's data", async () => {
     const lessons = await withOrg(t.db, DEMO_ORG.id, (tx) =>
-      botToolbox(tx, fam[0]!.householdId, today, []).call('family_lessons', {}),
+      botToolbox(tx, worker, fam[0]!.householdId, today, [], {
+        id: randomUUID(),
+        body: '',
+        receivedAt: new Date(),
+      }).call('family_lessons', {}),
     );
     const children = (
       await q(`select first_name from students where household_id = $1`, [fam[0]!.householdId])
