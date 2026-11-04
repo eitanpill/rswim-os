@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { DIVE_DISCIPLINES, DIVE_OUTCOMES } from '@rswim/contracts';
-import { instructorDay, myStaffId } from '@rswim/domain-dive';
+import { instructorDay, myStaffId, type DiverIncident } from '@rswim/domain-dive';
 import { cn } from '@rswim/ui';
 import { ActionButton, ActionForm, Field, SelectField, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
@@ -16,6 +16,7 @@ import { LineDiagram } from '../_ui/charts';
 import { dateShort, dayLabel, hhmm, localDay, mmss } from '../_ui/format';
 import { di } from '../_ui/icons';
 import { Avatar, Chip, Empty, Hero, Meter, Panel } from '../_ui/kit';
+import { TileDialog } from '../_ui/tile-dialog';
 import { ReadinessChips, SeaCard, SessionRow } from '../_ui/widgets';
 
 const small = 'min-h-8 px-2.5 text-xs';
@@ -161,15 +162,41 @@ export default async function WaterDay() {
                                 : ''}
                             </p>
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {d.flags.map((f) => (
-                                <Chip
-                                  key={f}
-                                  tone={RED_FLAGS.has(f) ? 'nogo' : 'info'}
-                                  icon={RED_FLAGS.has(f) ? undefined : false}
-                                >
-                                  {t(`flag.${f}`)}
-                                </Chip>
-                              ))}
+                              {d.flags.map((f) =>
+                                f === 'recent_incident' && d.incidents.length > 0 ? (
+                                  <TileDialog
+                                    key={f}
+                                    inline
+                                    title={t('instructor.incidentsTitle', { name: d.name })}
+                                    closeLabel={t('instructor.incidentsClose')}
+                                    testId="incident-chip"
+                                    tile={
+                                      <Chip
+                                        tone="nogo"
+                                        icon={di.alert}
+                                        title={t('instructor.incidentsOpen')}
+                                      >
+                                        {t(`flag.${f}`)}
+                                        {d.incidents.length > 1 ? ` · ${d.incidents.length}` : ''}
+                                      </Chip>
+                                    }
+                                  >
+                                    <IncidentList
+                                      incidents={d.incidents}
+                                      diverId={d.diverId}
+                                      t={t}
+                                    />
+                                  </TileDialog>
+                                ) : (
+                                  <Chip
+                                    key={f}
+                                    tone={RED_FLAGS.has(f) ? 'nogo' : 'info'}
+                                    icon={RED_FLAGS.has(f) ? undefined : false}
+                                  >
+                                    {t(`flag.${f}`)}
+                                  </Chip>
+                                ),
+                              )}
                               <ReadinessChips
                                 items={d.items.filter((i) => i.key !== 'payment')}
                                 compact
@@ -377,6 +404,72 @@ export default async function WaterDay() {
           </Panel>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** What happened in each of a diver's recent incidents and how it was handled, newest first. */
+function IncidentList({
+  incidents,
+  diverId,
+  t,
+}: {
+  incidents: DiverIncident[];
+  diverId: string;
+  t: Awaited<ReturnType<typeof getTranslations<'dive'>>>;
+}) {
+  return (
+    <div className="flex flex-col gap-3 p-4" data-testid="incident-details">
+      {incidents.map((i) => (
+        <article key={i.id} className="rounded-2xl border border-line p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold">{t(`incidentKind.${i.kind}`)}</p>
+            <Chip
+              tone={i.severity === 'high' ? 'nogo' : i.severity === 'medium' ? 'caution' : 'muted'}
+              icon={false}
+            >
+              {t('instructor.incidentSeverity', { level: t(`incidentSeverity.${i.severity}`) })}
+            </Chip>
+            <Chip tone={i.status === 'closed' ? 'go' : 'caution'}>
+              {t(`incidentStatus.${i.status}`)}
+            </Chip>
+          </div>
+          <p className="mt-1 text-xs text-ink-muted">
+            {dateShort(i.occurredAt)}
+            {i.depthM !== null ? ` · ${t('instructor.incidentDepth', { depth: i.depthM })}` : ''}
+            {i.sessionTitle ? ` · ${i.sessionTitle}` : ''}
+          </p>
+          <h3 className="mt-3 text-xs font-semibold text-ink-muted">
+            {t('instructor.incidentWhat')}
+          </h3>
+          <p className="mt-0.5 text-sm leading-relaxed">{i.description}</p>
+          <h3 className="mt-3 text-xs font-semibold text-ink-muted">
+            {t('instructor.incidentHow')}
+          </h3>
+          {i.actionTaken ? (
+            <p className="mt-0.5 text-sm leading-relaxed">{i.actionTaken}</p>
+          ) : (
+            <p className="mt-0.5 text-sm text-ink-muted italic">
+              {t('instructor.incidentNoAction')}
+            </p>
+          )}
+          {i.status === 'closed' && i.closedAt ? (
+            <p className="mt-2 text-xs text-ink-muted">
+              {t('instructor.incidentClosedOn', { date: dateShort(i.closedAt) })}
+            </p>
+          ) : i.status === 'open' ? (
+            <p className="mt-2 text-xs text-[var(--dive-nogo)]">
+              {t('instructor.incidentStillOpen')}
+            </p>
+          ) : null}
+        </article>
+      ))}
+      <a
+        href={`/dive/divers/${diverId}`}
+        className="text-sm font-medium text-[var(--dive-sea)] hover:underline"
+      >
+        {t('instructor.incidentDiverFile')}
+      </a>
     </div>
   );
 }

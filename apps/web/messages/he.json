@@ -4437,7 +4437,18 @@
       "students": "התלמידים שלי",
       "noStudents": "אין לך כרגע תלמידים בקורס.",
       "recent": "תועד לאחרונה",
-      "noLogs": "עוד לא תועדו צלילות."
+      "noLogs": "עוד לא תועדו צלילות.",
+      "incidentsTitle": "אירועים של {name} בחצי השנה האחרונה",
+      "incidentsOpen": "לחצו לפרטי האירוע",
+      "incidentsClose": "סגירה",
+      "incidentSeverity": "חומרה {level}",
+      "incidentWhat": "מה קרה",
+      "incidentHow": "איך טופל",
+      "incidentNoAction": "עוד לא תועד איך האירוע טופל.",
+      "incidentClosedOn": "האירוע נסגר ב-{date}",
+      "incidentStillOpen": "האירוע עדיין פתוח ביומן הבטיחות.",
+      "incidentDiverFile": "לתיק הצולל המלא",
+      "incidentDepth": "{depth} מ׳"
     },
     "flag": {
       "slow_equalizer": "השוואת לחץ איטית",
