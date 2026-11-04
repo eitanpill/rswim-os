@@ -86,6 +86,41 @@ test('the instructor sees allowed depths and logs a dive', async ({ page }) => {
   await expect(diver.getByRole('status')).toContainText('הצלילה תועדה');
 });
 
+test('a dive that ends badly flags the diver, and the flag opens what happened', async ({
+  page,
+}) => {
+  await page.goto('/dev/login?as=diveInstructor');
+  await expect(page).toHaveURL(/\/dive\/instructor$/);
+  // A diver with no incident yet, away from the first one the other instructor test logs for.
+  const clean = page
+    .getByTestId('lineup-diver')
+    .filter({ hasNot: page.getByTestId('incident-chip') })
+    .last();
+  const name = (await clean.getByRole('link').first().innerText()).trim();
+  // Found again by name: once the dive is saved the diver is no longer one without an incident.
+  const diver = page
+    .getByTestId('lineup-diver')
+    .filter({ has: page.getByRole('link', { name, exact: true }) })
+    .first();
+  await diver.getByText('תיעוד צלילה').click();
+  await diver.getByLabel('עומק (מ׳)').fill('18');
+  await diver.getByLabel('תוצאה').selectOption({ label: 'LMC' });
+  await diver.getByLabel('הערות').fill('סמבה קלה ביציאה, הבאדי תמך');
+  await diver.getByRole('button', { name: 'שמירה' }).click();
+  await expect(diver.getByRole('status')).toContainText('הצלילה תועדה');
+
+  const chip = diver.getByTestId('incident-chip');
+  await chip.getByTestId('tile-open').click();
+  const details = chip.getByTestId('incident-details');
+  await expect(details).toBeVisible();
+  await expect(details).toContainText('מה קרה');
+  await expect(details).toContainText('סמבה קלה ביציאה, הבאדי תמך');
+  await expect(details).toContainText('איך טופל');
+  await expect(details).toContainText('עדיין פתוח');
+  await chip.getByTestId('tile-close').click();
+  await expect(details).toBeHidden();
+});
+
 test('the diver sees her depth and books training', async ({ page }) => {
   await page.goto('/dev/login?as=diveCustomer');
   await expect(page).toHaveURL(/\/dive\/me$/);

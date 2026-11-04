@@ -16,6 +16,7 @@ export function TileDialog({
   className,
   style,
   testId,
+  inline = false,
 }: {
   tile: ReactNode;
   title: string;
@@ -24,16 +25,20 @@ export function TileDialog({
   className?: string;
   style?: CSSProperties;
   testId?: string;
+  /** A small trigger that sits in a line of chips instead of a full tile. */
+  inline?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   return (
-    <div data-testid={testId} className="min-w-0">
+    <div data-testid={testId} className={inline ? 'inline-flex' : 'min-w-0'}>
       <button
         type="button"
         aria-haspopup="dialog"
         onClick={() => ref.current?.showModal()}
         className={cn(
-          'block h-full w-full rounded-2xl text-start transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--dive-sea)]',
+          inline
+            ? 'inline-flex cursor-pointer rounded-full text-start transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--dive-sea)]'
+            : 'block h-full w-full rounded-2xl text-start transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--dive-sea)]',
           className,
         )}
         style={style}

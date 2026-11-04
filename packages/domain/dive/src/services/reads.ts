@@ -690,6 +690,21 @@ export interface LineupDiver extends ArrivalRow {
   buddyName: string | null;
   lastDive: { on: string; depthM: number | null; outcome: string } | null;
   flags: string[];
+  /** The diver's incidents of the last half year, newest first: what happened and how it was handled. */
+  incidents: DiverIncident[];
+}
+
+export interface DiverIncident {
+  id: string;
+  occurredAt: string;
+  kind: string;
+  severity: string;
+  status: string;
+  depthM: number | null;
+  description: string;
+  actionTaken: string | null;
+  closedAt: string | null;
+  sessionTitle: string | null;
 }
 
 export interface InstructorDay {
@@ -756,6 +771,23 @@ export async function lineup(tx: Tx, session: SessionCard): Promise<LineupDiver[
         where b.session_id = ${session.id}`,
   );
   const byId = new Map(extra.map((e) => [e.diverId, e]));
+  const diverIds = [...new Set(base.map((a) => a.diverId))];
+  const recent = await rows<DiverIncident & { diverId: string }>(
+    tx,
+    sql`select i.id, i.diver_id as "diverId", i.occurred_at as "occurredAt", i.kind, i.severity, i.status,
+               i.depth_m as "depthM", i.description, i.action_taken as "actionTaken", i.closed_at as "closedAt",
+               coalesce(x.title, p.name_he) as "sessionTitle"
+        from dive_incidents i
+        left join dive_sessions x on x.id = i.session_id
+        left join dive_programs p on p.id = x.program_id
+        where i.diver_id = any(string_to_array(${diverIds.join(',')}, ',')::uuid[])
+          and i.occurred_at > now() - interval '180 days'
+        order by i.occurred_at desc`,
+  );
+  const incidentsOf = new Map<string, DiverIncident[]>();
+  for (const { diverId, ...i } of recent) {
+    incidentsOf.set(diverId, [...(incidentsOf.get(diverId) ?? []), i]);
+  }
   return base.map((a) => {
     const e = byId.get(a.diverId);
     const depth = allowedDepth(
@@ -782,6 +814,7 @@ export async function lineup(tx: Tx, session: SessionCard): Promise<LineupDiver[
         ? { on: e.lastOn, depthM: e.lastDepth, outcome: e.lastOutcome ?? 'clean' }
         : null,
       flags,
+      incidents: incidentsOf.get(a.diverId) ?? [],
     };
   });
 }

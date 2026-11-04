@@ -4437,7 +4437,18 @@
       "students": "My students",
       "noStudents": "No students on a course right now.",
       "recent": "Logged recently",
-      "noLogs": "No dives logged yet."
+      "noLogs": "No dives logged yet.",
+      "incidentsTitle": "{name}'s incidents in the last six months",
+      "incidentsOpen": "Click for incident details",
+      "incidentsClose": "Close",
+      "incidentSeverity": "{level} severity",
+      "incidentWhat": "What happened",
+      "incidentHow": "How it was handled",
+      "incidentNoAction": "How it was handled has not been recorded yet.",
+      "incidentClosedOn": "Closed on {date}",
+      "incidentStillOpen": "This incident is still open in the safety log.",
+      "incidentDiverFile": "Open the full diver file",
+      "incidentDepth": "{depth} m"
     },
     "flag": {
       "slow_equalizer": "Slow equalizer",
