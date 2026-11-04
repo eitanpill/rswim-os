@@ -280,6 +280,10 @@
       "brain": {
         "title": "The business brain",
         "hint": "What the AI does on its own, what waits for you, journal and undo"
+      },
+      "payments": {
+        "title": "Payment processor",
+        "hint": "Card, Bit and standing orders through your own processor"
       }
     }
   },
@@ -4215,7 +4219,8 @@
           "title": "Every diver at the right depth",
           "body": "Allowed depth per diver, lines and buddies, dive log"
         }
-      }
+      },
+      "toPayments": "Payment processor"
     },
     "stream": {
       "courses": "Courses",
@@ -5290,6 +5295,150 @@
       "on": "Actions that wait for you also go to WhatsApp.",
       "off": "Without a number, actions that wait for you show only here.",
       "evening": "Send me a summary of the day every evening at 20:00"
+    }
+  },
+  "payments": {
+    "kicker": "Money",
+    "title": "Payment processor",
+    "subtitle": "Your business's own processor: customers pay by card, Bit or standing order, straight into your account",
+    "subtitleDive": "The club's own processor: divers pay bookings and passes by card or Bit, straight into your account",
+    "ownerOnly": "Only the owner connects the payment processor.",
+    "officeConnected": "A processor is connected: you can send families payment links.",
+    "emptyTitle": "No processor connected yet",
+    "emptyHint": "Choose your processor and paste the API keys from its dashboard. Every payment link, the family portal and the desk then go through it.",
+    "connect": "Connect a processor",
+    "replace": "Change processor or keys",
+    "choose": "Processor",
+    "chooseHint": "Keys are stored encrypted and never shown again. To change a key, enter all the details again.",
+    "demoProcessor": "Demo processor",
+    "notLiveYet": "The live connection to this processor opens after we test it against its sandbox account. You can save the details now; nothing is charged until then.",
+    "secretHint": "Secret: only its last 4 characters will show",
+    "methods": "How customers can pay",
+    "saveMethods": "Save payment methods",
+    "save": "Connect and test",
+    "connected": "Processor connected and tested",
+    "savedNotWorking": "Saved, but the connection does not work yet (see the reason above)",
+    "methodsSaved": "Payment methods updated",
+    "disconnected": "Disconnected. Standing orders already set up stay recorded.",
+    "disconnect": "Disconnect the processor",
+    "disconnectConfirm": "Disconnect the processor? Customers can't pay online until you reconnect.",
+    "checkedAt": "Last checked",
+    "webhookUrl": "Payment updates URL (paste it in the processor's dashboard if it asks)",
+    "howTitle": "How it works",
+    "how1": "A payment link sent on WhatsApp opens your payment page: card, Bit or a standing order, in one tap.",
+    "how2": "Money is processed by your processor and lands in your account. We never store card numbers.",
+    "how3": "Once the processor approves, the payment is recorded, the debt closes and the receipt goes out automatically.",
+    "how4": "A standing order set up here is charged automatically on every monthly billing run.",
+    "status": {
+      "connected": "Connected",
+      "failed": "Not working",
+      "disconnected": "Disconnected"
+    },
+    "checkError": {
+      "adapter_not_live": "The live connection to this processor isn't open yet. The details are saved, and nothing is charged until we test against a sandbox account.",
+      "auth_failed": "The processor did not accept the keys. Check that you copied them in full.",
+      "other": "The connection failed. Try again or check the details with your processor."
+    },
+    "methodName": {
+      "card": "Credit card",
+      "bit": "Bit",
+      "standing_order": "Standing order"
+    },
+    "field": {
+      "userId": "User ID",
+      "pageCode": "Page code",
+      "apiKey": "API key",
+      "terminalNumber": "Terminal number",
+      "apiName": "API user name",
+      "apiPassword": "API password",
+      "terminalName": "Terminal name",
+      "appKey": "App key",
+      "secretKey": "Secret key",
+      "paymentPageUid": "Payment page ID",
+      "merchantId": "Merchant ID (demo)"
+    },
+    "errors": {
+      "notConnected": "Online payment isn't available right now. Contact the business.",
+      "notOpen": "This payment is no longer open.",
+      "noMethod": "Choose at least one payment method.",
+      "methodNotSupported": "This payment method isn't available here.",
+      "field": "One of the details doesn't look right ({field}). Check and copy it again.",
+      "demoOnly": "The demo processor is available in demo environments only.",
+      "noMasterKey": "The system's encryption key isn't set, so keys can't be saved. Contact support.",
+      "ownerOnly": "Only the owner changes the processor connection.",
+      "nothingToPay": "There is nothing to pay right now."
+    },
+    "page": {
+      "title": "Payment",
+      "for": "Payment for {name}",
+      "secure": "Secure payment",
+      "total": "To pay",
+      "how": "How would you like to pay?",
+      "mandateOnly": "Set up a standing order: the monthly charge comes off the card automatically.",
+      "method": {
+        "card": "Pay by card · {amount}",
+        "bit": "Pay with Bit · {amount}",
+        "standing_order": "Set up a standing order"
+      },
+      "methodHint": {
+        "card": "All credit cards",
+        "bit": "Approve in the app on your phone",
+        "standing_order": "Pay now, and from next month it's automatic",
+        "mandate": "The monthly charge comes off the card automatically"
+      },
+      "processedBy": "Processed by {provider}.",
+      "noCardStored": "We never store card details.",
+      "paid": "Payment received, thank you! ({amount})",
+      "mandateDone": "Standing order set up, thank you!",
+      "mandateCard": "The card ending {last4} will be charged automatically on day {day} of each month.",
+      "paidBy": {
+        "card": "Paid by card",
+        "bit": "Paid with Bit",
+        "standing_order": "Paid with the card saved for the standing order"
+      },
+      "receipt": "Your receipt is on its way.",
+      "backHome": "Back to the app",
+      "expired": "This link has expired. Ask the business for a new one.",
+      "closed": "This payment was cancelled.",
+      "unavailable": "Online payment isn't available right now. Contact the business.",
+      "failed": "The payment didn't go through. You can try again, the same way or another.",
+      "waiting": "Waiting for the processor's approval…",
+      "refresh": "Refresh",
+      "notFound": "We couldn't find this payment. The link may not have been copied in full."
+    },
+    "sandbox": {
+      "demo": "Demo mode",
+      "payTo": "Payment to {business}",
+      "title": {
+        "card": "Credit card",
+        "bit": "Bit",
+        "standing_order": "Standing order by card"
+      },
+      "phone": "Phone number",
+      "bitSent": "We sent a payment request to the Bit app on your phone. Approve it there.",
+      "card": "Card number",
+      "expiry": "Expiry",
+      "cvv": "CVV",
+      "mandateTerms": "I authorize charging this card every month for the monthly bill, until cancelled.",
+      "approve": {
+        "card": "Pay {amount}",
+        "bit": "I approved in Bit",
+        "standing_order": "Approve standing order"
+      },
+      "decline": "Simulate a processor decline",
+      "cancel": "Back without paying",
+      "note": "This is a demo page standing in for the processor's page until a live connection. No card is charged."
+    },
+    "family": {
+      "balanceDescription": "Balance due",
+      "mandateDescription": "Standing order setup",
+      "pay": {
+        "card": "Pay by card · {amount}",
+        "bit": "Pay with Bit · {amount}"
+      },
+      "setupMandate": "Set up a standing order by card",
+      "replaceCard": "Replace the standing order's card",
+      "mandateHint": "The monthly charge comes off automatically, no links or reminders."
     }
   }
 }

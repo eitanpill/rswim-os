@@ -228,7 +228,12 @@ export async function settleBooking(tx: Tx, ctx: ServiceContext, raw: z.input<ty
   return confirmPayment(tx, ctx, { bookingId: input.bookingId, method: input.method });
 }
 
-export const OnlinePayment = z.object({ bookingId: id, externalId: z.string().min(1).max(120) });
+export const OnlinePayment = z.object({
+  bookingId: id,
+  externalId: z.string().min(1).max(120),
+  /** How the diver paid on the club's processor page. */
+  method: z.enum(['card', 'bit']).default('card'),
+});
 
 /**
  * The payment provider says a booking was paid online (its callback, run as the system for the club). Idempotent:
@@ -242,7 +247,7 @@ export async function confirmOnlinePayment(
   const input = OnlinePayment.parse(raw);
   return confirmPayment(tx, ctx, {
     bookingId: input.bookingId,
-    method: 'card',
+    method: input.method,
     externalId: input.externalId,
   });
 }

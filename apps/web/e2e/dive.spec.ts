@@ -152,9 +152,12 @@ test('a booking counts only once the diver pays for it', async ({ page }) => {
   await page.getByTestId('pay-link').first().click();
   await expect(page).toHaveURL(/\/dive\/me\/pay\//);
   await expect(page.getByTestId('checkout-amount')).toContainText('₪');
-  await page.getByTestId('pay-now').click();
-  await expect(page).toHaveURL(/\/dive\/me\?paid=/);
-  await expect(page.getByTestId('paid-banner')).toContainText('ההרשמה אושרה');
+  // The club's own processor (Grow, sandboxed here): a card on its page, confirmed by its callback.
+  await page.getByTestId('dive-pay-card').click();
+  await expect(page).toHaveURL(/\/pay\/[A-Za-z0-9_-]+\/sandbox\?m=card/);
+  await page.getByTestId('sandbox-approve').click();
+  await expect(page.getByTestId('pay-paid')).toBeVisible();
+  await page.goto('/dive/me');
   await expect(page.getByTestId('unpaid')).toHaveCount(0);
   await expect(page.getByTestId('my-next')).not.toContainText('ממתין לתשלום');
 });
@@ -238,9 +241,11 @@ test('a diver buys a pass online and it is active once paid', async ({ page }) =
   await page.getByTestId('buy-punch5').click();
   await expect(page).toHaveURL(/\/dive\/me\/pay\/pass\/punch5$/);
   await expect(page.getByTestId('checkout-amount')).toContainText('₪');
-  await page.getByTestId('buy-pass-now').click();
-  await expect(page).toHaveURL(/\/dive\/me\?pass=1$/);
-  await expect(page.getByTestId('paid-banner')).toContainText('הכרטיסייה פעילה');
+  await page.getByTestId('dive-pay-bit').click();
+  await expect(page).toHaveURL(/\/sandbox\?m=bit/);
+  await page.getByTestId('sandbox-approve').click();
+  await expect(page.getByTestId('pay-paid')).toContainText('שולם בביט');
+  await page.goto('/dive/me');
   await expect(page.getByTestId('my-passes')).toContainText('כרטיסיית 5 אימונים');
 });
 

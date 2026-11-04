@@ -1,5 +1,10 @@
+import { loadGateway } from '@rswim/domain-billing';
+import { withOrg } from '@rswim/db/service';
 import { FakeParentBotModel } from '@rswim/domain-copilot';
 import {
+  createGateway,
+  gatewaySandbox,
+  type PaymentGateway,
   ClaudeInsightWriter,
   ClaudeCopilotModel,
   ClaudeTriageClassifier,
@@ -12,6 +17,8 @@ import {
   type TriageClassifier,
 } from '@rswim/integrations';
 
+import { getDb, log } from './client';
+
 let payments: FakePaymentProvider | undefined;
 let invoicing: FakeInvoicingProvider | undefined;
 
@@ -23,6 +30,45 @@ let invoicing: FakeInvoicingProvider | undefined;
 export function paymentProvider(): PaymentProvider | null {
   if (process.env.RSWIM_GROW_FAKE === '1') return (payments ??= new FakePaymentProvider());
   return null;
+}
+
+/**
+ * The business's own processor when its owner connected one (/admin/integrations/payments), else the worker-wide
+ * provider above. A business that connected a processor never falls back to the worker-wide one (that would move its
+ * money through someone else's account): while its connection is not working, nothing is charged.
+ */
+export async function tenantPaymentProvider(orgId: string): Promise<PaymentProvider | null> {
+  const loaded = await loadTenantGateway(orgId);
+  if (loaded === 'none') return paymentProvider();
+  return loaded;
+}
+
+/** The business's connected processor, or null (none connected, disconnected, or its adapter is not live). */
+export async function tenantGateway(orgId: string): Promise<PaymentGateway | null> {
+  const loaded = await loadTenantGateway(orgId);
+  return loaded === 'none' ? null : loaded;
+}
+
+async function loadTenantGateway(orgId: string): Promise<PaymentGateway | null | 'none'> {
+  const sandbox = gatewaySandbox();
+  try {
+    const loaded = await withOrg(getDb(), orgId, (tx) =>
+      loadGateway(tx, orgId, {
+        build: (kind, creds, o) => createGateway(kind, creds, { ...o, sandbox }),
+      }),
+    );
+    if (!loaded) return 'none';
+    if (!loaded.gateway) log.warn({ orgId, reason: loaded.reason }, 'payment gateway not usable');
+    return loaded.gateway;
+  } catch (e) {
+    log.error({ orgId, err: e }, 'payment gateway could not be opened');
+    return null;
+  }
+}
+
+/** The web app's public address, for payment pages sent to customers (RSWIM_PUBLIC_URL). */
+export function publicUrl(): string {
+  return process.env.RSWIM_PUBLIC_URL ?? 'http://localhost:3000';
 }
 
 /**

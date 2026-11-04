@@ -18,6 +18,11 @@ import {
 import {
   BILLING_LINE_KINDS,
   BILLING_RUN_STATUSES,
+  CHECKOUT_METHODS,
+  CHECKOUT_PURPOSES,
+  CHECKOUT_STATUSES,
+  PAYMENT_CONNECTION_STATUSES,
+  PAYMENT_GATEWAY_KINDS,
   CANCELLATION_STATUSES,
   PORTAL_REQUEST_KINDS,
   PORTAL_REQUEST_STATUSES,
@@ -592,5 +597,116 @@ export const dunningCases = pgTable(
       .where(sql`status in ('open', 'escalated')`),
     check('dunning_cases_status_check', sql.raw(`status in (${inList(DUNNING_STATUSES)})`)),
     check('dunning_cases_retries_check', sql`${t.retriesDone} >= 0`),
+  ],
+);
+
+/**
+ * The business's own payment processor (one per organization), connected by the owner in-app. The API credentials
+ * are sealed with the organization's data key (ADR-0005) and never readable by app users: only the tenant's system
+ * role reads `enc_credentials` / `enc_webhook_secret` to build the gateway. `credential_hints` keeps the last
+ * characters of each field so the owner can see what is saved.
+ */
+export const paymentConnections = pgTable(
+  'payment_connections',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    provider: text('provider').notNull(),
+    status: text('status').notNull().default('connected'),
+    /** What customers may use on the checkout page. */
+    methods: text('methods').array().notNull(),
+    encCredentials: bytea('enc_credentials').notNull(),
+    encWebhookSecret: bytea('enc_webhook_secret').notNull(),
+    credentialHints: jsonb('credential_hints').notNull().default({}),
+    lastCheckedAt: timestamp('last_checked_at', { withTimezone: true }),
+    lastCheckError: text('last_check_error'),
+    connectedBy: uuid('connected_by'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('payment_connections_org_id').on(t.organizationId, t.id),
+    unique('payment_connections_org').on(t.organizationId),
+    check(
+      'payment_connections_provider_check',
+      sql.raw(`provider in (${inList(PAYMENT_GATEWAY_KINDS)})`),
+    ),
+    check(
+      'payment_connections_status_check',
+      sql.raw(`status in (${inList(PAYMENT_CONNECTION_STATUSES)})`),
+    ),
+    check(
+      'payment_connections_methods_check',
+      sql.raw(`methods <@ array[${inList(CHECKOUT_METHODS)}]::text[] and cardinality(methods) > 0`),
+    ),
+  ],
+);
+
+/**
+ * A checkout: one amount a customer pays on the business's payment page (/pay/<token>) by card, Bit or by setting up
+ * a standing order. The token is the only key a customer holds, so it is long and random. Paying it settles what it
+ * is for (a family's balance or link, a dive booking or pass) once the processor confirms.
+ */
+export const checkouts = pgTable(
+  'checkouts',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    token: text('token').notNull(),
+    purpose: text('purpose').notNull(),
+    householdId: uuid('household_id'),
+    paymentLinkId: uuid('payment_link_id'),
+    /** For dive purposes: { bookingId } or { diverId, kind, label }. */
+    ref: jsonb('ref').notNull().default({}),
+    amountAgorot: integer('amount_agorot').notNull(),
+    description: text('description').notNull(),
+    methods: text('methods').array().notNull(),
+    status: text('status').notNull().default('open'),
+    provider: text('provider'),
+    /** The method the customer chose and the processor's id for that attempt. */
+    method: text('method'),
+    externalId: text('external_id'),
+    paymentId: uuid('payment_id'),
+    standingOrderId: uuid('standing_order_id'),
+    failureReason: text('failure_reason'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
+    createdBy: uuid('created_by'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('checkouts_org_id').on(t.organizationId, t.id),
+    uniqueIndex('checkouts_token').on(t.token),
+    foreignKey({
+      name: 'checkouts_household_fk',
+      columns: [t.organizationId, t.householdId],
+      foreignColumns: [households.organizationId, households.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'checkouts_link_fk',
+      columns: [t.organizationId, t.paymentLinkId],
+      foreignColumns: [paymentLinks.organizationId, paymentLinks.id],
+    }).onDelete('cascade'),
+    index('checkouts_household').on(t.householdId, t.status),
+    check('checkouts_purpose_check', sql.raw(`purpose in (${inList(CHECKOUT_PURPOSES)})`)),
+    check('checkouts_status_check', sql.raw(`status in (${inList(CHECKOUT_STATUSES)})`)),
+    check(
+      'checkouts_method_check',
+      sql.raw(`method is null or method in (${inList(CHECKOUT_METHODS)})`),
+    ),
+    check(
+      'checkouts_methods_check',
+      sql.raw(`methods <@ array[${inList(CHECKOUT_METHODS)}]::text[] and cardinality(methods) > 0`),
+    ),
+    check(
+      'checkouts_amount_check',
+      sql`${t.amountAgorot} > 0 or (${t.purpose} = 'mandate' and ${t.amountAgorot} = 0)`,
+    ),
+    check(
+      'checkouts_household_check',
+      sql`${t.purpose} not in ('household', 'mandate') or ${t.householdId} is not null`,
+    ),
+    check('checkouts_token_check', sql`length(${t.token}) >= 24`),
   ],
 );

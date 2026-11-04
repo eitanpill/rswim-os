@@ -287,3 +287,13 @@ At 07:00 the brain turns old debts into payment links and uncovered lessons into
 the day. Proof: `packages/domain/copilot/test/agent-policies.test.ts` (100%), `packages/seed/test/brain-rounds.test.ts`
 (off proposes nothing, an old debt and a gap become waiting actions sent to WhatsApp, nothing repeats the next morning,
 the summary goes once and not when off or without a number). Not verified yet: the crons on a real Inngest account.
+
+## Payments through the business's own processor (2026-11-04)
+
+The owner connects the business's processor (Grow, Cardcom, Tranzila, PayPlus) with its API keys, sealed; families
+pay their balance by card or Bit or set up a standing order in one tap, divers pay bookings and passes by card or Bit,
+and office payment links open the business's payment page. Proof: `packages/domain/billing/test/checkout.test.ts`
+(keys unreadable by every signed-in role, Bit payment settles with its receipt request, forged/duplicate/wrong-amount
+callbacks change nothing, a standing order set up and then charged by the run, a link becomes a checkout, disconnect),
+`packages/integrations/test/gateways.test.ts`, `apps/web/e2e/payments.spec.ts` and the dive payment E2E tests. Not
+verified yet: any real processor; every processor runs as the sandboxed demo processor (docs/PAYMENTS.md).

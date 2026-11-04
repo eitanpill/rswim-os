@@ -3,7 +3,8 @@
  * the payment provider says the money is in, the confirmation runs as the system for that one club (RLS still
  * scopes it), recording the signed-in diver as the actor. Until Grow is connected this is the demo checkout only.
  */
-import type { Db } from '@rswim/db';
+import type { Db, Tx } from '@rswim/db';
+import type { ServiceContext } from '@rswim/domain-core';
 import { withOrg } from '@rswim/db/service';
 import { confirmOnlinePayment, sellPass } from './actions';
 
@@ -40,4 +41,33 @@ export async function confirmPassCheckout(
       ),
     { actorId: p.userId },
   );
+}
+
+/**
+ * Settles a dive checkout once the club's processor confirms it (passed to the billing module's webhook intake as
+ * its dive hook): a booking is confirmed, or a pass is issued, as the diver who opened the checkout.
+ */
+export async function settleDiveCheckout(
+  tx: Tx,
+  ctx: ServiceContext,
+  checkout: { purpose: string; ref: unknown; createdBy: string | null },
+  event: { externalPaymentId: string; method: string },
+): Promise<void> {
+  const actor = { orgId: ctx.orgId, userId: checkout.createdBy };
+  const method = event.method === 'bit' ? 'bit' : 'card';
+  const ref = checkout.ref as Record<string, string>;
+  if (checkout.purpose === 'dive_booking') {
+    await confirmOnlinePayment(tx, actor, {
+      bookingId: ref.bookingId as string,
+      externalId: event.externalPaymentId,
+      method,
+    });
+  } else if (checkout.purpose === 'dive_pass') {
+    await sellPass(tx, actor, {
+      diverId: ref.diverId as string,
+      kind: ref.kind as 'punch10',
+      method,
+      label: ref.label as string,
+    });
+  }
 }

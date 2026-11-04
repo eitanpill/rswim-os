@@ -323,6 +323,20 @@
       "when": 1793709915881,
       "tag": "0045_brain_evening_summary",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1793811612994,
+      "tag": "0046_payment_connections",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793811639129,
+      "tag": "0047_payment_connections_security",
+      "breakpoints": true
     }
   ]
 }

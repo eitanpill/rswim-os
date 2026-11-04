@@ -8,6 +8,7 @@ import {
   cancelBooking,
   checkIn,
   checkoutView,
+  diverHome,
   myDiverId,
   closeIncident,
   ConditionsInput,
@@ -47,6 +48,7 @@ import { z } from 'zod';
 import type { FormState } from '@/lib/form-state';
 import { db, withSession } from '@/lib/db';
 import { fakeCheckout } from '@/lib/dive-payments';
+import { payNow } from '@/lib/payments';
 import { runForm } from '@/lib/forms';
 
 /**
@@ -223,4 +225,92 @@ export async function targetAction(_: FormState, fd: FormData) {
 
 export async function skillAction(_: FormState, fd: FormData) {
   return runForm(fd, SkillToggle, (tx, _c, i) => toggleSkill(tx, i), opts());
+}
+
+/**
+ * The diver pays a booking on the club's own processor: the booking is checked as the diver (their own, still held),
+ * then the processor's page opens for a card or Bit. The processor's callback confirms it.
+ */
+export async function processorPayBookingAction(_: FormState, fd: FormData): Promise<FormState> {
+  const t = await getTranslations();
+  const fail = (key: string) => ({
+    ok: false,
+    errors: {},
+    message: t(t.has(key) ? key : 'forms.errors.invalid'),
+  });
+  const bookingId = z.uuid().safeParse(fd.get('bookingId'));
+  const method = z.enum(['card', 'bit']).safeParse(fd.get('method'));
+  if (!bookingId.success || !method.success) return fail('common.errors.notFound');
+  const found = await withSession(async (tx, ctx, session) => ({
+    view: await checkoutView(tx, bookingId.data),
+    orgId: ctx.orgId,
+    userId: session.userId,
+  }));
+  const v = found.view;
+  if (!v || v.status !== 'pending_payment') return fail('common.errors.notFound');
+  if (!v.holding) return fail('dive.errors.holdLapsed');
+  let to: string;
+  try {
+    to = await payNow(
+      { orgId: found.orgId, userId: found.userId },
+      {
+        purpose: 'dive_booking',
+        amountAgorot: v.price,
+        description: `${v.title} · ${v.diverName}`,
+        ref: { bookingId: v.bookingId },
+        expiresAt: v.holdUntil ? new Date(v.holdUntil) : undefined,
+      },
+      method.data,
+    );
+  } catch (e) {
+    const de = toDomainError(e);
+    if (!de) throw e;
+    return fail(de.code);
+  }
+  redirect(to);
+}
+
+/** The diver buys a pass on the club's own processor; it is issued when the processor reports the money in. */
+export async function processorBuyPassAction(_: FormState, fd: FormData): Promise<FormState> {
+  const t = await getTranslations();
+  const fail = (key: string) => ({
+    ok: false,
+    errors: {},
+    message: t(t.has(key) ? key : 'forms.errors.invalid'),
+  });
+  const kind = z.enum(DIVE_PASS_KINDS).safeParse(fd.get('kind'));
+  const method = z.enum(['card', 'bit']).safeParse(fd.get('method'));
+  if (!kind.success || !method.success) return fail('common.errors.notFound');
+  const me = await withSession(async (tx, ctx, session) => {
+    const diverId = await myDiverId(tx);
+    const home = diverId ? await diverHome(tx, diverId) : null;
+    return {
+      diverId,
+      offer: home?.passOffers.find((o) => o.kind === kind.data) ?? null,
+      orgId: ctx.orgId,
+      userId: session.userId,
+    };
+  });
+  if (!me.diverId) return fail('dive.errors.noDiver');
+  if (!me.offer) return fail('common.errors.notFound');
+  const label = t(`dive.passKind.${kind.data}`);
+  let to: string;
+  try {
+    to = await payNow(
+      { orgId: me.orgId, userId: me.userId },
+      {
+        purpose: 'dive_pass',
+        amountAgorot: me.offer.price,
+        description: label,
+        ref: { diverId: me.diverId, kind: kind.data, label },
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+      method.data,
+    );
+  } catch (e) {
+    const de = toDomainError(e);
+    if (!de) throw e;
+    return fail(de.code);
+  }
+  redirect(to);
 }

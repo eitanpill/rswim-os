@@ -197,3 +197,34 @@ export function isValidIsraeliId(raw: string): boolean {
   }
   return sum % 10 === 0;
 }
+
+// ─── The business's own payment processor (סליקה), connected in-app ─────────
+
+/**
+ * Processors a business can connect. `fake` is the demo processor (local, CI, the live demo). Real adapters plug in
+ * behind the same interface (`@rswim/integrations` gateways), one per processor.
+ */
+export const PAYMENT_GATEWAY_KINDS = ['grow', 'cardcom', 'tranzila', 'payplus', 'fake'] as const;
+export const PaymentGatewayKind = z.enum(PAYMENT_GATEWAY_KINDS);
+export type PaymentGatewayKind = z.infer<typeof PaymentGatewayKind>;
+
+/** How a customer can pay on the checkout page: a card, Bit, or by setting up a standing order (הוראת קבע). */
+export const CHECKOUT_METHODS = ['card', 'bit', 'standing_order'] as const;
+export const CheckoutMethod = z.enum(CHECKOUT_METHODS);
+export type CheckoutMethod = z.infer<typeof CheckoutMethod>;
+
+export const PAYMENT_CONNECTION_STATUSES = ['connected', 'failed', 'disconnected'] as const;
+export const PaymentConnectionStatus = z.enum(PAYMENT_CONNECTION_STATUSES);
+export type PaymentConnectionStatus = z.infer<typeof PaymentConnectionStatus>;
+
+/**
+ * What a checkout pays for: a family's balance or link (`household`), only a standing order for future months
+ * (`mandate`), a dive booking, or a dive pass.
+ */
+export const CHECKOUT_PURPOSES = ['household', 'mandate', 'dive_booking', 'dive_pass'] as const;
+export const CheckoutPurpose = z.enum(CHECKOUT_PURPOSES);
+export type CheckoutPurpose = z.infer<typeof CheckoutPurpose>;
+
+export const CHECKOUT_STATUSES = ['open', 'paid', 'failed', 'expired', 'cancelled'] as const;
+export const CheckoutStatus = z.enum(CHECKOUT_STATUSES);
+export type CheckoutStatus = z.infer<typeof CheckoutStatus>;

@@ -234,7 +234,20 @@ export default async function OwnerBridge() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-        <Panel title={t('owner.revenueTitle')} icon={di.coin} testId="revenue-chart">
+        <Panel
+          title={t('owner.revenueTitle')}
+          icon={di.coin}
+          testId="revenue-chart"
+          action={
+            <a
+              href="/dive/payments"
+              className="text-sm text-[var(--dive-sea)] hover:underline"
+              data-testid="to-payments"
+            >
+              {t('owner.toPayments')}
+            </a>
+          }
+        >
           <StackedBars
             months={months}
             streams={STREAMS.map((k) => ({ key: k, label: t(`stream.${k}`) }))}

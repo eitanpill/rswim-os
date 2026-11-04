@@ -4,7 +4,9 @@ import { diverHome, myDiverId } from '@rswim/domain-dive';
 import { ActionForm, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { fakeCheckout } from '@/lib/dive-payments';
-import { buyPassAction } from '../../../../actions';
+import { paymentsOffer } from '@/lib/payments';
+import { buyPassAction, processorBuyPassAction } from '../../../../actions';
+import { PayMethods } from '../../../../_ui/pay-methods';
 import { requireDivePage } from '../../../../_ui/access';
 import { shekels } from '../../../../_ui/format';
 import { di } from '../../../../_ui/icons';
@@ -12,7 +14,7 @@ import { btn, Chip, Empty, Panel } from '../../../../_ui/kit';
 
 /** Checkout for a pass: what it holds, how long it lasts and its price. It is issued only once paid. */
 export default async function BuyPass({ params }: { params: Promise<{ kind: string }> }) {
-  await requireDivePage('me');
+  const { session } = await requireDivePage('me');
   const { kind } = await params;
   const t = await getTranslations('dive');
   const locale = await getLocale();
@@ -27,6 +29,9 @@ export default async function BuyPass({ params }: { params: Promise<{ kind: stri
     <a href="/dive/me" className={btn.ghost}>
       {t('pay.back')}
     </a>
+  );
+  const methods = ((await paymentsOffer(session.orgId as string)) ?? []).filter(
+    (m) => m !== 'standing_order',
   );
   if (!offer) {
     return (
@@ -62,7 +67,14 @@ export default async function BuyPass({ params }: { params: Promise<{ kind: stri
           {shekels(offer.price, locale)}
         </p>
       </section>
-      {fakeCheckout() ? (
+      {methods.length > 0 ? (
+        <PayMethods
+          methods={methods}
+          fields={{ kind: offer.kind }}
+          action={processorBuyPassAction}
+          amount={shekels(offer.price, locale)}
+        />
+      ) : fakeCheckout() ? (
         <Panel
           title={t('pay.card')}
           action={
