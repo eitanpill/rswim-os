@@ -26,6 +26,10 @@ fi
 # Encrypted fields need a key; the data is rebuilt at boot, so a fresh random one is fine.
 export RSWIM_MASTER_KEY=${RSWIM_MASTER_KEY:-$(node -e "process.stdout.write(require('crypto').randomBytes(32).toString('base64'))")}
 export NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 TZ=Asia/Jerusalem
+# Payment links the worker sends open the demo's own payment page (Railway names its public domain).
+if [ -z "${RSWIM_PUBLIC_URL:-}" ] && [ -n "${RAILWAY_PUBLIC_DOMAIN:-}" ]; then
+  export RSWIM_PUBLIC_URL="https://${RAILWAY_PUBLIC_DOMAIN}"
+fi
 
 log() { echo "[demo] $(date -Is) $*"; }
 

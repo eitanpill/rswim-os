@@ -1201,6 +1201,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.131.0
         version: 0.131.0(zod@4.6.5)
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@rswim/money':
         specifier: workspace:*
         version: link:../money

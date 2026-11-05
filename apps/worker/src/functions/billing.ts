@@ -7,6 +7,7 @@ import {
   applyTrialOffset,
   collectRun,
   completeProviderRefund,
+  createLinkAsCheckout,
   createLinkAtProvider,
   growWebhookBody,
   issueReceipts,
@@ -15,11 +16,18 @@ import {
   processPortalRequest,
   runDunning,
 } from '@rswim/domain-billing';
-import type { DomainEventEnvelope } from '@rswim/contracts';
+import { PAYMENT_GATEWAY_KINDS, type DomainEventEnvelope } from '@rswim/contracts';
 import type { Tx } from '@rswim/db';
 import { consumeOnce } from '@rswim/domain-core/worker';
 import { getDb, inngest, log } from '../client';
-import { invoicingProvider, invoicingProviderName, paymentProvider } from '../providers';
+import {
+  invoicingProvider,
+  invoicingProviderName,
+  paymentProvider,
+  publicUrl,
+  tenantGateway,
+  tenantPaymentProvider,
+} from '../providers';
 import { toEnvelope } from './core-ping';
 
 export const sys = (envelope: DomainEventEnvelope) => ({
@@ -54,9 +62,12 @@ export const billingCollectRun = inngest.createFunction(
   async ({ event, step }) => {
     const envelope = toEnvelope(event);
     const { runId } = z.object({ runId: z.uuid() }).parse(envelope.payload);
-    return step.run('collect', () =>
-      withProvider('billing-collect-run', envelope, paymentProvider(), (p, tx) =>
-        collectRun(tx, sys(envelope), p, runId),
+    return step.run('collect', async () =>
+      withProvider(
+        'billing-collect-run',
+        envelope,
+        await tenantPaymentProvider(envelope.organizationId),
+        (p, tx) => collectRun(tx, sys(envelope), p, runId),
       ),
     );
   },
@@ -72,11 +83,17 @@ export const billingCreateLink = inngest.createFunction(
   async ({ event, step }) => {
     const envelope = toEnvelope(event);
     const { linkId } = z.object({ linkId: z.uuid() }).parse(envelope.payload);
-    return step.run('create-link', () =>
-      withProvider('billing-create-link', envelope, paymentProvider(), (p, tx) =>
+    return step.run('create-link', async () => {
+      // A business with its own processor sends its customers to its payment page (card, Bit, standing order).
+      const gateway = await tenantGateway(envelope.organizationId);
+      if (gateway)
+        return withProvider('billing-create-link', envelope, gateway, (_p, tx) =>
+          createLinkAsCheckout(tx, sys(envelope), linkId, publicUrl()),
+        );
+      return withProvider('billing-create-link', envelope, paymentProvider(), (p, tx) =>
         createLinkAtProvider(tx, sys(envelope), p, linkId),
-      ),
-    );
+      );
+    });
   },
 );
 
@@ -123,9 +140,12 @@ export const billingProviderRefund = inngest.createFunction(
   async ({ event, step }) => {
     const envelope = toEnvelope(event);
     const { refundId } = z.object({ refundId: z.uuid() }).parse(envelope.payload);
-    return step.run('refund', () =>
-      withProvider('billing-provider-refund', envelope, paymentProvider(), (p, tx) =>
-        completeProviderRefund(tx, sys(envelope), p, refundId),
+    return step.run('refund', async () =>
+      withProvider(
+        'billing-provider-refund',
+        envelope,
+        await tenantPaymentProvider(envelope.organizationId),
+        (p, tx) => completeProviderRefund(tx, sys(envelope), p, refundId),
       ),
     );
   },
@@ -143,16 +163,21 @@ export const billingCancelMandate = inngest.createFunction(
     const { mandateId, provider } = z
       .object({ mandateId: z.string(), provider: z.string() })
       .parse(envelope.payload);
-    if (provider !== 'grow') return { consumed: false, reason: 'not_a_provider_mandate' };
-    return step.run('cancel', () =>
-      withProvider('billing-cancel-mandate', envelope, paymentProvider(), (p) =>
-        p.cancelStandingOrder(
-          {
-            organizationId: envelope.organizationId,
-            idempotencyKey: `cancel-mandate:${mandateId}`,
-          },
-          mandateId,
-        ),
+    if (!(PAYMENT_GATEWAY_KINDS as readonly string[]).includes(provider) || provider === 'fake')
+      return { consumed: false, reason: 'not_a_provider_mandate' };
+    return step.run('cancel', async () =>
+      withProvider(
+        'billing-cancel-mandate',
+        envelope,
+        await tenantPaymentProvider(envelope.organizationId),
+        (p) =>
+          p.cancelStandingOrder(
+            {
+              organizationId: envelope.organizationId,
+              idempotencyKey: `cancel-mandate:${mandateId}`,
+            },
+            mandateId,
+          ),
       ),
     );
   },
@@ -199,11 +224,6 @@ export const billingDailyDunning = inngest.createFunction(
     concurrency: { limit: 1 },
   },
   async ({ step }) => {
-    const provider = paymentProvider();
-    if (!provider) {
-      log.warn('payment provider not configured; dunning skipped');
-      return { skipped: true };
-    }
     const orgIds = await step.run('find-orgs', () =>
       asPlatform(getDb(), async (tx) =>
         (await tx.select({ id: schema.organizations.id }).from(schema.organizations)).map(
@@ -213,9 +233,11 @@ export const billingDailyDunning = inngest.createFunction(
     );
     const totals = { retried: 0, reminded: 0, escalated: 0, resolved: 0 };
     for (const orgId of orgIds) {
-      const r = await step.run(`dunning-${orgId}`, () =>
-        withOrg(getDb(), orgId, (tx) => runDunning(tx, { orgId, userId: null }, provider)),
-      );
+      const r = await step.run(`dunning-${orgId}`, async () => {
+        const provider = await tenantPaymentProvider(orgId);
+        if (!provider) return { retried: 0, reminded: 0, escalated: 0, resolved: 0 };
+        return withOrg(getDb(), orgId, (tx) => runDunning(tx, { orgId, userId: null }, provider));
+      });
       totals.retried += r.retried;
       totals.reminded += r.reminded;
       totals.escalated += r.escalated;

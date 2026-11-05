@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
+    "@rswim/contracts": "workspace:*",
     "@rswim/money": "workspace:*",
     "zod": "^4.6.5"
   },

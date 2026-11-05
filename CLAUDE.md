@@ -64,6 +64,12 @@ Grow (payments) and Green Invoice (receipts) run on fakes only until Pit's accou
 `RSWIM_GROW_FAKE=1 RSWIM_INVOICING_FAKE=1` (a mandate id containing "fail" is declined). The Grow webhook route needs
 `GROW_WEBHOOK_SECRET`. Saving a payer's ID number needs `RSWIM_MASTER_KEY` in the web app's environment too.
 
+Each business can connect its own processor in-app (`docs/PAYMENTS.md`, `/admin/integrations/payments`,
+`/dive/payments`): keys sealed with the org's data key, customers pay on `/pay/<token>` by card, Bit or a standing order,
+and the processor's callback lands on `/api/webhooks/pay/<connectionId>`. With `RSWIM_GROW_FAKE=1`,
+`RSWIM_PAYMENTS_SANDBOX=1` or demo mode every processor runs as the demo processor (`/pay/<token>/sandbox`); real
+adapters are not live until tested against a processor's sandbox account. The worker builds links from `RSWIM_PUBLIC_URL`.
+
 WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, or to an in-memory fake with
 `RSWIM_MESSAGING_FAKE=1` (a phone containing 0000000 fails). Inbound WhatsApp arrives on the same GHL webhook route
 (`InboundMessage`). With the `comms.ai_triage` policy on, the worker re-classifies inbound messages with Claude using

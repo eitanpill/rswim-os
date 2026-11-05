@@ -3,7 +3,9 @@ import { checkoutView } from '@rswim/domain-dive';
 import { ActionForm, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { fakeCheckout } from '@/lib/dive-payments';
-import { payCheckoutAction } from '../../../actions';
+import { paymentsOffer } from '@/lib/payments';
+import { payCheckoutAction, processorPayBookingAction } from '../../../actions';
+import { PayMethods } from '../../../_ui/pay-methods';
 import { requireDivePage } from '../../../_ui/access';
 import { dayLabel, heldLong, hhmm, localDay, shekels } from '../../../_ui/format';
 import { di } from '../../../_ui/icons';
@@ -15,7 +17,7 @@ import { HoldCountdown } from '../../../_ui/motion';
  * registration counts only once it is paid. Until the club's Grow account is connected this is the demo checkout.
  */
 export default async function PayBooking({ params }: { params: Promise<{ bookingId: string }> }) {
-  await requireDivePage('me');
+  const { session } = await requireDivePage('me');
   const { bookingId } = await params;
   const t = await getTranslations('dive');
   const locale = await getLocale();
@@ -38,6 +40,10 @@ export default async function PayBooking({ params }: { params: Promise<{ booking
   const paid = v.status === 'booked' || v.status === 'checked_in';
   const lapsed = v.status === 'pending_payment' && !v.holding;
   const live = fakeCheckout();
+  // The club's own processor, when the owner connected one: a card or Bit on its page.
+  const methods = ((await paymentsOffer(session.orgId as string)) ?? []).filter(
+    (m) => m !== 'standing_order',
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-4" data-testid="checkout">
@@ -107,6 +113,13 @@ export default async function PayBooking({ params }: { params: Promise<{ booking
           <Empty>{t('pay.notFound')}</Empty>
           <div className="mt-3">{back}</div>
         </Panel>
+      ) : methods.length > 0 ? (
+        <PayMethods
+          methods={methods}
+          fields={{ bookingId: v.bookingId }}
+          action={processorPayBookingAction}
+          amount={shekels(v.price, locale)}
+        />
       ) : !live ? (
         <Panel className="pt-4">
           <div className="flex flex-col items-start gap-3">

@@ -242,6 +242,8 @@ export async function createPendingPayment(
     paymentLinkId?: string | null;
     attempt?: number;
     note?: string | null;
+    /** The processor that took it (the business's connected one); Grow by default. */
+    provider?: string;
   },
 ) {
   await tx
@@ -252,7 +254,7 @@ export async function createPendingPayment(
       kind: 'payment',
       method: input.method,
       source: 'provider',
-      provider: 'grow',
+      provider: input.provider ?? 'grow',
       status: 'pending',
       amountAgorot: input.amountAgorot,
       billingRunId: input.billingRunId ?? null,

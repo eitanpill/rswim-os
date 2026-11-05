@@ -155,6 +155,8 @@ const TENANT_TABLES = [
   'dive_form_templates',
   'dive_form_signatures',
   'dive_certifications',
+  'payment_connections',
+  'checkouts',
 ] as const;
 
 describe('schema guardrails', () => {

@@ -21,6 +21,7 @@ import { seedTransportData, type TransportDataSummary } from './transport-data';
 import { seedCoreData, type CoreDataSummary } from './core-data';
 import { seedSaasData, type SaasDataSummary } from './saas-data';
 import { seedDiveData, type DiveDataSummary } from './dive-data';
+import { seedPaymentConnections } from './payments-data';
 import { seedSchedulingData, type SchedulingDataSummary } from './scheduling-data';
 import { FIRST_BOYS, FIRST_GIRLS, LAST, PARENT_MEN, PARENT_WOMEN } from './names';
 
@@ -55,6 +56,8 @@ export interface SeedSummary {
   saas?: SaasDataSummary;
   /** The freediving clubs (Eilat, and a small Haifa club on a trial). */
   dive?: DiveDataSummary;
+  /** Demo businesses connected to their own (sandboxed) processor. */
+  paymentConnections?: number;
 }
 
 /** Small deterministic PRNG so the demo data is the same on every run. */
@@ -412,6 +415,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
     }
     summary.saas = await seedSaasData(client);
     summary.dive = await seedDiveData(client);
+    summary.paymentConnections = await seedPaymentConnections(client, options.masterKey);
     await client.query('commit');
   } catch (e) {
     await client.query('rollback');
