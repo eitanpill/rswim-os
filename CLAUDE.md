@@ -88,6 +88,12 @@ by DNS TXT, or with `RSWIM_DNS_FAKE=1` accepts any `*.localhost`; it bills schoo
 (`RSWIM_GROW_FAKE=1`). `RSWIM_PLATFORM_HOSTS` (comma-separated) lists the platform's own hosts, which schools can't claim.
 Plan limits are a database trigger; plan features gate screens through `requireFeature`.
 
+A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
+project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a
+local database with provider `local`). `DATABASE_URL` stays the platform's database (sign-in, schools, plans). Screens
+use `withSession` (routes by school), the worker's `getDb()` is routed per run (`apps/worker/src/tenancy.ts`), and
+lookups by public tokens use `acrossSchools`. Never call `db()` for a school's data in the web app: use `dbFor(orgId)`.
+
 Freediving (`docs/FREEDIVING.md`): `organizations.vertical = 'freediving'` sends a club's people to `/dive` (owner,
 manager, office, instructor, customer screens; `packages/domain/dive`). Dev personas **🤿 …** sign in to the seeded Eilat club.
 New divers join a club from its link `/join/<slug>` (dev persona **נועם (צולל חדש)**) and upload their certification

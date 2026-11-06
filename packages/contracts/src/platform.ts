@@ -139,3 +139,26 @@ export type TemplatePayload = {
   catalog: CatalogTemplate;
   messages: MessagesTemplate;
 };
+
+/**
+ * A school's own database (docs/TENANT-DATABASES.md). `shared`: the school lives in the platform's database with
+ * everyone else. `dedicated`: its data lives in its own Supabase project, created through the Management API.
+ */
+export const SCHOOL_DATABASE_MODES = ['shared', 'dedicated'] as const;
+export const SchoolDatabaseMode = z.enum(SCHOOL_DATABASE_MODES);
+export type SchoolDatabaseMode = z.infer<typeof SchoolDatabaseMode>;
+
+/** requested → creating → migrating → seeding → ready (or failed, retried from where it stopped). */
+export const TENANT_DATABASE_STATUSES = [
+  'requested',
+  'creating',
+  'migrating',
+  'seeding',
+  'ready',
+  'failed',
+] as const;
+export type TenantDatabaseStatus = (typeof TENANT_DATABASE_STATUSES)[number];
+
+/** Where a dedicated database is created: Supabase for real, or a database on a local Postgres (tests, demos). */
+export const TENANT_DATABASE_PROVIDERS = ['supabase', 'local'] as const;
+export type TenantDatabaseProvider = (typeof TENANT_DATABASE_PROVIDERS)[number];

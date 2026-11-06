@@ -12,6 +12,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   smallint,
   text,
   timestamp,
@@ -23,6 +24,8 @@ import {
   PLAN_FEATURES,
   PLATFORM_INVOICE_STATUSES,
   SUBSCRIPTION_STATUSES,
+  TENANT_DATABASE_PROVIDERS,
+  TENANT_DATABASE_STATUSES,
   TEMPLATE_KINDS,
   TEMPLATE_STATUSES,
 } from '@rswim/contracts';
@@ -177,5 +180,74 @@ export const templateInstalls = pgTable(
   (t) => [
     unique('template_installs_org_id').on(t.organizationId, t.id),
     index('template_installs_org').on(t.organizationId, t.createdAt),
+  ],
+);
+
+/**
+ * Platform-wide switches (control plane). `new_school_database`: 'shared' | 'dedicated'. In a school's own
+ * database the single row `database_role = 'tenant'` marks it as one, so its triggers report changes upward.
+ */
+export const platformSettings = pgTable('platform_settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * Control plane only: the school's own database. The connection string (with its password) is sealed with a key
+ * derived from RSWIM_MASTER_KEY; it is never shown and never leaves the server.
+ */
+export const tenantDatabases = pgTable(
+  'tenant_databases',
+  {
+    organizationId: uuid('organization_id')
+      .primaryKey()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    provider: text('provider').notNull(),
+    status: text('status').notNull().default('requested'),
+    /** Supabase project ref (or the local database's name). */
+    projectRef: text('project_ref'),
+    region: text('region'),
+    connectionSealed: text('connection_sealed'),
+    attempts: smallint('attempts').notNull().default(0),
+    lastError: text('last_error'),
+    readyAt: timestamp('ready_at', { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    check(
+      'tenant_databases_status_check',
+      sql.raw(`status in (${inList(TENANT_DATABASE_STATUSES)})`),
+    ),
+    check(
+      'tenant_databases_provider_check',
+      sql.raw(`provider in (${inList(TENANT_DATABASE_PROVIDERS)})`),
+    ),
+    unique('tenant_databases_project_ref').on(t.projectRef),
+  ],
+);
+
+/**
+ * Control plane only: who belongs to a school whose data lives in its own database. The school's database keeps
+ * the real memberships (with their guardian and staff links); this copy is what sign-in reads to issue a token.
+ */
+export const directoryMemberships = pgTable(
+  'directory_memberships',
+  {
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').notNull(), // FK to auth.users added in SQL
+    role: text('role').notNull(),
+    permissions: text('permissions')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    status: text('status').notNull().default('active'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.organizationId, t.userId] }),
+    index('directory_memberships_user').on(t.userId),
   ],
 );

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { ingestGatewayWebhook } from '@rswim/domain-billing';
-import { db } from '@/lib/db';
+import { acrossSchools } from '@/lib/db';
 import { gatewayFactory, onDivePaid } from '@/lib/payments';
 
 /**
@@ -14,10 +14,15 @@ export async function POST(
 ) {
   const { connectionId } = await params;
   const raw = await request.text();
-  const result = await ingestGatewayWebhook(db(), connectionId, raw, request.headers, {
-    build: gatewayFactory,
-    onDivePaid,
-  });
+  // The connection belongs to one business; its own database (when it has one) knows it.
+  const result = await acrossSchools(
+    (d) =>
+      ingestGatewayWebhook(d, connectionId, raw, request.headers, {
+        build: gatewayFactory,
+        onDivePaid,
+      }),
+    (r) => r === 'unknown_connection',
+  );
   if (result === 'unknown_connection') return new NextResponse('unknown', { status: 404 });
   if (result === 'not_configured') return new NextResponse('not configured', { status: 503 });
   if (result === 'rejected') return new NextResponse('bad signature', { status: 401 });

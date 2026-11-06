@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { ingestGrowWebhook } from '@rswim/domain-billing/webhook';
 import { verifyGrowSignature } from '@rswim/integrations';
-import { db } from '@/lib/db';
+import { acrossSchools } from '@/lib/db';
 
 /**
  * POST /api/webhooks/grow: charge and payment-link results from Grow.
@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
     return new NextResponse('bad signature', { status: 401 });
   }
   try {
-    const result = await ingestGrowWebhook(db(), raw);
+    const result = await acrossSchools(
+      (d) => ingestGrowWebhook(d, raw),
+      (r) => r === 'unknown_payment',
+    );
     return NextResponse.json({ result });
   } catch (e) {
     if (e instanceof SyntaxError) return new NextResponse('bad json', { status: 400 });

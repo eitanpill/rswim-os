@@ -191,7 +191,15 @@ describe('schema guardrails', () => {
          where table_schema = 'public' and column_name = 'organization_id'`,
       )
     ).rows.map((r: { table_name: string }) => r.table_name);
-    const infrastructure = ['org_keys', 'inbox_receipts', 'webhook_events', 'dead_letters'];
+    // Control-plane only, no grants to signed-in roles (docs/TENANT-DATABASES.md).
+    const infrastructure = [
+      'org_keys',
+      'inbox_receipts',
+      'webhook_events',
+      'dead_letters',
+      'tenant_databases',
+      'directory_memberships',
+    ];
     const missing = rows.filter(
       (r) => !(TENANT_TABLES as readonly string[]).includes(r) && !infrastructure.includes(r),
     );

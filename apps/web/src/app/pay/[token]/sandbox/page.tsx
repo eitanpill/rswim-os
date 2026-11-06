@@ -5,7 +5,7 @@ import { checkoutForToken } from '@rswim/domain-billing';
 import { PAYMENT_GATEWAYS } from '@rswim/integrations';
 import { ActionForm, SubmitButton } from '@/components/form';
 import { money } from '@/lib/billing';
-import { db } from '@/lib/db';
+import { payTokenDb } from '@/lib/payments';
 import { paymentsSandbox } from '@/lib/payments';
 import { sandboxAnswerAction } from '../../actions';
 import { MethodIcon, PayFrame } from '../../ui';
@@ -25,7 +25,7 @@ export default async function SandboxPage({
   if (!paymentsSandbox()) notFound();
   const { token } = await params;
   const method = CheckoutMethod.safeParse((await searchParams).m);
-  const v = (await checkoutForToken(db(), token))?.view;
+  const v = (await checkoutForToken(await payTokenDb(token), token))?.view;
   if (!v || !method.success) notFound();
   const t = await getTranslations('payments.sandbox');
   const amount = (await money())(v.amount);

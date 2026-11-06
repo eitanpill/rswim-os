@@ -41,6 +41,7 @@ import {
   platformSchoolCreated,
 } from './platform';
 import { diveDailyReminders } from './dive';
+import { platformProvisionDatabase, platformSyncSchool } from './tenancy';
 import { transportPlanRuns } from './transport';
 
 export const functions = [
@@ -49,6 +50,8 @@ export const functions = [
   reportsWeeklyDigest,
   reportsDailyInsights,
   platformSchoolCreated,
+  platformProvisionDatabase,
+  platformSyncSchool,
   platformCheckDomain,
   platformBillSchool,
   platformMonthlyBilling,

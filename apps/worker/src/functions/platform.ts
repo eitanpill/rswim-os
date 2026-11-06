@@ -16,7 +16,10 @@ import {
   verifyDomain,
 } from '@rswim/domain-platform';
 import { FakeDnsResolver, SystemDnsResolver, type DnsResolver } from '@rswim/integrations';
-import { getDb, inngest, log } from '../client';
+import { SchoolDatabaseNotReady } from '@rswim/db/tenants';
+import { syncDown } from '@rswim/domain-platform/tenancy';
+import { getDb, inngest, log, router } from '../client';
+import { withDatabase } from '../tenancy';
 import { paymentProvider } from '../providers';
 import { toEnvelope } from './core-ping';
 
@@ -144,7 +147,10 @@ export const platformMonthlyBilling = inngest.createFunction(
   },
 );
 
-/** Every morning: trials end, unpaid schools past their grace days are suspended, pending domains are re-checked. */
+/**
+ * Every morning: trials end, unpaid schools past their grace days are suspended, pending domains are re-checked, and
+ * each school with its own database gets the platform's rows again (plans, templates, its subscription).
+ */
 export const platformDaily = inngest.createFunction(
   {
     id: 'platform-daily',
@@ -163,16 +169,30 @@ export const platformDaily = inngest.createFunction(
     let changed = 0;
     let verified = 0;
     for (const orgId of orgIds) {
-      const r = await step.run(`day-${orgId}`, () =>
-        withOrg(getDb(), orgId, async (tx) => {
-          const change = await subscriptionDailyStep(tx, { orgId, userId: null }, today);
-          let ok = 0;
-          for (const id of await pendingDomainIds(tx)) {
-            if ((await verifyDomain(tx, id, dnsResolver())) === 'verified') ok++;
-          }
-          return { changed: change?.changed ?? false, verified: ok };
-        }),
-      );
+      const r = await step.run(`day-${orgId}`, async () => {
+        const change = await withOrg(getDb(), orgId, (tx) =>
+          subscriptionDailyStep(tx, { orgId, userId: null }, today),
+        );
+        // Domains live with the school's data: in its own database when it has one.
+        let schoolDb = getDb();
+        try {
+          schoolDb = await router().forOrg(orgId);
+        } catch (e) {
+          if (!(e instanceof SchoolDatabaseNotReady)) throw e;
+          return { changed: change?.changed ?? false, verified: 0 };
+        }
+        const ok = await withDatabase(schoolDb, () =>
+          withOrg(schoolDb, orgId, async (tx) => {
+            let n = 0;
+            for (const id of await pendingDomainIds(tx)) {
+              if ((await verifyDomain(tx, id, dnsResolver())) === 'verified') n++;
+            }
+            return n;
+          }),
+        );
+        if (schoolDb !== getDb()) await syncDown(getDb(), schoolDb, orgId);
+        return { changed: change?.changed ?? false, verified: ok };
+      });
       if (r.changed) changed++;
       verified += r.verified;
     }

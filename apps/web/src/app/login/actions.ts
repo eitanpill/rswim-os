@@ -3,7 +3,7 @@
 import { PhoneE164 } from '@rswim/contracts';
 import { clubForJoin } from '@rswim/domain-dive';
 import { redirect } from 'next/navigation';
-import { withAnon } from '@/lib/db';
+import { dbForSlug, withAnon } from '@/lib/db';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const safeNext = (v: FormDataEntryValue | null) =>
@@ -26,7 +26,7 @@ export async function signInWithPassword(formData: FormData) {
  */
 async function joiningClub(v: FormDataEntryValue | null): Promise<string | null> {
   if (typeof v !== 'string' || !/^[a-z0-9-]{2,60}$/.test(v)) return null;
-  const club = await withAnon((tx) => clubForJoin(tx, v));
+  const club = await withAnon((tx) => clubForJoin(tx, v), await dbForSlug(v));
   return club?.open ? v : null;
 }
 
