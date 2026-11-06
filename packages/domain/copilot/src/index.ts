@@ -6,3 +6,5 @@ export * from './bot-policies';
 export * from './bot';
 export * from './brain-inbound';
 export * from './morning';
+export * from './memory-policies';
+export * from './memory';

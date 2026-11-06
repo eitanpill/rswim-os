@@ -5295,6 +5295,79 @@
       "on": "Actions that wait for you also go to WhatsApp.",
       "off": "Without a number, actions that wait for you show only here.",
       "evening": "Send me a summary of the day every evening at 20:00"
+    },
+    "memory": {
+      "link": "What the brain remembers",
+      "title": "What the brain remembers",
+      "subtitle": "What you asked it to remember, what happened in the business, and every month against the same month last year. The brain reads this when it answers you.",
+      "back": "Back to the brain",
+      "ownerOnly": "The brain's memory belongs to the school's owner.",
+      "saved": "Saved. The brain will remember it.",
+      "archived": "The brain will not read this again.",
+      "archive": "Delete",
+      "archiveConfirm": "Delete this from the brain's memory?",
+      "allVenues": "all venues",
+      "add": {
+        "title": "Remember that...",
+        "hint": "Something the brain should know: a family's habit, an instructor's preference, what happened last holiday. You can also write \"remember that...\" in the chat or on WhatsApp from the approvals number, and in the chat tie it to a family or an instructor.",
+        "body": "What to remember",
+        "placeholder": "e.g. Last Hanukkah half the children did not come",
+        "save": "Remember"
+      },
+      "notes": {
+        "title": "What you asked me to remember ({n})",
+        "empty": "You have not asked the brain to remember anything yet."
+      },
+      "events": {
+        "title": "What happened in the business",
+        "empty": "Nothing recorded yet. Every morning the brain records what happened: cancellations, substitutes, price lists, groups opened and closed.",
+        "closure": "Lessons cancelled {from}–{until} at {venue}: {reason} ({sessions} lessons)",
+        "substitute": "Substitute search for {staff} in {group} on {date}: {outcome}",
+        "price_list": "New price list \"{name}\" from {from}",
+        "group_opened": "New group opened: {group} at {venue}, from {from}",
+        "group_closed": "Group {group} at {venue} closed on {until}"
+      },
+      "outcome": {
+        "filled": "filled",
+        "unfilled": "nobody found",
+        "open": "still searching",
+        "cancelled": "withdrawn"
+      },
+      "months": {
+        "title": "Month by month",
+        "hint": "The brain keeps the business's numbers every month. Once there is a year of history, each month shows against the same month last year.",
+        "empty": "No months kept yet. They are kept every morning.",
+        "period": "Month",
+        "places": "Places at month end",
+        "lastYear": "A year before",
+        "joined": "Joined",
+        "left": "Left",
+        "lessons": "Lessons",
+        "cancelled": "Cancelled",
+        "absences": "Absences",
+        "collected": "Collected",
+        "running": "so far"
+      },
+      "subject": {
+        "school": "School",
+        "household": "Family",
+        "student": "Child",
+        "staff": "Instructor",
+        "venue": "Venue",
+        "group": "Group"
+      },
+      "source": {
+        "owner_chat": "from the chat",
+        "owner_whatsapp": "from WhatsApp",
+        "owner_screen": "from this page",
+        "system": "recorded automatically"
+      },
+      "errors": {
+        "note": "Write what to remember (up to 1000 characters)",
+        "subject": "I could not find who this is about",
+        "notFound": "This memory no longer exists",
+        "period": "Not a valid month"
+      }
     }
   },
   "payments": {

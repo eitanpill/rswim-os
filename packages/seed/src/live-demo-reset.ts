@@ -10,6 +10,7 @@ import { DEMO_ORG } from '@rswim/db/personas';
 import { withOrg } from '@rswim/db/service';
 import { applySupabaseShim, runMigrations } from '@rswim/db/migrate';
 import { parseMasterKey } from '@rswim/domain-core';
+import { refreshMemory } from '@rswim/domain-copilot';
 import { refreshInsights, todayIL } from '@rswim/domain-reports';
 import { seedDemo } from './demo';
 import { rebrandLiveDemo } from './live-demo';
@@ -45,9 +46,13 @@ try {
   const seeded = await seedDemo(pool, masterKey ? { masterKey: parseMasterKey(masterKey) } : {});
   const profile = demoProfile();
   await rebrandLiveDemo(pool, profile);
-  // The owner's home opens with this morning's insights rather than an empty feed.
+  // The owner's home opens with this morning's insights rather than an empty feed, and the brain's memory with the
+  // months it would have kept by now.
   const insights = await withOrg(createDb(pool), DEMO_ORG.id, async (tx) =>
     refreshInsights(tx, { orgId: DEMO_ORG.id, userId: null }, await todayIL(tx)),
+  );
+  const memory = await withOrg(createDb(pool), DEMO_ORG.id, (tx) =>
+    refreshMemory(tx, { orgId: DEMO_ORG.id, userId: null }),
   );
   console.log(
     JSON.stringify({
@@ -56,6 +61,7 @@ try {
       ms: Date.now() - started,
       students: seeded.students,
       insights: insights?.open,
+      memory,
     }),
   );
 } finally {

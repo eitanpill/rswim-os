@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { AGENT_ACTION_KINDS, AgentProfile, AutonomyLevel } from '@rswim/contracts';
 import {
   applyAgentProfile,
+  archiveMemory,
+  remember,
   confirmCopilotAction,
   dismissCopilotAction,
   saveAgentSettings,
@@ -16,6 +18,7 @@ import { runForm } from '@/lib/forms';
 
 /** Every screen that shows the brain's actions or settings. */
 const PAGES = ['/admin', '/admin/brain', '/admin/brain/journal', '/admin/copilot'];
+const MEMORY = ['/admin/brain/memory'];
 const WithId = z.object({ id: z.uuid() });
 
 const SettingsForm = z.object({
@@ -102,5 +105,29 @@ export async function undoAgentActionAction(_: FormState, fd: FormData) {
   return runForm(fd, WithId, (tx, ctx, { id }) => undoCopilotAction(tx, ctx, id), {
     revalidate: PAGES,
     success: 'agent.undone',
+  });
+}
+
+/** "תזכור ש..." from the memory page: a note about the school, in the owner's words. */
+export async function rememberAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    z.object({
+      body: z
+        .string()
+        .trim()
+        .min(2, 'agent.memory.errors.note')
+        .max(1000, 'agent.memory.errors.note'),
+    }),
+    (tx, ctx, f) => remember(tx, ctx, { body: f.body }, 'owner_screen'),
+    { revalidate: MEMORY, success: 'agent.memory.saved' },
+  );
+}
+
+/** Takes a memory out of what the brain reads. */
+export async function archiveMemoryAction(_: FormState, fd: FormData) {
+  return runForm(fd, WithId, (tx, ctx, { id }) => archiveMemory(tx, ctx, id), {
+    revalidate: MEMORY,
+    success: 'agent.memory.archived',
   });
 }

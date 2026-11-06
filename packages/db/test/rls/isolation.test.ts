@@ -128,6 +128,8 @@ const TENANT_TABLES = [
   'copilot_requests',
   'copilot_actions',
   'agent_settings',
+  'business_snapshots',
+  'business_memories',
   'bot_replies',
   'bot_knowledge',
   'weekly_digests',

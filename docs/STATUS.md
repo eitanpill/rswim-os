@@ -288,6 +288,17 @@ the day. Proof: `packages/domain/copilot/test/agent-policies.test.ts` (100%), `p
 (off proposes nothing, an old debt and a gap become waiting actions sent to WhatsApp, nothing repeats the next morning,
 the summary goes once and not when off or without a number). Not verified yet: the crons on a real Inngest account.
 
+## The business brain, stage 5 (memory)
+
+The brain keeps every month's facts (places, joined and left, lessons, absences, trials, money), records what happened
+(closures, substitute searches, new price lists, groups opened and closed) and keeps what the owner asks it to remember
+from the chat, WhatsApp or `/admin/brain/memory`; the chat answers "how was April" and "what do you remember about…"
+from it. Proof: `packages/domain/copilot/test/memory-policies.test.ts` and `packages/domain/reports/test/months.test.ts`
+(100%), `packages/seed/test/brain-memory.test.ts` (months kept once and the running month daily, a closure recorded
+once, notes by chat / WhatsApp / screen, the chat's month and recall answers, archive, nothing for the office),
+`apps/web/e2e/brain.spec.ts` (memory page). Not verified yet: real Claude choosing the memory tools, and a year of real
+history (comparisons with last year show once a month a year back is kept).
+
 ## Payments through the business's own processor (2026-11-04)
 
 The owner connects the business's processor (Grow, Cardcom, Tranzila, PayPlus) with its API keys, sealed; families

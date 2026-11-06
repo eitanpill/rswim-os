@@ -92,3 +92,34 @@ test('the owner sets the WhatsApp number that approves waiting actions', async (
   await page.reload();
   await expect(card.locator('input[name="phone"]')).toHaveValue('+972509990001');
 });
+
+test('the owner reads what the brain remembers, adds a note and deletes it', async ({ page }) => {
+  page.on('dialog', (d) => void d.accept());
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin/brain');
+  await page.getByTestId('brain-memory-link').click();
+  await expect(page).toHaveURL(/\/admin\/brain\/memory$/);
+  // The demo school's notes and last winter's heating failure.
+  await expect(page.getByTestId('memory-notes')).toContainText('באיחור של שבוע');
+  await expect(page.getByTestId('memory-events')).toContainText('תקלה במערכת החימום');
+  const form = page.getByTestId('memory-add-form');
+  await form
+    .locator('textarea[name="body"]')
+    .fill('בדיקת זיכרון: הקייטנה של פסח התמלאה תוך יומיים');
+  await form.getByTestId('memory-add-save').click();
+  await expect(form.getByRole('status')).toContainText('המוח יזכור');
+  const row = page
+    .getByTestId('memory-notes')
+    .getByTestId('memory-row')
+    .filter({ hasText: 'בדיקת זיכרון' });
+  await expect(row).toContainText('מהמסך הזה');
+  await row.getByTestId('memory-archive').click();
+  await expect(row).toHaveCount(0);
+});
+
+test("the office admin cannot read the brain's memory", async ({ page }) => {
+  await page.goto('/dev/login?as=admin');
+  await page.goto('/admin/brain/memory');
+  await expect(page.getByTestId('brain-owner-only')).toBeVisible();
+  await expect(page.getByTestId('memory-notes')).toHaveCount(0);
+});
