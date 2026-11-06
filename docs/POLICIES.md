@@ -347,6 +347,13 @@ after the first, groups opened after the school's first and closed (a move to an
 owner asks to keep is saved at once, in her words, without the action gate; she deletes what is wrong. Only the owner
 reads any of it.
 
+Learning the owner (stage 6) reads her decisions of the last 90 days. It suggests running a kind alone after 8 or more
+decisions with at least 90% approved ("not now" and "special case" drops do not count), and waiting for her again after
+5 or more ran alone with at least 2 and 20% taken back; she accepts or declines, and a declined suggestion is quiet for
+30 days. The morning check skips a family whose link she dropped as a special case for 90 days (any other drop: the debt
+attention age), and proposes no link below the largest one she called too small, capped by the smallest she approved.
+These numbers are constants in `learning-policies.ts`, not per-school settings.
+
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.
 - Proration rounds per line; statement total = sum of rounded lines.

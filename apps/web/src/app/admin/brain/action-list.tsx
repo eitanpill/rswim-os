@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { DISMISS_REASONS } from '@rswim/contracts';
 import { undoable, type AgentActionRow } from '@rswim/domain-copilot';
 import { Badge } from '@rswim/ui';
 import { ActionButton } from '@/components/form';
@@ -44,6 +45,9 @@ export async function AgentActionList({ actions }: { actions: AgentActionRow[] }
               <span className="flex flex-wrap gap-1">
                 {a.ranAlone ? <Badge tone="neutral">{t('ranAlone')}</Badge> : null}
                 <Badge tone={ACTION_TONE[a.status]}>{t(`status.${a.status}`)}</Badge>
+                {a.dismissReason ? (
+                  <Badge tone="neutral">{t(`dismissReasons.${a.dismissReason}`)}</Badge>
+                ) : null}
               </span>
             </div>
             <p className="mt-1 text-xs text-ink-muted">
@@ -76,12 +80,26 @@ export async function AgentActionList({ actions }: { actions: AgentActionRow[] }
                   </ActionButton>
                   <ActionButton
                     action={dismissAgentActionAction}
-                    fields={{ id: a.id }}
+                    fields={{ id: a.id, reason: 'not_now' }}
                     variant="ghost"
                     data-testid="agent-dismiss"
                   >
                     {t('dismiss')}
                   </ActionButton>
+                  {/* Why she drops it, in one tap: the brain learns from it (stage 6). */}
+                  {DISMISS_REASONS.filter(
+                    (r) => r !== 'not_now' && (r !== 'too_small' || a.kind === 'payment_link'),
+                  ).map((r) => (
+                    <ActionButton
+                      key={r}
+                      action={dismissAgentActionAction}
+                      fields={{ id: a.id, reason: r }}
+                      variant="ghost"
+                      data-testid={`agent-dismiss-${r}`}
+                    >
+                      {t(`dismissReasons.${r}`)}
+                    </ActionButton>
+                  ))}
                 </>
               ) : null}
               {a.status === 'confirmed' && undoable(a.kind) ? (
