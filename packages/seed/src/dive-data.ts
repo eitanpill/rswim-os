@@ -914,7 +914,10 @@ async function seedClub(
         : i === windy
           ? 'תחזית: רוח צפונית חזקה, גלים כבר מהבוקר'
           : null,
-      i <= 0 ? il(date, '06:10') : il(today, '06:10'),
+      // Today's reading is never later than now: a manager posting before 06:10 must replace it, not lose to it.
+      i < 0
+        ? il(date, '06:10')
+        : new Date(Math.min(il(today, '06:10').getTime(), Date.now() - 60_000)),
     ]);
   }
   await insertMany(
