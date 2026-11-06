@@ -3,6 +3,9 @@
 import { z } from 'zod';
 import {
   billingPeriod,
+  NewSchoolDatabaseInput,
+  retrySchoolDatabase,
+  setNewSchoolDatabase,
   requestBilling,
   reviewTemplate,
   SchoolUpdateInput,
@@ -43,4 +46,31 @@ export async function reviewTemplateAction(_: FormState, fd: FormData) {
     scope: 'platform',
     revalidate: '/platform/templates',
   });
+}
+
+export async function setNewSchoolDatabaseAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    NewSchoolDatabaseInput,
+    (tx, _ctx, { mode }) => setNewSchoolDatabase(tx, mode),
+    {
+      scope: 'platform',
+      revalidate: '/platform',
+    },
+  );
+}
+
+const Retry = z.object({ organizationId: z.uuid() });
+
+export async function retrySchoolDatabaseAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    Retry,
+    (tx, _ctx, { organizationId }) => retrySchoolDatabase(tx, organizationId),
+    {
+      scope: 'platform',
+      revalidate: '/platform',
+      success: 'platform.databases.retryQueued',
+    },
+  );
 }

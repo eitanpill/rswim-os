@@ -6,6 +6,7 @@ import { ActionButton, ActionForm, Field, SelectField, SubmitButton } from '@/co
 import { withSignedIn } from '@/lib/db';
 import { dmy, todayIL } from '@/lib/options';
 import { requestBillingAction, updateSchoolAction } from './actions';
+import { SchoolDatabases } from './databases';
 import { NetworkOverview } from './network';
 
 const STATUS_TONE = {
@@ -34,6 +35,7 @@ export default async function PlatformHome() {
     <>
       <PageHeader title={t('title')} subtitle={t('subtitle', { count: schools.length })} />
       <NetworkOverview />
+      <SchoolDatabases />
       <Card className="mb-4">
         <CardTitle>{t('billing')}</CardTitle>
         <ActionForm

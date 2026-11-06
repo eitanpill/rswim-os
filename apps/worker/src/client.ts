@@ -57,4 +57,4 @@ export const inngestSender: EventSender = {
   },
 };
 
-registerClient({ log, inngestClient, inngest, controlDb, router, getDb, inngestSender });
+registerClient({ controlDb, router });

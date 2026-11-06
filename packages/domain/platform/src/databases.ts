@@ -22,7 +22,9 @@ export interface SchoolDatabaseRow {
 }
 
 export async function listSchoolDatabases(tx: Tx): Promise<SchoolDatabaseRow[]> {
-  const r = await tx.execute<Record<string, unknown>>(sql`select * from public.platform_school_databases()`);
+  const r = await tx.execute<Record<string, unknown>>(
+    sql`select * from public.platform_school_databases()`,
+  );
   return r.rows.map((x) => ({
     organizationId: String(x.organization_id),
     name: String(x.name),
@@ -38,11 +40,15 @@ export async function listSchoolDatabases(tx: Tx): Promise<SchoolDatabaseRow[]> 
   }));
 }
 
-export async function databaseSettings(tx: Tx): Promise<{ newSchoolDatabase: SchoolDatabaseMode; provider: string }> {
+export async function databaseSettings(
+  tx: Tx,
+): Promise<{ newSchoolDatabase: SchoolDatabaseMode; provider: string }> {
   const r = await tx.execute<{ s: { newSchoolDatabase: SchoolDatabaseMode; provider: string } }>(
     sql`select public.platform_database_settings() as s`,
   );
-  return r.rows[0]!.s;
+  const s = r.rows[0]?.s;
+  if (!s) throw new Error('platform_database_settings returned nothing');
+  return s;
 }
 
 export const NewSchoolDatabaseInput = z.object({ mode: SchoolDatabaseMode });
@@ -56,9 +62,11 @@ export async function retrySchoolDatabase(tx: Tx, orgId: string): Promise<void> 
 }
 
 /** The signed-in member's school: 'shared', or its own database's status. */
-export async function mySchoolDatabase(tx: Tx): Promise<{ mode: SchoolDatabaseMode; status: TenantDatabaseStatus }> {
+export async function mySchoolDatabase(
+  tx: Tx,
+): Promise<{ mode: SchoolDatabaseMode; status: TenantDatabaseStatus }> {
   const r = await tx.execute<{ s: { mode: SchoolDatabaseMode; status: TenantDatabaseStatus } }>(
     sql`select public.my_school_database() as s`,
   );
-  return r.rows[0]!.s;
+  return r.rows[0]?.s ?? { mode: 'shared', status: 'ready' };
 }

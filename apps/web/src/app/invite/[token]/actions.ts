@@ -31,8 +31,12 @@ export async function acceptInviteAction(token: string, _: FormState): Promise<F
   try {
     await prepareJoin(target, session.userId);
     const orgId = await asUser(target, { sub: session.userId, org_id: null }, async (tx) => {
-      const r = await tx.execute<{ org: string }>(sql`select public.accept_staff_invite(${token}) as org`);
-      return r.rows[0]!.org;
+      const r = await tx.execute<{ org: string }>(
+        sql`select public.accept_staff_invite(${token}) as org`,
+      );
+      const org = r.rows[0]?.org;
+      if (!org) throw new Error('invite accepted without a school');
+      return org;
     });
     await afterJoin(target, orgId, session.userId);
   } catch (e) {

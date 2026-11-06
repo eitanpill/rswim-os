@@ -884,6 +884,41 @@
         "safety": "Safety 90 days"
       },
       "incidents": "{count, plural, one {one incident} other {# incidents}}"
+    },
+    "preparing": {
+      "title": "Getting your system ready",
+      "wait": "This usually takes one to three minutes. The page updates by itself.",
+      "failedTitle": "Setup got stuck",
+      "failed": "The platform team can see it and will run it again. You can close this page and come back later.",
+      "step": {
+        "requested": "Ordering your own database…",
+        "creating": "Creating your database…",
+        "migrating": "Building the tables…",
+        "seeding": "Adding your starting settings…",
+        "ready": "Ready!",
+        "failed": "Something got stuck"
+      }
+    },
+    "databases": {
+      "title": "A database per school",
+      "explain": "A school with its own database gets a separate Supabase project, created automatically at sign-up. Sign-in, billing and this console stay here.",
+      "newSchools": "A new school gets",
+      "mode": {
+        "shared": "The shared database (as today)",
+        "dedicated": "Its own database"
+      },
+      "save": "Save",
+      "none": "No school has its own database yet.",
+      "retry": "Run again",
+      "retryQueued": "Setup starts again in a moment.",
+      "status": {
+        "requested": "Waiting",
+        "creating": "Creating",
+        "migrating": "Building tables",
+        "seeding": "Starting data",
+        "ready": "Live",
+        "failed": "Failed"
+      }
     }
   },
   "calendar": {

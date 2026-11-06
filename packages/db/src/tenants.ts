@@ -21,7 +21,9 @@ export function sealSecret(masterKey: Buffer, plain: string): string {
   const iv = randomBytes(12);
   const c = createCipheriv('aes-256-gcm', sealingKey(masterKey), iv);
   const body = Buffer.concat([c.update(plain, 'utf8'), c.final()]);
-  return ['v1', iv, c.getAuthTag(), body].map((p) => (typeof p === 'string' ? p : p.toString('base64url'))).join('.');
+  return ['v1', iv, c.getAuthTag(), body]
+    .map((p) => (typeof p === 'string' ? p : p.toString('base64url')))
+    .join('.');
 }
 
 export function openSecret(masterKey: Buffer, sealed: string): string {
@@ -105,7 +107,9 @@ export class DatabaseRouter {
         })
         .from(tenantDatabases),
     );
-    this.registry = new Map(rows.map((r) => [r.organizationId, { status: r.status, sealed: r.sealed }]));
+    this.registry = new Map(
+      rows.map((r) => [r.organizationId, { status: r.status, sealed: r.sealed }]),
+    );
     this.loadedAt = Date.now();
   }
 
@@ -139,7 +143,8 @@ export class DatabaseRouter {
     await this.load(true);
     const out: DatabaseTarget[] = [{ key: 'control', db: this.control }];
     for (const [orgId, e] of this.registry) {
-      if (e.status === 'ready' && e.sealed) out.push({ key: orgId, db: this.open(orgId, e.sealed) });
+      if (e.status === 'ready' && e.sealed)
+        out.push({ key: orgId, db: this.open(orgId, e.sealed) });
     }
     return out;
   }
@@ -178,8 +183,8 @@ export async function findAcross<T>(
   router: DatabaseRouter,
   fn: (db: Db, key: string) => Promise<T | undefined | null>,
 ): Promise<{ value: T; db: Db; key: string } | null> {
-  const all = await router.all();
-  for (const t of [...all.slice(1), all[0]!]) {
+  const [control, ...schools] = await router.all();
+  for (const t of control ? [...schools, control] : schools) {
     const value = await fn(t.db, t.key);
     if (value !== undefined && value !== null) return { value, db: t.db, key: t.key };
   }
@@ -196,4 +201,3 @@ export async function schoolDatabaseStatus(control: Db, orgId: string) {
   );
   return row?.status ?? null;
 }
-

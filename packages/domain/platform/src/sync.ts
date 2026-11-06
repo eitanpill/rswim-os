@@ -25,7 +25,11 @@ const ident = (name: string) =>
     .join('.');
 
 /** Reads rows as JSON (so every column type survives the trip between databases). */
-export async function readRows(tx: Tx, table: string, where: ReturnType<typeof sql>): Promise<Row[]> {
+export async function readRows(
+  tx: Tx,
+  table: string,
+  where: ReturnType<typeof sql>,
+): Promise<Row[]> {
   const r = await tx.execute<{ j: Row }>(
     sql`select to_jsonb(t) as j from ${sql.raw(ident(table))} t where ${where}`,
   );
@@ -36,10 +40,16 @@ export async function readRows(tx: Tx, table: string, where: ReturnType<typeof s
  * Inserts or updates `rows` in `table` on the conflict columns, with the columns both sides have. Returns how many
  * rows it wrote.
  */
-export async function upsertRows(tx: Tx, table: string, rows: Row[], conflict: string[]): Promise<number> {
-  if (rows.length === 0) return 0;
+export async function upsertRows(
+  tx: Tx,
+  table: string,
+  rows: Row[],
+  conflict: string[],
+): Promise<number> {
+  const [first] = rows;
+  if (!first) return 0;
   const target = new Set(await columnsOf(tx, table));
-  const cols = Object.keys(rows[0]!).filter((c) => target.has(c));
+  const cols = Object.keys(first).filter((c) => target.has(c));
   const list = cols.map(ident).join(', ');
   const updates = cols.filter((c) => !conflict.includes(c));
   const onConflict =
@@ -58,7 +68,14 @@ export async function upsertRows(tx: Tx, table: string, rows: Row[], conflict: s
 export async function mirrorUsers(control: Db, school: Db, userIds: string[]): Promise<void> {
   if (userIds.length === 0) return;
   const users = await control.transaction((tx) =>
-    readRows(tx, 'auth.users', sql`id in (${sql.join(userIds.map((u) => sql`${u}::uuid`), sql`, `)})`),
+    readRows(
+      tx,
+      'auth.users',
+      sql`id in (${sql.join(
+        userIds.map((u) => sql`${u}::uuid`),
+        sql`, `,
+      )})`,
+    ),
   );
   await school.transaction((tx) => upsertRows(tx, 'auth.users', users, ['id']));
 }
@@ -105,7 +122,10 @@ export async function syncUp(control: Db, school: Db, orgId: string): Promise<{ 
     await tx.execute(
       keep.length
         ? sql`delete from directory_memberships where organization_id = ${orgId}
-              and user_id not in (${sql.join(keep.map((u) => sql`${u}::uuid`), sql`, `)})`
+              and user_id not in (${sql.join(
+                keep.map((u) => sql`${u}::uuid`),
+                sql`, `,
+              )})`
         : sql`delete from directory_memberships where organization_id = ${orgId}`,
     );
     // Only the branding: the login page's white-label lookup reads it. The rest of the settings (integrations and
@@ -121,10 +141,12 @@ export async function syncUp(control: Db, school: Db, orgId: string): Promise<{ 
     await tx.execute(
       hosts.length
         ? sql`delete from org_domains where organization_id = ${orgId}
-              and id not in (${sql.join(hosts.map((h) => sql`${h}::uuid`), sql`, `)})`
+              and id not in (${sql.join(
+                hosts.map((h) => sql`${h}::uuid`),
+                sql`, `,
+              )})`
         : sql`delete from org_domains where organization_id = ${orgId}`,
     );
   });
   return { members: data.members.length };
 }
-

@@ -1,7 +1,13 @@
 /** Worker runs reach the right database: a school's events its own one, sweeps every database in turn. */
 import { describe, expect, it } from 'vitest';
 import type { Db } from '@rswim/db';
-import { CONTROL_ONLY, currentDb, routeHandler, scopedStep, type RoutingDeps } from '../src/tenancy';
+import {
+  CONTROL_ONLY,
+  currentDb,
+  routeHandler,
+  scopedStep,
+  type RoutingDeps,
+} from '../src/tenancy';
 
 const control = { name: 'control' } as unknown as Db;
 const school = { name: 'school' } as unknown as Db;
@@ -33,9 +39,17 @@ function fakeStep() {
   };
 }
 
-const handler = async ({ step }: { step: ReturnType<typeof fakeStep>['step'] }) => {
+const handler = async ({
+  step,
+}: {
+  step: ReturnType<typeof fakeStep>['step'];
+  event?: { data?: unknown };
+}) => {
   const outside = (currentDb() as unknown as { name: string }).name;
-  const inside = await step.run('find', async () => (currentDb() as unknown as { name: string }).name);
+  const inside = await step.run(
+    'find',
+    async () => (currentDb() as unknown as { name: string }).name,
+  );
   await step.sleep('pause', '1s');
   return { outside, inside };
 };
@@ -43,7 +57,11 @@ const handler = async ({ step }: { step: ReturnType<typeof fakeStep>['step'] }) 
 describe('routing worker runs', () => {
   it("runs a school's event on that school's database", async () => {
     const { step, ids } = fakeStep();
-    const r = await routeHandler('comms-x', handler, deps)({ event: { data: { organizationId: ORG } }, step });
+    const r = await routeHandler(
+      'comms-x',
+      handler,
+      deps,
+    )({ event: { data: { organizationId: ORG } }, step });
     expect(r).toEqual({ outside: 'school', inside: 'school' });
     expect(ids).toEqual(['find', 'pause']);
   });
@@ -63,14 +81,21 @@ describe('routing worker runs', () => {
   it('keeps platform plumbing on the platform database', async () => {
     expect(CONTROL_ONLY.has('platform-provision-database')).toBe(true);
     const { step } = fakeStep();
-    const r = await routeHandler('platform-daily', handler, deps)({ event: { data: { organizationId: ORG } }, step });
+    const r = await routeHandler(
+      'platform-daily',
+      handler,
+      deps,
+    )({ event: { data: { organizationId: ORG } }, step });
     expect(r).toEqual({ outside: 'control', inside: 'control' });
   });
 
   it('a sweep with only the platform database looks as before', async () => {
     const { step, ids } = fakeStep();
     const one: RoutingDeps = { ...deps, all: async () => [{ key: 'control', db: control }] };
-    expect(await routeHandler('reports-x', handler, one)({ step })).toEqual({ outside: 'control', inside: 'control' });
+    expect(await routeHandler('reports-x', handler, one)({ step })).toEqual({
+      outside: 'control',
+      inside: 'control',
+    });
     expect(ids).toEqual(['find', 'pause']);
   });
 

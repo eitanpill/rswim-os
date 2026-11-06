@@ -34,7 +34,15 @@ export const CONTROL_ONLY = new Set([
   'platform-sync-school',
 ]);
 
-const STEP_METHODS = new Set(['run', 'sleep', 'sleepUntil', 'waitForEvent', 'sendEvent', 'invoke', 'waitForSignal']);
+const STEP_METHODS = new Set([
+  'run',
+  'sleep',
+  'sleepUntil',
+  'waitForEvent',
+  'sendEvent',
+  'invoke',
+  'waitForSignal',
+]);
 
 type AnyFn = (...a: unknown[]) => unknown;
 
@@ -82,7 +90,10 @@ export function routeHandler<C extends { event?: { data?: unknown }; step: objec
       scope.run(db, () => handler({ ...ctx, step: scopedStep(ctx.step, db, prefix) }));
     if (CONTROL_ONLY.has(id)) return once(deps.control());
     const data = ctx.event?.data as { organizationId?: unknown } | undefined;
-    const orgId = typeof data?.organizationId === 'string' && UUID.test(data.organizationId) ? data.organizationId : null;
+    const orgId =
+      typeof data?.organizationId === 'string' && UUID.test(data.organizationId)
+        ? data.organizationId
+        : null;
     if (orgId) return once(await deps.forOrg(orgId));
     const targets = await deps.all();
     if (targets.length <= 1) return once(targets[0]?.db ?? deps.control());
@@ -108,12 +119,19 @@ export function routedFunction(client: Inngest) {
     )) as Inngest['createFunction'];
 }
 
-let clientModule: typeof import('./client') | undefined;
-function lazy(): typeof import('./client') {
+interface ClientHooks {
+  controlDb: () => Db;
+  router: () => {
+    forOrg: (orgId: string) => Promise<Db>;
+    all: () => Promise<{ key: string; db: Db }[]>;
+  };
+}
+let clientModule: ClientHooks | undefined;
+function lazy(): ClientHooks {
   if (!clientModule) throw new Error('worker client is not loaded');
   return clientModule;
 }
 /** client.ts registers itself here once loaded (avoids an import cycle at module load). */
-export function registerClient(m: typeof import('./client')): void {
+export function registerClient(m: ClientHooks): void {
   clientModule = m;
 }
