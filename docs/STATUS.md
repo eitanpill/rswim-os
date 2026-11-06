@@ -308,3 +308,14 @@ and office payment links open the business's payment page. Proof: `packages/doma
 callbacks change nothing, a standing order set up and then charged by the run, a link becomes a checkout, disconnect),
 `packages/integrations/test/gateways.test.ts`, `apps/web/e2e/payments.spec.ts` and the dive payment E2E tests. Not
 verified yet: any real processor; every processor runs as the sandboxed demo processor (docs/PAYMENTS.md).
+
+## A database per school (2026-11-06)
+- Verified (tests, local Postgres): sign-up with the switch on records the request; the worker's steps create a
+  database, run every migration, seed the school (row, plans, subscription, data key, owner, defaults) and mark it
+  ready; the router serves the school from it and refuses the shared one meanwhile; a family joining in the school's
+  database gets a token for the school through the directory; plan changes reach the school; sweeps see every
+  database; worker routing (events, sweeps with prefixed step ids, platform-only functions); the Supabase adapter
+  against the API's documented shapes.
+- Not verified: the real Supabase Management API (needs Pit's access token and organization slug), the session-mode
+  pooler from the hosting provider, Supabase Auth's hook reading `directory_memberships` in production, and the
+  `/preparing` screen in a browser (no E2E: the E2E database stays shared).
