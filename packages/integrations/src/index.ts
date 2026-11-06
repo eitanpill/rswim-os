@@ -131,3 +131,4 @@ export interface DnsResolver {
 }
 export * from './dns';
 export * from './storage';
+export * from './supabase';

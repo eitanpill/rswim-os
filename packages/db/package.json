@@ -10,7 +10,8 @@
     "./migrate": "./src/migrate.ts",
     "./testing": "./test/harness.ts",
     "./personas": "./src/personas.ts",
-    "./demo-profiles": "./src/demo-profiles.ts"
+    "./demo-profiles": "./src/demo-profiles.ts",
+    "./tenants": "./src/tenants.ts"
   },
   "scripts": {
     "lint": "eslint .",
