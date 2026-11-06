@@ -299,6 +299,17 @@ once, notes by chat / WhatsApp / screen, the chat's month and recall answers, ar
 `apps/web/e2e/brain.spec.ts` (memory page). Not verified yet: real Claude choosing the memory tools, and a year of real
 history (comparisons with last year show once a month a year back is kept).
 
+## The business brain, stage 6 (learning the owner)
+
+The brain reads the owner's decisions of the last 90 days and suggests, on `/admin/brain`, running alone what she
+approves nearly every time and asking her again what she takes back; nothing changes until she accepts, and a declined
+suggestion is quiet for a month. She can say why she drops a proposal (a tap, or "לא 12 מקרה מיוחד" on WhatsApp), and
+the morning check stops asking those families and proposing links she called too small. Sundays at 09:00 her WhatsApp
+hears what it learned. Proof: `packages/domain/copilot/test/learning-policies.test.ts` and `agent-policies.test.ts`
+(100%), `packages/seed/test/brain-learning.test.ts` (suggest, accept, decline, reasons from WhatsApp, the morning check
+listens, the weekly message, nothing for the office), `apps/web/e2e/brain.spec.ts` (drop as too small, the learning
+card). Not verified yet: months of real decisions (the demo school has no decision history, so the card starts empty).
+
 ## Payments through the business's own processor (2026-11-04)
 
 The owner connects the business's processor (Grow, Cardcom, Tranzila, PayPlus) with its API keys, sealed; families

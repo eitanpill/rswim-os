@@ -1,5 +1,5 @@
 {
-  "id": "1350e2e4-8481-4fe2-8a73-dddba819f7a2",
+  "id": "6ee9caac-1fa4-4875-8660-028602db9c0a",
   "prevId": "59e6767e-be04-422b-a9fa-18a5c74194e2",
   "version": "7",
   "dialect": "postgresql",
@@ -15521,6 +15521,13 @@
           "notNull": true,
           "default": true
         },
+        "learning": {
+          "name": "learning",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
         "updated_by": {
           "name": "updated_by",
           "type": "uuid",
@@ -15975,6 +15982,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "dismiss_reason": {
+          "name": "dismiss_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -16141,6 +16154,10 @@
         "copilot_actions_status_check": {
           "name": "copilot_actions_status_check",
           "value": "status in ('proposed', 'confirmed', 'failed', 'dismissed', 'undone')"
+        },
+        "copilot_actions_dismiss_reason_check": {
+          "name": "copilot_actions_dismiss_reason_check",
+          "value": "dismiss_reason is null or dismiss_reason in ('not_now', 'special_case', 'too_small', 'wrong')"
         }
       },
       "isRLSEnabled": false
@@ -16535,103 +16552,6 @@
           ]
         }
       },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.directory_memberships": {
-      "name": "directory_memberships",
-      "schema": "",
-      "columns": {
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role": {
-          "name": "role",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "permissions": {
-          "name": "permissions",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::text[]"
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'active'"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "directory_memberships_user": {
-          "name": "directory_memberships_user",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "directory_memberships_organization_id_organizations_id_fk": {
-          "name": "directory_memberships_organization_id_organizations_id_fk",
-          "tableFrom": "directory_memberships",
-          "tableTo": "organizations",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "directory_memberships_organization_id_user_id_pk": {
-          "name": "directory_memberships_organization_id_user_id_pk",
-          "columns": [
-            "organization_id",
-            "user_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -17071,38 +16991,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.platform_settings": {
-      "name": "platform_settings",
-      "schema": "",
-      "columns": {
-        "key": {
-          "name": "key",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "value": {
-          "name": "value",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.template_installs": {
       "name": "template_installs",
       "schema": "",
@@ -17343,120 +17231,6 @@
         "templates_status_check": {
           "name": "templates_status_check",
           "value": "status in ('draft', 'submitted', 'published', 'rejected')"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "public.tenant_databases": {
-      "name": "tenant_databases",
-      "schema": "",
-      "columns": {
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "provider": {
-          "name": "provider",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'requested'"
-        },
-        "project_ref": {
-          "name": "project_ref",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "region": {
-          "name": "region",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "connection_sealed": {
-          "name": "connection_sealed",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "attempts": {
-          "name": "attempts",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "last_error": {
-          "name": "last_error",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "ready_at": {
-          "name": "ready_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "tenant_databases_organization_id_organizations_id_fk": {
-          "name": "tenant_databases_organization_id_organizations_id_fk",
-          "tableFrom": "tenant_databases",
-          "tableTo": "organizations",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "tenant_databases_project_ref": {
-          "name": "tenant_databases_project_ref",
-          "nullsNotDistinct": false,
-          "columns": [
-            "project_ref"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "tenant_databases_status_check": {
-          "name": "tenant_databases_status_check",
-          "value": "status in ('requested', 'creating', 'migrating', 'seeding', 'ready', 'failed')"
-        },
-        "tenant_databases_provider_check": {
-          "name": "tenant_databases_provider_check",
-          "value": "provider in ('supabase', 'local')"
         }
       },
       "isRLSEnabled": false

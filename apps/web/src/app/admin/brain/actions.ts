@@ -1,9 +1,17 @@
 'use server';
 
 import { z } from 'zod';
-import { AGENT_ACTION_KINDS, AgentProfile, AutonomyLevel } from '@rswim/contracts';
 import {
+  AGENT_ACTION_KINDS,
+  AgentActionKind,
+  AgentProfile,
+  AutonomyLevel,
+  DismissReason,
+} from '@rswim/contracts';
+import {
+  acceptLearning,
   applyAgentProfile,
+  declineLearning,
   archiveMemory,
   remember,
   confirmCopilotAction,
@@ -95,10 +103,34 @@ export async function approveAgentActionAction(_: FormState, fd: FormData) {
   });
 }
 
+/** Drops a waiting action, with the reason the owner tapped; the brain learns from it. */
 export async function dismissAgentActionAction(_: FormState, fd: FormData) {
-  return runForm(fd, WithId, (tx, ctx, { id }) => dismissCopilotAction(tx, ctx, id), {
-    revalidate: PAGES,
-  });
+  return runForm(
+    fd,
+    WithId.extend({ reason: DismissReason.optional() }),
+    (tx, ctx, { id, reason }) => dismissCopilotAction(tx, ctx, id, reason ?? null),
+    { revalidate: PAGES },
+  );
+}
+
+/** The owner accepts what the brain learned: that kind's level changes. */
+export async function acceptLearningAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    z.object({ kind: AgentActionKind }),
+    (tx, ctx, { kind }) => acceptLearning(tx, ctx, kind),
+    { revalidate: PAGES, success: 'agent.learning.accepted' },
+  );
+}
+
+/** The owner declines it: the suggestion stays quiet for a month. */
+export async function declineLearningAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    z.object({ kind: AgentActionKind }),
+    (tx, ctx, { kind }) => declineLearning(tx, ctx, kind),
+    { revalidate: PAGES, success: 'agent.learning.declined' },
+  );
 }
 
 export async function undoAgentActionAction(_: FormState, fd: FormData) {

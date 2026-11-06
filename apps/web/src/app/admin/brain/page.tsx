@@ -10,6 +10,7 @@ import {
 import {
   getAgentSettings,
   isAgentOwner,
+  learningState,
   listAgentActions,
   ranAloneToday,
 } from '@rswim/domain-copilot';
@@ -25,6 +26,7 @@ import {
 import { withSession } from '@/lib/db';
 import { shekelValue } from '@/lib/options';
 import { AgentActionList } from './action-list';
+import { LearningCard } from './learning-card';
 import {
   applyAgentProfileAction,
   saveAgentSettingsAction,
@@ -44,6 +46,7 @@ export default async function BrainPage() {
           settings: await getAgentSettings(tx),
           waiting: await listAgentActions(tx, { statuses: ['proposed'], limit: 20 }),
           aloneToday: await ranAloneToday(tx),
+          learning: await learningState(tx),
         }
       : null,
   );
@@ -57,7 +60,7 @@ export default async function BrainPage() {
       </>
     );
   }
-  const { settings, waiting, aloneToday } = data;
+  const { settings, waiting, aloneToday, learning } = data;
   const levelOptions = (ceiling: (typeof AUTONOMY_LEVELS)[number]) =>
     AUTONOMY_LEVELS.slice(0, AUTONOMY_LEVELS.indexOf(ceiling) + 1).map((l) => ({
       value: l,
@@ -115,6 +118,8 @@ export default async function BrainPage() {
             <p className="text-sm text-ink-muted">{t('waiting.empty')}</p>
           )}
         </Card>
+
+        <LearningCard learning={learning} />
 
         <Card data-testid="brain-whatsapp">
           <CardTitle>{t('whatsapp.title')}</CardTitle>

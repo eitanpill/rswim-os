@@ -22,6 +22,7 @@ import {
   AGENT_ACTION_KINDS,
   AGENT_PROFILES,
   AGENT_SOURCES,
+  DISMISS_REASONS,
   AUTONOMY_LEVELS,
   COPILOT_ACTION_STATUSES,
   COPILOT_REQUEST_STATUSES,
@@ -90,6 +91,8 @@ export const copilotActions = pgTable(
     decidedBy: uuid('decided_by'),
     decidedAt: timestamp('decided_at', { withTimezone: true }),
     undoneAt: timestamp('undone_at', { withTimezone: true }),
+    /** Why the owner dropped it, when she said (stage 6: the brain learns from it). */
+    dismissReason: text('dismiss_reason'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -120,6 +123,10 @@ export const copilotActions = pgTable(
       'copilot_actions_status_check',
       sql.raw(`status in (${inList(COPILOT_ACTION_STATUSES)})`),
     ),
+    check(
+      'copilot_actions_dismiss_reason_check',
+      sql.raw(`dismiss_reason is null or dismiss_reason in (${inList(DISMISS_REASONS)})`),
+    ),
   ],
 );
 
@@ -143,6 +150,8 @@ export const agentSettings = pgTable(
     approvalPhoneE164: text('approval_phone_e164'),
     /** A short summary of the brain's day to the approvals number every evening. */
     eveningSummary: boolean('evening_summary').notNull().default(true),
+    /** What the brain learned and the owner answered: { declined: { kind: 'YYYY-MM-DD' } } (a suggestion she declined, until when). */
+    learning: jsonb('learning').notNull().default({}),
     updatedBy: uuid('updated_by'),
     updatedAt: updatedAt(),
   },

@@ -13,6 +13,7 @@ import {
   type AgentSource,
   type AutonomyLevel,
   type CopilotActionStatus,
+  type DismissReason,
 } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
 import { DomainError, type ServiceContext } from '@rswim/domain-core';
@@ -165,6 +166,8 @@ export interface AgentActionRow {
   createdAt: Date;
   decidedAt: Date | null;
   undoneAt: Date | null;
+  /** Why the owner dropped it, when she said. */
+  dismissReason: DismissReason | null;
 }
 
 /** Newest first; `statuses` narrows to e.g. the proposals waiting for the owner. */
@@ -211,6 +214,7 @@ export async function listAgentActions(
     createdAt: a.createdAt,
     decidedAt: a.decidedAt,
     undoneAt: a.undoneAt,
+    dismissReason: a.dismissReason as DismissReason | null,
   }));
 }
 

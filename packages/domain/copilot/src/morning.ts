@@ -13,6 +13,7 @@ import { todayIL } from '@rswim/domain-scheduling';
 import { resolvePolicyFor } from '@rswim/domain-settings';
 import { getAgentSettings } from './agent';
 import { eveningText, morningPlan, type MorningPlan } from './agent-policies';
+import { morningLessons } from './learning';
 import { proposalSummary } from './policies';
 import { substituteSummary, takeAction } from './services';
 
@@ -48,11 +49,14 @@ export async function runMorningCheck(tx: Tx, ctx: ServiceContext): Promise<Morn
         where kind = 'substitute' and status in ('proposed', 'confirmed', 'dismissed')
         union select session_id::text from substitute_requests where status in ('open', 'unfilled', 'filled')`,
   );
+  // What the owner taught it: families she dropped a link for, and balances she called too small (stage 6).
+  const lessons = await morningLessons(tx, rules.debtAttentionDays);
   const plan = morningPlan({
     debts: facts.debts,
     uncovered: facts.uncovered,
     debtAttentionDays: rules.debtAttentionDays,
-    askedHouseholds: asked.map((r) => r.id),
+    askedHouseholds: [...asked.map((r) => r.id), ...lessons.skippedHouseholds],
+    minLinkAgorot: lessons.minLinkAgorot,
     coveredSessions: covered.map((r) => r.id),
     levels: {
       payment_link: settings.effective.payment_link,

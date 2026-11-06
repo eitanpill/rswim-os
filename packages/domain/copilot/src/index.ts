@@ -8,3 +8,5 @@ export * from './brain-inbound';
 export * from './morning';
 export * from './memory-policies';
 export * from './memory';
+export * from './learning-policies';
+export * from './learning';

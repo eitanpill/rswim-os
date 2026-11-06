@@ -106,6 +106,14 @@ export const AgentSettingsInput = z
   .strict();
 export type AgentSettingsInput = z.infer<typeof AgentSettingsInput>;
 
+/**
+ * Why the owner dropped an action (stage 6). not_now: right, but not now; special_case: this family or lesson is
+ * different, leave it; too_small: not worth it for this amount; wrong: the brain should not have proposed it.
+ */
+export const DISMISS_REASONS = ['not_now', 'special_case', 'too_small', 'wrong'] as const;
+export const DismissReason = z.enum(DISMISS_REASONS);
+export type DismissReason = z.infer<typeof DismissReason>;
+
 export const AGENT_DEFAULT_SETTINGS: AgentSettingsInput = {
   profile: 'careful',
   levels: AGENT_PROFILE_LEVELS.careful,

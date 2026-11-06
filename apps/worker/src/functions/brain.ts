@@ -2,11 +2,17 @@
  * The business brain's daily rounds (docs/AI-BRAIN.md, stage 4): the morning check at 07:00, after the insights feed
  * (06:30), acts on debts and uncovered lessons through the brain's gate; the evening summary at 20:00 goes to the
  * owner's approvals number. Before both, at 05:45, the brain's memory (stage 5) keeps the month's facts and records
- * what happened. Each school runs in its own step, as the system for that school.
+ * what happened. On Sundays at 09:00 the owner hears what the brain learned about how she
+ * works (stage 6). Each school runs in its own step, as the system for that school.
  */
 import { schema } from '@rswim/db';
 import { asPlatform, withOrg } from '@rswim/db/service';
-import { refreshMemory, runMorningCheck, sendEveningSummary } from '@rswim/domain-copilot';
+import {
+  refreshMemory,
+  runMorningCheck,
+  sendEveningSummary,
+  sendLearningDigest,
+} from '@rswim/domain-copilot';
 import { getDb, inngest } from '../client';
 
 const allOrgs = () =>
@@ -70,5 +76,25 @@ export const brainMemory = inngest.createFunction(
       events += r.events;
     }
     return { orgs: orgIds.length, months, events };
+  },
+);
+
+/** Sundays at 09:00: what the brain learned about how the owner works, to her approvals number (stage 6). */
+export const brainLearning = inngest.createFunction(
+  {
+    id: 'brain-learning',
+    triggers: [{ cron: 'TZ=Asia/Jerusalem 0 9 * * 0' }, { event: 'brain/learning.run' }],
+    concurrency: { limit: 1 },
+  },
+  async ({ step }) => {
+    const orgIds = await step.run('find-orgs', allOrgs);
+    let sent = 0;
+    for (const orgId of orgIds) {
+      const r = await step.run(`learning-${orgId}`, () =>
+        withOrg(getDb(), orgId, (tx) => sendLearningDigest(tx, { orgId, userId: null })),
+      );
+      if (r.sent) sent++;
+    }
+    return { orgs: orgIds.length, sent };
   },
 );
