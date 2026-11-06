@@ -5288,13 +5288,13 @@
     },
     "whatsapp": {
       "title": "Approvals on WhatsApp",
-      "hint": "When an action waits for you (asked by a parent, an instructor or the morning check), the brain sends it to this number. Reply \"yes 12\" to approve or \"no 12\" to drop it.",
+      "hint": "When an action waits for you (asked by a parent, an instructor or the morning check), the brain sends it to this number. Reply \"yes 12\" to approve or \"no 12\" to drop it. You can add why: \"no 12 special case\", \"no 12 too small\", \"no 12 wrong\".",
       "phone": "Your phone",
       "save": "Save",
       "saved": "Number saved",
       "on": "Actions that wait for you also go to WhatsApp.",
       "off": "Without a number, actions that wait for you show only here.",
-      "evening": "Send me a summary of the day every evening at 20:00"
+      "evening": "Send me a summary of the day every evening at 20:00, and what the brain learned every Sunday"
     },
     "memory": {
       "link": "What the brain remembers",
@@ -5367,6 +5367,29 @@
         "subject": "I could not find who this is about",
         "notFound": "This memory no longer exists",
         "period": "Not a valid month"
+      }
+    },
+    "dismissReasons": {
+      "not_now": "Not now",
+      "special_case": "Special case",
+      "too_small": "Too small",
+      "wrong": "Wrong"
+    },
+    "learning": {
+      "title": "What I learned about you",
+      "hint": "The brain reads your decisions of the last {days} days: what you approve, what you drop and why. It only suggests; no level changes until you accept.",
+      "empty": "Nothing to suggest yet. As you approve or drop more actions, suggestions appear here.",
+      "approves": "You approved {count} of {of} for {kind}. Move it to \"{to}\"?",
+      "undoes": "You took back {count} of {of} {kind} actions that ran alone. Back to \"{to}\"?",
+      "accept": "Yes, change it",
+      "decline": "No, keep it",
+      "accepted": "The level was updated",
+      "declined": "OK, I won't suggest it again this month",
+      "minLink": "Payment links below ₪{amount} are no longer proposed by the morning check (you called them too small).",
+      "statsTitle": "The decisions I learned from",
+      "stats": "approved {approved}, dropped {against}, put off {neutral}, ran alone {alone} (taken back {undone})",
+      "errors": {
+        "gone": "This suggestion is no longer current; refresh the page"
       }
     }
   },

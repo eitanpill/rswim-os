@@ -64,3 +64,16 @@ With the fake copilot (`RSWIM_COPILOT_FAKE=1`), signed in as the owner:
    against last month, and what happened. Then "מה אתה זוכר על משפחת <שם>?" → the note about that family.
 4. With an approvals number set, write "תזכור ש..." from it (fake inbound): the note is kept and "📝 שמרתי" comes back.
 5. Delete a note: it leaves the page and the chat no longer reads it.
+
+## Stage 6: learning the owner
+
+Signed in as the owner, with the fake copilot:
+
+1. Brain: the card "מה למדתי עליך" is empty at first (the demo school has no decisions yet).
+2. In the chat, ask for payment links to a few families (e.g. "תשלח קישור תשלום להורים של <ילד> על 150"); each waits.
+   On "מחכה לך", drop one with "סכום קטן מדי" and another with "מקרה מיוחד". The journal shows why next to each.
+3. Back on the brain's page: "קישורי תשלום מתחת ל-₪151 אני כבר לא מציע". Once eight or more links are decided and
+   nearly all approved, the card suggests letting payment links run alone, with "כן, לשנות" / "לא, להשאיר".
+4. With an approvals number set, answer a waiting action from it with "לא 12 מקרה מיוחד": dropped, with the reason.
+5. Send `brain/learning.run` from the Inngest dev UI (or wait for Sunday 09:00): the approvals number gets
+   "🧠 מה למדתי על דרך העבודה שלך".

@@ -11,6 +11,7 @@ import {
   type AgentActionKind,
   type AgentProfile,
   type AutonomyLevel,
+  type DismissReason,
 } from '@rswim/contracts';
 
 const rank = (l: AutonomyLevel) => AUTONOMY_LEVELS.indexOf(l);
@@ -174,14 +175,37 @@ export function approvalText(
     : `🤖 מחכה לאישור שלך (#${a.ref}): ${what}\nלאישור השיבו "כן ${a.ref}", לביטול "לא ${a.ref}".`;
 }
 
-export type OwnerReply = { verb: 'confirm' | 'dismiss'; ref: number };
+export type OwnerReply = {
+  verb: 'confirm' | 'dismiss';
+  ref: number;
+  /** Why she dropped it, when she said ("לא 12 מקרה מיוחד"); the brain learns from it (stage 6). */
+  reason?: DismissReason;
+};
 
-/** "כן 12", "אישור #12", "לא 12", "yes 12", "no 12": a decision on one waiting action. Anything else is not one. */
+const REASON_WORDS: [RegExp, DismissReason][] = [
+  [/^(?:לא )?עכשיו(?: לא)?$|^not now$|^later$/i, 'not_now'],
+  [/^(?:מקרה )?מיוחד$|^special(?: case)?$/i, 'special_case'],
+  [/^(?:סכום )?קטן(?: מדי)?$|^too small$/i, 'too_small'],
+  [/^טעות$|^לא נכון$|^wrong$/i, 'wrong'],
+];
+
+/**
+ * "כן 12", "אישור #12", "לא 12", "yes 12", "no 12": a decision on one waiting action. A drop may say why: "לא 12 מקרה
+ * מיוחד", "לא 12 קטן", "no 12 not now". Anything else is not one.
+ */
 export function ownerReply(text: string): OwnerReply | null {
-  const m = /^\s*(כן|אישור|אשר|מאשר|מאשרת|yes|ok|לא|no)\s*#?\s*(\d{1,6})\s*[.!]?\s*$/i.exec(text);
+  const m =
+    /^\s*(כן|אישור|אשר|מאשר|מאשרת|yes|ok|לא|no)\s*#?\s*(\d{1,6})\s*[.!]?\s*(.*?)\s*[.!]?\s*$/i.exec(
+      text,
+    );
   if (!m) return null;
   const word = (m[1] as string).toLowerCase();
-  return { verb: word === 'לא' || word === 'no' ? 'dismiss' : 'confirm', ref: Number(m[2]) };
+  const verb = word === 'לא' || word === 'no' ? 'dismiss' : 'confirm';
+  const rest = (m[3] as string).replace(/\s+/g, ' ').replace(/^[-,:]\s*/, '');
+  if (!rest) return { verb, ref: Number(m[2]) };
+  const reason = REASON_WORDS.find(([re]) => re.test(rest))?.[1];
+  if (verb === 'confirm' || !reason) return null;
+  return { verb, ref: Number(m[2]), reason };
 }
 
 export type DecisionOutcome =
@@ -270,6 +294,8 @@ export interface MorningFacts {
   /** Lessons the brain already looks for an instructor for (or the owner dropped). */
   coveredSessions: readonly string[];
   levels: { payment_link: AutonomyLevel; substitute: AutonomyLevel };
+  /** The smallest balance worth a link: MIN_LINK_AGOROT, or higher once the owner said smaller ones are not worth it. */
+  minLinkAgorot: number;
 }
 
 export interface MorningPlan {
@@ -296,7 +322,7 @@ export function morningPlan(f: MorningFacts): MorningPlan {
             .filter(
               (d) =>
                 d.oldestDays >= f.debtAttentionDays &&
-                d.balanceAgorot >= MIN_LINK_AGOROT &&
+                d.balanceAgorot >= f.minLinkAgorot &&
                 !asked.has(d.householdId),
             )
             .sort((a, b) => b.balanceAgorot - a.balanceAgorot)

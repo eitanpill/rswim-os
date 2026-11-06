@@ -155,6 +155,21 @@ the parents' bot leaves it alone.
 `/admin/brain/memory` shows the notes, the events and the months side by side (with the same month a year before once
 it exists); the owner adds a note or deletes one (archived: the brain stops reading it, the audit log keeps it).
 
+## Learning the owner (stage 6)
+
+The brain reads the owner's own decisions of the last 90 days (`learningState`, rules only, `learning-policies.ts`)
+and turns them into three things. It never changes a level by itself.
+
+| What it learns | From | What changes |
+|---|---|---|
+| A kind she approves nearly every time | At least 8 of her decisions on a kind that waits for her, 90% or more approved | A suggestion on `/admin/brain` ("מה למדתי עליך") to let it run alone, as far as the kind's ceiling allows. She accepts (the level changes, as if she changed the row) or declines (quiet for 30 days, kept in `agent_settings.learning`) |
+| A kind she takes back too often | At least 5 actions that ran alone, 2 or more of them undone, 20% or more | A suggestion to wait for her again |
+| Why she drops a proposal | `copilot_actions.dismiss_reason`: not now, special case, too small, wrong. One tap on the card, or on WhatsApp "לא 12 מקרה מיוחד" / "לא 12 קטן" / "לא 12 טעות" / "לא 12 לא עכשיו" | The morning check leaves a family she called a special case for 90 days and any other dropped link for the debt attention age; no link below the largest one she called too small (never above the smallest link she approved herself) |
+
+"Not now" and "special case" say nothing about the kind itself, so they do not count against running it alone. On
+Sundays at 09:00 (worker function `brain-learning`) the approvals number gets what it learned, when there is something
+new, unless the owner turned the evening summary off.
+
 ## Stages
 
 1. **Engine** (PR #26): gate, settings, journal and undo, the screens; the chat's moves, messages, makeup slots and
@@ -164,9 +179,10 @@ it exists); the owner adds a note or deletes one (archived: the brain stops read
    substitute, approval from Reut's WhatsApp.
 4. **The daily rounds** (PR #29): the morning check asks old debts to pay and finds instructors for uncovered
    lessons; the evening summary.
-5. **Memory** (this PR): every month's facts, what happened, and what the owner asked to remember; the chat answers
+5. **Memory** (PR #32): every month's facts, what happened, and what the owner asked to remember; the chat answers
    about the past from it.
-6. **Learning the owner** (next): approvals and dismissals turn into suggested levels and better proposals.
+6. **Learning the owner** (this PR): approvals, take-backs and the reasons she drops proposals turn into suggested
+   levels and a morning check that stops asking what she said no to.
 7. **Looking ahead**: holidays, seasons and the school year against last year's months; heads-ups weeks before.
 8. **A weekly coach**: Sunday's three priorities with buttons, and whether last week's advice worked.
 

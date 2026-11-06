@@ -351,6 +351,13 @@
       "when": 1793934730890,
       "tag": "0049_brain_memory_security",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1793937581064,
+      "tag": "0050_brain_learning",
+      "breakpoints": true
     }
   ]
 }

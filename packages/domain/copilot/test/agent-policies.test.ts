@@ -156,6 +156,17 @@ describe('WhatsApp approvals', () => {
     expect(ownerReply('no 4!')).toEqual({ verb: 'dismiss', ref: 4 });
     expect(ownerReply('כן')).toBeNull();
     expect(ownerReply('כן, נדבר מחר ב-12')).toBeNull();
+    // A drop may say why; anything else after the number is not a decision.
+    expect(ownerReply('לא 12 מקרה מיוחד')).toEqual({
+      verb: 'dismiss',
+      ref: 12,
+      reason: 'special_case',
+    });
+    expect(ownerReply('לא 12 - לא עכשיו')).toEqual({ verb: 'dismiss', ref: 12, reason: 'not_now' });
+    expect(ownerReply('לא #3 קטן מדי.')).toEqual({ verb: 'dismiss', ref: 3, reason: 'too_small' });
+    expect(ownerReply('no 5 wrong')).toEqual({ verb: 'dismiss', ref: 5, reason: 'wrong' });
+    expect(ownerReply('לא 5 מחר')).toBeNull();
+    expect(ownerReply('כן 5 מיוחד')).toBeNull();
   });
 
   it('tells the owner what happened, in both languages', () => {
@@ -222,6 +233,7 @@ describe('the morning check', () => {
     askedHouseholds: ['e'],
     coveredSessions: ['s2'],
     levels: { payment_link: 'approve', substitute: 'auto' } as const,
+    minLinkAgorot: 100,
   };
 
   it('asks old debts to pay, largest first, and looks for instructors for new gaps', () => {
@@ -232,6 +244,12 @@ describe('the morning check', () => {
       ],
       substitutes: [{ sessionId: 's1' }],
     });
+  });
+
+  it('leaves out balances below the smallest link the owner finds worth it', () => {
+    expect(morningPlan({ ...base, minLinkAgorot: 25000 }).payments).toEqual([
+      { householdId: 'b', amountAgorot: 50000 },
+    ]);
   });
 
   it('proposes nothing of a kind the owner turned off', () => {

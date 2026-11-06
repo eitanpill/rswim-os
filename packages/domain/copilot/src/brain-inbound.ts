@@ -23,6 +23,7 @@ import {
   staffReplyText,
   summaryText,
   type DecisionOutcome,
+  type OwnerReply,
 } from './agent-policies';
 import { remember } from './memory';
 import { rememberRequest, rememberedText } from './memory-policies';
@@ -144,7 +145,7 @@ async function decideFromWhatsApp(
   tx: Tx,
   ctx: ServiceContext,
   row: InboundRow,
-  reply: { verb: 'confirm' | 'dismiss'; ref: number },
+  reply: OwnerReply,
 ): Promise<BrainInboundResult> {
   const ownerId = await schoolOwner(tx);
   if (!ownerId) return { outcome: 'skipped', reason: 'no_owner' };
@@ -163,7 +164,12 @@ async function decideFromWhatsApp(
   if (!action) decision = 'not_found';
   else if (action.status !== 'proposed') decision = 'already_decided';
   else if (reply.verb === 'dismiss') {
-    await dismissCopilotAction(tx, { orgId: ctx.orgId, userId: owner.userId }, action.id);
+    await dismissCopilotAction(
+      tx,
+      { orgId: ctx.orgId, userId: owner.userId },
+      action.id,
+      reply.reason ?? null,
+    );
     decision = 'dismissed';
   } else {
     const out = await confirmCopilotAction(

@@ -104,6 +104,9 @@ async function pickFamily(): Promise<{ phone: string; child: string }> {
          and exists (select 1 from sessions s where s.class_template_id = e.class_template_id
                      and s.status = 'scheduled' and s.starts_at > now() + interval '1 hour'
                      and s.date <= current_date + 13)
+         -- The seed reports absences for a few upcoming lessons; a child already reported gets no new action.
+         and not exists (select 1 from absence_notices n join sessions ns on ns.id = n.session_id
+                         where n.student_id = st.id and ns.date between current_date and current_date + 14)
        order by g.household_id limit 1`,
     );
     return r.rows[0]!;

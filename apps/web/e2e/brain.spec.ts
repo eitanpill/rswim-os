@@ -1,7 +1,8 @@
 /**
  * The business brain (docs/AI-BRAIN.md) with the rules-based stand-in model (RSWIM_COPILOT_FAKE=1): the owner lets
  * payment links run on their own, the chat then sends one at once and the journal undoes it; a link above the cap
- * waits for the owner on the home page; the stop switch pauses everything. Only payment links change level here, so
+ * waits for the owner on the home page, and dropping it as too small teaches the brain; the stop switch pauses
+ * everything. Only payment links change level here, so
  * the copilot spec's moves (which run in parallel on the same database) keep waiting for approval. Fake data only.
  */
 import { expect, test, type Page } from '@playwright/test';
@@ -59,10 +60,17 @@ test('the owner lets payment links run alone, undoes one, approves above the cap
     .getByTestId('agent-action')
     .filter({ hasText: '900' });
   await expect(waiting.getByTestId('agent-wait-reason')).toContainText('התקרה');
-  await waiting.getByTestId('agent-dismiss').click();
+  // She drops it as too small: the journal keeps why, and the brain learns the smallest link worth proposing.
+  await waiting.getByTestId('agent-dismiss-too_small').click();
   await expect(waiting).toHaveCount(0);
+  await page.goto('/admin/brain/journal');
+  await expect(page.getByTestId('agent-action').filter({ hasText: '900' }).first()).toContainText(
+    'סכום קטן מדי',
+  );
 
   await page.goto('/admin/brain');
+  await expect(page.getByTestId('brain-learning')).toBeVisible();
+  await expect(page.getByTestId('learning-min-link')).toContainText('₪');
   await page.getByTestId('brain-pause').click();
   await expect(page.getByTestId('brain-status')).toHaveAttribute('data-paused', 'yes');
   await page.getByTestId('brain-pause').click();

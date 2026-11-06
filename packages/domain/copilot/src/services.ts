@@ -9,6 +9,7 @@
 import { randomUUID } from 'node:crypto';
 import {
   CLOSURE_SOURCES,
+  DismissReason,
   SLOT_DEFAULT_CAPACITY,
   type AgentSource,
   type CopilotActionKind,
@@ -1167,11 +1168,22 @@ export async function confirmCopilotAction(tx: Tx, ctx: ServiceContext, id: stri
   return runAction(tx, ctx, a, { alone: false });
 }
 
-export async function dismissCopilotAction(tx: Tx, ctx: ServiceContext, id: string) {
+/** The owner drops a proposal, optionally saying why (the brain learns from it, stage 6). */
+export async function dismissCopilotAction(
+  tx: Tx,
+  ctx: ServiceContext,
+  id: string,
+  reason: DismissReason | null = null,
+) {
   await loadAction(tx, id, 'dismiss');
   await tx
     .update(copilotActions)
-    .set({ status: 'dismissed', decidedBy: ctx.userId, decidedAt: new Date() })
+    .set({
+      status: 'dismissed',
+      decidedBy: ctx.userId,
+      decidedAt: new Date(),
+      dismissReason: DismissReason.nullable().parse(reason),
+    })
     .where(and(eq(copilotActions.id, id)));
 }
 
