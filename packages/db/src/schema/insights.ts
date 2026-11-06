@@ -28,6 +28,9 @@ import {
   INSIGHT_KINDS,
   INSIGHT_SEVERITIES,
   INSIGHT_STATUSES,
+  MEMORY_KINDS,
+  MEMORY_SOURCES,
+  MEMORY_SUBJECTS,
 } from '@rswim/contracts';
 import { createdAt, id, inList, orgId, updatedAt } from './_helpers';
 import { inboundMessages } from './comms';
@@ -204,5 +207,76 @@ export const ownerInsights = pgTable(
     check('owner_insights_kind_check', sql.raw(`kind in (${inList(INSIGHT_KINDS)})`)),
     check('owner_insights_severity_check', sql.raw(`severity in (${inList(INSIGHT_SEVERITIES)})`)),
     check('owner_insights_status_check', sql.raw(`status in (${inList(INSIGHT_STATUSES)})`)),
+  ],
+);
+
+/**
+ * The brain's memory of the business, month by month (docs/AI-BRAIN.md, stage 5): the facts of each month (places,
+ * money, lessons, attendance, trials) as the daily refresh last computed them. A month is `final` once it ended and
+ * was computed again after its end; the chat and the comparisons read these rows instead of recomputing history.
+ */
+export const businessSnapshots = pgTable(
+  'business_snapshots',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    /** "YYYY-MM". */
+    period: text('period').notNull(),
+    facts: jsonb('facts').notNull(),
+    final: boolean('final').notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('business_snapshots_org_id').on(t.organizationId, t.id),
+    unique('business_snapshots_period').on(t.organizationId, t.period),
+    check('business_snapshots_period_check', sql`${t.period} ~ '^[0-9]{4}-[0-9]{2}$'`),
+  ],
+);
+
+/**
+ * What the brain remembers (stage 5): notes the owner asked it to keep ("תזכור ש..."), in her words, and events of the
+ * business its daily sweep recorded (a closure, a substitute, new prices, a group opened or closed) as an i18n
+ * summary. Each is about the school or one family, child, instructor, venue or group. The owner archives what is
+ * wrong or no longer true; archived rows are not read again.
+ */
+export const businessMemories = pgTable(
+  'business_memories',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    subjectType: text('subject_type').notNull().default('school'),
+    subjectId: uuid('subject_id'),
+    /** The subject's name when it was written, so the memory reads well after a rename or a deletion. */
+    subjectLabel: text('subject_label'),
+    /** A note: the owner's own words. */
+    body: text('body'),
+    /** An event: an i18n code and params (agent.memory.events.*). */
+    summary: jsonb('summary'),
+    happenedOn: date('happened_on').notNull(),
+    source: text('source').notNull(),
+    /** The row an event came from (kind:id), so the sweep records each one once. */
+    sourceRef: text('source_ref'),
+    createdBy: uuid('created_by'),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('business_memories_org_id').on(t.organizationId, t.id),
+    unique('business_memories_source_ref').on(t.organizationId, t.sourceRef),
+    index('business_memories_recent').on(t.organizationId, t.happenedOn),
+    index('business_memories_subject').on(t.organizationId, t.subjectType, t.subjectId),
+    check('business_memories_kind_check', sql.raw(`kind in (${inList(MEMORY_KINDS)})`)),
+    check(
+      'business_memories_subject_check',
+      sql.raw(`subject_type in (${inList(MEMORY_SUBJECTS)})`),
+    ),
+    check('business_memories_source_check', sql.raw(`source in (${inList(MEMORY_SOURCES)})`)),
+    check(
+      'business_memories_shape_check',
+      sql`(${t.kind} = 'note' and ${t.body} is not null) or (${t.kind} = 'event' and ${t.summary} is not null)`,
+    ),
   ],
 );

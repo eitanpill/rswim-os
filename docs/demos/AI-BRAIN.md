@@ -51,3 +51,16 @@ With the worker and the Inngest dev server running (`RSWIM_MESSAGING_FAKE=1`) an
 2. Send it again: nothing new is proposed.
 3. Send `brain/evening.run` (or wait for 20:00): the fake number gets "🌙 היום של המוח" with the day's counts.
 4. Brain → untick "לשלוח לי סיכום של היום כל ערב" and save: the next evening sends nothing.
+
+## Stage 5: memory
+
+With the fake copilot (`RSWIM_COPILOT_FAKE=1`), signed in as the owner:
+
+1. Brain → "מה המוח זוכר": the demo school's notes (a family that pays late, an instructor who prefers not to teach on
+   Fridays, the venue's heater) and last winter's heating closure. On the live demo the months table is filled at
+   reset; locally send `brain/memory.run` from the Inngest dev UI (or wait for 05:45).
+2. Write "בדיקה: הקייטנה של פסח התמלאה תוך יומיים" and press "לזכור": it appears under the notes, "מהמסך הזה".
+3. In the chat: "תזכור שהבריכה בעמק סגורה בכל חנוכה" → "שמרתי". Then "איך היה החודש?" → the month's places and money
+   against last month, and what happened. Then "מה אתה זוכר על משפחת <שם>?" → the note about that family.
+4. With an approvals number set, write "תזכור ש..." from it (fake inbound): the note is kept and "📝 שמרתי" comes back.
+5. Delete a note: it leaves the page and the chat no longer reads it.

@@ -125,6 +125,36 @@ brain page (`agent_settings.evening_summary`). Like every message it waits out q
 
 Missing forms are not part of the swim school's morning check: the forms flow exists only in the freediving vertical.
 
+## Memory (stage 5)
+
+Pit asked (2026-11-05) for a brain that understands how the business runs, remembers situations and learns with the
+owner. The plan he approved (2026-11-06, Hebrew doc "המוח החכם: איפה אנחנו ומה הלאה") has four stages: memory (this
+one), learning the owner, looking ahead, a weekly coach. Memory is what the other three read.
+
+Two tables, owner only (RLS `is_owner()`, which the tenant's system role passes for the daily refresh):
+
+| Table | What | Written by |
+|---|---|---|
+| `business_snapshots` | One row per month (`period` "YYYY-MM"): places at month end and per venue, joined, left, lessons held and cancelled, attendance marks and absences, trials and enrolments after them, charged and collected (`MonthFacts`, from `monthFacts` in `domain-reports`) | The daily refresh: the running month every day, a month that ended once more and then `final`; the first run reaches back to the first activity, at most 24 months |
+| `business_memories` | A **note** in the owner's words, or an **event** as an i18n summary (`agent.memory.events.*`), about the school or one family, child, instructor, venue or group (`subject_type`, `subject_id`, the name at the time in `subject_label`), on a day | Notes: the owner (chat tool `remember`, WhatsApp "תזכור ש..." from the approvals number, the memory page). Events: the daily sweep |
+
+The sweep (`sweepEvents`) records each event once (`source_ref` = kind:id) from the modules' own rows: lessons
+cancelled by a closure event, a substitute search once it ended (filled, nobody found, or its day passed), a published
+price list (not the school's first), and a group opened or closed (not the school's first groups, and not a group that
+moved venue, which ends one row and starts another with the same name). It looks back 400 days, so a school's first
+refresh fills in the past year.
+
+Worker function `brain-memory` runs at 05:45, before the insights (06:30) and the morning check (07:00).
+
+The chat has three more tools: `recall` (notes and events by words, subject id and dates), `month_report` (a month's
+facts against the month before and the same month a year before, when those are kept, and what happened that month)
+and `remember` (saves a note at once; it is the owner's own instruction, so it does not pass the action gate, and it
+can be deleted). On WhatsApp, "תזכור ש..." from the approvals number is kept by rule (no model) with one line back;
+the parents' bot leaves it alone.
+
+`/admin/brain/memory` shows the notes, the events and the months side by side (with the same month a year before once
+it exists); the owner adds a note or deletes one (archived: the brain stops reading it, the audit log keeps it).
+
 ## Stages
 
 1. **Engine** (PR #26): gate, settings, journal and undo, the screens; the chat's moves, messages, makeup slots and
@@ -132,7 +162,12 @@ Missing forms are not part of the swim school's morning check: the forms flow ex
 2. **The parents' bot acts** (PR #27): absence notices, makeup bookings and freezes, by level.
 3. **Requests from Reut and instructors** (PR #28): cancel a day and tell everyone, a sick instructor and a
    substitute, approval from Reut's WhatsApp.
-4. **The daily rounds** (this PR): the morning check asks old debts to pay and finds instructors for uncovered
+4. **The daily rounds** (PR #29): the morning check asks old debts to pay and finds instructors for uncovered
    lessons; the evening summary.
+5. **Memory** (this PR): every month's facts, what happened, and what the owner asked to remember; the chat answers
+   about the past from it.
+6. **Learning the owner** (next): approvals and dismissals turn into suggested levels and better proposals.
+7. **Looking ahead**: holidays, seasons and the school year against last year's months; heads-ups weeks before.
+8. **A weekly coach**: Sunday's three priorities with buttons, and whether last week's advice worked.
 
 Kinds not wired yet show as "soon" in the settings.

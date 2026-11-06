@@ -32,6 +32,7 @@ import {
   type InsightDetail,
   type InsightFacts,
   type InsightRules,
+  type MonthFacts,
   type RentContract,
   type VenueMargin,
 } from './policies';
@@ -140,6 +141,66 @@ export async function moneyByMonth(tx: Tx, range: PeriodRange): Promise<MonthMon
     institutionInvoicedAgorot: of(invoiced, period),
     institutionCollectedAgorot: of(instPaid, period),
   }));
+}
+
+// ─── One month of the business (the brain's memory) ─────────────────────────
+
+/**
+ * The facts of one month ("YYYY-MM") for the brain's memory (docs/AI-BRAIN.md, stage 5). For the running month,
+ * places are counted on `asOf` instead of the month's last day.
+ */
+export async function monthFacts(tx: Tx, period: string, asOf?: string): Promise<MonthFacts> {
+  const { from, to } = monthRange(period);
+  const end = asOf && asOf < to ? asOf : to;
+  const [m] = await rows<
+    Omit<MonthFacts, 'period' | 'chargedAgorot' | 'collectedAgorot' | 'venues'>
+  >(
+    tx,
+    sql`select
+          (select count(*) from enrollments e where ${SEAT}
+             and e.starts_on <= ${end}::date and (e.ends_on is null or e.ends_on > ${end}::date))::int "placesAtEnd",
+          (select count(*) from enrollments e where ${SEAT} and e.starts_on between ${from}::date and ${to}::date
+             and e.previous_enrollment_id is null)::int "newPlaces",
+          (select count(*) from enrollments e where ${SEAT} and e.ends_on - 1 between ${from}::date and ${to}::date
+             and not exists (select 1 from enrollments n where n.previous_enrollment_id = e.id))::int "endedPlaces",
+          (select count(*) from sessions s where ${RAN} and s.date between ${from}::date and ${end}::date)::int "lessonsHeld",
+          (select count(*) from sessions s where s.status in ('cancelled_by_school', 'cancelled_external')
+             and s.date between ${from}::date and ${to}::date)::int "lessonsCancelled",
+          (select count(*) from attendance a join sessions s on s.id = a.session_id
+             where a.kind = 'member' and s.date between ${from}::date and ${to}::date)::int marks,
+          (select count(*) from attendance a join sessions s on s.id = a.session_id
+             where a.kind = 'member' and a.status = 'absent' and s.date between ${from}::date and ${to}::date)::int absences,
+          (select count(*) from trials where status = 'attended' and date between ${from}::date and ${to}::date)::int "trialsHeld",
+          (select count(*) from trials where status = 'attended' and date between ${from}::date and ${to}::date
+             and converted_enrollment_id is not null)::int "trialsEnrolled"`,
+  );
+  const venues = await rows<{ name: string; places: number }>(
+    tx,
+    sql`select v.name, count(*)::int places
+        from enrollments e join class_templates t on t.id = e.class_template_id join venues v on v.id = t.venue_id
+        where ${SEAT} and e.starts_on <= ${end}::date and (e.ends_on is null or e.ends_on > ${end}::date)
+        group by v.name order by 2 desc, 1`,
+  );
+  const [money] = await moneyByMonth(tx, { from: period, to: period });
+  return {
+    period,
+    ...(m as NonNullable<typeof m>),
+    chargedAgorot: money?.chargedAgorot ?? 0,
+    collectedAgorot: money?.collectedAgorot ?? 0,
+    venues,
+  };
+}
+
+/** The first month with any lesson, place or charge, or null for a school with no history yet. */
+export async function firstActiveMonth(tx: Tx): Promise<string | null> {
+  const [r] = await rows<{ p: string | null }>(
+    tx,
+    sql`select to_char(least(
+          (select min(date) from sessions),
+          (select min(starts_on) from enrollments),
+          (select min(occurred_on) from ledger_entries)), 'YYYY-MM') p`,
+  );
+  return r?.p ?? null;
 }
 
 // ─── Venue profitability ────────────────────────────────────────────────────

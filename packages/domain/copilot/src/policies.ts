@@ -13,6 +13,7 @@ import {
   type CopilotActionStatus,
 } from '@rswim/contracts';
 import { undoable } from './agent-policies';
+import { periodFromWords, rememberRequest } from './memory-policies';
 
 export type Check = { ok: true } | { ok: false; code: string };
 export type Explanation = { code: string; params: Record<string, string | number> };
@@ -283,6 +284,11 @@ usually in Hebrew; always answer in the owner's language, briefly and plainly. T
   children their makeup credits by the regulations and tells the families. Unless the owner says otherwise, the
   makeup deadline is the last day of the month after the closure, and the source is "school".
 - For a substitute, find the instructor's lessons with staff_lessons and propose one substitute per lesson.
+- You have a memory of the business. Before answering about the past ("how was April", "what happened last
+  Passover", "what do we know about this family"), read it: month_report for a month's numbers against the month before
+  and the same month last year, recall for the owner's notes and the events. Say plainly when you do not remember.
+- When the owner asks you to remember something ("תזכור ש..."), save it with remember in the owner's own words, about
+  the right family, child, instructor, venue or group when there is one, and say you saved it.
 - Never invent prices, debts or policies; if a tool does not tell you, say you don't know.`;
 }
 
@@ -297,6 +303,9 @@ export type FakeIntent =
   | { kind: 'substitute'; staff: string; date: string }
   | { kind: 'debts' }
   | { kind: 'lessons'; date: string | null }
+  | { kind: 'remember'; body: string }
+  | { kind: 'month'; period: string }
+  | { kind: 'recall'; query: string }
   | { kind: 'help' };
 
 const DATE = '(\\d{4}-\\d{2}-\\d{2})';
@@ -305,10 +314,18 @@ const DATE = '(\\d{4}-\\d{2}-\\d{2})';
  * Understands a few fixed Hebrew phrasings, enough to demo and test the confirm-before-act flow without a model:
  * "תעביר את <ילד> ל<קבוצה> [מ-<תאריך>]", "תשלח ל<ילד>: <טקסט>", "תפתח השלמות עם <מדריך> ב-<תאריך> <שעה>-<שעה>",
  * "תבטל את השיעורים ב-<תאריך> [ב<בריכה>] [בגלל <סיבה>]", "תמצא מחליף ל<מדריך> ב-<תאריך>", "מי חייב",
- * "מה יש היום / ב-<תאריך>". "היום" and "מחר" stand for dates.
+ * "מה יש היום / ב-<תאריך>", "תזכור ש<...>", "איך היה <חודש>" / "מה קרה ב<חודש>", "מה אתה זוכר על <...>".
+ * "היום" and "מחר" stand for dates.
  */
 export function fakeIntent(prompt: string, today: string): FakeIntent {
   const text = prompt.trim().replace(/\s+/g, ' ');
+  const note = rememberRequest(text);
+  if (note) return { kind: 'remember', body: note.body };
+  const month = /^(?:איך היה|איך הלך|מה קרה)(?: לנו)? (.+?)[?.!]?$/.exec(text);
+  const period = month ? periodFromWords(month[1] as string, today) : null;
+  if (period) return { kind: 'month', period };
+  const about = /^מה (?:אתה זוכר|את זוכרת|אתה יודע|את יודעת|ידוע לך) על (.+?)[?.!]?$/.exec(text);
+  if (about) return { kind: 'recall', query: about[1] as string };
   const day = (w: string) => (w === 'היום' ? today : w === 'מחר' ? addDays(today, 1) : w);
   const cancel = new RegExp(
     `^(?:תבטל|בטל|לבטל) (?:את )?(?:כל )?(?:ה)?שיעורים (?:ב-?)?(${DATE.slice(1, -1)}|היום|מחר)(?: ב(?!גלל)(.+?))?(?: (?:בגלל|כי) (.+?))?[.!]?$`,

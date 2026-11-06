@@ -113,3 +113,46 @@ export const AGENT_DEFAULT_SETTINGS: AgentSettingsInput = {
   maxAutoPaymentAgorot: 30_000,
   paused: false,
 };
+
+// ─── The brain's memory (stage 5) ───────────────────────────────────────────
+
+/** A note is something the owner asked the brain to remember; an event is something that happened in the business. */
+export const MEMORY_KINDS = ['note', 'event'] as const;
+export type MemoryKind = (typeof MEMORY_KINDS)[number];
+
+/** What a memory is about; `school` is the business as a whole. */
+export const MEMORY_SUBJECTS = [
+  'school',
+  'household',
+  'student',
+  'staff',
+  'venue',
+  'group',
+] as const;
+export const MemorySubject = z.enum(MEMORY_SUBJECTS);
+export type MemorySubject = z.infer<typeof MemorySubject>;
+
+/** Who wrote it: the owner (chat, WhatsApp, the memory screen) or the brain's own daily sweep. */
+export const MEMORY_SOURCES = ['owner_chat', 'owner_whatsapp', 'owner_screen', 'system'] as const;
+export type MemorySource = (typeof MEMORY_SOURCES)[number];
+
+/** Events the daily sweep records from what happened in the business. */
+export const MEMORY_EVENT_KINDS = [
+  'closure',
+  'substitute',
+  'price_list',
+  'group_opened',
+  'group_closed',
+] as const;
+export type MemoryEventKind = (typeof MEMORY_EVENT_KINDS)[number];
+
+export const RememberInput = z
+  .object({
+    body: z.string().trim().min(2).max(1000),
+    subjectType: MemorySubject.default('school'),
+    subjectId: z.uuid().nullable().default(null),
+    /** The day it is about; today when not given. */
+    happenedOn: z.iso.date().nullable().default(null),
+  })
+  .strict();
+export type RememberInput = z.infer<typeof RememberInput>;

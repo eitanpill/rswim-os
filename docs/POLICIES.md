@@ -341,6 +341,12 @@ old (once per that many days, not while a link is unpaid) and an instructor sear
 coming week; each goes through the gate at its kind's level. The evening summary (20:00) goes to the approvals number
 unless turned off.
 
+The brain's memory (stage 5) keeps every month's facts (the running month refreshed daily, a month that ended computed
+once more and then kept as it was) and records events once each: closures, substitute searches once ended, price lists
+after the first, groups opened after the school's first and closed (a move to another venue is neither). A note the
+owner asks to keep is saved at once, in her words, without the action gate; she deletes what is wrong. Only the owner
+reads any of it.
+
 ## Rounding & money rules
 - All amounts integer agorot. Percentage = `round_half_up(amount × bp / 10000)`.
 - Proration rounds per line; statement total = sum of rounded lines.

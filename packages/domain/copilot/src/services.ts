@@ -52,6 +52,8 @@ import {
 } from '@rswim/integrations';
 import { gateFor, getAgentSettings } from './agent';
 import { approvalText } from './agent-policies';
+import { listMemories, monthReport, remember } from './memory';
+import { changeLines, memoryLine } from './memory-policies';
 import {
   actionStep,
   copilotGate,
@@ -205,6 +207,48 @@ export const COPILOT_TOOLS: CopilotTool[] = [
     ),
   },
   {
+    name: 'recall',
+    description:
+      "What the brain remembers: the owner's notes and the business's events (closures, substitutes, new prices, groups opened or closed), newest first. Filter by words (a name, a topic), by a subject id from the find tools, and by dates.",
+    input_schema: obj(
+      {
+        query: { type: ['string', 'null'], description: 'Words to look for, or null' },
+        subjectId: {
+          type: ['string', 'null'],
+          description: 'A family, child, instructor, venue or group id, or null',
+        },
+        from: { type: ['string', 'null'], description: 'YYYY-MM-DD or null' },
+        to: { type: ['string', 'null'], description: 'YYYY-MM-DD or null' },
+      },
+      ['query', 'subjectId', 'from', 'to'],
+    ),
+  },
+  {
+    name: 'month_report',
+    description:
+      'One month of the business (YYYY-MM): places at month end, joined, left, lessons held and cancelled, absences, trials, charged and collected (agorot), against the month before and the same month a year before when remembered, and what happened that month.',
+    input_schema: obj({ period: str('YYYY-MM') }, ['period']),
+  },
+  {
+    name: 'remember',
+    description:
+      "Keep a note the owner asked you to remember, in the owner's own words. About the school, or one family (household), child (student), instructor (staff), venue or group: find its id first. The note is saved at once and the owner can delete it on the memory page.",
+    input_schema: obj(
+      {
+        body: str("The note, in the owner's words"),
+        subjectType: {
+          type: 'string',
+          enum: ['school', 'household', 'student', 'staff', 'venue', 'group'],
+        },
+        subjectId: {
+          type: ['string', 'null'],
+          description: 'The subject id, or null for the school',
+        },
+      },
+      ['body', 'subjectType', 'subjectId'],
+    ),
+  },
+  {
     name: 'propose_open_makeup_slots',
     description:
       'Propose opening makeup slots with an instructor at a venue on a date and time. The owner confirms.',
@@ -336,6 +380,30 @@ export function copilotToolbox(tx: Tx, ctx: ServiceContext, today: string, reque
                               where ss.session_id = s.id and ss.role = 'lead'), t.lead_staff_id) = ${String(a.staffId ?? '')}::uuid
               order by s.starts_at`,
         );
+      case 'recall':
+        return (
+          await listMemories(tx, {
+            query: typeof a.query === 'string' ? a.query : undefined,
+            subjectId: typeof a.subjectId === 'string' ? a.subjectId : undefined,
+            from: typeof a.from === 'string' ? a.from : undefined,
+            to: typeof a.to === 'string' ? a.to : undefined,
+            limit: 30,
+          })
+        ).map((m) => memoryLine(m, 'he'));
+      case 'month_report': {
+        const r = await monthReport(tx, String(a.period ?? ''));
+        return {
+          period: r.period,
+          facts: r.facts,
+          againstPreviousMonth: r.previous ? changeLines(r.previous, 'he') : null,
+          againstLastYear: r.lastYear ? changeLines(r.lastYear, 'he') : null,
+          happened: r.memories.map((m) => memoryLine(m, 'he')),
+        };
+      }
+      case 'remember': {
+        const out = await remember(tx, ctx, input, 'owner_chat');
+        return { saved: true, about: out.subjectLabel };
+      }
       case 'propose_cancel_lessons':
         return propose('cancel_lessons', input);
       case 'propose_substitute':
@@ -679,9 +747,49 @@ export class FakeCopilotModel implements CopilotModel {
           `ב-${date} יש ${l.length} שיעורים${l.length ? `: ${l.map((x) => x.group).join(', ')}` : ''}.`,
         );
       }
+      case 'remember': {
+        const out = await use('remember', {
+          body: intent.body,
+          subjectType: 'school',
+          subjectId: null,
+        });
+        return done(out ? `שמרתי: "${intent.body}".` : 'לא הצלחתי לשמור את זה.');
+      }
+      case 'month': {
+        const r = await use<{
+          againstPreviousMonth: string[] | null;
+          againstLastYear: string[] | null;
+          happened: string[];
+          facts: { placesAtEnd: number; collectedAgorot: number };
+        }>('month_report', { period: intent.period });
+        if (!r) return done('לא מצאתי את החודש הזה.');
+        const parts = [
+          `ב-${intent.period}: ${r.facts.placesAtEnd} מקומות בסוף החודש, נגבו ${Math.round(r.facts.collectedAgorot / 100)} ₪.`,
+        ];
+        if (r.againstLastYear)
+          parts.push(`מול שנה שעברה: ${r.againstLastYear.slice(0, 2).join('; ')}.`);
+        else if (r.againstPreviousMonth)
+          parts.push(`מול החודש הקודם: ${r.againstPreviousMonth.slice(0, 2).join('; ')}.`);
+        if (r.happened.length) parts.push(`מה קרה: ${r.happened.slice(0, 3).join(' | ')}.`);
+        return done(parts.join(' '));
+      }
+      case 'recall': {
+        const r =
+          (await use<string[]>('recall', {
+            query: intent.query,
+            subjectId: null,
+            from: null,
+            to: null,
+          })) ?? [];
+        return done(
+          r.length
+            ? `מה שאני זוכר על ${intent.query}: ${r.slice(0, 5).join(' | ')}`
+            : `אין לי זיכרון על ${intent.query}.`,
+        );
+      }
       default:
         return done(
-          'אני (גרסת הדמו) מבין/ה: "תעביר את <ילד> ל<קבוצה>", "תשלח ל<ילד>: <הודעה>", "תפתח השלמות עם <מדריך> ב-<תאריך> <שעה>-<שעה>", "תבטל את השיעורים מחר", "תמצא מחליף ל<מדריך> היום", "מי חייב", "מה יש היום".',
+          'אני (גרסת הדמו) מבין/ה: "תעביר את <ילד> ל<קבוצה>", "תשלח ל<ילד>: <הודעה>", "תפתח השלמות עם <מדריך> ב-<תאריך> <שעה>-<שעה>", "תבטל את השיעורים מחר", "תמצא מחליף ל<מדריך> היום", "מי חייב", "מה יש היום", "תזכור ש...", "איך היה החודש", "מה אתה זוכר על <...>".',
         );
     }
   }

@@ -22,6 +22,7 @@ import { seedCoreData, type CoreDataSummary } from './core-data';
 import { seedSaasData, type SaasDataSummary } from './saas-data';
 import { seedDiveData, type DiveDataSummary } from './dive-data';
 import { seedPaymentConnections } from './payments-data';
+import { seedBrainMemory } from './brain-data';
 import { seedSchedulingData, type SchedulingDataSummary } from './scheduling-data';
 import { FIRST_BOYS, FIRST_GIRLS, LAST, PARENT_MEN, PARENT_WOMEN } from './names';
 
@@ -56,6 +57,8 @@ export interface SeedSummary {
   saas?: SaasDataSummary;
   /** The freediving clubs (Eilat, and a small Haifa club on a trial). */
   dive?: DiveDataSummary;
+  /** The brain's memory: a few owner notes and one event from a year ago (demo org only). */
+  brainMemories?: number;
   /** Demo businesses connected to their own (sandboxed) processor. */
   paymentConnections?: number;
 }
@@ -381,6 +384,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         summary.staffops = await seedStaffOpsData(client, org.id, staffIds);
         summary.transport = await seedTransportData(client, org.id, staffIds);
         summary.courses = await seedCoursesData(client, org.id, staffIds);
+        summary.brainMemories = await seedBrainMemory(client, org.id);
       }
 
       // Memberships (demo org only: the personas)

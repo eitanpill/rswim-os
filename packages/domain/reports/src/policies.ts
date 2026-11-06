@@ -850,3 +850,78 @@ export function insightDigestItems(insights: readonly Insight[]): DigestItem[] {
       params: i.params,
     }));
 }
+
+// ─── Month by month (the brain's memory, docs/AI-BRAIN.md stage 5) ─────────
+
+/** One month of the business, as the brain remembers it. Money in agorot. */
+export interface MonthFacts {
+  period: string;
+  /** Seats held on the month's last day (on its last day so far, for the running month). */
+  placesAtEnd: number;
+  /** Children placed in a group for the first time this month (a move is not new). */
+  newPlaces: number;
+  /** Places that ended this month without moving on to another group. */
+  endedPlaces: number;
+  lessonsHeld: number;
+  lessonsCancelled: number;
+  /** Attendance marks of members, and how many of them were absences. */
+  marks: number;
+  absences: number;
+  trialsHeld: number;
+  trialsEnrolled: number;
+  chargedAgorot: number;
+  collectedAgorot: number;
+  /** Seats held on the month's last day, per venue. */
+  venues: { name: string; places: number }[];
+}
+
+export const MONTH_MEASURES = [
+  'placesAtEnd',
+  'newPlaces',
+  'endedPlaces',
+  'lessonsHeld',
+  'lessonsCancelled',
+  'absencePct',
+  'trialsHeld',
+  'trialsEnrolled',
+  'chargedAgorot',
+  'collectedAgorot',
+] as const;
+export type MonthMeasure = (typeof MONTH_MEASURES)[number];
+
+/** Absences as a share of the marks, in whole percent; null with nothing marked. */
+export function absencePct(f: Pick<MonthFacts, 'marks' | 'absences'>): number | null {
+  return f.marks > 0 ? Math.round((f.absences / f.marks) * 100) : null;
+}
+
+const measure = (f: MonthFacts, m: MonthMeasure): number | null =>
+  m === 'absencePct' ? absencePct(f) : f[m];
+
+export interface MeasureChange {
+  measure: MonthMeasure;
+  now: number | null;
+  before: number | null;
+  /** now - before; null when either side is unknown. */
+  delta: number | null;
+  /** The change in whole percent of `before`; null when before is 0 or unknown. */
+  pct: number | null;
+}
+
+/**
+ * A month against another (the month before, or the same month a year before): each measure now and then, and how
+ * much it moved. With no earlier month every `before` is null.
+ */
+export function monthChange(now: MonthFacts, before: MonthFacts | null): MeasureChange[] {
+  return MONTH_MEASURES.map((m) => {
+    const a = measure(now, m);
+    const b = before ? measure(before, m) : null;
+    const delta = a !== null && b !== null ? a - b : null;
+    return {
+      measure: m,
+      now: a,
+      before: b,
+      delta,
+      pct: delta !== null && b ? Math.round((delta / b) * 100) : null,
+    };
+  });
+}

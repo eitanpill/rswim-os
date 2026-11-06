@@ -7,6 +7,8 @@
  *   not started becomes a substitute search through the brain's gate (runs alone, or waits for the owner, who is then
  *   asked on WhatsApp), and the instructor gets one line back.
  *
+ * - The owner writes "תזכור ש..." from that number: the brain keeps it as a note (stage 5) and says so.
+ *
  * Everything else stays in the inbox. The rules decide; no model reads these messages.
  */
 import { and, desc, eq, schema, sql, type Tx } from '@rswim/db';
@@ -22,6 +24,8 @@ import {
   summaryText,
   type DecisionOutcome,
 } from './agent-policies';
+import { remember } from './memory';
+import { rememberRequest, rememberedText } from './memory-policies';
 import type { Explanation } from './policies';
 import {
   confirmCopilotAction,
@@ -34,6 +38,7 @@ const { copilotActions, inboundMessages } = schema;
 
 export type BrainInboundResult =
   | { outcome: 'skipped'; reason: string }
+  | { outcome: 'remembered'; memoryId: string }
   | { outcome: 'owner_decided'; decision: DecisionOutcome; actionId: string | null }
   | {
       outcome: 'staff_request';
@@ -44,12 +49,12 @@ export type BrainInboundResult =
 const rows = async <T>(tx: Tx, q: ReturnType<typeof sql>) =>
   (await tx.execute<Record<string, unknown>>(q)).rows as T[];
 
-/** Whether a message is the owner answering a waiting action (the parents' bot leaves those alone). */
+/** Whether a message is the owner answering a waiting action or asking to remember (the parents' bot leaves those alone). */
 export async function isOwnerReply(
   tx: Tx,
   m: { fromPhoneE164: string | null; body: string },
 ): Promise<boolean> {
-  if (!m.fromPhoneE164 || !ownerReply(m.body)) return false;
+  if (!m.fromPhoneE164 || (!ownerReply(m.body) && !rememberRequest(m.body))) return false;
   return (await getAgentSettings(tx)).approvalPhoneE164 === m.fromPhoneE164;
 }
 
@@ -67,9 +72,12 @@ export async function runBrainInbound(
   if (row.status !== 'new' && row.status !== 'needs_human')
     return { outcome: 'skipped', reason: 'handled' };
   const settings = await getAgentSettings(tx);
+  const fromOwner =
+    !!settings.approvalPhoneE164 && row.fromPhoneE164 === settings.approvalPhoneE164;
   const reply = ownerReply(row.body);
-  if (reply && settings.approvalPhoneE164 && row.fromPhoneE164 === settings.approvalPhoneE164)
-    return decideFromWhatsApp(tx, ctx, row, reply);
+  if (reply && fromOwner) return decideFromWhatsApp(tx, ctx, row, reply);
+  const note = fromOwner ? rememberRequest(row.body) : null;
+  if (note) return rememberFromWhatsApp(tx, ctx, row, note.body);
   if (row.staffMemberId) {
     const ask = staffAbsence(row.body, await todayIL(tx));
     if (ask) {
@@ -106,6 +114,31 @@ async function markHandled(tx: Tx, row: InboundRow, status: 'actioned' | 'needs_
     .where(eq(inboundMessages.id, row.id));
 }
 
+/** The first active owner of the school: WhatsApp from the approvals number acts as them. */
+async function schoolOwner(tx: Tx): Promise<string | null> {
+  const [owner] = await rows<{ userId: string }>(
+    tx,
+    sql`select user_id "userId" from memberships where role = 'owner' and status = 'active'
+        order by created_at limit 1`,
+  );
+  return owner?.userId ?? null;
+}
+
+/** "תזכור ש..." from the approvals number: a note in the owner's words, and one line back. */
+async function rememberFromWhatsApp(
+  tx: Tx,
+  ctx: ServiceContext,
+  row: InboundRow,
+  body: string,
+): Promise<BrainInboundResult> {
+  const userId = await schoolOwner(tx);
+  if (!userId) return { outcome: 'skipped', reason: 'no_owner' };
+  const saved = await remember(tx, { orgId: ctx.orgId, userId }, { body }, 'owner_whatsapp');
+  await replyTo(tx, ctx, row, rememberedText(body, 'he'));
+  await markHandled(tx, row, 'actioned');
+  return { outcome: 'remembered', memoryId: saved.id };
+}
+
 /** "כן 12" / "לא 12": the newest action with that number, decided as the school's owner. */
 async function decideFromWhatsApp(
   tx: Tx,
@@ -113,12 +146,9 @@ async function decideFromWhatsApp(
   row: InboundRow,
   reply: { verb: 'confirm' | 'dismiss'; ref: number },
 ): Promise<BrainInboundResult> {
-  const [owner] = await rows<{ userId: string }>(
-    tx,
-    sql`select user_id "userId" from memberships where role = 'owner' and status = 'active'
-        order by created_at limit 1`,
-  );
-  if (!owner) return { outcome: 'skipped', reason: 'no_owner' };
+  const ownerId = await schoolOwner(tx);
+  if (!ownerId) return { outcome: 'skipped', reason: 'no_owner' };
+  const owner = { userId: ownerId };
   const [action] = await tx
     .select({
       id: copilotActions.id,
