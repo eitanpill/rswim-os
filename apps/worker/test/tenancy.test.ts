@@ -32,7 +32,7 @@ function fakeStep() {
         ids.push(id);
         return fn();
       },
-      sleep: async (id: string) => {
+      sleep: async (id: string, _duration?: string) => {
         ids.push(id);
       },
     },
