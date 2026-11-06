@@ -1,7 +1,12 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { asAnon, asUser, createDb, createPool, eq, schema, sql, type Db, type Tx } from '@rswim/db';
-import { DatabaseRouter, findAcross, masterKeyFromEnv, SchoolDatabaseNotReady } from '@rswim/db/tenants';
+import {
+  DatabaseRouter,
+  findAcross,
+  masterKeyFromEnv,
+  SchoolDatabaseNotReady,
+} from '@rswim/db/tenants';
 import { mirrorUsers, syncUp } from '@rswim/domain-platform/sync';
 import type { ServiceContext } from '@rswim/domain-core';
 import { getSession } from './auth/session';
@@ -88,7 +93,10 @@ export async function schoolDbOrWait(orgId: string): Promise<Db> {
  * Runs a lookup by a public key that does not name the school (a payment link, an invite, a webhook) on each
  * database until `miss` says it found something. Returns the last answer when nobody knows the key.
  */
-export async function acrossSchools<T>(fn: (db: Db) => Promise<T>, miss: (r: T) => boolean): Promise<T> {
+export async function acrossSchools<T>(
+  fn: (db: Db) => Promise<T>,
+  miss: (r: T) => boolean,
+): Promise<T> {
   let last: T | undefined;
   const found = await findAcross(router(), async (d) => {
     last = await fn(d);
@@ -103,7 +111,10 @@ export async function acrossSchools<T>(fn: (db: Db) => Promise<T>, miss: (r: T) 
  */
 export async function dbForSlug(slug: string): Promise<Db> {
   const [org] = await db().transaction((tx) =>
-    tx.select({ id: schema.organizations.id }).from(schema.organizations).where(eq(schema.organizations.slug, slug)),
+    tx
+      .select({ id: schema.organizations.id })
+      .from(schema.organizations)
+      .where(eq(schema.organizations.slug, slug)),
   );
   if (!org) return db();
   try {

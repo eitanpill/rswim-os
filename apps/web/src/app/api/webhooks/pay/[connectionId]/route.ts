@@ -16,7 +16,11 @@ export async function POST(
   const raw = await request.text();
   // The connection belongs to one business; its own database (when it has one) knows it.
   const result = await acrossSchools(
-    (d) => ingestGatewayWebhook(d, connectionId, raw, request.headers, { build: gatewayFactory, onDivePaid }),
+    (d) =>
+      ingestGatewayWebhook(d, connectionId, raw, request.headers, {
+        build: gatewayFactory,
+        onDivePaid,
+      }),
     (r) => r === 'unknown_connection',
   );
   if (result === 'unknown_connection') return new NextResponse('unknown', { status: 404 });

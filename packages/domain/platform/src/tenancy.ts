@@ -34,19 +34,33 @@ type Row = Record<string, unknown>;
 
 async function registryRow(control: Db, orgId: string) {
   const [row] = await control.transaction((tx) =>
-    tx.select().from(schema.tenantDatabases).where(eq(schema.tenantDatabases.organizationId, orgId)),
+    tx
+      .select()
+      .from(schema.tenantDatabases)
+      .where(eq(schema.tenantDatabases.organizationId, orgId)),
   );
   return row ?? null;
 }
 
-async function setRegistry(control: Db, orgId: string, change: Partial<typeof schema.tenantDatabases.$inferInsert>) {
+async function setRegistry(
+  control: Db,
+  orgId: string,
+  change: Partial<typeof schema.tenantDatabases.$inferInsert>,
+) {
   await control.transaction((tx) =>
-    tx.update(schema.tenantDatabases).set(change).where(eq(schema.tenantDatabases.organizationId, orgId)),
+    tx
+      .update(schema.tenantDatabases)
+      .set(change)
+      .where(eq(schema.tenantDatabases.organizationId, orgId)),
   );
 }
 
 /** Records a failed step on the registry row; the platform console shows it and offers a retry. */
-export async function markDatabaseFailed(control: Db, orgId: string, error: unknown): Promise<void> {
+export async function markDatabaseFailed(
+  control: Db,
+  orgId: string,
+  error: unknown,
+): Promise<void> {
   const message = error instanceof Error ? error.message : String(error);
   await setRegistry(control, orgId, { status: 'failed', lastError: message.slice(0, 500) });
 }
@@ -66,7 +80,10 @@ export function projectNameFor(slug: string, orgId: string): string {
 export type CreateOutcome = 'created' | 'ready' | 'not_requested';
 
 /** Step 1: create the project (or find it again). The password is sealed and saved before the host is called. */
-export async function createSchoolDatabase(deps: TenancyDeps, orgId: string): Promise<CreateOutcome> {
+export async function createSchoolDatabase(
+  deps: TenancyDeps,
+  orgId: string,
+): Promise<CreateOutcome> {
   const row = await registryRow(deps.control, orgId);
   if (!row) return 'not_requested';
   if (row.status === 'ready') return 'ready';
@@ -105,7 +122,11 @@ export async function checkSchoolDatabase(deps: TenancyDeps, orgId: string): Pro
   const status = await deps.host.status(row.projectRef);
   if (status === 'creating') return 'creating';
   if (status === 'failed') {
-    await markDatabaseFailed(deps.control, orgId, new Error(`host reports project ${row.projectRef} failed`));
+    await markDatabaseFailed(
+      deps.control,
+      orgId,
+      new Error(`host reports project ${row.projectRef} failed`),
+    );
     return 'failed';
   }
   const conn = connectionOf(deps, row.connectionSealed);
@@ -159,7 +180,10 @@ async function ensureDataKey(deps: TenancyDeps, orgId: string): Promise<Row[]> {
  * then the platform rows, its data key, the owner's sign-in row and membership, and the school's defaults added as
  * the owner, exactly as a shared school gets them at sign-up.
  */
-export async function seedSchoolDatabase(deps: TenancyDeps, orgId: string): Promise<{ owners: number }> {
+export async function seedSchoolDatabase(
+  deps: TenancyDeps,
+  orgId: string,
+): Promise<{ owners: number }> {
   const key = await ensureDataKey(deps, orgId);
   const [settings, members] = await deps.control.transaction(async (tx) => [
     await readRows(tx, 'org_settings', sql`organization_id = ${orgId}`),
@@ -172,7 +196,11 @@ export async function seedSchoolDatabase(deps: TenancyDeps, orgId: string): Prom
       upsertRows(tx, 'platform_settings', [{ key: 'database_role', value: 'tenant' }], ['key']),
     );
     await syncDown(deps.control, school, orgId);
-    await mirrorUsers(deps.control, school, members.map((m) => m.user_id as string));
+    await mirrorUsers(
+      deps.control,
+      school,
+      members.map((m) => m.user_id as string),
+    );
     await school.transaction(async (tx) => {
       await upsertRows(tx, 'org_settings', settings, ['organization_id']);
       await upsertRows(tx, 'org_keys', key, ['organization_id']);
@@ -185,7 +213,9 @@ export async function seedSchoolDatabase(deps: TenancyDeps, orgId: string): Prom
     });
     const first = owners[0]?.user_id as string | undefined;
     if (first) {
-      await asUser(school, { sub: first, org_id: orgId }, (tx) => provisionSchool(tx, { orgId, userId: first }));
+      await asUser(school, { sub: first, org_id: orgId }, (tx) =>
+        provisionSchool(tx, { orgId, userId: first }),
+      );
     }
     await syncUp(deps.control, school, orgId);
     return first;

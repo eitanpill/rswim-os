@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
     return new NextResponse('bad signature', { status: 401 });
   }
   try {
-    const result = await acrossSchools((d) => ingestGrowWebhook(d, raw), (r) => r === 'unknown_payment');
+    const result = await acrossSchools(
+      (d) => ingestGrowWebhook(d, raw),
+      (r) => r === 'unknown_payment',
+    );
     return NextResponse.json({ result });
   } catch (e) {
     if (e instanceof SyntaxError) return new NextResponse('bad json', { status: 400 });

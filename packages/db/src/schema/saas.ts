@@ -216,7 +216,10 @@ export const tenantDatabases = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [
-    check('tenant_databases_status_check', sql.raw(`status in (${inList(TENANT_DATABASE_STATUSES)})`)),
+    check(
+      'tenant_databases_status_check',
+      sql.raw(`status in (${inList(TENANT_DATABASE_STATUSES)})`),
+    ),
     check(
       'tenant_databases_provider_check',
       sql.raw(`provider in (${inList(TENANT_DATABASE_PROVIDERS)})`),

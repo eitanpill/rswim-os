@@ -142,7 +142,9 @@ export function databaseHost(provider: string): DatabaseHost {
   const accessToken = process.env.SUPABASE_ACCESS_TOKEN;
   const organizationSlug = process.env.SUPABASE_ORG_SLUG;
   if (!accessToken || !organizationSlug) {
-    throw new Error('SUPABASE_ACCESS_TOKEN and SUPABASE_ORG_SLUG are needed to create a school database');
+    throw new Error(
+      'SUPABASE_ACCESS_TOKEN and SUPABASE_ORG_SLUG are needed to create a school database',
+    );
   }
   return new SupabaseManagementHost({
     accessToken,

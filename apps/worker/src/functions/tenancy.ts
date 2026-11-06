@@ -33,7 +33,12 @@ async function depsFor(orgId: string): Promise<TenancyDeps> {
       .from(schema.tenantDatabases)
       .where(eq(schema.tenantDatabases.organizationId, orgId)),
   );
-  return { control: controlDb(), host: databaseHost(row?.provider ?? 'supabase'), masterKey, router: router() };
+  return {
+    control: controlDb(),
+    host: databaseHost(row?.provider ?? 'supabase'),
+    masterKey,
+    router: router(),
+  };
 }
 
 export const platformProvisionDatabase = inngest.createFunction(
@@ -50,24 +55,34 @@ export const platformProvisionDatabase = inngest.createFunction(
   },
   async ({ event, step }) => {
     const orgId = toEnvelope(event).organizationId;
-    const created = await step.run('create', async () => createSchoolDatabase(await depsFor(orgId), orgId));
+    const created = await step.run('create', async () =>
+      createSchoolDatabase(await depsFor(orgId), orgId),
+    );
     if (created !== 'created') return { orgId, created };
 
     let up = false;
     for (let i = 0; i < MAX_CHECKS && !up; i++) {
-      const s = await step.run(`check-${i}`, async () => checkSchoolDatabase(await depsFor(orgId), orgId));
+      const s = await step.run(`check-${i}`, async () =>
+        checkSchoolDatabase(await depsFor(orgId), orgId),
+      );
       if (s === 'failed') return { orgId, status: 'failed' };
       up = s === 'up';
       if (!up) await step.sleep(`wait-${i}`, '15s');
     }
     if (!up) {
       await step.run('timed-out', () =>
-        markDatabaseFailed(controlDb(), orgId, new Error('the host did not bring the database up in time')),
+        markDatabaseFailed(
+          controlDb(),
+          orgId,
+          new Error('the host did not bring the database up in time'),
+        ),
       );
       return { orgId, status: 'failed' };
     }
     await step.run('migrate', async () => migrateSchoolDatabase(await depsFor(orgId), orgId));
-    const seeded = await step.run('seed', async () => seedSchoolDatabase(await depsFor(orgId), orgId));
+    const seeded = await step.run('seed', async () =>
+      seedSchoolDatabase(await depsFor(orgId), orgId),
+    );
     log.info({ orgId, ...seeded }, 'school database ready');
     return { orgId, status: 'ready' };
   },
@@ -89,7 +104,8 @@ export const platformSyncSchool = inngest.createFunction(
     return step.run('sync', async () => {
       if (!(await router().isDedicated(orgId))) return { orgId, synced: false };
       const school = await router().forOrg(orgId);
-      if (event.name === 'platform.tenant_changed') return { orgId, ...(await syncUp(controlDb(), school, orgId)) };
+      if (event.name === 'platform.tenant_changed')
+        return { orgId, ...(await syncUp(controlDb(), school, orgId)) };
       await syncDown(controlDb(), school, orgId);
       return { orgId, synced: true };
     });

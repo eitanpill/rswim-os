@@ -6,7 +6,12 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { asUser, createPool, sql, type Db } from '@rswim/db';
 import { ADMIN_URL, createTestDatabase, type TestDatabase } from '@rswim/db/testing';
-import { DatabaseRouter, findAcross, openConnection, SchoolDatabaseNotReady } from '@rswim/db/tenants';
+import {
+  DatabaseRouter,
+  findAcross,
+  openConnection,
+  SchoolDatabaseNotReady,
+} from '@rswim/db/tenants';
 import { LocalPostgresHost } from '@rswim/integrations';
 import {
   checkSchoolDatabase,
@@ -38,7 +43,7 @@ const newUser = async (label: string) => {
   return id;
 };
 
-const rows = async <T,>(db: Db, q: ReturnType<typeof sql>) =>
+const rows = async <T>(db: Db, q: ReturnType<typeof sql>) =>
   (await db.transaction((tx) => tx.execute(q))).rows as T[];
 
 beforeAll(async () => {
@@ -60,7 +65,9 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await router.close();
-  const [row] = (await t.pool.query(`select project_ref from tenant_databases`)).rows as { project_ref: string }[];
+  const [row] = (await t.pool.query(`select project_ref from tenant_databases`)).rows as {
+    project_ref: string;
+  }[];
   if (row?.project_ref) await host.deleteDatabase(row.project_ref);
   await t.drop();
 });
@@ -68,22 +75,38 @@ afterAll(async () => {
 describe('a new school with its own database', () => {
   it('sign-up records the request and tells the worker', async () => {
     orgId = await asUser(t.db, { sub: owner, org_id: null }, async (tx) => {
-      const r = await tx.execute<{ id: string }>(sql`select public.create_school('גלי ים', 'gali-yam', 'solo') id`);
+      const r = await tx.execute<{ id: string }>(
+        sql`select public.create_school('גלי ים', 'gali-yam', 'solo') id`,
+      );
       return r.rows[0]!.id;
     });
-    const reg = (await t.pool.query(`select status, provider from tenant_databases where organization_id = $1`, [orgId]))
-      .rows;
+    const reg = (
+      await t.pool.query(
+        `select status, provider from tenant_databases where organization_id = $1`,
+        [orgId],
+      )
+    ).rows;
     expect(reg).toEqual([{ status: 'requested', provider: 'local' }]);
     const ev = (
-      await t.pool.query(`select event_type from outbox where organization_id = $1 order by created_at`, [orgId])
+      await t.pool.query(
+        `select event_type from outbox where organization_id = $1 order by created_at`,
+        [orgId],
+      )
     ).rows.map((r) => r.event_type);
     expect(ev).toContain('platform.database_requested');
   });
 
   it('the school is not served from the shared database while its own one is being made', async () => {
     await expect(router.forOrg(orgId)).rejects.toBeInstanceOf(SchoolDatabaseNotReady);
-    const status = await asUser(t.db, { sub: owner, org_id: orgId }, async (tx) =>
-      (await tx.execute<{ s: { mode: string; status: string } }>(sql`select public.my_school_database() s`)).rows[0]!.s,
+    const status = await asUser(
+      t.db,
+      { sub: owner, org_id: orgId },
+      async (tx) =>
+        (
+          await tx.execute<{ s: { mode: string; status: string } }>(
+            sql`select public.my_school_database() s`,
+          )
+        ).rows[0]!.s,
     );
     expect(status).toEqual({ mode: 'dedicated', status: 'requested' });
   });
@@ -91,7 +114,9 @@ describe('a new school with its own database', () => {
   it('creates the database once, keeping the password sealed', async () => {
     expect(await createSchoolDatabase(deps, orgId)).toBe('created');
     expect(await createSchoolDatabase(deps, orgId)).toBe('created');
-    const [r] = (await t.pool.query(`select project_ref, connection_sealed, status from tenant_databases`)).rows;
+    const [r] = (
+      await t.pool.query(`select project_ref, connection_sealed, status from tenant_databases`)
+    ).rows;
     expect(r.project_ref).toMatch(/^rswim_school_rswim_gali_yam_/);
     expect(r.status).toBe('creating');
     expect(r.connection_sealed).not.toContain('postgres');
@@ -112,7 +137,10 @@ describe('a new school with its own database', () => {
     const school = await router.forOrg(orgId);
     expect(school).not.toBe(t.db);
 
-    const org = await rows<{ name: string; slug: string }>(school, sql`select name, slug from organizations`);
+    const org = await rows<{ name: string; slug: string }>(
+      school,
+      sql`select name, slug from organizations`,
+    );
     expect(org).toEqual([{ name: 'גלי ים', slug: 'gali-yam' }]);
     const members = await rows<{ role: string }>(school, sql`select role from memberships`);
     expect(members).toEqual([{ role: 'owner' }]);
@@ -129,16 +157,25 @@ describe('a new school with its own database', () => {
     const keys = await rows<{ n: number }>(school, sql`select count(*)::int n from org_keys`);
     expect(keys).toEqual([{ n: 1 }]);
     // The school's defaults were added as its owner, as for any new school.
-    const templates = await rows<{ n: number }>(school, sql`select count(*)::int n from message_templates`);
+    const templates = await rows<{ n: number }>(
+      school,
+      sql`select count(*)::int n from message_templates`,
+    );
     expect(templates[0]!.n).toBeGreaterThan(0);
     // The owner works in the school's own database with RLS as usual.
-    const mine = await asUser(school, { sub: owner, org_id: orgId }, async (tx) =>
-      (await tx.execute<{ name: string }>(sql`select name from organizations`)).rows,
+    const mine = await asUser(
+      school,
+      { sub: owner, org_id: orgId },
+      async (tx) => (await tx.execute<{ name: string }>(sql`select name from organizations`)).rows,
     );
     expect(mine).toEqual([{ name: 'גלי ים' }]);
     // And the school's own data never lands in the platform's database.
-    const shared = (await t.pool.query(`select count(*)::int n from message_templates where organization_id = $1`, [orgId]))
-      .rows[0];
+    const shared = (
+      await t.pool.query(
+        `select count(*)::int n from message_templates where organization_id = $1`,
+        [orgId],
+      )
+    ).rows[0];
     expect(shared.n).toBe(0);
   });
 
@@ -173,35 +210,56 @@ describe('a new school with its own database', () => {
     ).rows[0].e;
     expect(hook.claims).toMatchObject({ org_id: orgId, app_role: 'parent' });
     // The directory row lets the platform show the school's name to its member.
-    const name = await asUser(t.db, { sub: parentUser, org_id: orgId }, async (tx) =>
-      (await tx.execute<{ name: string }>(sql`select name from organizations`)).rows,
+    const name = await asUser(
+      t.db,
+      { sub: parentUser, org_id: orgId },
+      async (tx) => (await tx.execute<{ name: string }>(sql`select name from organizations`)).rows,
     );
     expect(name).toEqual([{ name: 'גלי ים' }]);
 
     // Leaving the school leaves the directory too.
-    await school.transaction((tx) => tx.execute(sql`delete from memberships where user_id = ${parentUser}`));
+    await school.transaction((tx) =>
+      tx.execute(sql`delete from memberships where user_id = ${parentUser}`),
+    );
     await syncUp(t.db, school, orgId);
-    const left = (await t.pool.query(`select count(*)::int n from directory_memberships where user_id = $1`, [parentUser]))
-      .rows[0];
+    const left = (
+      await t.pool.query(`select count(*)::int n from directory_memberships where user_id = $1`, [
+        parentUser,
+      ])
+    ).rows[0];
     expect(left.n).toBe(0);
   });
 
   it('a plan change on the platform reaches the school database', async () => {
-    await t.pool.query(`update org_subscriptions set status = 'active' where organization_id = $1`, [orgId]);
-    const ev = (await t.pool.query(`select count(*)::int n from outbox where event_type = 'platform.org_changed'`))
-      .rows[0];
+    await t.pool.query(
+      `update org_subscriptions set status = 'active' where organization_id = $1`,
+      [orgId],
+    );
+    const ev = (
+      await t.pool.query(
+        `select count(*)::int n from outbox where event_type = 'platform.org_changed'`,
+      )
+    ).rows[0];
     expect(ev.n).toBe(1);
     const school = await router.forOrg(orgId);
     await syncDown(t.db, school, orgId);
-    expect(await rows(school, sql`select status from org_subscriptions`)).toEqual([{ status: 'active' }]);
+    expect(await rows(school, sql`select status from org_subscriptions`)).toEqual([
+      { status: 'active' },
+    ]);
   });
 
   it('jobs that sweep every school see both databases, and lookups find the right one', async () => {
     const all = await router.all();
     expect(all.map((d) => d.key)).toEqual(['control', orgId]);
     const found = await findAcross(router, async (db) => {
-      const r = await rows<{ id: string }>(db, sql`select id from organizations where slug = 'gali-yam'`);
-      const marker = await rows(db, sql`select 1 from platform_settings where key = 'database_role'`);
+      const r = await rows<{ id: string }>(
+        db,
+        sql`select id from organizations where slug = 'gali-yam'`,
+      );
+      const marker = await rows(
+        db,
+        sql`select 1 from platform_settings where key = 'database_role'`,
+      );
       return r.length && marker.length ? r[0]!.id : null;
     });
     expect(found?.key).toBe(orgId);
@@ -212,10 +270,19 @@ describe('a new school with its own database', () => {
   });
 
   it('a shared school keeps working as before', async () => {
-    await t.pool.query(`update platform_settings set value = 'shared' where key = 'new_school_database'`);
+    await t.pool.query(
+      `update platform_settings set value = 'shared' where key = 'new_school_database'`,
+    );
     const other = await newUser('other');
-    const shared = await asUser(t.db, { sub: other, org_id: null }, async (tx) =>
-      (await tx.execute<{ id: string }>(sql`select public.create_school('בריכה', 'brecha', 'solo') id`)).rows[0]!.id,
+    const shared = await asUser(
+      t.db,
+      { sub: other, org_id: null },
+      async (tx) =>
+        (
+          await tx.execute<{ id: string }>(
+            sql`select public.create_school('בריכה', 'brecha', 'solo') id`,
+          )
+        ).rows[0]!.id,
     );
     expect(await router.forOrg(shared)).toBe(t.db);
     expect(await createSchoolDatabase(deps, shared)).toBe('not_requested');

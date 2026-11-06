@@ -68,7 +68,14 @@ interface PoolerJson {
 }
 
 const READY = new Set(['ACTIVE_HEALTHY']);
-const FAILED = new Set(['INIT_FAILED', 'REMOVED', 'GOING_DOWN', 'PAUSED', 'RESTORE_FAILED', 'PAUSE_FAILED']);
+const FAILED = new Set([
+  'INIT_FAILED',
+  'REMOVED',
+  'GOING_DOWN',
+  'PAUSED',
+  'RESTORE_FAILED',
+  'PAUSE_FAILED',
+]);
 
 export class SupabaseManagementHost implements DatabaseHost {
   readonly provider = 'supabase' as const;
@@ -105,7 +112,9 @@ export class SupabaseManagementHost implements DatabaseHost {
   }
 
   async createDatabase(input: { name: string; dbPass: string }): Promise<CreatedDatabase> {
-    const existing = (await this.call<ProjectJson[]>('GET', '/v1/projects')).find((p) => p.name === input.name);
+    const existing = (await this.call<ProjectJson[]>('GET', '/v1/projects')).find(
+      (p) => p.name === input.name,
+    );
     if (existing?.ref) return { ref: existing.ref, region: existing.region ?? null };
     const body: Record<string, unknown> = {
       name: input.name,
@@ -130,9 +139,13 @@ export class SupabaseManagementHost implements DatabaseHost {
 
   /** Supavisor in session mode (port 5432): works over IPv4 and keeps session settings for migrations. */
   async connectionUrl(ref: string, dbPass: string): Promise<string> {
-    const rows = await this.call<PoolerJson[]>('GET', `/v1/projects/${encodeURIComponent(ref)}/config/database/pooler`);
+    const rows = await this.call<PoolerJson[]>(
+      'GET',
+      `/v1/projects/${encodeURIComponent(ref)}/config/database/pooler`,
+    );
     const p = rows.find((r) => (r.database_type ?? 'PRIMARY') === 'PRIMARY') ?? rows[0];
-    if (!p?.db_host || !p.db_user) throw new DatabaseHostError('supabase pooler config has no host');
+    if (!p?.db_host || !p.db_user)
+      throw new DatabaseHostError('supabase pooler config has no host');
     const url = new URL('postgresql://placeholder');
     url.username = p.db_user;
     url.password = dbPass;
@@ -163,7 +176,10 @@ export class LocalPostgresHost implements DatabaseHost {
   ) {}
 
   private static dbName(name: string): string {
-    const clean = name.toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 50);
+    const clean = name
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, '_')
+      .slice(0, 50);
     return `rswim_school_${clean}`;
   }
 
