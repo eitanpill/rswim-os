@@ -3,7 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { z } from 'zod';
-import type { Tx } from '@rswim/db';
+import type { Db, Tx } from '@rswim/db';
 import { parseShekels } from '@rswim/money';
 import { toDomainError, type ServiceContext } from '@rswim/domain-core';
 import { withSession, withSignedIn } from './db';
@@ -38,6 +38,8 @@ export interface RunFormOptions<R> {
   errorField?: (path: readonly PropertyKey[]) => string;
   /** Who runs the handler: the user in their school (default), signed in without a school, or a platform admin. */
   scope?: 'org' | 'user' | 'platform';
+  /** With scope 'user': the database to run in (a school's own one), else the platform's. */
+  database?: Db;
   /** Data the page shows once after success, e.g. an invite link. */
   data?: (result: R) => Record<string, string>;
 }
@@ -72,7 +74,7 @@ export async function runForm<S extends z.ZodType, R>(
     const run = (tx: Tx, ctx: ServiceContext) => handler(tx, ctx, parsed.data);
     result =
       opts.scope === 'user' || opts.scope === 'platform'
-        ? await withSignedIn(run, { platform: opts.scope === 'platform' })
+        ? await withSignedIn(run, { platform: opts.scope === 'platform', database: opts.database })
         : await withSession(run);
   } catch (e) {
     const de = toDomainError(e);

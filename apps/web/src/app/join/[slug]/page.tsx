@@ -5,7 +5,7 @@ import { clubForJoin } from '@rswim/domain-dive';
 import { ActionForm, CheckboxField, Field, SubmitButton } from '@/components/form';
 import { isDevAuthEnabled } from '@/lib/auth/dev';
 import { getSession } from '@/lib/auth/session';
-import { withAnon } from '@/lib/db';
+import { dbForSlug, withAnon } from '@/lib/db';
 import { ClubMark, di } from '../../dive/_ui/icons';
 import { Bubbles } from '../../dive/_ui/kit';
 import { joinClubAction } from '../actions';
@@ -17,7 +17,7 @@ import { joinClubAction } from '../actions';
 export default async function JoinPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const t = await getTranslations('dive.join');
-  const club = await withAnon((tx) => clubForJoin(tx, slug));
+  const club = await withAnon((tx) => clubForJoin(tx, slug), await dbForSlug(slug));
   const session = await getSession();
   if (club && session?.orgId === club.id && session.role === 'parent') redirect('/dive/me/welcome');
 

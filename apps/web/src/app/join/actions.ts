@@ -6,6 +6,7 @@ import { ACCOUNT_PERSONAS } from '@rswim/db/personas';
 import { JoinClubInput, joinClub } from '@rswim/domain-dive';
 import { DEV_COOKIE, devCookieValue } from '@/lib/auth/dev';
 import { getSession } from '@/lib/auth/session';
+import { afterJoin, dbForSlug, prepareJoin } from '@/lib/db';
 import type { FormState } from '@/lib/form-state';
 import { runForm } from '@/lib/forms';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -19,17 +20,23 @@ const dropEmpty = (raw: Record<string, unknown>) =>
  */
 export async function joinClubAction(_: FormState, fd: FormData): Promise<FormState> {
   let orgId = '';
+  const session = await getSession();
+  if (!session) redirect('/login');
+  // A club with its own database: the visitor's sign-in row goes there first, and the platform learns the
+  // membership right after, so the next token carries the club.
+  const slug = typeof fd.get('slug') === 'string' ? String(fd.get('slug')) : '';
+  const target = await dbForSlug(slug);
+  await prepareJoin(target, session.userId);
   const state = await runForm(
     fd,
     JoinClubInput,
     async (tx, _ctx, input) => (orgId = await joinClub(tx, input)),
-    { scope: 'user' },
+    { scope: 'user', database: target },
     dropEmpty,
   );
   if (!state.ok) return state;
+  await afterJoin(target, orgId, session.userId);
 
-  const session = await getSession();
-  if (!session) redirect('/login');
   if (session.mode === 'dev') {
     // Only the demo diver-to-be can hold a club it joined; other demo personas keep their own place.
     if (session.userId !== ACCOUNT_PERSONAS.diveNewcomer.userId) redirect('/');

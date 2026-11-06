@@ -46,7 +46,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 import type { FormState } from '@/lib/form-state';
-import { db, withSession } from '@/lib/db';
+import { dbFor, withSession } from '@/lib/db';
 import { fakeCheckout } from '@/lib/dive-payments';
 import { payNow } from '@/lib/payments';
 import { runForm } from '@/lib/forms';
@@ -129,7 +129,7 @@ export async function buyPassAction(_: FormState, fd: FormData): Promise<FormSta
     userId: session.userId,
   }));
   if (!me.diverId) return fail('dive.errors.noDiver');
-  await confirmPassCheckout(db(), {
+  await confirmPassCheckout(await dbFor(me.orgId), {
     orgId: me.orgId,
     userId: me.userId,
     diverId: me.diverId,
@@ -159,7 +159,7 @@ export async function payCheckoutAction(_: FormState, fd: FormData): Promise<For
   if (found.view.status === 'pending_payment') {
     if (!found.view.holding) return fail('dive.errors.holdLapsed');
     try {
-      await confirmCheckout(db(), {
+      await confirmCheckout(await dbFor(found.orgId), {
         orgId: found.orgId,
         userId: found.userId,
         bookingId: bookingId.data,

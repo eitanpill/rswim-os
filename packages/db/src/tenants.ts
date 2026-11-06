@@ -171,13 +171,15 @@ export class DatabaseRouter {
 
 /**
  * Tries `fn` on each database until one answers (not undefined). For lookups by a public key that does not name
- * the school (a payment link token, an invite token, a webhook): the control plane first, then each school.
+ * the school (a payment link token, an invite token, a webhook): each school's own database first, the platform's
+ * last (it holds copies of some rows of schools with their own database).
  */
 export async function findAcross<T>(
   router: DatabaseRouter,
   fn: (db: Db, key: string) => Promise<T | undefined | null>,
 ): Promise<{ value: T; db: Db; key: string } | null> {
-  for (const t of await router.all()) {
+  const all = await router.all();
+  for (const t of [...all.slice(1), all[0]!]) {
     const value = await fn(t.db, t.key);
     if (value !== undefined && value !== null) return { value, db: t.db, key: t.key };
   }

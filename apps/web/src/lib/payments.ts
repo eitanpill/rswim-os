@@ -2,6 +2,7 @@ import 'server-only';
 import { headers } from 'next/headers';
 import type { CheckoutMethod } from '@rswim/contracts';
 import {
+  checkoutForToken,
   payNowAs,
   paymentsOfferFor,
   type GatewayFactory,
@@ -10,7 +11,7 @@ import {
 import { settleDiveCheckout } from '@rswim/domain-dive/checkout';
 import { createGateway, gatewaySandbox } from '@rswim/integrations';
 import { isDemoMode } from './auth/dev';
-import { db } from './db';
+import { acrossSchools, db, dbFor } from './db';
 
 /**
  * The business's own processor in the web app (docs/PAYMENTS.md). In a sandboxed process (local, E2E, the live
@@ -47,7 +48,7 @@ export function checkoutUrls(origin: string, token: string, connectionId: string
 
 /** The connected processor's methods for this business, or null (the family's and the diver's pay buttons). */
 export function paymentsOffer(orgId: string): Promise<CheckoutMethod[] | null> {
-  return paymentsOfferFor(db(), orgId);
+  return dbFor(orgId).then((d) => paymentsOfferFor(d, orgId));
 }
 
 /** One click from the app: a checkout for what the customer pays, straight to the processor's page. */
@@ -57,8 +58,22 @@ export async function payNow(
   method: CheckoutMethod,
 ): Promise<string> {
   const origin = await requestOrigin();
-  return payNowAs(db(), p, input, method, {
+  return payNowAs(await dbFor(p.orgId), p, input, method, {
     build: gatewayFactory,
     urls: (token, connectionId) => checkoutUrls(origin, token, connectionId),
   });
+}
+
+/** The database that holds this payment link's checkout (a school's own one, or the platform's). */
+export async function payTokenDb(token: string) {
+  let found = db();
+  await acrossSchools(
+    async (d) => {
+      const hit = await checkoutForToken(d, token);
+      if (hit) found = d;
+      return hit;
+    },
+    (hit) => !hit,
+  );
+  return found;
 }

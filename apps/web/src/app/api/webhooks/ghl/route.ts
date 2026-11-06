@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { ingestInboundMessage, isInboundMessage } from '@rswim/domain-comms/intake';
 import { ingestGhlWebhook } from '@rswim/domain-crm/webhook';
 import { verifyGhlSignature } from '@rswim/integrations';
-import { db } from '@/lib/db';
+import { acrossSchools } from '@/lib/db';
 
 /**
  * POST /api/webhooks/ghl: ContactCreate / ContactUpdate and InboundMessage (a family's WhatsApp) from LeadYourWay (GHL).
@@ -18,9 +18,10 @@ export async function POST(request: NextRequest) {
   }
   try {
     const body: unknown = JSON.parse(raw);
+    // The GHL location names the school; its own database (when it has one) holds the location id.
     const result = isInboundMessage(body)
-      ? await ingestInboundMessage(db(), raw)
-      : await ingestGhlWebhook(db(), raw);
+      ? await acrossSchools((d) => ingestInboundMessage(d, raw), (r) => r === 'unknown_location')
+      : await acrossSchools((d) => ingestGhlWebhook(d, raw), (r) => r === 'unknown_location');
     return NextResponse.json({ result });
   } catch (e) {
     if (e instanceof SyntaxError) return new NextResponse('bad json', { status: 400 });

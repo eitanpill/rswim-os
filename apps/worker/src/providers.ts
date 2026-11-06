@@ -15,6 +15,9 @@ import {
   type InvoicingProvider,
   type PaymentProvider,
   type TriageClassifier,
+  type DatabaseHost,
+  LocalPostgresHost,
+  SupabaseManagementHost,
 } from '@rswim/integrations';
 
 import { getDb, log } from './client';
@@ -121,4 +124,30 @@ export function parentBotModel(): CopilotModel | null {
     apiKey: process.env.ANTHROPIC_API_KEY,
     maxTurns: 6,
   }));
+}
+
+/**
+ * Where schools' own databases are created (docs/TENANT-DATABASES.md).
+ * - 'supabase': the Supabase Management API with SUPABASE_ACCESS_TOKEN and SUPABASE_ORG_SLUG (the platform's
+ *   Supabase organization); SUPABASE_REGION (e.g. eu-central-1) and SUPABASE_INSTANCE_SIZE are optional.
+ * - 'local': a database per school on the Postgres at RSWIM_TENANT_ADMIN_URL (default DATABASE_URL), for demos and
+ *   tests. The role must be allowed to create databases.
+ */
+export function databaseHost(provider: string): DatabaseHost {
+  if (provider === 'local') {
+    const admin = process.env.RSWIM_TENANT_ADMIN_URL ?? process.env.DATABASE_URL;
+    if (!admin) throw new Error('RSWIM_TENANT_ADMIN_URL is not set');
+    return new LocalPostgresHost(admin);
+  }
+  const accessToken = process.env.SUPABASE_ACCESS_TOKEN;
+  const organizationSlug = process.env.SUPABASE_ORG_SLUG;
+  if (!accessToken || !organizationSlug) {
+    throw new Error('SUPABASE_ACCESS_TOKEN and SUPABASE_ORG_SLUG are needed to create a school database');
+  }
+  return new SupabaseManagementHost({
+    accessToken,
+    organizationSlug,
+    region: process.env.SUPABASE_REGION || undefined,
+    instanceSize: process.env.SUPABASE_INSTANCE_SIZE || undefined,
+  });
 }

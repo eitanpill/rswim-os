@@ -1,5 +1,5 @@
 import { createServer } from 'inngest/node';
-import { inngest, log } from './client';
+import { inngestClient as inngest, log } from './client';
 import { functions } from './functions';
 
 const port = Number(process.env.PORT ?? 3030);

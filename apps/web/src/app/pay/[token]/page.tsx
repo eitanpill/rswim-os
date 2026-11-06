@@ -4,7 +4,7 @@ import { checkoutForToken, type CheckoutPageView } from '@rswim/domain-billing';
 import { PAYMENT_GATEWAYS } from '@rswim/integrations';
 import { ActionForm, SubmitButton } from '@/components/form';
 import { money } from '@/lib/billing';
-import { db } from '@/lib/db';
+import { payTokenDb } from '@/lib/payments';
 import { startPayAction } from '../actions';
 import { MethodIcon, PayFrame } from '../ui';
 
@@ -23,7 +23,7 @@ export default async function PayPage({
   const { token } = await params;
   const { back } = await searchParams;
   const t = await getTranslations('payments.page');
-  const v = (await checkoutForToken(db(), token))?.view;
+  const v = (await checkoutForToken(await payTokenDb(token), token))?.view;
   if (!v) {
     return (
       <PayFrame business={null} secure={t('secure')}>

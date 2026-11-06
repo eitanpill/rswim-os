@@ -6,12 +6,12 @@ import { z } from 'zod';
 import { CheckoutMethod } from '@rswim/contracts';
 import { answerSandboxCheckout, startCheckoutForToken } from '@rswim/domain-billing';
 import { toDomainError } from '@rswim/domain-core';
-import { db } from '@/lib/db';
 import type { FormState } from '@/lib/form-state';
 import {
   checkoutUrls,
   gatewayFactory,
   onDivePaid,
+  payTokenDb,
   paymentsSandbox,
   requestOrigin,
 } from '@/lib/payments';
@@ -34,7 +34,7 @@ export async function startPayAction(_: FormState, fd: FormData): Promise<FormSt
   const origin = await requestOrigin();
   let to: string;
   try {
-    to = await startCheckoutForToken(db(), token.data, method.data, {
+    to = await startCheckoutForToken(await payTokenDb(token.data), token.data, method.data, {
       build: gatewayFactory,
       urls: (connectionId) => checkoutUrls(origin, token.data, connectionId),
     });
@@ -53,7 +53,7 @@ export async function sandboxAnswerAction(_: FormState, fd: FormData): Promise<F
   const method = CheckoutMethod.safeParse(fd.get('method'));
   if (!token.success || !method.success) return fail('payments.errors.notOpen');
   const outcome = await answerSandboxCheckout(
-    db(),
+    await payTokenDb(token.data),
     token.data,
     method.data,
     fd.get('answer') === 'approve',
