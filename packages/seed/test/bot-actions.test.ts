@@ -104,6 +104,9 @@ beforeAll(async () => {
      where (select count(*) from guardians x where x.phone_e164 = g.phone_e164) = 1
        and (select count(*) from students y where y.household_id = h.id) = 1
        and (select count(*) from enrollments z where z.student_id = st.id and z.status = 'active') = 1
+       -- The seed reports absences for a few upcoming lessons; a child already reported would be refused.
+       and not exists (select 1 from absence_notices n join sessions ns on ns.id = n.session_id
+                       where n.student_id = st.id and ns.date between $1::date and $1::date + 14)
      order by h.id, g.created_at limit 12`,
     [today],
   );
