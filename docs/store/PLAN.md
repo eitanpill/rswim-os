@@ -22,3 +22,20 @@ processor; the school directory is public, each school can hide itself.
 
 Proof: `packages/db/test/rls/school-switch.test.ts`, `apps/web/src/lib/join-link.test.ts`,
 `apps/web/e2e/schools.spec.ts`. Not verified: the token refresh after a switch against real Supabase Auth.
+
+## Stage 4: finding a school (13.11.2026)
+- **The school search** `/schools`, open before sign-in: by name or city, swim schools or freediving clubs
+  (`public.school_directory`). Each school opens its page `/join/<slug>`. A school can opt out of the search on
+  `/admin/join`; its own link keeps working.
+- **A swim school's page** `/join/<slug>`: what the school is, sign in with a phone, then a short form (the parent,
+  up to four children, join or trial first, a note). The request lands on the office's `/admin/join` ("משפחות
+  חדשות"); asking again while it is open updates it. A freediving club's page is unchanged (divers join directly).
+- **The office** accepts (a family with the children is opened, or the known family is used when the phone is
+  already on file, and the parent gets the app) or declines. The same screen shows the school's link and a QR sign
+  to print for the pool, and how the school shows in the search.
+- **"We found you"**: someone signed in whose phone the school already has on a family nobody holds yet sees
+  "מצאנו אותך ב…" on `/start` and joins that family in one tap (`public.claim_by_phone`).
+- Any phone number can now open an account (sign-in creates it); someone with no school lands on `/start`.
+- Dev personas: **דנה (הורה מחפשת בית ספר)** asks to join, **מיכל (הורה שבית הספר מכיר)** is found by phone.
+- Limit: for a school with its own database, "we found you" works only after the person asked that school to join
+  (their sign-in row reaches its database then). Shared schools, the default, work fully.

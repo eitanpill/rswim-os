@@ -21,8 +21,10 @@ export const PUBLIC_PREFIXES = [
   '/pass',
   // A business's payment page: the long random token in the link is the customer's only key (docs/PAYMENTS.md).
   '/pay',
-  // A club's join link: anyone may read it; joining needs a sign-in (the page sends visitors to it).
+  // A school's join link: anyone may read it; joining needs a sign-in (the page sends visitors to it).
   '/join',
+  // The app's school search (store launch, stage 4): open before sign-in, like a store listing.
+  '/schools',
 ];
 
 export function surfaceForPath(pathname: string): Surface | 'platform' | null {

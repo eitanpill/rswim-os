@@ -2,6 +2,7 @@
 
 import { PhoneE164 } from '@rswim/contracts';
 import { clubForJoin } from '@rswim/domain-dive';
+import { schoolPublic } from '@rswim/domain-platform';
 import { redirect } from 'next/navigation';
 import { dbForSlug, withAnon } from '@/lib/db';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -21,11 +22,14 @@ export async function signInWithPassword(formData: FormData) {
 }
 
 /**
- * The club a visitor came to join (the `join` field carries its slug from the join page), only while that club takes
- * sign-ups; otherwise null.
+ * The school a visitor came to join (the `join` field carries its slug from the join page): any active swim school
+ * (it takes join requests), or a freediving club while it takes sign-ups; otherwise null.
  */
 async function joiningClub(v: FormDataEntryValue | null): Promise<string | null> {
   if (typeof v !== 'string' || !/^[a-z0-9-]{2,60}$/.test(v)) return null;
+  const school = await withAnon((tx) => schoolPublic(tx, v));
+  if (!school) return null;
+  if (school.vertical === 'swim') return v;
   const club = await withAnon((tx) => clubForJoin(tx, v), await dbForSlug(v));
   return club?.open ? v : null;
 }
@@ -41,11 +45,12 @@ export async function sendPhoneCode(formData: FormData) {
   if (!phone.success) redirect(phonePage({ error: 'phone', join }));
   const supabase = await createSupabaseServerClient();
   if (!supabase) redirect(phonePage({ error: 'not_configured', join }));
-  // Parents get an account when the school adds them, not by typing a number. The one exception is a freediving
-  // club's join link, while that club takes sign-ups: there the number becomes a new account.
+  // One app for everyone (store launch): a new number becomes an account. Someone with no school yet lands on the
+  // front door (/start): the school that has their phone on file, a school's link, or the school search. Supabase's
+  // own rate limits and captcha guard the SMS sending.
   const { error } = await supabase.auth.signInWithOtp({
     phone: phone.data,
-    options: { shouldCreateUser: join !== null },
+    options: { shouldCreateUser: true },
   });
   if (error) redirect(phonePage({ error: 'phone', join }));
   redirect(phonePage({ phone: phone.data, join }));

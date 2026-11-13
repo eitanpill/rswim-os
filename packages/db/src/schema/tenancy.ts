@@ -27,10 +27,18 @@ export const organizations = pgTable(
     status: text('status').notNull().default('active'),
     /** Swim school or freediving club: decides which screens the school's people land on. */
     vertical: text('vertical').notNull().default('swim'),
+    /** Shown in the app's school search (store launch, stage 4). A school can opt out. */
+    listed: boolean('listed').notNull().default(true),
+    /** Where the school teaches, for the search ("ירושלים", "אילת"). */
+    city: text('city'),
+    /** One or two lines about the school for its public page. */
+    about: text('about'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
+    check('organizations_city_check', sql`${t.city} is null or length(${t.city}) <= 60`),
+    check('organizations_about_check', sql`${t.about} is null or length(${t.about}) <= 400`),
     check(
       'organizations_vertical_check',
       sql`${t.vertical} in (${sql.raw(VERTICALS.map((v) => `'${v}'`).join(', '))})`,

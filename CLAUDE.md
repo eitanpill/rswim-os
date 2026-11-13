@@ -84,7 +84,10 @@ write each insight's explanation and next step. Trial pipeline moves need
 
 Store launch (`docs/store/PLAN.md`): one app for everyone. A signed-in user with no school lands on `/start` (a
 school's link, the phone the office knows, or opening a school); someone in several schools switches on `/me/schools`
-(`public.switch_school`, dev persona **אסף (מדריך והורה)**).
+(`public.switch_school`, dev persona **אסף (מדריך והורה)**). Families find a school on `/schools` (search, open
+signed out) or its link `/join/<slug>`; a swim school's office decides join and trial requests on `/admin/join` (link,
+printable QR, search listing), and `/start` offers the school that already has the person's phone (dev personas
+**דנה (הורה מחפשת בית ספר)** and **מיכל (הורה שבית הספר מכיר)**).
 
 SaaS (Phase 10): the owner's way from `/start` leads to `/onboarding` to open a school; platform admins (`platform_admins`)
 use `/platform`. Dev personas **בית ספר חדש** and **מנהל/ת פלטפורמה** cover both. The worker verifies custom domains

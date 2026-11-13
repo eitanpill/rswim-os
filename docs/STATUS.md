@@ -337,3 +337,12 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   a school they don't belong to or a suspended membership; a newcomer with no place gets the front door and a pasted
   school link opens the club's join page. See docs/store/PLAN.md.
 - Not verified: the switch's token refresh against real Supabase Auth (no Supabase project yet).
+
+## Finding a school, store launch stage 4 (2026-11-13)
+- Verified (tests, local Postgres + E2E): the school search by name, city and kind, signed out; an opted-out school
+  is left out of the search but its link opens; a join request is seen and decided only by that school's owner and
+  office (not its instructors or parents, not another school); accepting opens the family with its children, or
+  joins the family already on file by phone, and gives the parent the app; declined requests create nothing; a
+  person whose phone a school already has is offered that school and joins in one tap, and nobody else is.
+  See docs/store/PLAN.md.
+- Not verified: new-account SMS sign-in against real Supabase Auth (no Supabase project yet).

@@ -2168,8 +2168,17 @@ export async function seedDiveData(client: pg.PoolClient): Promise<DiveDataSumma
     [DIVE_ORG_2, 'freediving'],
   ] as const) {
     await client.query(
-      `insert into organizations (id, slug, name, legal_name, tax_status, vertical) values ($1, $2, $3, $4, 'licensed', $5)`,
-      [org.id, org.slug, org.name, `${org.name.replace(' (דמו)', '')} בע״מ (דמו)`, vertical],
+      `insert into organizations (id, slug, name, legal_name, tax_status, vertical, city, about)
+       values ($1, $2, $3, $4, 'licensed', $5, $6, $7)`,
+      [
+        org.id,
+        org.slug,
+        org.name,
+        `${org.name.replace(' (דמו)', '')} בע״מ (דמו)`,
+        vertical,
+        org.city,
+        org.about,
+      ],
     );
     await client.query(`insert into org_settings (organization_id, branding) values ($1, $2)`, [
       org.id,

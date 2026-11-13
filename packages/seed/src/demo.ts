@@ -270,8 +270,9 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
     for (const org of [DEMO_ORG, SECOND_ORG]) {
       const isDemo = org.id === DEMO_ORG.id;
       await client.query(
-        `insert into organizations (id, slug, name, legal_name, tax_status) values ($1, $2, $3, $4, 'licensed')`,
-        [org.id, org.slug, org.name, `${org.name} (עוסק מורשה, דמו)`],
+        `insert into organizations (id, slug, name, legal_name, tax_status, city, about)
+         values ($1, $2, $3, $4, 'licensed', $5, $6)`,
+        [org.id, org.slug, org.name, `${org.name} (עוסק מורשה, דמו)`, org.city, org.about],
       );
       await client.query(`insert into org_settings (organization_id) values ($1)`, [org.id]);
       summary.orgs++;
@@ -329,17 +330,33 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         : regularHouseholds(3, rng(42));
       let parentGuardianId: string | null = null;
       let secondOrgGuardianId: string | null = null;
+      let knownParentHousehold = false;
       for (const h of households) {
         const hid = await q(
           `insert into households (organization_id, display_name, notes) values ($1, $2, $3) returning id`,
           [org.id, `משפחת ${h.last}`, h.notes ?? null],
         );
         summary.households++;
-        for (const g of h.guardians) {
+        // The second school's last family has the known-parent persona's phone on file, and nobody holds it yet.
+        const knownHere =
+          !isDemo && h === households[households.length - 1] && !knownParentHousehold;
+        if (knownHere) knownParentHousehold = true;
+        for (const [gi, g] of h.guardians.entries()) {
+          const known = knownHere && gi === 0;
+          // Drawn even for the known parent, so every later invented number stays as it was.
+          const phone = g.phone ?? fakePhone();
           const gid = await q(
             `insert into guardians (organization_id, household_id, first_name, last_name, relation, phone_e164, whatsapp_opt_in, is_billing_contact)
              values ($1, $2, $3, $4, $5, $6, true, $7) returning id`,
-            [org.id, hid, g.first, h.last, g.relation, g.phone ?? fakePhone(), g.billing ?? false],
+            [
+              org.id,
+              hid,
+              known ? 'מיכל' : g.first,
+              h.last,
+              g.relation,
+              known ? ACCOUNT_PERSONAS.knownParent.phone : phone,
+              g.billing ?? false,
+            ],
           );
           summary.guardians++;
           if (isDemo && g.phone === PERSONAS.parent.phone) parentGuardianId = gid;
