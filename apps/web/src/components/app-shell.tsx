@@ -53,8 +53,9 @@ export async function AppShell({
             {name}
           </p>
           <p className="truncate text-xs text-ink-muted">
-            {session.displayName ? `${session.displayName} · ` : ''}
-            {session.role ? t(`role.${session.role}`) : ''}
+            {[session.displayName, session.role ? t(`role.${session.role}`) : null]
+              .filter(Boolean)
+              .join(' · ')}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
