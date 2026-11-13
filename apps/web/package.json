@@ -38,6 +38,7 @@
     "@rswim/integrations": "workspace:*",
     "@rswim/money": "workspace:*",
     "@rswim/ui": "workspace:*",
+    "@sentry/nextjs": "11.9.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "next": "~15.5.27",
