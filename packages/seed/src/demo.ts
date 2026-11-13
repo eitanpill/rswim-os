@@ -328,6 +328,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         ? [...edgeCaseHouseholds(), ...regularHouseholds(16, rng(5787))]
         : regularHouseholds(3, rng(42));
       let parentGuardianId: string | null = null;
+      let secondOrgGuardianId: string | null = null;
       for (const h of households) {
         const hid = await q(
           `insert into households (organization_id, display_name, notes) values ($1, $2, $3) returning id`,
@@ -342,6 +343,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
           );
           summary.guardians++;
           if (isDemo && g.phone === PERSONAS.parent.phone) parentGuardianId = gid;
+          if (!isDemo) secondOrgGuardianId ??= gid;
         }
         for (const s of h.students) {
           const sid = randomUUID();
@@ -387,26 +389,26 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         summary.brainMemories = await seedBrainMemory(client, org.id);
       }
 
-      // Memberships (demo org only: the personas)
+      // Memberships: the personas in the demo org; the two-hats persona in both (store launch, stage 3).
+      const m = async (
+        userId: string,
+        role: string,
+        extra: { staff?: string; guardian?: string | null; permissions?: string[] } = {},
+      ) => {
+        await client.query(
+          `insert into memberships (organization_id, user_id, role, staff_member_id, guardian_id, permissions) values ($1, $2, $3, $4, $5, $6)`,
+          [
+            org.id,
+            userId,
+            role,
+            extra.staff ?? null,
+            extra.guardian ?? null,
+            extra.permissions ?? [],
+          ],
+        );
+        summary.memberships++;
+      };
       if (isDemo) {
-        const m = async (
-          userId: string,
-          role: string,
-          extra: { staff?: string; guardian?: string | null; permissions?: string[] } = {},
-        ) => {
-          await client.query(
-            `insert into memberships (organization_id, user_id, role, staff_member_id, guardian_id, permissions) values ($1, $2, $3, $4, $5, $6)`,
-            [
-              org.id,
-              userId,
-              role,
-              extra.staff ?? null,
-              extra.guardian ?? null,
-              extra.permissions ?? [],
-            ],
-          );
-          summary.memberships++;
-        };
         await m(PERSONAS.owner.userId, 'owner', { staff: staffIds[0] });
         await m(PERSONAS.admin.userId, 'admin', { permissions: ['billing.read', 'billing.write'] });
         await m(PERSONAS.instructor.userId, 'instructor', { staff: staffIds[2] });
@@ -415,6 +417,9 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
           permissions: ['billing.read', 'payroll.read'],
         });
         await m(PERSONAS.parent.userId, 'parent', { guardian: parentGuardianId });
+        await m(ACCOUNT_PERSONAS.twoHats.userId, 'instructor', { staff: staffIds[1] });
+      } else {
+        await m(ACCOUNT_PERSONAS.twoHats.userId, 'parent', { guardian: secondOrgGuardianId });
       }
     }
     summary.saas = await seedSaasData(client);

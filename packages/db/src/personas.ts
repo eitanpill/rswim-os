@@ -86,9 +86,24 @@ export const ACCOUNT_PERSONAS = {
     name: 'נועם (דמו, צולל חדש)',
     phone: '+972500000203',
   },
+  /**
+   * Someone with two hats (store launch, stage 3): an instructor at the demo school and a parent at the second one.
+   * Picks which school they are working in from the app's school switcher.
+   */
+  twoHats: {
+    userId: '00000000-0000-4000-8000-000000000204',
+    name: 'אסף (דמו, מדריך והורה)',
+    phone: '+972500000204',
+  },
 } as const;
 
 export type AccountPersonaKey = keyof typeof ACCOUNT_PERSONAS;
+
+/** The two-hats persona's role in each of its schools (the seed creates exactly these memberships). */
+export const TWO_HATS_ROLES = {
+  [DEMO_ORG.id]: 'instructor',
+  [SECOND_ORG.id]: 'parent',
+} as const satisfies Record<string, OrgRole>;
 
 /** The freediving club demo tenant (an Eilat club, all invented). */
 export const DIVE_ORG = {

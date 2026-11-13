@@ -1,9 +1,11 @@
+import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { brandPalette, myBranding } from '@rswim/domain-platform';
 import { Button } from '@rswim/ui';
 import { setLocale } from '@/app/actions/locale';
 import { isDemoMode } from '@/lib/auth/dev';
+import { canSwitchSchool } from '@/lib/auth/schools';
 import type { Session } from '@/lib/auth/types';
 import { withSession } from '@/lib/db';
 import { DesktopNav, MobileNav, type NavSpec } from './nav-bar';
@@ -28,6 +30,7 @@ export async function AppShell({
   const locale = await getLocale();
   const brand = session.orgId ? await withSession((tx) => myBranding(tx)) : {};
   const name = brand.displayName ?? session.orgName ?? brand.name ?? 'R-SWIM OS';
+  const switcher = await canSwitchSchool(session);
   return (
     <div
       className="flex min-h-dvh flex-col"
@@ -50,11 +53,21 @@ export async function AppShell({
             {name}
           </p>
           <p className="truncate text-xs text-ink-muted">
-            {session.displayName ? `${session.displayName} · ` : ''}
-            {session.role ? t(`role.${session.role}`) : ''}
+            {[session.displayName, session.role ? t(`role.${session.role}`) : null]
+              .filter(Boolean)
+              .join(' · ')}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
+          {switcher ? (
+            <Link
+              href="/me/schools"
+              className="rounded-xl px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50 dark:hover:bg-surface"
+              data-testid="switch-school"
+            >
+              {t('switchOrg')}
+            </Link>
+          ) : null}
           <form action={setLocale}>
             <input type="hidden" name="locale" value={locale === 'he' ? 'en' : 'he'} />
             <Button variant="ghost" type="submit" className="text-sm">

@@ -6,7 +6,8 @@
  *
  * The cookie holds a persona key. A newcomer who has just opened a school holds `newcomer@<orgId>`: they are that
  * school's owner. Someone who has just joined a freediving club through its link holds `diveNewcomer@<orgId>`: they
- * are a diver (customer) there. The database checks the membership on every statement regardless.
+ * are a diver (customer) there. The two-hats persona holds `twoHats@<orgId>` for the school it picked from its switcher.
+ * The database checks the membership on every statement regardless.
  */
 import {
   ACCOUNT_PERSONAS,
@@ -15,6 +16,8 @@ import {
   DIVE_ORG,
   DIVE_PERSONAS,
   PERSONAS,
+  SECOND_ORG,
+  TWO_HATS_ROLES,
   type AccountPersonaKey,
   type DivePersonaKey,
   type PersonaKey,
@@ -50,6 +53,9 @@ export const isPersonaKey = (v: unknown): v is DevKey =>
 
 export const isDivePersona = (k: DevKey): k is DivePersonaKey => k in DIVE_PERSONAS;
 
+/** Personas whose cookie may name a school: the one they opened, joined or picked. */
+const ORG_SUFFIX_KEYS = new Set<DevKey>(['newcomer', 'diveNewcomer', 'twoHats']);
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export function devSessionFor(key: DevKey, orgId?: string): Session {
@@ -76,6 +82,21 @@ export function devSessionFor(key: DevKey, orgId?: string): Session {
       isPlatformAdmin: false,
       displayName: ACCOUNT_PERSONAS.diveNewcomer.name,
       ...(joined ? { vertical: 'freediving' as const } : {}),
+      mode: 'dev',
+    };
+  }
+  if (key === 'twoHats') {
+    // An instructor at the demo school and a parent at the second one; the cookie says which school they picked.
+    const picked = orgId === SECOND_ORG.id ? SECOND_ORG : DEMO_ORG;
+    return {
+      userId: ACCOUNT_PERSONAS.twoHats.userId,
+      orgId: picked.id,
+      role: TWO_HATS_ROLES[picked.id],
+      permissions: [],
+      isPlatformAdmin: false,
+      displayName: ACCOUNT_PERSONAS.twoHats.name,
+      orgName: picked.name,
+      vertical: 'swim',
       mode: 'dev',
     };
   }
@@ -114,7 +135,7 @@ export function readDevCookie(value: string | undefined): Session | null {
   if (!value || !isDevAuthEnabled()) return null;
   const [key, orgId] = value.split('@');
   if (!isPersonaKey(key)) return null;
-  if (orgId !== undefined && ((key !== 'newcomer' && key !== 'diveNewcomer') || !UUID.test(orgId)))
-    return null;
+  if (orgId !== undefined && (!ORG_SUFFIX_KEYS.has(key) || !UUID.test(orgId))) return null;
+  if (key === 'twoHats' && orgId !== undefined && !(orgId in TWO_HATS_ROLES)) return null;
   return devSessionFor(key, orgId);
 }

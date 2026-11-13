@@ -82,7 +82,11 @@ or on a rules-based fake with `RSWIM_COPILOT_FAKE=1` (demos and E2E). The owner'
 write each insight's explanation and next step. Trial pipeline moves need
 `integrations.ghl.pipeline` (pipeline id + stage ids) in the org settings.
 
-SaaS (Phase 10): a signed-in user with no school lands on `/onboarding` to open one; platform admins (`platform_admins`)
+Store launch (`docs/store/PLAN.md`): one app for everyone. A signed-in user with no school lands on `/start` (a
+school's link, the phone the office knows, or opening a school); someone in several schools switches on `/me/schools`
+(`public.switch_school`, dev persona **אסף (מדריך והורה)**).
+
+SaaS (Phase 10): the owner's way from `/start` leads to `/onboarding` to open a school; platform admins (`platform_admins`)
 use `/platform`. Dev personas **בית ספר חדש** and **מנהל/ת פלטפורמה** cover both. The worker verifies custom domains
 by DNS TXT, or with `RSWIM_DNS_FAKE=1` accepts any `*.localhost`; it bills schools through the payment provider
 (`RSWIM_GROW_FAKE=1`). `RSWIM_PLATFORM_HOSTS` (comma-separated) lists the platform's own hosts, which schools can't claim.

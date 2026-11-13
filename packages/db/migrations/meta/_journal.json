@@ -372,6 +372,13 @@
       "when": 1793956039274,
       "tag": "0052_tenant_databases_security",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1794561660899,
+      "tag": "0053_school_switch",
+      "breakpoints": true
     }
   ]
 }

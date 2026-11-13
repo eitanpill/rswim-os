@@ -27,8 +27,10 @@ test('a new school signs up, sets up from templates, gets its domain and is bill
   page.on('dialog', (d) => void d.accept());
   await resetNewcomer();
 
-  // Sign-up: a signed-in user with no school lands on the plans.
+  // Sign-up: a signed-in user with no school lands on the front door, and the owner's way leads to the plans.
   await page.goto('/dev/login?as=newcomer');
+  await expect(page).toHaveURL(/\/start$/);
+  await page.getByTestId('start-owner').click();
   await expect(page).toHaveURL(/\/onboarding$/);
   const signup = page.getByTestId('create-school');
   await signup.getByLabel('שם בית הספר').fill('גלים (דמו)');
