@@ -33,6 +33,8 @@ export function isDemoMode(): boolean {
 }
 
 export function isDevAuthEnabled(): boolean {
+  // Staging and production (RSWIM_ENV) never offer persona sign-in, whatever else is set by mistake.
+  if (process.env.RSWIM_ENV === 'production' || process.env.RSWIM_ENV === 'staging') return false;
   if (isDemoMode()) return true;
   return process.env.RSWIM_DEV_AUTH === '1' && process.env.VERCEL_ENV !== 'production';
 }

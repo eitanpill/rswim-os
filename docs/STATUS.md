@@ -337,3 +337,16 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   a school they don't belong to or a suspended membership; a newcomer with no place gets the front door and a pasted
   school link opens the club's join page. See docs/store/PLAN.md.
 - Not verified: the switch's token refresh against real Supabase Auth (no Supabase project yet).
+
+## Production infrastructure, SaaS stage 1 (2026-11-13)
+- Verified (tests, local Postgres, local run): the production seed writes the three plans at the approved prices and
+  the starter regulations, with no school and no person, and runs again without duplicating
+  (`packages/seed/test/production.test.ts`); migrations take an advisory lock; deleting a term clears only
+  `sessions.term_id` (the seed re-run flake); the worker answers `/health` with its database state and serves
+  `/api/inngest`; the web app's `/api/health` answers 503 when the database is down; persona sign-in is off whenever
+  `RSWIM_ENV` is staging or production (`apps/web/src/lib/auth/dev.test.ts`); the backup/restore drill restores the
+  demo database with identical row counts; the web app builds with Sentry wired (off without a DSN).
+- In CI: both production containers build on every pull request, and the worker container starts against an empty
+  Postgres, migrates, seeds the plans and answers `/health`.
+- Not verified: anything on a real host (no Supabase, Vercel, Railway, Inngest Cloud, Sentry or Twilio account yet).
+  Setup steps and the full variable list: `docs/saas/DEPLOY.md`.

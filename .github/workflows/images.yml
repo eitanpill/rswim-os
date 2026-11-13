@@ -1,0 +1,45 @@
+# Builds the production containers on every change to them or to the code they ship, so a broken Dockerfile shows
+# up in the pull request rather than at deploy time. Nothing is pushed anywhere.
+name: Images
+
+on:
+  pull_request:
+    paths:
+      - 'deploy/production/**'
+      - 'apps/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/images.yml'
+
+concurrency:
+  group: images-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        image: [web, worker]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.image }}
+        run: |
+          docker build -f deploy/production/${{ matrix.image }}.Dockerfile \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=ci-placeholder \
+            -t aqua-${{ matrix.image }}:ci .
+      - name: Start the worker against an empty database (migrate, seed plans, answer /health)
+        if: matrix.image == 'worker'
+        run: |
+          docker network create aqua
+          docker run -d --name db --network aqua -e POSTGRES_USER=rswim -e POSTGRES_PASSWORD=rswim \
+            -e POSTGRES_DB=aqua postgres:16
+          for i in $(seq 1 30); do docker exec db pg_isready -U rswim && break; sleep 1; done
+          docker run -d --name worker --network aqua -p 3030:3030 \
+            -e DATABASE_URL=postgresql://rswim:rswim@db:5432/aqua -e RSWIM_PLAIN_POSTGRES=1 -e INNGEST_DEV=1 \
+            aqua-worker:ci
+          for i in $(seq 1 90); do curl -fsS localhost:3030/health && exit 0; sleep 2; done
+          docker logs worker
+          exit 1

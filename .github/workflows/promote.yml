@@ -1,0 +1,47 @@
+# Production deploys. Staging follows `main` by itself (Vercel and Railway build every push to main). Production
+# follows the `production` branch, and only this workflow moves it: run it from the Actions tab, and the `production`
+# environment waits for an approver (Pit) before the branch moves. Vercel then builds the web app and Railway the
+# worker, which migrates the database before it starts (docs/saas/DEPLOY.md).
+name: Promote to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit on main to release (empty = the latest main)'
+        required: false
+        default: ''
+
+concurrency:
+  group: promote-production
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Pick the commit
+        id: pick
+        run: |
+          sha=$(git rev-parse "${{ inputs.ref || 'origin/main' }}^{commit}")
+          git merge-base --is-ancestor "$sha" origin/main || { echo "::error::$sha is not on main"; exit 1; }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Check CI passed on that commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          state=$(gh api "repos/${{ github.repository }}/commits/${{ steps.pick.outputs.sha }}/check-runs" \
+            --jq '[.check_runs[] | select(.name == "checks" or .name == "e2e") | .conclusion] | if length == 2 and all(. == "success") then "ok" else "no" end')
+          [[ "$state" == "ok" ]] || { echo "::error::CI is not green on ${{ steps.pick.outputs.sha }}"; exit 1; }
+      - name: Move the production branch
+        run: |
+          git push --force origin "${{ steps.pick.outputs.sha }}:refs/heads/production"
+          echo "Released ${{ steps.pick.outputs.sha }} to production" >> "$GITHUB_STEP_SUMMARY"
