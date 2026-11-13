@@ -379,6 +379,13 @@
       "when": 1794561660899,
       "tag": "0053_school_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1794584139878,
+      "tag": "0054_sessions_term_fk",
+      "breakpoints": true
     }
   ]
 }
