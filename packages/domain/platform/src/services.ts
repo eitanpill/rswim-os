@@ -8,6 +8,7 @@ import { z } from 'zod';
 import {
   Branding,
   DEFAULT_ORG_RULES,
+  OrgRole,
   PLAN_FEATURES,
   TemplateKind,
   type PlanFeature,
@@ -862,4 +863,40 @@ export async function reviewTemplate(
     .update(templates)
     .set({ status: decision, reviewedBy: ctx.userId, reviewedAt: new Date() })
     .where(eq(templates.id, id));
+}
+
+// ─── One app for everyone (store launch, stage 3) ───────────────────────────
+
+export interface MySchool {
+  orgId: string;
+  name: string;
+  role: OrgRole;
+  vertical: 'swim' | 'freediving';
+}
+
+/** Every school the signed-in person belongs to, with their role in each. Runs on the platform database. */
+export async function mySchools(tx: Tx): Promise<MySchool[]> {
+  const list = await rows<{
+    organization_id: string;
+    organization_name: string;
+    role: string;
+    vertical: string;
+  }>(
+    tx,
+    sql`select organization_id, organization_name, role, vertical from public.my_schools()
+        order by organization_name`,
+  );
+  return list.map((r) => ({
+    orgId: r.organization_id,
+    name: r.organization_name,
+    role: OrgRole.parse(r.role),
+    vertical: r.vertical === 'freediving' ? 'freediving' : 'swim',
+  }));
+}
+
+/** Remembers which school the person works in now; the next token carries it. Refused outside their schools. */
+export async function switchSchool(tx: Tx, orgId: string): Promise<void> {
+  const id = z.uuid().safeParse(orgId);
+  if (!id.success) throw new DomainError('common.errors.forbidden');
+  await tx.execute(sql`select public.switch_school(${id.data}::uuid)`);
 }

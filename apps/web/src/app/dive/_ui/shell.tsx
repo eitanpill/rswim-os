@@ -1,8 +1,10 @@
+import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { seaOutlook } from '@rswim/domain-dive';
 import { setLocale } from '@/app/actions/locale';
 import { isDemoMode } from '@/lib/auth/dev';
+import { canSwitchSchool } from '@/lib/auth/schools';
 import type { Session } from '@/lib/auth/types';
 import { withSession } from '@/lib/db';
 import { pagesFor, type DivePage, type DiveRole } from './access';
@@ -88,6 +90,15 @@ export async function DiveShell({
                 <p className="text-[11px] text-white/65">{t(`roles.${role}`)}</p>
               </div>
             </div>
+            {(await canSwitchSchool(session)) ? (
+              <Link
+                href="/me/schools"
+                className="inline-flex min-h-tap items-center rounded-xl px-2.5 text-sm text-white/85 hover:bg-white/10"
+                data-testid="switch-school"
+              >
+                {tc('switchOrg')}
+              </Link>
+            ) : null}
             <form action={setLocale}>
               <input type="hidden" name="locale" value={locale === 'he' ? 'en' : 'he'} />
               <button

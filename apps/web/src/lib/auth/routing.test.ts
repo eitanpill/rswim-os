@@ -72,10 +72,16 @@ describe('decideRoute', () => {
   });
 
   it('handles users without a membership and unknown paths', () => {
-    expect(homePath(s(null))).toBe('/onboarding');
+    expect(homePath(s(null))).toBe('/start');
     expect(homePath(s('institution_contact'))).toBe('/login?error=no_membership');
-    expect(decideRoute('/admin', s(null))).toEqual({ action: 'redirect', to: '/onboarding' });
+    expect(decideRoute('/admin', s(null))).toEqual({ action: 'redirect', to: '/start' });
+    expect(decideRoute('/start', s(null))).toEqual({ action: 'next' });
     expect(decideRoute('/onboarding', s(null))).toEqual({ action: 'next' });
+    expect(decideRoute('/me/schools', s('parent'))).toEqual({ action: 'next' });
+    expect(decideRoute('/me/schools', null)).toEqual({
+      action: 'redirect',
+      to: '/login?next=%2Fme%2Fschools',
+    });
     expect(decideRoute('/some/other', s('parent'))).toEqual({ action: 'next' });
   });
 

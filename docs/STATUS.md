@@ -330,3 +330,10 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - Not verified: the real Supabase Management API (needs Pit's access token and organization slug), the session-mode
   pooler from the hosting provider, Supabase Auth's hook reading `directory_memberships` in production, and the
   `/preparing` screen in a browser (no E2E: the E2E database stays shared).
+
+## One sign-in for everyone, store launch stage 3 (2026-11-13)
+- Verified (tests, local Postgres + E2E): every role lands on its own screen from the same sign-in; a person in two
+  schools lists both, switches with a tap and lands on the right screen for their role there; nobody can switch into
+  a school they don't belong to or a suspended membership; a newcomer with no place gets the front door and a pasted
+  school link opens the club's join page. See docs/store/PLAN.md.
+- Not verified: the switch's token refresh against real Supabase Auth (no Supabase project yet).

@@ -6,7 +6,7 @@
   "common": {
     "signOut": "Sign out",
     "language": "עברית",
-    "switchOrg": "Switch organization",
+    "switchOrg": "Switch",
     "offline": "You're offline. Your changes are saved and will sync when you reconnect.",
     "mainNav": "Main navigation",
     "role": {
@@ -62,7 +62,8 @@
     "devAccount": {
       "newcomer": "New school (sign-up)",
       "platform": "Platform admin",
-      "diveNewcomer": "🤿 New diver (joining)"
+      "diveNewcomer": "🤿 New diver (joining)",
+      "twoHats": "Instructor and parent (two schools)"
     },
     "demo": {
       "title": "Enter the demo",
@@ -70,7 +71,8 @@
       "footnote": "The data goes back to its starting state every night, so click anything.",
       "account": {
         "newcomer": "New school",
-        "platform": "Platform admin"
+        "platform": "Platform admin",
+        "twoHats": "Instructor and parent"
       },
       "sees": {
         "owner": "The home screen with insights, the group board, collections, payroll, reports and the copilot",
@@ -80,7 +82,8 @@
         "accountant": "Payments, receipts and payroll ready for the accountant",
         "parent": "The parents' portal on a phone: schedule, absences, makeups, payments and receipts",
         "newcomer": "Opening a new school from scratch: templates, branding and a domain",
-        "platform": "Every school on the platform: plans, usage and billing"
+        "platform": "Every school on the platform: plans, usage and billing",
+        "twoHats": "One person in two schools: instructor in one, parent in the other, switching with a tap"
       },
       "resetting": "The demo is going back to its starting data. You can sign in again in under a minute.",
       "clubGroup": "The Eilat freediving club",
@@ -5570,6 +5573,38 @@
       "setupMandate": "Set up a standing order by card",
       "replaceCard": "Replace the standing order's card",
       "mandateHint": "The monthly charge comes off automatically, no links or reminders."
+    }
+  },
+  "schools": {
+    "title": "Where are you working today?",
+    "subtitle": "You have more than one place here. Pick one; you can switch any time from the \"Switch\" button at the top.",
+    "current": "You're here now",
+    "enter": "Enter",
+    "vertical": {
+      "swim": "Swim school",
+      "freediving": "Freediving club"
+    },
+    "joinAnother": "Join another place"
+  },
+  "start": {
+    "title": "Welcome",
+    "subtitle": "You don't have a place here yet. How would you like to start?",
+    "link": {
+      "title": "I got a link or QR code from my school",
+      "body": "Paste the link you got on WhatsApp, or scan the QR code at the pool.",
+      "field": "The school's link",
+      "go": "Continue",
+      "invalid": "That doesn't look like a join link. Check the link your school sent you."
+    },
+    "phone": {
+      "title": "My school already registered me",
+      "body": "If the office entered your phone number, sign in with that number and everything connects by itself. Signed in with another number? Sign out and in again.",
+      "signOut": "Sign in with another number"
+    },
+    "owner": {
+      "title": "I run a school and want to manage it here",
+      "body": "Open your own school: schedule, attendance, billing and messages to parents in one place.",
+      "go": "Open a school"
     }
   }
 }
