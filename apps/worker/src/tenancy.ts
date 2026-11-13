@@ -11,6 +11,7 @@
  * `getDb()` reads the current database from AsyncLocalStorage, so function bodies did not have to change.
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { reported } from './monitoring';
 import type { Db } from '@rswim/db';
 import type { Inngest } from 'inngest';
 
@@ -110,7 +111,7 @@ export function routedFunction(client: Inngest) {
   return ((config: { id: string }, handler: (ctx: never) => unknown) =>
     client.createFunction(
       config as never,
-      routeHandler(config.id, handler as never, {
+      routeHandler(config.id, reported(config.id, handler) as never, {
         // Imported lazily: client.ts imports this module.
         control: () => lazy().controlDb(),
         forOrg: (orgId) => lazy().router().forOrg(orgId),
