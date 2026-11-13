@@ -87,7 +87,7 @@ describe('a new school', () => {
     const page = await owner((tx) => myPlanPage(tx));
     expect(page.subscription).toMatchObject({ planCode: 'starter', status: 'trialing' });
     expect(page.usage.map((u) => [u.limit, u.used, u.max])).toEqual([
-      ['students', 0, 60],
+      ['students', 0, 80],
       ['staff', 0, 3],
       ['venues', 0, 1],
     ]);
@@ -220,7 +220,7 @@ describe('platform billing', () => {
     const page = await owner((tx) => myPlanPage(tx));
     expect(page.subscription).toMatchObject({ status: 'active', pastDueSince: null });
     expect(page.invoices).toMatchObject([
-      { period: '2026-11-01', amountAgorot: 14900, status: 'paid', attempts: 1 },
+      { period: '2026-11-01', amountAgorot: 19900, status: 'paid', attempts: 1 },
     ]);
   });
 

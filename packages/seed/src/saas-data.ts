@@ -8,45 +8,12 @@ import { createDb, type Tx } from '@rswim/db';
 import { currentAsTemplate } from '@rswim/domain-platform';
 import { DEFAULT_ORG_RULES } from '@rswim/contracts';
 import type pg from 'pg';
+import { PLAN_CATALOG, upsertPlans } from './plans';
 
 export interface SaasDataSummary {
   plans: number;
   templates: number;
 }
-
-/** Prices in agorot, limits per plan (null = unlimited). Demo numbers, not a price offer. */
-export const DEMO_PLANS = [
-  {
-    code: 'starter',
-    he: 'בסיסי',
-    en: 'Starter',
-    price: 14900,
-    students: 60,
-    staff: 3,
-    venues: 1,
-    features: [],
-  },
-  {
-    code: 'growth',
-    he: 'צמיחה',
-    en: 'Growth',
-    price: 34900,
-    students: 300,
-    staff: 15,
-    venues: 5,
-    features: ['reports', 'courses', 'transport'],
-  },
-  {
-    code: 'pro',
-    he: 'מקצועי',
-    en: 'Pro',
-    price: 74900,
-    students: null,
-    staff: null,
-    venues: null,
-    features: ['reports', 'courses', 'transport', 'institutions', 'copilot'],
-  },
-] as const;
 
 export const TEMPLATE_NAMES = {
   regulations: 'תקנון R-SWIM',
@@ -55,16 +22,7 @@ export const TEMPLATE_NAMES = {
 } as const;
 
 export async function seedSaasData(client: pg.PoolClient): Promise<SaasDataSummary> {
-  for (const [i, p] of DEMO_PLANS.entries()) {
-    await client.query(
-      `insert into plans (code, name_he, name_en, price_agorot, max_students, max_staff, max_venues, features, sort_order)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       on conflict (code) do update set name_he = excluded.name_he, name_en = excluded.name_en,
-         price_agorot = excluded.price_agorot, max_students = excluded.max_students, max_staff = excluded.max_staff,
-         max_venues = excluded.max_venues, features = excluded.features, sort_order = excluded.sort_order`,
-      [p.code, p.he, p.en, p.price, p.students, p.staff, p.venues, p.features, i],
-    );
-  }
+  await upsertPlans(client);
   await client.query(
     `insert into org_subscriptions (organization_id, plan_code, status, mandate_id)
      values ($1, 'pro', 'active', 'fake-mandate-demo'), ($2, 'growth', 'active', 'fake-mandate-second')`,
@@ -114,5 +72,5 @@ export async function seedSaasData(client: pg.PoolClient): Promise<SaasDataSumma
     'כל ההודעות להורים בעברית: אישורי רישום, תזכורות, השלמות, ביטולים והסעות.',
     { messages: messages.messages.filter((m) => m.locale === 'he') },
   );
-  return { plans: DEMO_PLANS.length, templates: 3 };
+  return { plans: PLAN_CATALOG.length, templates: 3 };
 }
