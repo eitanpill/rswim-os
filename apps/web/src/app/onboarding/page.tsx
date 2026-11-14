@@ -28,6 +28,30 @@ export default async function OnboardingPage() {
           <Field name="name" label={t('name')} placeholder={t('namePlaceholder')} />
           <Field name="slug" label={t('slug')} hint={t('slugHint')} dir="ltr" placeholder="galim" />
           <fieldset className="flex flex-col gap-2">
+            <legend className="mb-1 text-sm font-medium">{t('vertical')}</legend>
+            <div className="grid gap-2 md:grid-cols-2">
+              {(['swim', 'freediving'] as const).map((v, i) => (
+                <label
+                  key={v}
+                  className="flex cursor-pointer items-start gap-2 rounded-xl border border-line p-3 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 dark:has-[:checked]:bg-surface"
+                  data-testid={`vertical-${v}`}
+                >
+                  <input
+                    type="radio"
+                    name="vertical"
+                    value={v}
+                    defaultChecked={i === 0}
+                    className="mt-0.5 size-5"
+                  />
+                  <span className="flex flex-col">
+                    <span className="font-semibold">{t(`verticals.${v}.title`)}</span>
+                    <span className="text-sm text-ink-muted">{t(`verticals.${v}.body`)}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="flex flex-col gap-2">
             <legend className="mb-1 text-sm font-medium">{t('plan')}</legend>
             <div className="grid gap-2 md:grid-cols-3">
               {plans.map((p, i) => (

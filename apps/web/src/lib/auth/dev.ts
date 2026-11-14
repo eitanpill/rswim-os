@@ -60,7 +60,11 @@ const ORG_SUFFIX_KEYS = new Set<DevKey>(['newcomer', 'diveNewcomer', 'twoHats'])
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-export function devSessionFor(key: DevKey, orgId?: string): Session {
+export function devSessionFor(
+  key: DevKey,
+  orgId?: string,
+  vertical?: 'swim' | 'freediving',
+): Session {
   if (key === 'newcomer' || key === 'platform') {
     const p = ACCOUNT_PERSONAS[key];
     const owner = key === 'newcomer' && orgId !== undefined;
@@ -71,6 +75,7 @@ export function devSessionFor(key: DevKey, orgId?: string): Session {
       permissions: [],
       isPlatformAdmin: key === 'platform',
       displayName: p.name,
+      ...(owner ? { vertical: vertical ?? 'swim' } : {}),
       mode: 'dev',
     };
   }
@@ -130,14 +135,21 @@ export function devSessionFor(key: DevKey, orgId?: string): Session {
   };
 }
 
-/** The cookie value for a persona, optionally inside a school it just opened. */
-export const devCookieValue = (key: DevKey, orgId?: string) => (orgId ? `${key}@${orgId}` : key);
+/**
+ * The cookie value for a persona, optionally inside a school it just opened (and, for a newly opened school, its
+ * kind: `newcomer@<orgId>@freediving` lands in /dive).
+ */
+export const devCookieValue = (key: DevKey, orgId?: string, vertical?: 'swim' | 'freediving') =>
+  orgId ? `${key}@${orgId}${vertical ? `@${vertical}` : ''}` : key;
 
 export function readDevCookie(value: string | undefined): Session | null {
   if (!value || !isDevAuthEnabled()) return null;
-  const [key, orgId] = value.split('@');
+  const [key, orgId, vertical, ...rest] = value.split('@');
+  if (rest.length) return null;
+  if (vertical !== undefined && (key !== 'newcomer' || (vertical !== 'swim' && vertical !== 'freediving')))
+    return null;
   if (!isPersonaKey(key)) return null;
   if (orgId !== undefined && (!ORG_SUFFIX_KEYS.has(key) || !UUID.test(orgId))) return null;
   if (key === 'twoHats' && orgId !== undefined && !(orgId in TWO_HATS_ROLES)) return null;
-  return devSessionFor(key, orgId);
+  return devSessionFor(key, orgId, vertical as 'swim' | 'freediving' | undefined);
 }

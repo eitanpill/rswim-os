@@ -18,6 +18,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
  */
 export async function createSchoolAction(_: FormState, fd: FormData): Promise<FormState> {
   let orgId = '';
+  const vertical = fd.get('vertical') === 'freediving' ? 'freediving' : 'swim';
   const state = await runForm(
     fd,
     CreateSchoolInput,
@@ -37,7 +38,7 @@ export async function createSchoolAction(_: FormState, fd: FormData): Promise<Fo
   if (session.mode === 'dev') {
     // Only the newcomer persona can hold a school it opened; other demo personas stay in the demo school.
     if (session.userId !== ACCOUNT_PERSONAS.newcomer.userId) redirect('/');
-    (await cookies()).set(DEV_COOKIE, devCookieValue('newcomer', orgId), {
+    (await cookies()).set(DEV_COOKIE, devCookieValue('newcomer', orgId, vertical), {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
@@ -46,5 +47,6 @@ export async function createSchoolAction(_: FormState, fd: FormData): Promise<Fo
     // The database set the user's active school; a fresh token carries it.
     await (await createSupabaseServerClient())?.auth.refreshSession();
   }
-  redirect('/admin/onboarding');
+  // A freediving club works in /dive from its first minute; a swim school starts on its setup checklist.
+  redirect(vertical === 'freediving' ? '/dive' : '/admin/onboarding');
 }

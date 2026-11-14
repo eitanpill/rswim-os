@@ -91,6 +91,31 @@ describe('signing up a school', () => {
     });
   });
 
+  it('opens the kind of business the owner picked (swim by default)', async () => {
+    await as(newcomer, null, async (run, c) => {
+      const [dive] = await run<{ id: string }>(`select public.create_school($1, $2, $3, $4) id`, [
+        'מועדון בדיקה',
+        'dive-test',
+        'tiny',
+        'freediving',
+      ]);
+      const [swim] = await run<{ id: string }>(`select public.create_school($1, $2, $3) id`, [
+        'בריכה בדיקה',
+        'swim-test',
+        'tiny',
+      ]);
+      await c.query('reset role');
+      const { rows } = await c.query<{ id: string; vertical: string }>(
+        `select id, vertical from organizations where id = any($1) order by slug`,
+        [[dive!.id, swim!.id]],
+      );
+      expect(rows).toEqual([
+        { id: dive!.id, vertical: 'freediving' },
+        { id: swim!.id, vertical: 'swim' },
+      ]);
+    });
+  });
+
   it('refuses a taken address, a bad address, an unknown plan and anonymous callers', async () => {
     await as(newcomer, null, async (run) => {
       expect(await pgCode(run(`select public.create_school('x y', 'saas-a', 'tiny')`))).toBe(
@@ -102,11 +127,25 @@ describe('signing up a school', () => {
       expect(await pgCode(run(`select public.create_school('x y', 'okay-slug', 'nope')`))).toBe(
         'platform.errors.plan',
       );
+      expect(
+        await pgCode(run(`select public.create_school('x y', 'okay-slug', 'tiny', 'surfing')`)),
+      ).toBe('platform.errors.vertical');
     });
     const c = await t.pool.connect();
     try {
       await c.query('begin');
       await c.query('set local role anon');
+      // A visitor sees the price list (active plans only), and nothing else about plans.
+      const { rows: visible } = await c.query<{ code: string }>(
+        `select code from public.public_plans()`,
+      );
+      const { rows: active } = await t.pool.query<{ code: string }>(
+        `select code from plans where active order by sort_order, price_agorot`,
+      );
+      expect(visible.map((p) => p.code)).toEqual(active.map((p) => p.code));
+      await c.query('savepoint plans');
+      expect(await pgCode(c.query(`select count(*) from plans`))).toBe('42501');
+      await c.query('rollback to savepoint plans');
       expect(await pgCode(c.query(`select public.create_school('x y', 'anon-slug', 'tiny')`))).toBe(
         '42501',
       );

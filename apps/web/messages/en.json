@@ -792,10 +792,10 @@
       }
     },
     "signup": {
-      "title": "Open a swim school",
-      "subtitle": "A few details and you're in. No card during the trial.",
+      "title": "Open your business",
+      "subtitle": "A few details and you are in, with a 14-day trial.",
       "parentHint": "Parents: if you landed here and don't see your children, ask your school to send you an invite.",
-      "name": "School name",
+      "name": "Business name",
       "namePlaceholder": "e.g. Galim",
       "slug": "Short English id",
       "slugHint": "Lowercase letters, digits and hyphens",
@@ -803,7 +803,18 @@
       "perMonth": "per month",
       "unlimited": "Unlimited",
       "trial": "{days}-day free trial",
-      "submit": "Open the school"
+      "submit": "Open the school",
+      "vertical": "Kind of business",
+      "verticals": {
+        "swim": {
+          "title": "Swim school",
+          "body": "Groups, classes, makeups, transport and monthly family billing"
+        },
+        "freediving": {
+          "title": "Freediving club",
+          "body": "Sessions, bookings, passes, certifications and divers' health forms"
+        }
+      }
     },
     "console": {
       "title": "Schools",
@@ -853,6 +864,7 @@
       "schoolName": "The school name needs 2 to 80 characters",
       "slug": "3 to 40 characters: lowercase English letters, digits and hyphens",
       "slugTaken": "That id is taken. Try another",
+      "vertical": "Pick the kind of business: swim school or freediving club",
       "templateName": "The template name needs at least 2 characters",
       "tooBigForPlan": "The school uses {used} {limit, select, students {students} staff {staff} other {venues}}, more than the {max} that plan allows",
       "tooManySchools": "One account can open up to 3 schools",
