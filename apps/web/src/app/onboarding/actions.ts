@@ -53,6 +53,7 @@ export async function createSchoolAction(_: FormState, fd: FormData): Promise<Fo
     // The database set the user's active school; a fresh token carries it.
     await (await createSupabaseServerClient())?.auth.refreshSession();
   }
-  // A freediving club works in /dive from its first minute; a swim school starts on its setup checklist.
-  redirect(vertical === 'freediving' ? '/dive' : '/admin/onboarding');
+  // Last step of sign-up: the card the subscription is paid with after the trial (it can wait); then a freediving
+  // club works in /dive and a swim school starts on its setup checklist.
+  redirect('/billing/card');
 }

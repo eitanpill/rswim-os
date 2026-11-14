@@ -27,12 +27,30 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           </Link>
         </p>
       ) : null}
-      {account.status === 'trialing' && account.trialEndsOn ? (
+      {account.cancelsOn && account.status !== 'cancelled' ? (
+        <p data-testid="cancelling-banner" className="mb-4 rounded-xl bg-warn/20 px-3 py-2 text-sm">
+          {t('cancelling', { date: dmy(account.cancelsOn) })}{' '}
+          <Link href="/admin/plan" className="font-medium underline">
+            {t('toPlan')}
+          </Link>
+        </p>
+      ) : account.status === 'trialing' && account.trialEndsOn ? (
         <p
           data-testid="trial-banner"
           className="mb-4 rounded-xl bg-brand-50 px-3 py-2 text-sm dark:bg-surface"
         >
-          {t('trial', { date: dmy(account.trialEndsOn) })}
+          {account.hasCard
+            ? t('trial', { date: dmy(account.trialEndsOn) })
+            : t('trialNoCard', { date: dmy(account.trialEndsOn) })}{' '}
+          {account.hasCard || session.role !== 'owner' ? null : (
+            <Link
+              href="/billing/card"
+              className="font-medium underline"
+              data-testid="trial-add-card"
+            >
+              {t('addCard')}
+            </Link>
+          )}
         </p>
       ) : null}
       {/* A suspended school's office sees only its plan page; parents and staff keep working. */}

@@ -1,9 +1,12 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { agorot } from '@rswim/money';
-import { myPlanPage } from '@rswim/domain-platform';
+import { lastDayOnCancel, myPlanPage, subFacts, todayIL } from '@rswim/domain-platform';
 import { Badge, Card, CardTitle, Money, PageHeader } from '@rswim/ui';
+import { ActionForm, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { dmy } from '@/lib/options';
+import { changePlanAction } from '@/app/billing/actions';
+import { CancelBox, CardBox, DetailsBox } from '@/app/billing/manage';
 
 const STATUS_TONE = {
   trialing: 'neutral',
@@ -14,18 +17,32 @@ const STATUS_TONE = {
 } as const;
 const INVOICE_TONE = { open: 'neutral', paid: 'ok', failed: 'danger', void: 'warn' } as const;
 
-/** The school's plan, its usage against the plan's limits, and what the platform billed it. */
+/**
+ * The school's plan, its usage against the plan's limits, and what the platform billed it. Its owner also manages the
+ * subscription here: the card, the plan, the invoice details, cancelling and renewing (SaaS stage 3).
+ */
 export async function PlanView({
   locked = false,
   feature,
+  card,
+  back = '/admin/plan',
 }: {
   locked?: boolean;
   feature?: string;
+  /** Back from the card page: saved or failed. */
+  card?: string;
+  /** This page's path, where the card page returns. */
+  back?: string;
 }) {
   const t = await getTranslations('platform.plan');
+  const tb = await getTranslations('platform.billing');
   const tEnum = await getTranslations('enums');
   const locale = (await getLocale()) === 'en' ? 'en' : 'he';
-  const page = await withSession((tx) => myPlanPage(tx));
+  const { page, owner, today } = await withSession(async (tx, _ctx, session) => ({
+    page: await myPlanPage(tx),
+    owner: session.role === 'owner',
+    today: await todayIL(tx),
+  }));
   const planName = (p: { nameHe: string; nameEn: string }) =>
     locale === 'en' ? p.nameEn : p.nameHe;
   const sub = page.subscription;
@@ -48,6 +65,19 @@ export async function PlanView({
               ? tEnum(`planFeature.${feature}`)
               : feature,
           })}
+        </p>
+      ) : null}
+      {card === 'saved' || card === 'failed' ? (
+        <p
+          role={card === 'saved' ? 'status' : 'alert'}
+          data-testid="card-result"
+          className={
+            card === 'saved'
+              ? 'mb-4 rounded-xl bg-ok/10 px-3 py-2 text-ok'
+              : 'mb-4 rounded-xl bg-danger/10 px-3 py-2 text-danger'
+          }
+        >
+          {card === 'saved' ? tb('card.savedToast') : tb('card.failedToast')}
         </p>
       ) : null}
       <div className="grid gap-4 md:grid-cols-2">
@@ -74,6 +104,9 @@ export async function PlanView({
               ) : null}
               {sub.pastDueSince ? (
                 <p className="text-danger">{t('pastDueSince', { date: dmy(sub.pastDueSince) })}</p>
+              ) : null}
+              {sub.cancelsOn && sub.status !== 'cancelled' ? (
+                <p className="text-warn">{tb('cancel.scheduled', { date: dmy(sub.cancelsOn) })}</p>
               ) : null}
               <p className="text-sm text-ink-muted">
                 {sub.mandateId ? t('mandateOk') : t('mandateMissing')}
@@ -135,11 +168,36 @@ export async function PlanView({
                   <li key={f}>✓ {tEnum(`planFeature.${f}`)}</li>
                 ))}
               </ul>
+              {owner && sub && page.plan ? (
+                p.code === page.plan.code ? (
+                  <p className="mt-3 text-sm font-medium text-brand-700">{tb('change.current')}</p>
+                ) : sub.status !== 'cancelled' && sub.status !== 'suspended' ? (
+                  <ActionForm action={changePlanAction} className="mt-3">
+                    <input type="hidden" name="planCode" value={p.code} />
+                    <div>
+                      <SubmitButton variant="secondary" data-testid={`change-plan-${p.code}`}>
+                        {tb('change.submit')}
+                      </SubmitButton>
+                    </div>
+                  </ActionForm>
+                ) : null
+              ) : null}
             </Card>
           </li>
         ))}
       </ul>
       <p className="mt-2 text-sm text-ink-muted">{t('changeHint')}</p>
+
+      {owner && sub ? (
+        <>
+          <h2 className="mt-6 mb-2 text-lg font-semibold">{tb('manage')}</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <CardBox sub={sub} back={back} />
+            <DetailsBox sub={sub} />
+            <CancelBox sub={sub} lastDay={lastDayOnCancel(subFacts(sub), today)} />
+          </div>
+        </>
+      ) : null}
 
       <h2 className="mt-6 mb-2 text-lg font-semibold">{t('invoices')}</h2>
       {page.invoices.length === 0 ? (
@@ -148,12 +206,36 @@ export async function PlanView({
         <Card>
           <ul className="divide-y divide-line" data-testid="platform-invoices">
             {page.invoices.map((i) => (
-              <li key={i.id} className="flex items-center justify-between gap-2 py-2">
-                <span>{dmy(i.period).replace(/^1\./, '')}</span>
+              <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <span>
+                  {dmy(i.period).replace(/^1\./, '')}
+                  {i.coversFrom !== i.period ? (
+                    <span className="ms-1 text-sm text-ink-muted">
+                      ({tb('from', { date: dmy(i.coversFrom) })})
+                    </span>
+                  ) : null}
+                </span>
                 <Money agorot={agorot(i.amountAgorot)} locale={locale} />
                 <Badge tone={INVOICE_TONE[i.status as keyof typeof INVOICE_TONE] ?? 'neutral'}>
                   {tEnum(`platformInvoiceStatus.${i.status}`)}
                 </Badge>
+                {i.documentNumber ? (
+                  i.documentUrl?.startsWith('https://docs.example.test/') ? (
+                    <span className="text-sm text-ink-muted" data-testid="invoice-document">
+                      {tb('document', { number: i.documentNumber })}
+                    </span>
+                  ) : (
+                    <a
+                      href={i.documentUrl ?? '#'}
+                      className="text-sm underline"
+                      data-testid="invoice-document"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {tb('document', { number: i.documentNumber })}
+                    </a>
+                  )
+                ) : null}
               </li>
             ))}
           </ul>

@@ -43,6 +43,21 @@ export async function withSession<T>(
 }
 
 /**
+ * Runs `fn` as the signed-in user in their school, against the platform's own database (where the subscription,
+ * its invoices and saved cards live, also for a school with its own database).
+ */
+export async function withControlPlane<T>(
+  fn: (tx: Tx, ctx: ServiceContext, session: Session) => Promise<T>,
+): Promise<T> {
+  const session = await getSession();
+  if (!session?.orgId) redirect('/login');
+  const orgId = session.orgId;
+  return asUser(db(), { sub: session.userId, org_id: orgId }, (tx) =>
+    fn(tx, { orgId, userId: session.userId }, session),
+  );
+}
+
+/**
  * Runs `fn` as the signed-in user without a school claim: for opening a new school (the database function checks
  * the caller) and for the platform console (security-definer functions check `platform_admins`).
  */

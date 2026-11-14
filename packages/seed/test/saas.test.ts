@@ -8,7 +8,7 @@ import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { asAnon, asUser, type Tx } from '@rswim/db';
 import { ACCOUNT_PERSONAS, DEMO_ORG, PERSONAS } from '@rswim/db/personas';
-import { withOrg } from '@rswim/db/service';
+import { asPlatform, withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import { toDomainError, type ServiceContext } from '@rswim/domain-core';
 import {
@@ -16,6 +16,13 @@ import {
   addDomain,
   billSchool,
   brandingForHost,
+  cancelMySubscription,
+  changeMyPlan,
+  completeCardSetup,
+  invoicesToRetry,
+  openCardSetup,
+  renewMySubscription,
+  saveBillingDetails,
   createSchool,
   installTemplate,
   listDomains,
@@ -36,7 +43,7 @@ import {
   verifyDomain,
 } from '@rswim/domain-platform';
 import { createVenue } from '@rswim/domain-venues';
-import { FakeDnsResolver, FakePaymentProvider } from '@rswim/integrations';
+import { FakeDnsResolver, FakeInvoicingProvider, FakePaymentProvider } from '@rswim/integrations';
 import { seedDemo } from '../src/demo';
 import { TEMPLATE_NAMES } from '../src/saas-data';
 
@@ -258,17 +265,103 @@ describe('platform billing', () => {
     });
   });
 
+  it('retries a declined month on the plan’s schedule, takes a new card from its owner and invoices the payment', async () => {
+    // December was declined on 2026-12-01: the starter plan retries every 3 days.
+    expect(await system((tx) => invoicesToRetry(tx, '2026-12-03'))).toEqual([]);
+    expect(await system((tx) => invoicesToRetry(tx, '2026-12-04'))).toEqual(['2026-12-01']);
+    await owner((tx) =>
+      saveBillingDetails(tx, {
+        billingName: 'גלים בע״מ (דמו)',
+        billingTaxId: '514000000',
+        billingEmail: '',
+      }),
+    );
+    const setup = await owner((tx) => openCardSetup(tx, { orgId, userId: newcomer }));
+    await asPlatform(t.db, (tx) =>
+      completeCardSetup(tx, {
+        eventId: 'evt-1',
+        type: 'card.saved',
+        reference: setup,
+        mandateId: 'fake-card-galim',
+        cardLast4: '4242',
+        occurredAt: '2026-12-04T08:00:00+02:00',
+      }),
+    );
+    const docs = new FakeInvoicingProvider();
+    expect(
+      await system((tx) =>
+        billSchool(tx, ctx(), '2026-12-01', payments, '2026-12-04', { invoicing: docs }),
+      ),
+    ).toMatchObject({ status: 'paid' });
+    expect(docs.issued).toHaveLength(1);
+    expect(docs.issued[0]).toMatchObject({
+      client: { name: 'גלים בע״מ (דמו)', nationalId: '514000000' },
+      lines: [{ amount: 19900, quantity: 1 }],
+    });
+    const page = await owner((tx) => myPlanPage(tx));
+    expect(page.subscription).toMatchObject({ cardLast4: '4242', status: 'active' });
+    expect(page.invoices[0]).toMatchObject({
+      period: '2026-12-01',
+      status: 'paid',
+      attempts: 2,
+      documentNumber: '10001',
+    });
+  });
+
+  it('lets its owner change plan, cancel to the end of the paid month, and renew', async () => {
+    await owner((tx) => changeMyPlan(tx, { planCode: 'growth' }));
+    expect((await owner((tx) => myPlanPage(tx))).plan?.code).toBe('growth');
+    expect(await owner((tx) => cancelMySubscription(tx, '2026-12-15'))).toBe('2026-12-31');
+    expect(
+      await system((tx) => billSchool(tx, ctx(), '2027-01-01', payments, '2027-01-01')),
+    ).toEqual({ billed: false, reason: 'cancelled' });
+    expect(await system((tx) => subscriptionDailyStep(tx, ctx(), '2027-01-01'))).toMatchObject({
+      status: 'cancelled',
+      changed: true,
+    });
+    expect(await owner((tx) => accountState(tx))).toMatchObject({ locked: true });
+    await owner((tx) => renewMySubscription(tx));
+    expect(await owner((tx) => accountState(tx))).toMatchObject({
+      status: 'active',
+      cancelsOn: null,
+      locked: false,
+    });
+    // A renewal mid-month bills the rest of it: February 2027 from the 15th is 14 of 28 days.
+    expect(
+      await system((tx) =>
+        billSchool(tx, ctx(), '2027-02-01', payments, '2027-02-15', { from: '2027-02-15' }),
+      ),
+    ).toMatchObject({ status: 'paid' });
+    const inv = (await owner((tx) => myPlanPage(tx))).invoices.find(
+      (i) => i.period === '2027-02-01',
+    );
+    expect(inv).toMatchObject({
+      coversFrom: '2027-02-15',
+      amountAgorot: 19950,
+      planCode: 'growth',
+    });
+  });
+
   it('lets the platform admin see every school, move plans within size, and queue a billing run', async () => {
     const schools = await admin((tx) => listSchools(tx));
     expect(schools.find((s) => s.slug === 'galim-demo')).toMatchObject({
-      planCode: 'starter',
+      // The owner moved to growth and paid a renewed February in the tests above.
+      planCode: 'growth',
       venues: 1,
-      lastPeriod: '2026-12-01',
-      lastStatus: 'failed',
+      lastPeriod: '2027-02-01',
+      lastStatus: 'paid',
     });
     expect(schools.find((s) => s.organizationId === DEMO_ORG.id)).toMatchObject({
       planCode: 'pro',
     });
+    await admin((tx) =>
+      updateSchool(
+        tx,
+        { organizationId: orgId, action: 'plan', planCode: 'starter' },
+        '2026-12-12',
+      ),
+    );
+    expect(await owner((tx) => myFeatures(tx))).toMatchObject({ reports: false });
     await admin((tx) =>
       updateSchool(tx, { organizationId: orgId, action: 'plan', planCode: 'growth' }, '2026-12-12'),
     );

@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./policies": "./src/policies.ts",
     "./tenancy": "./src/tenancy.ts",
-    "./sync": "./src/sync.ts"
+    "./sync": "./src/sync.ts",
+    "./card-intake": "./src/card-intake.ts"
   },
   "scripts": {
     "lint": "eslint .",

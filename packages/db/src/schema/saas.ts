@@ -50,6 +50,9 @@ export const plans = pgTable(
     trialDays: smallint('trial_days').notNull().default(14),
     /** Days a declined school stays past due before it is suspended. */
     graceDays: smallint('grace_days').notNull().default(10),
+    /** A declined charge is tried again every this many days, at most `maxChargeAttempts` times. */
+    retryEveryDays: smallint('retry_every_days').notNull().default(3),
+    maxChargeAttempts: smallint('max_charge_attempts').notNull().default(4),
     active: boolean('active').notNull().default(true),
     sortOrder: smallint('sort_order').notNull().default(0),
     createdAt: createdAt(),
@@ -73,7 +76,16 @@ export const orgSubscriptions = pgTable(
     trialEndsOn: date('trial_ends_on'),
     /** The school's standing payment authorization with the platform's payment provider. */
     mandateId: text('mandate_id'),
+    /** The saved card's last digits (the card itself stays at the processor). */
+    cardLast4: text('card_last4'),
+    cardSavedAt: timestamp('card_saved_at', { withTimezone: true }),
     pastDueSince: date('past_due_since'),
+    /** The last day the school is served after its owner cancelled; null = renews every month. */
+    cancelsOn: date('cancels_on'),
+    /** Who the tax invoice is made out to (defaults: the school's name, the owner's email). */
+    billingName: text('billing_name'),
+    billingTaxId: text('billing_tax_id'),
+    billingEmail: text('billing_email'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -93,13 +105,20 @@ export const platformInvoices = pgTable(
     organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
     /** First day of the billed month. */
     period: date('period').notNull(),
+    /** The first day billed: the 1st, or the day after the trial for a prorated first month. */
+    coversFrom: date('covers_from').notNull(),
     planCode: text('plan_code').notNull(),
     amountAgorot: integer('amount_agorot').notNull(),
     status: text('status').notNull().default('open'),
     attempts: smallint('attempts').notNull().default(0),
+    lastAttemptOn: date('last_attempt_on'),
     externalPaymentId: text('external_payment_id'),
     failureCode: text('failure_code'),
     paidAt: timestamp('paid_at', { withTimezone: true }),
+    /** The tax invoice-receipt for the payment (Morning). */
+    documentId: text('document_id'),
+    documentNumber: text('document_number'),
+    documentUrl: text('document_url'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -111,6 +130,25 @@ export const platformInvoices = pgTable(
       'platform_invoices_status_check',
       sql.raw(`status in (${inList(PLATFORM_INVOICE_STATUSES)})`),
     ),
+  ],
+);
+
+/** One visit of the owner to the processor's card page; its callback saves the card on this row's school only. */
+export const platformCardSetups = pgTable(
+  'platform_card_setups',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    status: text('status').notNull().default('open'),
+    externalId: text('external_id'),
+    failureReason: text('failure_reason'),
+    createdBy: uuid('created_by').notNull(),
+    createdAt: createdAt(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+  },
+  (t) => [
+    index('platform_card_setups_org').on(t.organizationId, t.createdAt),
+    check('platform_card_setups_status_check', sql`${t.status} in ('open', 'saved', 'failed')`),
   ],
 );
 

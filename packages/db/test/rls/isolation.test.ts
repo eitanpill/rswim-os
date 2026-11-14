@@ -136,6 +136,7 @@ const TENANT_TABLES = [
   'owner_insights',
   'org_subscriptions',
   'platform_invoices',
+  'platform_card_setups',
   'org_domains',
   'template_installs',
   'join_requests',

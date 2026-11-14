@@ -365,8 +365,29 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - Verified: RLS tests (vertical, anon price list, anon can't open a school), auth unit tests, E2E
   `e2e/signup.spec.ts` (landing → sign-up → swim school; → freediving club; taken email and missing consent; the
   sign-in link) and the existing `platform.spec.ts`.
-- Not verified: the real confirmation email (needs Supabase + Resend). Card capture at sign-up is stage 3. Terms of
+- Not verified: the real confirmation email (needs Supabase + Resend). Card capture at sign-up came in stage 3. Terms of
   use and privacy policy pages come with the lawyer (stage 7); the consent box links to nothing yet.
+
+## The subscription, SaaS stage 3 (2026-11-14)
+- Sign-up ends on `/billing/card`: the owner saves the card the subscription is paid with after the 14-day trial, on
+  the platform processor's card page (not charged now; the demo processor's page is `/billing/card/<setup>/sandbox`).
+  It can wait: the trial banner and the plan screen keep offering it. The processor's verified callback
+  (`/api/webhooks/platform-card`) lands the card only on the school whose owner opened that visit (migration 0058,
+  `public.complete_card_setup`), and a school that owes money is charged again right away.
+- Billing: the day after the trial the worker bills the rest of that month (prorated by days), then the whole month
+  on the 1st. A declined charge is retried on the plan's schedule (`plans.retry_every_days`, `max_charge_attempts`:
+  every 3 days, 4 attempts) inside the existing past-due and suspension flow. Each paid invoice gets a tax
+  invoice-receipt from the platform's own invoicing account (Morning), made out to the school's billing details.
+- The owner's own screen (`/admin/plan`, `/dive/plan` for a club): the card, another plan (takes effect now; a
+  downgrade below what the school uses is refused), cancel (served to the end of the paid month or of the trial, then
+  locked), keep, renew (bills the rest of the month), and the invoice details (name, tax id, email).
+- Verified: policy tests (proration, retries, cancellation day), RLS tests (only the owner opens a card page and only
+  for her school; nobody signed in completes one; owner-only changes), the seed flow (retry → new card → paid with
+  document 10001; plan change → cancel → cancelled → renew → February prorated), the card vault's signature check,
+  E2E `signup.spec.ts` (card saved on sign-up, plan change, cancel and keep; card skipped, declined, then saved) and
+  `platform.spec.ts`.
+- Not verified: the real Grow "token only" card page and token charge, and the Morning API document; both wait for
+  Pit's sandbox accounts (the fakes stand in: `RSWIM_GROW_FAKE=1`, `RSWIM_INVOICING_FAKE=1`).
 
 ## Finding a school, store launch stage 4 (2026-11-13)
 - Verified (tests, local Postgres + E2E): the school search by name, city and kind, signed out; an opted-out school

@@ -105,7 +105,7 @@ rotation: it unlocks every school's encrypted data.
 | `ANTHROPIC_API_KEY` | ✓ | ✓ | secret; with a monthly spend limit set in the Anthropic console |
 | `SENTRY_DSN` | ✓ | ✓ | per project |
 | `NEXT_PUBLIC_SENTRY_DSN` | ✓ (build) | | the web project's DSN, for browser errors |
-| `GROW_WEBHOOK_SECRET` | ✓ | | when Grow is live (SaaS stage 3) |
+| `GROW_WEBHOOK_SECRET` | ✓ | | when Grow is live: verifies the processor's callbacks, including the owner's saved card (`/api/webhooks/platform-card`) |
 | `GHL_API_TOKEN` / `GHL_WEBHOOK_PUBLIC_KEY` | | ✓ / ✓ web | only if the platform keeps GHL as its own CRM |
 | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_ORG_SLUG` | | ✓ | only when the per-school database switch is turned on |
 | `LOG_LEVEL` | | ✓ | `info` |
