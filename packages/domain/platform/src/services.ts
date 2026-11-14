@@ -10,6 +10,7 @@ import {
   DEFAULT_ORG_RULES,
   OrgRole,
   PLAN_FEATURES,
+  PRODUCT,
   TemplateKind,
   type PlanFeature,
   type SubscriptionStatus,
@@ -439,7 +440,7 @@ export async function billSchool(
     {
       mandateId: sub.mandateId as string,
       amount: inv.amountAgorot as never,
-      description: `R-SWIM OS ${s.plan.nameHe} ${period.slice(0, 7)}`,
+      description: `${PRODUCT.name} ${s.plan.nameHe} ${period.slice(0, 7)}`,
     },
   );
   const status =

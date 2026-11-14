@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "R-SWIM OS",
+    "name": "Aqua Swim",
     "tagline": "The swim school operating system"
   },
   "common": {
@@ -58,7 +58,7 @@
       "no_membership": "This user isn't linked to any swim school yet. Ask an admin.",
       "not_configured": "Sign-in isn't configured in this environment"
     },
-    "poweredBy": "Powered by R-SWIM OS",
+    "poweredBy": "Powered by Aqua Swim",
     "devAccount": {
       "newcomer": "New school (sign-up)",
       "platform": "Platform admin",
@@ -690,7 +690,7 @@
     },
     "plan": {
       "title": "My plan",
-      "subtitle": "The school's plan, usage against its limits, and R-SWIM OS charges",
+      "subtitle": "The school's plan, usage against its limits, and Aqua Swim charges",
       "locked": "Office access is suspended until payment is settled. Parents, instructors and escorts keep working as usual.",
       "featureMissing": "{feature} is not in your current plan. Contact us to upgrade.",
       "current": "Current plan",
@@ -707,7 +707,7 @@
       "perMonth": "per month",
       "unlimited": "Unlimited",
       "changeHint": "Plan changes go through us for now. Write to us and we'll update it.",
-      "invoices": "R-SWIM OS invoices",
+      "invoices": "Aqua Swim invoices",
       "noInvoices": "No invoices yet."
     },
     "branding": {
@@ -4000,7 +4000,7 @@
     },
     "clubFallback": "Freediving club",
     "tagline": "Freediving · Gulf of Eilat",
-    "footer": "R-SWIM OS · the freediving club's operating system. All demo data is invented.",
+    "footer": "Aqua Swim · the freediving club's operating system. All demo data is invented.",
     "roles": {
       "owner": "Owner",
       "manager": "Operations manager",
