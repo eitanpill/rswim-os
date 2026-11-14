@@ -7,7 +7,7 @@ import { isDemoMode } from '@/lib/auth/dev';
 import { withAnon } from '@/lib/db';
 
 /** On a school's own verified domain, sign-in wears that school's name and colour. */
-async function hostBranding() {
+export async function hostBranding() {
   const host = (await headers()).get('host');
   if (!host || !process.env.DATABASE_URL) return null;
   return withAnon((tx) => brandingForHost(tx, host));
@@ -23,7 +23,7 @@ export async function LoginFrame({
   children: ReactNode;
 }) {
   const t = await getTranslations();
-  const known = ['invalid', 'phone', 'code', 'no_membership', 'not_configured'];
+  const known = ['invalid', 'phone', 'code', 'no_membership', 'not_configured', 'confirm'];
   const brand = await hostBranding();
   return (
     <main

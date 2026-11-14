@@ -2,7 +2,7 @@
  * Finding a school (store launch, stage 4). A family finds its school by the link or QR the school shares, by the
  * app's search, or because the school already has their phone on file ("we found you"). A swim school's office
  * receives join and trial requests and decides them; a freediving club takes divers directly (domain-dive signup).
- * The database functions (migration 0055) hold every check; these are thin, typed wrappers.
+ * The database functions (migration 0057) hold every check; these are thin, typed wrappers.
  */
 import { z } from 'zod';
 import {

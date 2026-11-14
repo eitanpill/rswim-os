@@ -16,4 +16,5 @@ export * from './copilot';
 export * from './agent';
 export * from './platform';
 export * from './dive';
+export * from './brand';
 export * from './directory';

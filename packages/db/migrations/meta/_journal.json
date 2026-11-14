@@ -383,15 +383,29 @@
     {
       "idx": 54,
       "version": "7",
-      "when": 1794571207241,
-      "tag": "0054_find_a_school",
+      "when": 1794584139878,
+      "tag": "0054_sessions_term_fk",
       "breakpoints": true
     },
     {
       "idx": 55,
       "version": "7",
-      "when": 1794571226651,
-      "tag": "0055_find_a_school_security",
+      "when": 1794632817252,
+      "tag": "0055_signup",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1794634160606,
+      "tag": "0056_find_a_school",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1794634165849,
+      "tag": "0057_find_a_school_security",
       "breakpoints": true
     }
   ]

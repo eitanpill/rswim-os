@@ -1,6 +1,6 @@
 {
-  "id": "f37498df-7309-437f-b1ac-2c643e56590b",
-  "prevId": "b812c16e-dd9c-449b-a6c0-80dc646304c0",
+  "id": "c85bedb3-f3cf-423c-8593-a9243162a18f",
+  "prevId": "3915ffd6-7967-4db3-bf45-fe68a94b204f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -472,25 +472,6 @@
           "notNull": true,
           "default": "'swim'"
         },
-        "listed": {
-          "name": "listed",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "city": {
-          "name": "city",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "about": {
-          "name": "about",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -520,14 +501,6 @@
       },
       "policies": {},
       "checkConstraints": {
-        "organizations_city_check": {
-          "name": "organizations_city_check",
-          "value": "\"organizations\".\"city\" is null or length(\"organizations\".\"city\") <= 60"
-        },
-        "organizations_about_check": {
-          "name": "organizations_about_check",
-          "value": "\"organizations\".\"about\" is null or length(\"organizations\".\"about\") <= 400"
-        },
         "organizations_vertical_check": {
           "name": "organizations_vertical_check",
           "value": "\"organizations\".\"vertical\" in ('swim', 'freediving')"
@@ -20631,212 +20604,6 @@
         "dive_staff_certs_kind_check": {
           "name": "dive_staff_certs_kind_check",
           "value": "kind in ('instructor', 'first_aid', 'oxygen', 'insurance', 'boat_license')"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "public.join_requests": {
-      "name": "join_requests",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'join'"
-        },
-        "first_name": {
-          "name": "first_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "last_name": {
-          "name": "last_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "phone_e164": {
-          "name": "phone_e164",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "children": {
-          "name": "children",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
-        },
-        "note": {
-          "name": "note",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'new'"
-        },
-        "guardian_id": {
-          "name": "guardian_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "handled_by": {
-          "name": "handled_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "handled_at": {
-          "name": "handled_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "join_requests_one_open": {
-          "name": "join_requests_one_open",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "with": {},
-          "method": "btree",
-          "where": "status = 'new'",
-          "concurrently": false
-        },
-        "join_requests_org_status": {
-          "name": "join_requests_org_status",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "with": {},
-          "method": "btree",
-          "concurrently": false
-        }
-      },
-      "foreignKeys": {
-        "join_requests_organization_id_organizations_id_fk": {
-          "name": "join_requests_organization_id_organizations_id_fk",
-          "tableFrom": "join_requests",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "tableTo": "organizations",
-          "columnsTo": [
-            "id"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
-        },
-        "join_requests_guardian_fk": {
-          "name": "join_requests_guardian_fk",
-          "tableFrom": "join_requests",
-          "columnsFrom": [
-            "organization_id",
-            "guardian_id"
-          ],
-          "tableTo": "guardians",
-          "columnsTo": [
-            "organization_id",
-            "id"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "join_requests_org_id": {
-          "name": "join_requests_org_id",
-          "columns": [
-            "organization_id",
-            "id"
-          ],
-          "nullsNotDistinct": false
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "join_requests_kind_check": {
-          "name": "join_requests_kind_check",
-          "value": "kind in ('join', 'trial')"
-        },
-        "join_requests_status_check": {
-          "name": "join_requests_status_check",
-          "value": "status in ('new', 'accepted', 'declined', 'withdrawn')"
         }
       },
       "isRLSEnabled": false

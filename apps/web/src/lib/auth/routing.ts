@@ -13,6 +13,8 @@ export const SURFACE_PATHS: Record<Surface, string> = {
 // Webhooks authenticate by signature, not by session; a companion pass by its own signature (lib/pass.ts).
 export const PUBLIC_PREFIXES = [
   '/login',
+  // A new business owner creates an account (the landing page at `/` is public too, for visitors only).
+  '/signup',
   '/auth',
   '/dev',
   '/api/health',
@@ -49,7 +51,10 @@ export type RouteDecision = { action: 'next' } | { action: 'redirect'; to: strin
 export function decideRoute(pathname: string, session: Session | null): RouteDecision {
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`)))
     return { action: 'next' };
-  if (!session) return { action: 'redirect', to: `/login?next=${encodeURIComponent(pathname)}` };
+  if (!session) {
+    if (pathname === '/') return { action: 'next' };
+    return { action: 'redirect', to: `/login?next=${encodeURIComponent(pathname)}` };
+  }
   if (pathname === '/') return { action: 'redirect', to: homePath(session) };
 
   const surface = surfaceForPath(pathname);

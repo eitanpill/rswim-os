@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "demo:reset": "tsx src/live-demo-reset.ts"
+    "demo:reset": "tsx src/live-demo-reset.ts",
+    "seed:production": "tsx src/production-cli.ts"
   },
   "dependencies": {
     "@rswim/contracts": "workspace:*",

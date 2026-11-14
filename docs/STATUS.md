@@ -338,6 +338,36 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   school link opens the club's join page. See docs/store/PLAN.md.
 - Not verified: the switch's token refresh against real Supabase Auth (no Supabase project yet).
 
+## Production infrastructure, SaaS stage 1 (2026-11-13)
+- Verified (tests, local Postgres, local run): the production seed writes the three plans at the approved prices and
+  the starter regulations, with no school and no person, and runs again without duplicating
+  (`packages/seed/test/production.test.ts`); migrations take an advisory lock; deleting a term clears only
+  `sessions.term_id` (the seed re-run flake); the worker answers `/health` with its database state and serves
+  `/api/inngest`; the web app's `/api/health` answers 503 when the database is down; persona sign-in is off whenever
+  `RSWIM_ENV` is staging or production (`apps/web/src/lib/auth/dev.test.ts`); the backup/restore drill restores the
+  demo database with identical row counts; the web app builds with Sentry wired (off without a DSN).
+- In CI: both production containers build on every pull request, and the worker container starts against an empty
+  Postgres, migrates, seeds the plans and answers `/health`.
+- Not verified: anything on a real host (no Supabase, Vercel, Railway, Inngest Cloud, Sentry or Twilio account yet).
+  Setup steps and the full variable list: `docs/saas/DEPLOY.md`.
+
+## Self sign-up and the product brand, SaaS stage 2 (2026-11-14)
+- The platform calls itself Aqua Swim from one place (`PRODUCT` in `@rswim/contracts`): app title, sign-in, the
+  shell's fallback name, platform invoices and payroll exports.
+- A visitor on the platform's address sees a landing page with the live prices (`public.public_plans()`, readable
+  without signing in; the plans table itself stays closed). A school's own address and the live demo still open on
+  sign-in.
+- `/signup`: name, email, password and consent. With Supabase the account waits for the email link
+  (`/auth/confirm`, then `/onboarding`); without Supabase (local runs, E2E) a real `auth.users` row and a stand-in
+  cookie carry the same way. Refused where persona sign-in is off and Supabase is missing.
+- `/onboarding` asks for the kind of business: a swim school lands on its setup checklist, a freediving club in
+  `/dive`. `create_school` takes the vertical (migration 0055) and refuses anything else.
+- Verified: RLS tests (vertical, anon price list, anon can't open a school), auth unit tests, E2E
+  `e2e/signup.spec.ts` (landing → sign-up → swim school; → freediving club; taken email and missing consent; the
+  sign-in link) and the existing `platform.spec.ts`.
+- Not verified: the real confirmation email (needs Supabase + Resend). Card capture at sign-up is stage 3. Terms of
+  use and privacy policy pages come with the lawyer (stage 7); the consent box links to nothing yet.
+
 ## Finding a school, store launch stage 4 (2026-11-13)
 - Verified (tests, local Postgres + E2E): the school search by name, city and kind, signed out; an opted-out school
   is left out of the search but its link opens; a join request is seen and decided only by that school's owner and

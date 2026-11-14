@@ -89,7 +89,10 @@ signed out) or its link `/join/<slug>`; a swim school's office decides join and 
 printable QR, search listing), and `/start` offers the school that already has the person's phone (dev personas
 **דנה (הורה מחפשת בית ספר)** and **מיכל (הורה שבית הספר מכיר)**).
 
-SaaS (Phase 10): the owner's way from `/start` leads to `/onboarding` to open a school; platform admins (`platform_admins`)
+SaaS (Phase 10, product name `PRODUCT` in `@rswim/contracts`): visitors see the landing page with prices at `/` and
+create an owner account on `/signup` (Supabase email confirmation through `/auth/confirm`; without Supabase a real
+`auth.users` row and a `signup.<userId>` dev cookie). The owner's way from `/start` leads to `/onboarding` to open a
+swim school or a freediving club; platform admins (`platform_admins`)
 use `/platform`. Dev personas **בית ספר חדש** and **מנהל/ת פלטפורמה** cover both. The worker verifies custom domains
 by DNS TXT, or with `RSWIM_DNS_FAKE=1` accepts any `*.localhost`; it bills schools through the payment provider
 (`RSWIM_GROW_FAKE=1`). `RSWIM_PLATFORM_HOSTS` (comma-separated) lists the platform's own hosts, which schools can't claim.
