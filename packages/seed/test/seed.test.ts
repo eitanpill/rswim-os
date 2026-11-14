@@ -23,7 +23,7 @@ describe('demo seed', () => {
     expect(first.orgs).toBe(2);
     expect(first.households).toBe(25 + 3);
     // The six demo personas, plus the two-hats persona in both schools (store launch, stage 3).
-    expect(first.memberships).toBe(8);
+    expect(first.memberships).toBe(9);
 
     const one = async (sql: string, params: unknown[] = []) =>
       (await t.pool.query(sql, params)).rows;

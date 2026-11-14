@@ -34,7 +34,8 @@
       "notFound": "Not found; it may have been deleted",
       "forbidden": "You don't have permission for this"
     },
-    "demoBanner": "Demo environment · all data is invented · no message or charge is really sent"
+    "demoBanner": "Demo environment · all data is invented · no message or charge is really sent",
+    "myAccount": "My account"
   },
   "login": {
     "title": "Sign in",
@@ -5766,6 +5767,25 @@
     }
   },
   "account": {
+    "title": "My account",
+    "delete": {
+      "title": "Delete my account",
+      "goes": "Deleting your account removes your sign-in, your place in every school, and join requests not yet accepted. This can't be undone.",
+      "stays": "What belongs to the school stays with it: the family's file, lessons, payments and receipts. Want those deleted too? Contact the school's office.",
+      "soleOwner": "You are the only owner of: {schools}. Before deleting your account, hand the ownership to someone else or close the school. We're here to help.",
+      "word": "DELETE",
+      "confirm": "To confirm, type \"{word}\"",
+      "wordWrong": "Type exactly the word above",
+      "go": "Delete my account for good"
+    },
+    "goodbye": {
+      "title": "Account deleted",
+      "body": "Your sign-in was deleted. Thank you for being with us. You can always come back and open a new account with your phone number.",
+      "back": "To sign-in"
+    },
+    "errors": {
+      "soleOwner": "You are the only owner of a school. Hand over the ownership before deleting your account."
+    },
     "signup": {
       "title": "Create an owner account",
       "subtitle": "Your account as the business owner. Next you pick the kind of business and a plan, and start a 14-day trial.",
