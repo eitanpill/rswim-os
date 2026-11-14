@@ -23,6 +23,9 @@ export interface PlanFacts {
   maxVenues: number | null;
   features: string[];
   graceDays: number;
+  /** A declined charge is retried every this many days, at most `maxChargeAttempts` attempts in all. */
+  retryEveryDays: number;
+  maxChargeAttempts: number;
 }
 
 export interface SubscriptionFacts {
@@ -31,6 +34,8 @@ export interface SubscriptionFacts {
   trialEndsOn: string | null;
   mandateId: string | null;
   pastDueSince: string | null;
+  /** The last day served after the owner cancelled; null = renews. */
+  cancelsOn: string | null;
 }
 
 export type Usage = Record<PlanLimit, number>;
@@ -108,8 +113,9 @@ const addDays = (d: string, n: number) =>
   new Date(Date.parse(`${d}T12:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
 
 /**
- * The daily step: a trial ends the day after `trialEndsOn`; a school past due for `graceDays` is suspended.
- * Everything else stays as it is.
+ * The daily step: a cancelled subscription ends the day after its last day; a trial ends the day after `trialEndsOn`
+ * (the worker then bills the rest of the month); a school past due for `graceDays` is suspended. Everything else
+ * stays as it is.
  */
 export function subscriptionOnDay(
   sub: SubscriptionFacts,
@@ -117,6 +123,9 @@ export function subscriptionOnDay(
   today: string,
 ): SubscriptionChange {
   const same = { status: sub.status, pastDueSince: sub.pastDueSince, changed: false, reason: null };
+  if (sub.status !== 'cancelled' && sub.cancelsOn !== null && today > sub.cancelsOn) {
+    return { status: 'cancelled', pastDueSince: null, changed: true, reason: 'cancelled' };
+  }
   if (sub.status === 'trialing' && sub.trialEndsOn !== null && today > sub.trialEndsOn) {
     return { status: 'active', pastDueSince: null, changed: true, reason: 'trialEnded' };
   }
@@ -166,20 +175,70 @@ export function subscriptionAfterCharge(
 /** The first day of the month a date falls in. */
 export const billingPeriod = (date: string) => `${date.slice(0, 7)}-01`;
 
+const daysInMonth = (period: string) => {
+  const [y, m] = period.split('-').map(Number) as [number, number];
+  return new Date(Date.UTC(y, m, 0)).getUTCDate();
+};
+
 /**
- * What a school owes the platform for a month, billed in advance: the plan's price, once the trial is over. A free
- * plan, a trial, a suspension or a cancellation bills nothing.
+ * A month's price from `from` to the end of the month, rounded to the agora. From the 1st it is the full price.
+ * Used for the first month after a trial and for a renewal mid-month.
+ */
+export function prorate(priceAgorot: number, period: string, from: string): number {
+  const days = daysInMonth(period);
+  const served = days - Number(from.slice(8, 10)) + 1;
+  return Math.round((priceAgorot * served) / days);
+}
+
+/**
+ * What a school owes the platform for a month, billed in advance: the plan's price once the trial is over, prorated
+ * from `from` (the day after the trial, or a renewal) when that falls inside the month. A free plan, a trial, a
+ * suspension or a cancellation bills nothing, nor does a month that starts after the school's last day.
  */
 export function invoiceFor(
   sub: SubscriptionFacts,
   plan: PlanFacts,
-): { bill: true; amountAgorot: number; planCode: string } | { bill: false; reason: string } {
+  period: string,
+  from: string = period,
+):
+  | { bill: true; amountAgorot: number; planCode: string; coversFrom: string }
+  | { bill: false; reason: string } {
   if (sub.status === 'trialing') return { bill: false, reason: 'trialing' };
   if (sub.status === 'suspended' || sub.status === 'cancelled') {
     return { bill: false, reason: sub.status };
   }
+  if (sub.cancelsOn !== null && sub.cancelsOn < period) return { bill: false, reason: 'cancelled' };
   if (plan.priceAgorot === 0) return { bill: false, reason: 'free' };
-  return { bill: true, amountAgorot: plan.priceAgorot, planCode: plan.code };
+  const coversFrom = billingPeriod(from) === period && from > period ? from : period;
+  return {
+    bill: true,
+    amountAgorot: prorate(plan.priceAgorot, period, coversFrom),
+    planCode: plan.code,
+    coversFrom,
+  };
+}
+
+/** Whether a declined invoice is due for another attempt today (the plan says how often and how many times). */
+export function retryDue(
+  invoice: { status: string; attempts: number; lastAttemptOn: string | null },
+  plan: Pick<PlanFacts, 'retryEveryDays' | 'maxChargeAttempts'>,
+  today: string,
+): boolean {
+  if (invoice.status !== 'failed') return false;
+  if (invoice.attempts >= plan.maxChargeAttempts) return false;
+  if (invoice.lastAttemptOn === null) return true;
+  return today >= addDays(invoice.lastAttemptOn, plan.retryEveryDays);
+}
+
+/** The last day served when an owner cancels today: the end of the trial, or the end of the month already paid. */
+export function lastDayOnCancel(
+  sub: Pick<SubscriptionFacts, 'status' | 'trialEndsOn'>,
+  today: string,
+): string {
+  if (sub.status === 'trialing' && sub.trialEndsOn !== null && sub.trialEndsOn >= today)
+    return sub.trialEndsOn;
+  const period = billingPeriod(today);
+  return `${period.slice(0, 8)}${String(daysInMonth(period)).padStart(2, '0')}`;
 }
 
 /** Whether to charge an invoice now: never a paid or voided one, and not without a payment method. */

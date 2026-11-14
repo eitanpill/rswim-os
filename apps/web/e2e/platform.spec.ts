@@ -37,6 +37,9 @@ test('a new school signs up, sets up from templates, gets its domain and is bill
   await signup.getByLabel('מזהה קצר באנגלית').fill('galim');
   await signup.getByTestId('plan-starter').click();
   await signup.getByRole('button', { name: 'פתיחת בית הספר' }).click();
+  // The card step can wait: the platform admin sets a standing order below.
+  await expect(page).toHaveURL(/\/billing\/card$/);
+  await page.getByTestId('card-step-later').click();
   await expect(page).toHaveURL(/\/admin\/onboarding$/);
   await expect(page.getByTestId('org-name')).toHaveText('גלים (דמו)');
   await expect(page.getByTestId('trial-banner')).toContainText('תקופת הניסיון פעילה');

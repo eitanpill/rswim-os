@@ -30,7 +30,7 @@ import {
   ProgramInput,
   savePriceItem,
 } from '@rswim/domain-settings';
-import type { DnsResolver, PaymentProvider } from '@rswim/integrations';
+import type { DnsResolver, InvoicingProvider, PaymentProvider } from '@rswim/integrations';
 import {
   billingPeriod,
   catalogProblems,
@@ -39,6 +39,7 @@ import {
   featureEnabled,
   invoiceFor,
   normalizeHost,
+  retryDue,
   onboardingChecklist,
   parseTemplate,
   planChangeCheck,
@@ -76,7 +77,7 @@ export async function todayIL(tx: Tx): Promise<string> {
 
 // ─── Plans and the school's subscription ────────────────────────────────────
 
-const planFacts = (p: typeof plans.$inferSelect): PlanFacts => ({
+export const planFacts = (p: typeof plans.$inferSelect): PlanFacts => ({
   code: p.code,
   priceAgorot: p.priceAgorot,
   maxStudents: p.maxStudents,
@@ -84,6 +85,8 @@ const planFacts = (p: typeof plans.$inferSelect): PlanFacts => ({
   maxVenues: p.maxVenues,
   features: p.features,
   graceDays: p.graceDays,
+  retryEveryDays: p.retryEveryDays,
+  maxChargeAttempts: p.maxChargeAttempts,
 });
 
 export async function listPlans(tx: Tx) {
@@ -190,13 +193,17 @@ export async function myPlanPage(tx: Tx) {
 export async function accountState(tx: Tx): Promise<{
   status: SubscriptionStatus | null;
   trialEndsOn: string | null;
+  cancelsOn: string | null;
+  hasCard: boolean;
   locked: boolean;
 }> {
   const s = await mySubscription(tx);
   return {
     status: (s?.sub.status as SubscriptionStatus | undefined) ?? null,
     trialEndsOn: s?.sub.trialEndsOn ?? null,
-    locked: s?.sub.status === 'suspended',
+    cancelsOn: s?.sub.cancelsOn ?? null,
+    hasCard: !!s?.sub.mandateId,
+    locked: s?.sub.status === 'suspended' || s?.sub.status === 'cancelled',
   };
 }
 
@@ -396,12 +403,13 @@ export async function pendingDomainIds(tx: Tx) {
 
 // ─── Platform billing (worker, one school) ──────────────────────────────────
 
-const subFacts = (s: typeof orgSubscriptions.$inferSelect): SubscriptionFacts => ({
+export const subFacts = (s: typeof orgSubscriptions.$inferSelect): SubscriptionFacts => ({
   planCode: s.planCode,
   status: s.status as SubscriptionStatus,
   trialEndsOn: s.trialEndsOn,
   mandateId: s.mandateId,
   pastDueSince: s.pastDueSince,
+  cancelsOn: s.cancelsOn,
 });
 
 async function setSubscription(
@@ -412,7 +420,7 @@ async function setSubscription(
   await tx.update(orgSubscriptions).set(change).where(eq(orgSubscriptions.organizationId, orgId));
 }
 
-/** Worker, daily: ends trials and suspends schools past their grace days. */
+/** Worker, daily: ends cancelled subscriptions and trials, and suspends schools past their grace days. */
 export async function subscriptionDailyStep(tx: Tx, ctx: ServiceContext, today: string) {
   const s = await mySubscription(tx);
   if (!s) return null;
@@ -421,13 +429,32 @@ export async function subscriptionDailyStep(tx: Tx, ctx: ServiceContext, today: 
   return change;
 }
 
+/** Worker, daily: the months whose declined invoice is due for another attempt today (the plan's retry rule). */
+export async function invoicesToRetry(tx: Tx, today: string): Promise<string[]> {
+  const s = await mySubscription(tx);
+  if (!s || s.sub.status === 'cancelled' || !s.sub.mandateId) return [];
+  const list = await tx
+    .select()
+    .from(platformInvoices)
+    .where(eq(platformInvoices.status, 'failed'));
+  return list.filter((i) => retryDue(i, planFacts(s.plan), today)).map((i) => i.period);
+}
+
 export type BillOutcome =
   | { billed: false; reason: string }
   | { billed: true; invoiceId: string; status: 'paid' | 'failed' | 'open'; code: string | null };
 
+export interface BillOptions {
+  /** The first day billed when it is not the 1st (the day after a trial, a renewal): the month is prorated. */
+  from?: string;
+  /** The platform's invoicing (Morning): a tax invoice-receipt for every payment. */
+  invoicing?: InvoicingProvider | null;
+}
+
 /**
- * Worker: issues the school's invoice for a month (at most one per month) and charges its mandate. Idempotent: a paid
- * invoice is never charged again, and each attempt has its own idempotency key with the provider.
+ * Worker: issues the school's invoice for a month (at most one per month) and charges its saved card. Idempotent: a
+ * paid invoice is never charged again, and each attempt has its own idempotency key with the provider. A paid
+ * invoice gets its tax invoice-receipt.
  */
 export async function billSchool(
   tx: Tx,
@@ -435,6 +462,7 @@ export async function billSchool(
   period: string,
   payments: PaymentProvider | null,
   today: string,
+  opts: BillOptions = {},
 ): Promise<BillOutcome> {
   if (period !== billingPeriod(period)) throw new DomainError('platform.errors.period');
   const s = await mySubscription(tx);
@@ -445,25 +473,30 @@ export async function billSchool(
     .from(platformInvoices)
     .where(eq(platformInvoices.period, period));
   if (!invoice) {
-    const due = invoiceFor(sub, planFacts(s.plan));
+    const due = invoiceFor(sub, planFacts(s.plan), period, opts.from);
     if (!due.bill) return { billed: false, reason: due.reason };
     [invoice] = await tx
       .insert(platformInvoices)
       .values({
         organizationId: ctx.orgId,
         period,
+        coversFrom: due.coversFrom,
         planCode: due.planCode,
         amountAgorot: due.amountAgorot,
       })
       .returning();
   }
   const inv = invoice as typeof platformInvoices.$inferSelect;
+  if (inv.status === 'paid') {
+    await documentQuietly(tx, ctx, inv.id, opts.invoicing ?? null);
+    return { billed: true, invoiceId: inv.id, status: 'paid', code: null };
+  }
   const decision = chargeDecision(inv, sub.mandateId);
   if (!decision.charge) {
     if (decision.code) {
       await tx
         .update(platformInvoices)
-        .set({ status: 'failed', failureCode: decision.code })
+        .set({ status: 'failed', failureCode: decision.code, lastAttemptOn: today })
         .where(eq(platformInvoices.id, inv.id));
       const change = subscriptionAfterCharge(sub, 'failed', today);
       if (change.changed) await setSubscription(tx, ctx.orgId, change);
@@ -489,6 +522,7 @@ export async function billSchool(
     .set({
       status,
       attempts: attempt,
+      lastAttemptOn: today,
       externalPaymentId: result.externalPaymentId,
       failureCode: status === 'failed' ? (result.failureReason ?? 'declined') : null,
       paidAt: status === 'paid' ? new Date() : null,
@@ -498,12 +532,87 @@ export async function billSchool(
     const change = subscriptionAfterCharge(sub, status, today);
     if (change.changed) await setSubscription(tx, ctx.orgId, change);
   }
+  if (status === 'paid') await documentQuietly(tx, ctx, inv.id, opts.invoicing ?? null);
   return {
     billed: true,
     invoiceId: inv.id,
     status,
     code: status === 'failed' ? 'platform.errors.declined' : null,
   };
+}
+
+/**
+ * Worker: the tax invoice-receipt for a paid platform invoice, made out to the school's billing details (its name
+ * by default). Idempotent by the invoice id; an invoice that already has one is left alone. Without an invoicing
+ * provider it waits (the daily run issues what is missing).
+ */
+export async function issuePlatformDocument(
+  tx: Tx,
+  ctx: ServiceContext,
+  invoiceId: string,
+  invoicing: InvoicingProvider | null,
+): Promise<string | null> {
+  if (!invoicing) return null;
+  const [inv] = await tx.select().from(platformInvoices).where(eq(platformInvoices.id, invoiceId));
+  if (!inv || inv.status !== 'paid') return null;
+  if (inv.documentNumber) return inv.documentNumber;
+  const s = await mySubscription(tx);
+  const [org] = await rows<{ name: string }>(
+    tx,
+    sql`select name from organizations where id = ${ctx.orgId}`,
+  );
+  const month = inv.period.slice(0, 7);
+  const doc = await invoicing.issueInvoiceReceipt(
+    { organizationId: ctx.orgId, idempotencyKey: `platform-doc:${inv.id}` },
+    {
+      client: {
+        name: s?.sub.billingName ?? org?.name ?? PRODUCT.name,
+        ...(s?.sub.billingTaxId ? { nationalId: s.sub.billingTaxId } : {}),
+        ...(s?.sub.billingEmail ? { email: s.sub.billingEmail } : {}),
+      },
+      lines: [
+        {
+          description: `${PRODUCT.name}: ${s?.plan.nameHe ?? inv.planCode} ${month}${
+            inv.coversFrom !== inv.period ? ` (${inv.coversFrom.slice(8, 10)}–)` : ''
+          }`,
+          amount: inv.amountAgorot as never,
+          quantity: 1,
+        },
+      ],
+      paymentMethod: 'credit_card',
+    },
+  );
+  await tx
+    .update(platformInvoices)
+    .set({ documentId: doc.documentId, documentNumber: doc.number, documentUrl: doc.pdfUrl })
+    .where(eq(platformInvoices.id, inv.id));
+  return doc.number;
+}
+
+/** A payment stands even when the invoicing provider is down: its document is issued by a later daily run. */
+async function documentQuietly(
+  tx: Tx,
+  ctx: ServiceContext,
+  invoiceId: string,
+  invoicing: InvoicingProvider | null,
+) {
+  try {
+    await issuePlatformDocument(tx, ctx, invoiceId, invoicing);
+  } catch {
+    // Left without a document number: paidWithoutDocument() finds it tomorrow.
+  }
+}
+
+/** Worker, daily: paid invoices still without their tax invoice-receipt (the invoicing provider was down). */
+export async function paidWithoutDocument(tx: Tx): Promise<string[]> {
+  return (
+    await tx
+      .select({ id: platformInvoices.id })
+      .from(platformInvoices)
+      .where(
+        and(eq(platformInvoices.status, 'paid'), sql`${platformInvoices.documentNumber} is null`),
+      )
+  ).map((r) => r.id);
 }
 
 // ─── Template marketplace ───────────────────────────────────────────────────

@@ -698,13 +698,16 @@
     "account": {
       "pastDue": "The last subscription charge failed. Update the payment method before office access is suspended.",
       "toPlan": "Plan details",
-      "trial": "Your trial runs until {date}."
+      "trial": "Your trial runs until {date}.",
+      "trialNoCard": "Your trial runs until {date}. To continue after it, add a card.",
+      "addCard": "Add a card",
+      "cancelling": "The subscription was cancelled and ends on {date}."
     },
     "plan": {
       "title": "My plan",
       "subtitle": "The school's plan, usage against its limits, and Aqua Swim charges",
-      "locked": "Office access is suspended until payment is settled. Parents, instructors and escorts keep working as usual.",
-      "featureMissing": "{feature} is not in your current plan. Contact us to upgrade.",
+      "locked": "Office access is closed until the subscription is settled. Parents, instructors and escorts keep working as usual.",
+      "featureMissing": "{feature} is not in your current plan. You can upgrade below.",
       "current": "Current plan",
       "price": "Monthly price:",
       "trialEnds": "Trial ends on {date}",
@@ -718,7 +721,7 @@
       "plans": "Plans",
       "perMonth": "per month",
       "unlimited": "Unlimited",
-      "changeHint": "Plan changes go through us for now. Write to us and we'll update it.",
+      "changeHint": "Change plan any time. The new price applies from the next charge.",
       "invoices": "Aqua Swim invoices",
       "noInvoices": "No invoices yet."
     },
@@ -880,11 +883,18 @@
       "tooBigForPlan": "The school uses {used} {limit, select, students {students} staff {staff} other {venues}}, more than the {max} that plan allows",
       "tooManySchools": "One account can open up to 3 schools",
       "limit": {
-        "students": "You've reached the number of students your plan allows. Contact us to upgrade.",
-        "staff": "You've reached the number of staff your plan allows. Contact us to upgrade.",
+        "students": "You reached the number of students your plan allows. You can upgrade on the plan screen.",
+        "staff": "You reached the number of staff your plan allows. You can upgrade on the plan screen.",
         "venues": "Your plan includes one venue only. Upgrade to add another."
       },
-      "vertical": "Pick the kind of business: swim school or freediving club"
+      "vertical": "Pick the kind of business: swim school or freediving club",
+      "renewFirst": "Renew the subscription first",
+      "notCancellable": "A subscription that ended or is suspended cannot be cancelled",
+      "notCancelled": "The subscription is not cancelled",
+      "cardSetup": "Card page not found",
+      "billingName": "A name of 2 to 120 characters",
+      "billingTaxId": "A number of 5 to 9 digits",
+      "billingEmail": "Invalid email address"
     },
     "network": {
       "kicker": "From the top bridge",
@@ -946,6 +956,69 @@
         "ready": "Live",
         "failed": "Failed"
       }
+    },
+    "billing": {
+      "card": {
+        "title": "Payment method",
+        "none": "No card saved yet",
+        "saved": "Card ending in {last4}",
+        "add": "Add a card",
+        "replace": "Replace card",
+        "savedToast": "Card saved",
+        "failedToast": "The card was not saved. Try again or use another card.",
+        "notConfigured": "Saving a card is not open in this environment yet",
+        "safe": "Card details are kept by the payment processor only, never by us."
+      },
+      "change": {
+        "title": "Change plan",
+        "submit": "Switch to this plan",
+        "current": "Current plan",
+        "done": "Plan updated. The new price applies from the next charge."
+      },
+      "cancel": {
+        "title": "Cancel subscription",
+        "body": "The system keeps working until {date}, and nothing more is charged. You can change your mind until then.",
+        "submit": "Cancel subscription",
+        "confirm": "Cancel the subscription?",
+        "scheduled": "The subscription ends on {date}.",
+        "keep": "Keep the subscription",
+        "kept": "The subscription continues as usual.",
+        "renew": "Renew subscription",
+        "renewBody": "The subscription was cancelled. Renewing brings the system back from today, and the rest of the month is charged to the saved card.",
+        "renewed": "Subscription renewed."
+      },
+      "details": {
+        "title": "Invoice details",
+        "name": "Name on invoices",
+        "nameHint": "Empty: the business name",
+        "taxId": "Company or VAT number",
+        "email": "Email for invoices",
+        "submit": "Save",
+        "saved": "Details saved"
+      },
+      "document": "Invoice {number}",
+      "from": "from {date}",
+      "setup": {
+        "title": "A card for after the trial",
+        "body": "The 14-day trial is free. The card is kept by the payment processor and not charged now.",
+        "when": "The first charge is on {date}, for the rest of that month, then on the 1st of every month.",
+        "cancelAnytime": "Cancel any time on the plan screen, at no cost until the trial ends.",
+        "submit": "Save card",
+        "later": "Later",
+        "savedTitle": "Card saved",
+        "continue": "Continue setting up"
+      },
+      "sandbox": {
+        "title": "Card page (demo)",
+        "payee": "Saving a card for {product}",
+        "body": "Here the payment processor asks for the card details. In the demo nothing is typed.",
+        "approve": "Save the card",
+        "approveFail": "Save a card whose charges are declined",
+        "decline": "Card declined",
+        "cancel": "Back without saving",
+        "note": "Demo page: nothing is sent anywhere and nothing is charged."
+      },
+      "manage": "Manage subscription"
     }
   },
   "calendar": {
@@ -4020,7 +4093,8 @@
       "instructor": "In the water",
       "me": "My diving",
       "divers": "Divers",
-      "forms": "Paperwork"
+      "forms": "Paperwork",
+      "plan": "Subscription"
     },
     "clubFallback": "Freediving club",
     "tagline": "Freediving · Gulf of Eilat",
@@ -4282,7 +4356,8 @@
           "body": "Allowed depth per diver, lines and buddies, dive log"
         }
       },
-      "toPayments": "Payment processor"
+      "toPayments": "Payment processor",
+      "toPlan": "Our Aqua Swim subscription"
     },
     "stream": {
       "courses": "Courses",

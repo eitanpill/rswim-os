@@ -1,7 +1,9 @@
 /**
  * Phase 10 SaaS plumbing: a new school gets its encryption key; custom domains are verified by DNS; every morning
- * trials end and long-unpaid schools are suspended; on the 1st (or when a platform admin asks) each school is billed
- * and charged through the payment provider (the fake Grow until the platform's own account exists).
+ * cancellations and trials end (the rest of the month is billed, prorated), declined charges are retried on the
+ * plan's schedule and long-unpaid schools are suspended; on the 1st (or when a platform admin, a renewal or a newly
+ * saved card asks) each school is billed and charged through the payment provider (the fake Grow until the platform's
+ * own account exists), with a tax invoice-receipt from the platform's invoicing (the fake Morning until then).
  */
 import { z } from 'zod';
 import { schema, sql } from '@rswim/db';
@@ -11,6 +13,9 @@ import { consumeOnce } from '@rswim/domain-core/worker';
 import {
   billingPeriod,
   billSchool,
+  invoicesToRetry,
+  issuePlatformDocument,
+  paidWithoutDocument,
   pendingDomainIds,
   subscriptionDailyStep,
   verifyDomain,
@@ -20,7 +25,7 @@ import { SchoolDatabaseNotReady } from '@rswim/db/tenants';
 import { syncDown } from '@rswim/domain-platform/tenancy';
 import { getDb, inngest, log, router } from '../client';
 import { withDatabase } from '../tenancy';
-import { paymentProvider } from '../providers';
+import { paymentProvider, platformInvoicing } from '../providers';
 import { toEnvelope } from './core-ping';
 
 const todayIL = () =>
@@ -100,7 +105,9 @@ export const platformBillSchool = inngest.createFunction(
   },
   async ({ event, step }) => {
     const envelope = toEnvelope(event);
-    const { period } = z.object({ period: z.iso.date() }).parse(envelope.payload);
+    const { period, from } = z
+      .object({ period: z.iso.date(), from: z.iso.date().optional() })
+      .parse(envelope.payload);
     return step.run('bill', async () => {
       let outcome: unknown = null;
       await consumeOnce(getDb(), 'platform-bill-school', envelope, async (tx) => {
@@ -110,6 +117,7 @@ export const platformBillSchool = inngest.createFunction(
           period,
           paymentProvider(),
           todayIL(),
+          { ...(from ? { from } : {}), invoicing: platformInvoicing() },
         );
       });
       return outcome;
@@ -139,7 +147,9 @@ export const platformMonthlyBilling = inngest.createFunction(
     for (const orgId of orgIds) {
       outcomes[orgId] = await step.run(`bill-${orgId}`, () =>
         withOrg(getDb(), orgId, (tx) =>
-          billSchool(tx, { orgId, userId: null }, period, paymentProvider(), today),
+          billSchool(tx, { orgId, userId: null }, period, paymentProvider(), today, {
+            invoicing: platformInvoicing(),
+          }),
         ),
       );
     }
@@ -170,9 +180,30 @@ export const platformDaily = inngest.createFunction(
     let verified = 0;
     for (const orgId of orgIds) {
       const r = await step.run(`day-${orgId}`, async () => {
-        const change = await withOrg(getDb(), orgId, (tx) =>
-          subscriptionDailyStep(tx, { orgId, userId: null }, today),
-        );
+        const ctx = { orgId, userId: null };
+        const change = await withOrg(getDb(), orgId, async (tx) => {
+          const c = await subscriptionDailyStep(tx, ctx, today);
+          const opts = { invoicing: platformInvoicing() };
+          // The trial ended yesterday: the rest of this month is billed now (prorated).
+          if (c?.reason === 'trialEnded') {
+            await billSchool(tx, ctx, billingPeriod(today), paymentProvider(), today, {
+              ...opts,
+              from: today,
+            });
+          }
+          // Declined invoices due for another attempt, then tax documents still missing.
+          for (const period of await invoicesToRetry(tx, today)) {
+            await billSchool(tx, ctx, period, paymentProvider(), today, opts);
+          }
+          for (const id of await paidWithoutDocument(tx)) {
+            try {
+              await issuePlatformDocument(tx, ctx, id, opts.invoicing);
+            } catch (e) {
+              log.warn({ orgId, invoiceId: id, err: e }, 'platform tax document not issued yet');
+            }
+          }
+          return c;
+        });
         // Domains live with the school's data: in its own database when it has one.
         let schoolDb = getDb();
         try {

@@ -88,6 +88,19 @@ export function invoicingProvider(): InvoicingProvider | null {
   return null;
 }
 
+let platformDocs: FakeInvoicingProvider | undefined;
+
+/**
+ * The platform's own invoicing (Morning, the platform owner's account): tax invoice-receipts to schools for their
+ * subscription. Separate from any school's invoicing. RSWIM_INVOICING_FAKE=1: an in-memory Morning; the real client
+ * arrives with the platform's Morning API key (worker environment only).
+ */
+export function platformInvoicing(): InvoicingProvider | null {
+  if (process.env.RSWIM_INVOICING_FAKE === '1')
+    return (platformDocs ??= new FakeInvoicingProvider());
+  return null;
+}
+
 let classifier: ClaudeTriageClassifier | undefined;
 
 /**

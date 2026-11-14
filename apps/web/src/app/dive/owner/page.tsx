@@ -239,13 +239,22 @@ export default async function OwnerBridge() {
           icon={di.coin}
           testId="revenue-chart"
           action={
-            <a
-              href="/dive/payments"
-              className="text-sm text-[var(--dive-sea)] hover:underline"
-              data-testid="to-payments"
-            >
-              {t('owner.toPayments')}
-            </a>
+            <span className="flex flex-wrap gap-3">
+              <a
+                href="/dive/payments"
+                className="text-sm text-[var(--dive-sea)] hover:underline"
+                data-testid="to-payments"
+              >
+                {t('owner.toPayments')}
+              </a>
+              <a
+                href="/dive/plan"
+                className="text-sm text-[var(--dive-sea)] hover:underline"
+                data-testid="to-plan"
+              >
+                {t('owner.toPlan')}
+              </a>
+            </span>
           }
         >
           <StackedBars
