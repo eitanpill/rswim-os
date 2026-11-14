@@ -6,11 +6,12 @@ import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { PRODUCT } from '@rswim/contracts';
 import { ServiceWorkerRegister } from '@/components/sw-register';
 import { dirFor, type Locale } from '@/i18n/config';
 
 export const metadata: Metadata = {
-  title: 'R-SWIM OS',
+  title: PRODUCT.name,
   description: 'מערכת ההפעלה של בית הספר לשחייה',
   manifest: '/manifest.webmanifest',
   icons: { icon: '/icons/icon.svg', apple: '/icons/icon.svg' },

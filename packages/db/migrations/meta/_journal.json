@@ -386,6 +386,13 @@
       "when": 1794584139878,
       "tag": "0054_sessions_term_fk",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1794632817252,
+      "tag": "0055_signup",
+      "breakpoints": true
     }
   ]
 }

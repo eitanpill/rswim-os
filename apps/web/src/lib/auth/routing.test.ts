@@ -32,6 +32,10 @@ describe('decideRoute', () => {
     expect(decideRoute('/api/webhooks/ghl', null)).toEqual({ action: 'next' });
     expect(decideRoute('/join/eilat-deep-blue', null)).toEqual({ action: 'next' });
     expect(decideRoute('/joined', null)).toMatchObject({ action: 'redirect' });
+    // The landing page and sign-up are for visitors; "/" still sends a signed-in user home.
+    expect(decideRoute('/', null)).toEqual({ action: 'next' });
+    expect(decideRoute('/signup', null)).toEqual({ action: 'next' });
+    expect(decideRoute('/signupx', null)).toMatchObject({ action: 'redirect' });
   });
 
   it('sends anonymous users to login with a return path', () => {

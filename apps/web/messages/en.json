@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "R-SWIM OS",
+    "name": "Aqua Swim",
     "tagline": "The swim school operating system"
   },
   "common": {
@@ -56,9 +56,10 @@
       "phone": "Invalid phone number",
       "code": "The code is wrong or expired",
       "no_membership": "This user isn't linked to any swim school yet. Ask an admin.",
-      "not_configured": "Sign-in isn't configured in this environment"
+      "not_configured": "Sign-in isn't configured in this environment",
+      "confirm": "The confirmation link expired or was already used. Sign in, or sign up again."
     },
-    "poweredBy": "Powered by R-SWIM OS",
+    "poweredBy": "Powered by Aqua Swim",
     "devAccount": {
       "newcomer": "New school (sign-up)",
       "platform": "Platform admin",
@@ -132,7 +133,8 @@
       "diveOffice": "Office & desk",
       "diveInstructor": "Instructor",
       "diveCustomer": "Diver"
-    }
+    },
+    "signupLink": "Own a school or club? Create an account"
   },
   "admin": {
     "nav": {
@@ -690,7 +692,7 @@
     },
     "plan": {
       "title": "My plan",
-      "subtitle": "The school's plan, usage against its limits, and R-SWIM OS charges",
+      "subtitle": "The school's plan, usage against its limits, and Aqua Swim charges",
       "locked": "Office access is suspended until payment is settled. Parents, instructors and escorts keep working as usual.",
       "featureMissing": "{feature} is not in your current plan. Contact us to upgrade.",
       "current": "Current plan",
@@ -707,7 +709,7 @@
       "perMonth": "per month",
       "unlimited": "Unlimited",
       "changeHint": "Plan changes go through us for now. Write to us and we'll update it.",
-      "invoices": "R-SWIM OS invoices",
+      "invoices": "Aqua Swim invoices",
       "noInvoices": "No invoices yet."
     },
     "branding": {
@@ -792,10 +794,10 @@
       }
     },
     "signup": {
-      "title": "Open a swim school",
-      "subtitle": "A few details and you're in. No card during the trial.",
+      "title": "Open your business",
+      "subtitle": "A few details and you are in, with a 14-day trial.",
       "parentHint": "Parents: if you landed here and don't see your children, ask your school to send you an invite.",
-      "name": "School name",
+      "name": "Business name",
       "namePlaceholder": "e.g. Galim",
       "slug": "Short English id",
       "slugHint": "Lowercase letters, digits and hyphens",
@@ -803,7 +805,18 @@
       "perMonth": "per month",
       "unlimited": "Unlimited",
       "trial": "{days}-day free trial",
-      "submit": "Open the school"
+      "submit": "Open the school",
+      "vertical": "Kind of business",
+      "verticals": {
+        "swim": {
+          "title": "Swim school",
+          "body": "Groups, classes, makeups, transport and monthly family billing"
+        },
+        "freediving": {
+          "title": "Freediving club",
+          "body": "Sessions, bookings, passes, certifications and divers' health forms"
+        }
+      }
     },
     "console": {
       "title": "Schools",
@@ -853,6 +866,7 @@
       "schoolName": "The school name needs 2 to 80 characters",
       "slug": "3 to 40 characters: lowercase English letters, digits and hyphens",
       "slugTaken": "That id is taken. Try another",
+      "vertical": "Pick the kind of business: swim school or freediving club",
       "templateName": "The template name needs at least 2 characters",
       "tooBigForPlan": "The school uses {used} {limit, select, students {students} staff {staff} other {venues}}, more than the {max} that plan allows",
       "tooManySchools": "One account can open up to 3 schools",
@@ -4000,7 +4014,7 @@
     },
     "clubFallback": "Freediving club",
     "tagline": "Freediving · Gulf of Eilat",
-    "footer": "R-SWIM OS · the freediving club's operating system. All demo data is invented.",
+    "footer": "Aqua Swim · the freediving club's operating system. All demo data is invented.",
     "roles": {
       "owner": "Owner",
       "manager": "Operations manager",
@@ -5606,5 +5620,68 @@
       "body": "Open your own school: schedule, attendance, billing and messages to parents in one place.",
       "go": "Open a school"
     }
+  },
+  "account": {
+    "signup": {
+      "title": "Create an owner account",
+      "subtitle": "Your account as the business owner. Next you pick the kind of business and a plan, and start a 14-day trial.",
+      "name": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters",
+      "terms": "I have read and agree to the terms of use and the privacy policy",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "sentTitle": "Check your inbox",
+      "sentBody": "We sent a confirmation link to {email}. It brings you back here to open your business.",
+      "sentHint": "Nothing after a few minutes? Check the spam folder.",
+      "errors": {
+        "name": "Enter your full name",
+        "email": "That email address is not valid",
+        "password": "A password of 8 to 72 characters",
+        "terms": "Please accept the terms",
+        "taken": "An account with this email exists. Sign in instead",
+        "failed": "Sign-up did not go through. Try again in a moment",
+        "notConfigured": "Sign-up is not open in this environment yet"
+      }
+    }
+  },
+  "landing": {
+    "signIn": "Sign in",
+    "title": "Your business keeps running while you're in the water",
+    "subtitle": "One system for a swim school or a freediving club: enrolment, schedule, makeups, payments, receipts and WhatsApp for families, with an AI assistant that answers and acts for you.",
+    "cta": "Create an account",
+    "ctaHint": "14-day trial. No commitment.",
+    "points": {
+      "office": {
+        "title": "An organised office",
+        "body": "Families, students, groups, attendance and makeups in one place, with a screen for every staff member."
+      },
+      "whatsapp": {
+        "title": "Families get answers",
+        "body": "Messages, reminders and a WhatsApp bot that answers from your own data and passes you only what needs you."
+      },
+      "money": {
+        "title": "Money arrives on time",
+        "body": "Monthly billing, standing orders, payment links and automatic receipts through your own processor."
+      }
+    },
+    "verticalsTitle": "Who it's for",
+    "verticals": {
+      "swim": {
+        "title": "Swim schools",
+        "body": "Classes, levelled groups, after-school, camps, transport and instructor pay."
+      },
+      "freediving": {
+        "title": "Freediving clubs",
+        "body": "Sessions and bookings, passes, certifications, health and waiver forms, and a dive-day desk."
+      }
+    },
+    "pricesTitle": "Prices",
+    "perMonth": "per month",
+    "unlimited": "unlimited",
+    "trial": "{days}-day free trial",
+    "footer": "Questions? Write to us: {email}"
   }
 }

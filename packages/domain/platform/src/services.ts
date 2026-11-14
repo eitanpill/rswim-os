@@ -10,6 +10,7 @@ import {
   DEFAULT_ORG_RULES,
   OrgRole,
   PLAN_FEATURES,
+  PRODUCT,
   TemplateKind,
   type PlanFeature,
   type SubscriptionStatus,
@@ -91,6 +92,44 @@ export async function listPlans(tx: Tx) {
     .from(plans)
     .where(eq(plans.active, true))
     .orderBy(asc(plans.sortOrder), asc(plans.priceAgorot));
+}
+
+export interface PublicPlan {
+  code: string;
+  nameHe: string;
+  nameEn: string;
+  priceAgorot: number;
+  maxStudents: number | null;
+  maxStaff: number | null;
+  maxVenues: number | null;
+  features: string[];
+  trialDays: number;
+}
+
+/** The price list a visitor sees before signing in (landing page): active plans, in order. */
+export async function publicPlans(tx: Tx): Promise<PublicPlan[]> {
+  const list = await rows<{
+    code: string;
+    name_he: string;
+    name_en: string;
+    price_agorot: number;
+    max_students: number | null;
+    max_staff: number | null;
+    max_venues: number | null;
+    features: string[];
+    trial_days: number;
+  }>(tx, sql`select * from public.public_plans()`);
+  return list.map((p) => ({
+    code: p.code,
+    nameHe: p.name_he,
+    nameEn: p.name_en,
+    priceAgorot: p.price_agorot,
+    maxStudents: p.max_students,
+    maxStaff: p.max_staff,
+    maxVenues: p.max_venues,
+    features: p.features,
+    trialDays: p.trial_days,
+  }));
 }
 
 /** The current school's subscription with its plan, or null (a school without one has no limits). */
@@ -175,6 +214,7 @@ export const CreateSchoolInput = z.object({
     .toLowerCase()
     .regex(/^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$/, 'platform.errors.slug'),
   plan: z.string().min(1),
+  vertical: z.enum(['swim', 'freediving'], { message: 'platform.errors.vertical' }).default('swim'),
 });
 export type CreateSchoolInput = z.input<typeof CreateSchoolInput>;
 
@@ -183,7 +223,7 @@ export async function createSchool(tx: Tx, raw: CreateSchoolInput): Promise<stri
   const input = CreateSchoolInput.parse(raw);
   const [r] = await rows<{ id: string }>(
     tx,
-    sql`select public.create_school(${input.name}, ${input.slug}, ${input.plan}) as id`,
+    sql`select public.create_school(${input.name}, ${input.slug}, ${input.plan}, ${input.vertical}) as id`,
   );
   return (r as { id: string }).id;
 }
@@ -439,7 +479,7 @@ export async function billSchool(
     {
       mandateId: sub.mandateId as string,
       amount: inv.amountAgorot as never,
-      description: `R-SWIM OS ${s.plan.nameHe} ${period.slice(0, 7)}`,
+      description: `${PRODUCT.name} ${s.plan.nameHe} ${period.slice(0, 7)}`,
     },
   );
   const status =

@@ -4,6 +4,7 @@
  * pay against invoices. Column titles and words come from the caller (i18n), so the file follows the reader's language.
  */
 import ExcelJS from 'exceljs';
+import { PRODUCT } from '@rswim/contracts';
 import type { Tx } from '@rswim/db';
 import { getPayrollRun, sickBalances } from './runs';
 
@@ -45,7 +46,7 @@ export async function payrollWorkbook(
   if (!data) return null;
   const sick = await sickBalances(tx);
   const book = new ExcelJS.Workbook();
-  book.creator = 'R-SWIM OS';
+  book.creator = PRODUCT.name;
   const money = '#,##0.00 ₪';
 
   const payslip = book.addWorksheet(labels.payslipSheet, { views: [{ rightToLeft: true }] });

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { PRODUCT } from '@rswim/contracts';
 import { brandPalette, myBranding } from '@rswim/domain-platform';
 import { Button } from '@rswim/ui';
 import { setLocale } from '@/app/actions/locale';
@@ -29,7 +30,7 @@ export async function AppShell({
   const t = await getTranslations('common');
   const locale = await getLocale();
   const brand = session.orgId ? await withSession((tx) => myBranding(tx)) : {};
-  const name = brand.displayName ?? session.orgName ?? brand.name ?? 'R-SWIM OS';
+  const name = brand.displayName ?? session.orgName ?? brand.name ?? PRODUCT.name;
   const switcher = await canSwitchSchool(session);
   return (
     <div
