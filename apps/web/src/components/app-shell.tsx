@@ -53,11 +53,16 @@ export async function AppShell({
           <p className="truncate font-semibold" data-testid="org-name">
             {name}
           </p>
-          <p className="truncate text-xs text-ink-muted">
+          {/* The person's own account (store launch: deleting it is one tap away from every screen). */}
+          <Link
+            href="/me/account"
+            className="block truncate text-xs text-ink-muted underline-offset-2 hover:underline"
+            data-testid="my-account"
+          >
             {[session.displayName, session.role ? t(`role.${session.role}`) : null]
               .filter(Boolean)
               .join(' · ')}
-          </p>
+          </Link>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {switcher ? (

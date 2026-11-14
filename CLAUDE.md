@@ -87,7 +87,9 @@ school's link, the phone the office knows, or opening a school); someone in seve
 (`public.switch_school`, dev persona **אסף (מדריך והורה)**). Families find a school on `/schools` (search, open
 signed out) or its link `/join/<slug>`; a swim school's office decides join and trial requests on `/admin/join` (link,
 printable QR, search listing), and `/start` offers the school that already has the person's phone (dev personas
-**דנה (הורה מחפשת בית ספר)** and **מיכל (הורה שבית הספר מכיר)**).
+**דנה (הורה מחפשת בית ספר)** and **מיכל (הורה שבית הספר מכיר)**). Anyone deletes their own account on `/me/account`
+(`public.delete_my_account`, each school's database first; the only owner of a school is refused; hidden dev persona
+`leaver` for the E2E suite).
 
 SaaS (Phase 10, product name `PRODUCT` in `@rswim/contracts`): visitors see the landing page with prices at `/` and
 create an owner account on `/signup` (Supabase email confirmation through `/auth/confirm`; without Supabase a real

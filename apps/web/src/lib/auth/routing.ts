@@ -27,6 +27,8 @@ export const PUBLIC_PREFIXES = [
   '/join',
   // The app's school search (store launch, stage 4): open before sign-in, like a store listing.
   '/schools',
+  // Shown right after someone deleted their account (they are signed out by then).
+  '/goodbye',
 ];
 
 export function surfaceForPath(pathname: string): Surface | 'platform' | null {

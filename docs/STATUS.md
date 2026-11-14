@@ -376,3 +376,9 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   person whose phone a school already has is offered that school and joins in one tap, and nobody else is.
   See docs/store/PLAN.md.
 - Not verified: new-account SMS sign-in against real Supabase Auth (no Supabase project yet).
+
+## Deleting your account, store launch stage 8 (2026-11-14)
+- Verified (tests, local Postgres + E2E): a parent deletes their account from `/me/account`: the sign-in and every
+  membership go, open join requests go, the family's file stays with the school; the only owner of a school is
+  refused until another owner exists; nobody else's account is touched; anonymous callers are refused.
+- Not verified: deletion against a real Supabase project's `auth.users`.

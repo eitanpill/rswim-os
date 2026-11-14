@@ -83,13 +83,18 @@ export async function DiveShell({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <div className="flex items-center gap-2">
+            <Link
+              href="/me/account"
+              className="flex items-center gap-2 rounded-xl hover:bg-white/10"
+              data-testid="my-account"
+              aria-label={tc('myAccount')}
+            >
               <Avatar name={session.displayName ?? '?'} size={30} />
               <div className="hidden leading-tight md:block">
                 <p className="text-sm font-medium">{session.displayName}</p>
                 <p className="text-[11px] text-white/65">{t(`roles.${role}`)}</p>
               </div>
-            </div>
+            </Link>
             {(await canSwitchSchool(session)) ? (
               <Link
                 href="/me/schools"

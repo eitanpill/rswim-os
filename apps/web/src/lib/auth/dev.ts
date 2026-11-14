@@ -116,6 +116,19 @@ export function devSessionFor(
       mode: 'dev',
     };
   }
+  if (key === 'leaver') {
+    return {
+      userId: ACCOUNT_PERSONAS.leaver.userId,
+      orgId: SECOND_ORG.id,
+      role: 'parent',
+      permissions: [],
+      isPlatformAdmin: false,
+      displayName: ACCOUNT_PERSONAS.leaver.name,
+      orgName: SECOND_ORG.name,
+      vertical: 'swim',
+      mode: 'dev',
+    };
+  }
   if (key === 'twoHats') {
     // An instructor at the demo school and a parent at the second one; the cookie says which school they picked.
     const picked = orgId === SECOND_ORG.id ? SECOND_ORG : DEMO_ORG;

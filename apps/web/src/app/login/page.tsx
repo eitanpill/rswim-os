@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@rswim/ui';
-import { ACCOUNT_PERSONAS, DIVE_PERSONAS, PERSONAS } from '@rswim/db/personas';
+import { ACCOUNT_PERSONAS, DIVE_PERSONAS, HIDDEN_PERSONAS, PERSONAS } from '@rswim/db/personas';
 import { demoProfile } from '@rswim/db/demo-profiles';
 import { isDemoMode, isDevAuthEnabled, personaName, type DevKey } from '@/lib/auth/dev';
 import { signInWithPassword } from './actions';
@@ -78,16 +78,18 @@ export default async function LoginPage({
                 <span className="text-ink-muted">{personaName(key as DevKey)}</span>
               </a>
             ))}
-            {Object.entries(ACCOUNT_PERSONAS).map(([key, p]) => (
-              <a
-                key={key}
-                href={`/dev/login?as=${key}`}
-                className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-surface"
-              >
-                <span className="block font-medium">{t(`devAccount.${key}`)}</span>
-                <span className="text-ink-muted">{p.name}</span>
-              </a>
-            ))}
+            {Object.entries(ACCOUNT_PERSONAS)
+              .filter(([key]) => !(HIDDEN_PERSONAS as readonly string[]).includes(key))
+              .map(([key, p]) => (
+                <a
+                  key={key}
+                  href={`/dev/login?as=${key}`}
+                  className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-surface"
+                >
+                  <span className="block font-medium">{t(`devAccount.${key}`)}</span>
+                  <span className="text-ink-muted">{p.name}</span>
+                </a>
+              ))}
             {Object.entries(DIVE_PERSONAS).map(([key, p]) => (
               <a
                 key={key}
@@ -124,7 +126,9 @@ async function DemoLogin({ resetting }: { resetting: boolean }) {
     sees: t(`dive.${key}`),
   }));
   const account = (
-    Object.keys(ACCOUNT_PERSONAS).filter((k) => k !== 'diveNewcomer') as DevKey[]
+    Object.keys(ACCOUNT_PERSONAS).filter(
+      (k) => k !== 'diveNewcomer' && !(HIDDEN_PERSONAS as readonly string[]).includes(k),
+    ) as DevKey[]
   ).map((key) => ({
     key,
     role: t(`account.${key}`),

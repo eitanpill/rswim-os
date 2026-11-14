@@ -331,6 +331,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
       let parentGuardianId: string | null = null;
       let secondOrgGuardianId: string | null = null;
       let knownParentHousehold = false;
+      let leaverGuardianId: string | null = null;
       for (const h of households) {
         const hid = await q(
           `insert into households (organization_id, display_name, notes) values ($1, $2, $3) returning id`,
@@ -361,6 +362,8 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
           summary.guardians++;
           if (isDemo && g.phone === PERSONAS.parent.phone) parentGuardianId = gid;
           if (!isDemo) secondOrgGuardianId ??= gid;
+          // The next contact there belongs to the persona that deletes its account in the E2E suite.
+          if (!isDemo && gid !== secondOrgGuardianId && !known) leaverGuardianId ??= gid;
         }
         for (const s of h.students) {
           const sid = randomUUID();
@@ -437,6 +440,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         await m(ACCOUNT_PERSONAS.twoHats.userId, 'instructor', { staff: staffIds[1] });
       } else {
         await m(ACCOUNT_PERSONAS.twoHats.userId, 'parent', { guardian: secondOrgGuardianId });
+        await m(ACCOUNT_PERSONAS.leaver.userId, 'parent', { guardian: leaverGuardianId });
       }
     }
     summary.saas = await seedSaasData(client);

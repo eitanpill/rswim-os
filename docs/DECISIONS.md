@@ -200,3 +200,5 @@ Architecture decisions live in `docs/adr/`. This file holds product defaults and
 | 2026-11-13 | "We found you" trusts the phone on the sign-in row, as staff invites already do: a session exists only after the one-time code to that phone. A family contact already held by a signed-in person is never offered again |
 | 2026-11-13 | Phone sign-in creates an account for any number (one app for everyone in the stores); Supabase's rate limits and captcha guard the SMS sending. Someone with no school lands on /start |
 | 2026-11-13 | Schools appear in the app's search by default (opt-out per school, approved store decision); the city and a line about the school live on `organizations`, which the platform owns and copies down to a school's own database |
+| 2026-11-14 | Deleting an account removes the sign-in and memberships but keeps the school's records of the family (file, lessons, payments, receipts): they are the school's, and the ledger is append-only. The page says so and points to the school's office for more |
+| 2026-11-14 | The only owner of an active school cannot delete their account until another owner exists, so no school is left with nobody to run it |

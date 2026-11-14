@@ -39,3 +39,23 @@ Proof: `packages/db/test/rls/school-switch.test.ts`, `apps/web/src/lib/join-link
 - Dev personas: **דנה (הורה מחפשת בית ספר)** asks to join, **מיכל (הורה שבית הספר מכיר)** is found by phone.
 - Limit: for a school with its own database, "we found you" works only after the person asked that school to join
   (their sign-in row reaches its database then). Shared schools, the default, work fully.
+
+## Stage 8, first part: deleting your account (14.11.2026)
+- `/me/account` ("החשבון שלי"), one tap from every screen (the name under the school's name in the header, or the
+  avatar on the freediving screens). It says what goes (the sign-in, every membership, join requests not yet
+  accepted) and what the school keeps (the family's file, lessons, payments and receipts: the school's records, and
+  the ledger is append-only). The person types "מחיקה" to confirm; then `/goodbye`.
+- `public.delete_my_account()` (migration 0058) runs on each school's own database first and on the platform's last.
+  The only owner of an active school is refused (`public.my_sole_owned_schools()`) until another owner exists.
+- Google Play's "web link for deletion requests": the same page on the web (sign in, then delete).
+- Not verified: deleting from `auth.users` by SQL on a real Supabase project (no project yet).
+
+## Reviewer demo accounts (to set up with the Supabase project)
+Apple and Google sign in with an account we give them. Sign-in is by phone code, so:
+1. In Supabase, Authentication → Phone: add test numbers with fixed codes (no SMS is sent), e.g. an owner number and
+   a parent number. The numbers and codes go into App Store Connect's and Play Console's review notes, never into
+   the repository.
+2. A review school opened through `/onboarding` from templates, filled with invented families, not listed in the
+   search (`/admin/join`), with the test owner as its owner and the test parent on one of its families (the office
+   adds the phone; "we found you" connects it).
+3. Before each submission: sign in with both numbers on a real phone and walk the review path.
