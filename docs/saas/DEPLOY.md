@@ -38,7 +38,11 @@ GitHub
 
 Supabase (two projects: `aqua-staging`, `aqua-production`)
 - Authentication → Hooks: *Custom access token* → Postgres function `public.custom_access_token_hook`.
-- Authentication → Providers: email (password) on; phone on, provider Twilio Verify (below).
+- Authentication → Providers: email (password) on, *Allow new users to sign up* on and *Confirm email* on (business
+  owners open their own account on `/signup`); phone on, provider Twilio Verify (below)
+  (phone sign-ups stay on: a diver joining a club from its link signs up by phone).
+- Authentication → URL configuration → Redirect URLs: add `https://app.aqua-swim.co.il/auth/confirm` (staging: the
+  staging host), where the confirmation email brings the new owner back.
 - Authentication → SMTP: custom SMTP through Resend (below), sender `no-reply@aqua-swim.co.il`.
 - Authentication → URL configuration: site URL `https://app.aqua-swim.co.il` (staging: `https://staging.aqua-swim.co.il`).
 - Storage: bucket `dive-documents`, private.

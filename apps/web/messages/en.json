@@ -56,7 +56,8 @@
       "phone": "Invalid phone number",
       "code": "The code is wrong or expired",
       "no_membership": "This user isn't linked to any swim school yet. Ask an admin.",
-      "not_configured": "Sign-in isn't configured in this environment"
+      "not_configured": "Sign-in isn't configured in this environment",
+      "confirm": "The confirmation link expired or was already used. Sign in, or sign up again."
     },
     "poweredBy": "Powered by Aqua Swim",
     "devAccount": {
@@ -132,7 +133,8 @@
       "diveOffice": "Office & desk",
       "diveInstructor": "Instructor",
       "diveCustomer": "Diver"
-    }
+    },
+    "signupLink": "Own a school or club? Create an account"
   },
   "admin": {
     "nav": {
@@ -5618,5 +5620,68 @@
       "body": "Open your own school: schedule, attendance, billing and messages to parents in one place.",
       "go": "Open a school"
     }
+  },
+  "account": {
+    "signup": {
+      "title": "Create an owner account",
+      "subtitle": "Your account as the business owner. Next you pick the kind of business and a plan, and start a 14-day trial.",
+      "name": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters",
+      "terms": "I have read and agree to the terms of use and the privacy policy",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "sentTitle": "Check your inbox",
+      "sentBody": "We sent a confirmation link to {email}. It brings you back here to open your business.",
+      "sentHint": "Nothing after a few minutes? Check the spam folder.",
+      "errors": {
+        "name": "Enter your full name",
+        "email": "That email address is not valid",
+        "password": "A password of 8 to 72 characters",
+        "terms": "Please accept the terms",
+        "taken": "An account with this email exists. Sign in instead",
+        "failed": "Sign-up did not go through. Try again in a moment",
+        "notConfigured": "Sign-up is not open in this environment yet"
+      }
+    }
+  },
+  "landing": {
+    "signIn": "Sign in",
+    "title": "Your business keeps running while you're in the water",
+    "subtitle": "One system for a swim school or a freediving club: enrolment, schedule, makeups, payments, receipts and WhatsApp for families, with an AI assistant that answers and acts for you.",
+    "cta": "Create an account",
+    "ctaHint": "14-day trial. No commitment.",
+    "points": {
+      "office": {
+        "title": "An organised office",
+        "body": "Families, students, groups, attendance and makeups in one place, with a screen for every staff member."
+      },
+      "whatsapp": {
+        "title": "Families get answers",
+        "body": "Messages, reminders and a WhatsApp bot that answers from your own data and passes you only what needs you."
+      },
+      "money": {
+        "title": "Money arrives on time",
+        "body": "Monthly billing, standing orders, payment links and automatic receipts through your own processor."
+      }
+    },
+    "verticalsTitle": "Who it's for",
+    "verticals": {
+      "swim": {
+        "title": "Swim schools",
+        "body": "Classes, levelled groups, after-school, camps, transport and instructor pay."
+      },
+      "freediving": {
+        "title": "Freediving clubs",
+        "body": "Sessions and bookings, passes, certifications, health and waiver forms, and a dive-day desk."
+      }
+    },
+    "pricesTitle": "Prices",
+    "perMonth": "per month",
+    "unlimited": "unlimited",
+    "trial": "{days}-day free trial",
+    "footer": "Questions? Write to us: {email}"
   }
 }

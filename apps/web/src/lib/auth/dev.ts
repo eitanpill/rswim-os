@@ -142,11 +142,51 @@ export function devSessionFor(
 export const devCookieValue = (key: DevKey, orgId?: string, vertical?: 'swim' | 'freediving') =>
   orgId ? `${key}@${orgId}${vertical ? `@${vertical}` : ''}` : key;
 
+/**
+ * Without Supabase (local runs, E2E, the live demo) a new owner's sign-up makes a real row in auth.users and this
+ * cookie stands in for their session: `signup.<userId>`, then `signup.<userId>@<orgId>@<vertical>` once they opened
+ * their business. Only where persona sign-in is allowed; the database checks memberships on every statement.
+ */
+const SIGNUP_PREFIX = 'signup.';
+export const signupCookieValue = (
+  userId: string,
+  orgId?: string,
+  vertical?: 'swim' | 'freediving',
+) => `${SIGNUP_PREFIX}${userId}${orgId ? `@${orgId}${vertical ? `@${vertical}` : ''}` : ''}`;
+
+/** The user id of a fake sign-up session's cookie, or null for anything else. */
+export function signupUserId(value: string | undefined): string | null {
+  if (!value?.startsWith(SIGNUP_PREFIX)) return null;
+  const id = value.slice(SIGNUP_PREFIX.length).split('@')[0] ?? '';
+  return UUID.test(id) ? id : null;
+}
+
+function readSignupCookie(value: string): Session | null {
+  const [head, orgId, vertical, ...rest] = value.split('@');
+  const userId = signupUserId(head);
+  if (!userId || rest.length) return null;
+  if (orgId !== undefined && !UUID.test(orgId)) return null;
+  if (vertical !== undefined && vertical !== 'swim' && vertical !== 'freediving') return null;
+  return {
+    userId,
+    orgId: orgId ?? null,
+    role: orgId ? 'owner' : null,
+    permissions: [],
+    isPlatformAdmin: false,
+    ...(orgId ? { vertical: (vertical ?? 'swim') as 'swim' | 'freediving' } : {}),
+    mode: 'dev',
+  };
+}
+
 export function readDevCookie(value: string | undefined): Session | null {
   if (!value || !isDevAuthEnabled()) return null;
+  if (value.startsWith(SIGNUP_PREFIX)) return readSignupCookie(value);
   const [key, orgId, vertical, ...rest] = value.split('@');
   if (rest.length) return null;
-  if (vertical !== undefined && (key !== 'newcomer' || (vertical !== 'swim' && vertical !== 'freediving')))
+  if (
+    vertical !== undefined &&
+    (key !== 'newcomer' || (vertical !== 'swim' && vertical !== 'freediving'))
+  )
     return null;
   if (!isPersonaKey(key)) return null;
   if (orgId !== undefined && (!ORG_SUFFIX_KEYS.has(key) || !UUID.test(orgId))) return null;

@@ -6,7 +6,7 @@ import { demoProfile } from '@rswim/db/demo-profiles';
 import { isDemoMode, isDevAuthEnabled, personaName, type DevKey } from '@/lib/auth/dev';
 import { signInWithPassword } from './actions';
 import { DiveLanding } from './dive-landing';
-import { inputClass, LoginFrame } from './login-frame';
+import { hostBranding, inputClass, LoginFrame } from './login-frame';
 
 export default async function LoginPage({
   searchParams,
@@ -53,6 +53,15 @@ export default async function LoginPage({
       >
         {t('parentsLink')}
       </Link>
+      {(await hostBranding()) ? null : (
+        <Link
+          href="/signup"
+          data-testid="signup-link"
+          className="mt-2 block text-center text-sm text-ink-muted underline-offset-4 hover:underline"
+        >
+          {t('signupLink')}
+        </Link>
+      )}
 
       {isDevAuthEnabled() ? (
         <div className="mt-6 border-t border-dashed border-line pt-4" data-testid="dev-login">

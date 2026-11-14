@@ -17,10 +17,12 @@ port = 54323
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000"]
 jwt_expiry = 3600
-enable_signup = false
+# Business owners create their own account by email (/signup, SaaS stage 2); phone sign-in stays for known families.
+enable_signup = true
 
 [auth.email]
-enable_signup = false
+enable_signup = true
+enable_confirmations = true
 
 [auth.sms]
 enable_signup = false

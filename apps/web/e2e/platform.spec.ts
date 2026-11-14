@@ -33,7 +33,7 @@ test('a new school signs up, sets up from templates, gets its domain and is bill
   await page.getByTestId('start-owner').click();
   await expect(page).toHaveURL(/\/onboarding$/);
   const signup = page.getByTestId('create-school');
-  await signup.getByLabel('שם בית הספר').fill('גלים (דמו)');
+  await signup.getByLabel('שם העסק').fill('גלים (דמו)');
   await signup.getByLabel('מזהה קצר באנגלית').fill('galim');
   await signup.getByTestId('plan-starter').click();
   await signup.getByRole('button', { name: 'פתיחת בית הספר' }).click();
