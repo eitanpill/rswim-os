@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { clubForJoin } from '@rswim/domain-dive';
+import { schoolPublic } from '@rswim/domain-platform';
 import { ActionForm, CheckboxField, Field, SubmitButton } from '@/components/form';
 import { isDevAuthEnabled } from '@/lib/auth/dev';
 import { getSession } from '@/lib/auth/session';
@@ -9,16 +10,21 @@ import { dbForSlug, withAnon } from '@/lib/db';
 import { ClubMark, di } from '../../dive/_ui/icons';
 import { Bubbles } from '../../dive/_ui/kit';
 import { joinClubAction } from '../actions';
+import { SwimJoin } from './swim';
 
 /**
- * A club's join link (from its Instagram, website or WhatsApp): what the club is, then sign in with a phone number,
- * then the diver's details. Joining lands on the diver's first steps: their card, their forms, a first dive.
+ * A school's join link (from its Instagram, website, WhatsApp, its printed QR or the app's school search). A swim
+ * school takes join and trial requests (SwimJoin). A freediving club: what the club is, then sign in with a phone
+ * number, then the diver's details; joining lands on the diver's first steps: their card, their forms, a first dive.
  */
 export default async function JoinPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const session = await getSession();
+  const school = await withAnon((tx) => schoolPublic(tx, slug));
+  if (school?.vertical === 'swim')
+    return <SwimJoin slug={slug} school={school} session={session} />;
   const t = await getTranslations('dive.join');
   const club = await withAnon((tx) => clubForJoin(tx, slug), await dbForSlug(slug));
-  const session = await getSession();
   if (club && session?.orgId === club.id && session.role === 'parent') redirect('/dive/me/welcome');
 
   if (!club)

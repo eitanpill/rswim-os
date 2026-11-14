@@ -138,6 +138,7 @@ const TENANT_TABLES = [
   'platform_invoices',
   'org_domains',
   'template_installs',
+  'join_requests',
   'dive_rule_sets',
   'dive_sites',
   'dive_programs',

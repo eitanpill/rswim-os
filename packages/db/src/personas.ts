@@ -8,12 +8,16 @@ export const DEMO_ORG = {
   id: '00000000-0000-4000-8000-00000000a001',
   slug: 'rswim-demo',
   name: 'R-SWIM (דמו)',
+  city: 'גוש עציון',
+  about: 'בית ספר לשחייה לילדים ולמבוגרים, קבוצות ושיעורים פרטיים (דמו).',
 } as const;
 
 export const SECOND_ORG = {
   id: '00000000-0000-4000-8000-00000000b001',
   slug: 'demo-pool',
   name: 'בריכת הדגמה',
+  city: 'ירושלים',
+  about: 'בריכה שכונתית עם חוגי שחייה אחר הצהריים (דמו).',
 } as const;
 
 export interface Persona {
@@ -95,6 +99,24 @@ export const ACCOUNT_PERSONAS = {
     name: 'אסף (דמו, מדריך והורה)',
     phone: '+972500000204',
   },
+  /**
+   * A parent who found a swim school in the app's search (store launch, stage 4): asks to join, and the office
+   * accepts. Belongs to no school at first.
+   */
+  familyNewcomer: {
+    userId: '00000000-0000-4000-8000-000000000205',
+    name: 'דנה (דמו, הורה מחפשת בית ספר)',
+    phone: '+972500000205',
+  },
+  /**
+   * A parent the second school already has on file (the office typed her phone): the app finds her by it and she
+   * joins her family in one tap.
+   */
+  knownParent: {
+    userId: '00000000-0000-4000-8000-000000000206',
+    name: 'מיכל (דמו, הורה שבית הספר מכיר)',
+    phone: '+972500000206',
+  },
 } as const;
 
 export type AccountPersonaKey = keyof typeof ACCOUNT_PERSONAS;
@@ -110,6 +132,8 @@ export const DIVE_ORG = {
   id: '00000000-0000-4000-8000-00000000c001',
   slug: 'eilat-deep-blue',
   name: 'כחול עמוק אילת (דמו)',
+  city: 'אילת',
+  about: 'מועדון צלילה חופשית: קורסים, אימוני עומק ויציאות לים (דמו).',
 } as const;
 
 /** A second, smaller club on a trial, so the platform console shows a network. */
@@ -117,6 +141,8 @@ export const DIVE_ORG_2 = {
   id: '00000000-0000-4000-8000-00000000c002',
   slug: 'haifa-free-waves',
   name: 'גלים חופשיים חיפה (דמו)',
+  city: 'חיפה',
+  about: null,
 } as const;
 
 /**

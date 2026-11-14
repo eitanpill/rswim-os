@@ -144,3 +144,14 @@ export async function afterJoin(target: Db, orgId: string, userId: string): Prom
     ),
   );
 }
+
+/**
+ * Runs `fn` on the platform's database and on every school's own one, and joins the answers: what a signed-in person
+ * has across schools (their join requests, the families that have their phone). A school's own database answers only
+ * once the person's sign-in row is there (they asked to join it); the platform's covers every shared school.
+ */
+export async function fromEveryDatabase<T>(fn: (db: Db) => Promise<T[]>): Promise<T[]> {
+  const out: T[] = [];
+  for (const t of await router().all()) out.push(...(await fn(t.db)));
+  return out;
+}

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { ACCOUNT_PERSONAS } from '@rswim/db/personas';
 import { JoinClubInput, joinClub } from '@rswim/domain-dive';
+import { JoinRequestInput, requestToJoin } from '@rswim/domain-platform';
 import { DEV_COOKIE, devCookieValue } from '@/lib/auth/dev';
 import { getSession } from '@/lib/auth/session';
 import { afterJoin, dbForSlug, prepareJoin } from '@/lib/db';
@@ -50,4 +51,25 @@ export async function joinClubAction(_: FormState, fd: FormData): Promise<FormSt
     await (await createSupabaseServerClient())?.auth.refreshSession();
   }
   redirect('/dive/me/welcome');
+}
+
+/**
+ * A signed-in visitor asks a swim school to take their family, or for a trial lesson. The request lands with the
+ * school's office; the page then shows it as sent. Asking again while it is open updates it.
+ */
+export async function requestToJoinAction(_: FormState, fd: FormData): Promise<FormState> {
+  const session = await getSession();
+  if (!session) redirect('/login');
+  const slug = typeof fd.get('slug') === 'string' ? String(fd.get('slug')) : '';
+  const target = await dbForSlug(slug);
+  await prepareJoin(target, session.userId);
+  const state = await runForm(
+    fd,
+    JoinRequestInput,
+    (tx, _ctx, input) => requestToJoin(tx, input),
+    { scope: 'user', database: target },
+    dropEmpty,
+  );
+  if (!state.ok) return state;
+  redirect(`/join/${slug}`);
 }

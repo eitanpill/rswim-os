@@ -367,3 +367,12 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   sign-in link) and the existing `platform.spec.ts`.
 - Not verified: the real confirmation email (needs Supabase + Resend). Card capture at sign-up is stage 3. Terms of
   use and privacy policy pages come with the lawyer (stage 7); the consent box links to nothing yet.
+
+## Finding a school, store launch stage 4 (2026-11-13)
+- Verified (tests, local Postgres + E2E): the school search by name, city and kind, signed out; an opted-out school
+  is left out of the search but its link opens; a join request is seen and decided only by that school's owner and
+  office (not its instructors or parents, not another school); accepting opens the family with its children, or
+  joins the family already on file by phone, and gives the parent the app; declined requests create nothing; a
+  person whose phone a school already has is offered that school and joins in one tap, and nobody else is.
+  See docs/store/PLAN.md.
+- Not verified: new-account SMS sign-in against real Supabase Auth (no Supabase project yet).

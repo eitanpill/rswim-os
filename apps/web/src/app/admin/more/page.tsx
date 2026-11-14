@@ -6,6 +6,7 @@ import { Card, PageHeader } from '@rswim/ui';
 import { withSession } from '@/lib/db';
 
 const LINKS = [
+  'join',
   'onboarding',
   'plan',
   'branding',
@@ -40,6 +41,7 @@ const LINKS = [
   'ghl',
 ] as const;
 const HREF: Record<(typeof LINKS)[number], string> = {
+  join: '/admin/join',
   onboarding: '/admin/onboarding',
   plan: '/admin/plan',
   branding: '/admin/branding',

@@ -64,7 +64,9 @@
       "newcomer": "New school (sign-up)",
       "platform": "Platform admin",
       "diveNewcomer": "🤿 New diver (joining)",
-      "twoHats": "Instructor and parent (two schools)"
+      "twoHats": "Instructor and parent (two schools)",
+      "familyNewcomer": "Parent looking for a school",
+      "knownParent": "Parent the school knows"
     },
     "demo": {
       "title": "Enter the demo",
@@ -73,7 +75,9 @@
       "account": {
         "newcomer": "New school",
         "platform": "Platform admin",
-        "twoHats": "Instructor and parent"
+        "twoHats": "Instructor and parent",
+        "familyNewcomer": "Parent looking for a school",
+        "knownParent": "Parent the school knows"
       },
       "sees": {
         "owner": "The home screen with insights, the group board, collections, payroll, reports and the copilot",
@@ -84,7 +88,9 @@
         "parent": "The parents' portal on a phone: schedule, absences, makeups, payments and receipts",
         "newcomer": "Opening a new school from scratch: templates, branding and a domain",
         "platform": "Every school on the platform: plans, usage and billing",
-        "twoHats": "One person in two schools: instructor in one, parent in the other, switching with a tap"
+        "twoHats": "One person in two schools: instructor in one, parent in the other, switching with a tap",
+        "familyNewcomer": "Finds a school in the app, asks to join, and the office accepts",
+        "knownParent": "Signs in with her phone, and the app finds the school that already registered her"
       },
       "resetting": "The demo is going back to its starting data. You can sign in again in under a minute.",
       "clubGroup": "The Eilat freediving club",
@@ -289,6 +295,10 @@
       "payments": {
         "title": "Payment processor",
         "hint": "Card, Bit and standing orders through your own processor"
+      },
+      "join": {
+        "title": "New families",
+        "hint": "Join requests, link and QR, and the app's search"
       }
     }
   },
@@ -866,7 +876,6 @@
       "schoolName": "The school name needs 2 to 80 characters",
       "slug": "3 to 40 characters: lowercase English letters, digits and hyphens",
       "slugTaken": "That id is taken. Try another",
-      "vertical": "Pick the kind of business: swim school or freediving club",
       "templateName": "The template name needs at least 2 characters",
       "tooBigForPlan": "The school uses {used} {limit, select, students {students} staff {staff} other {venues}}, more than the {max} that plan allows",
       "tooManySchools": "One account can open up to 3 schools",
@@ -874,7 +883,8 @@
         "students": "You've reached the number of students your plan allows. Contact us to upgrade.",
         "staff": "You've reached the number of staff your plan allows. Contact us to upgrade.",
         "venues": "Your plan includes one venue only. Upgrade to add another."
-      }
+      },
+      "vertical": "Pick the kind of business: swim school or freediving club"
     },
     "network": {
       "kicker": "From the top bridge",
@@ -5598,11 +5608,132 @@
       "swim": "Swim school",
       "freediving": "Freediving club"
     },
-    "joinAnother": "Join another place"
+    "joinAnother": "Join another place",
+    "search": {
+      "title": "Find a school",
+      "subtitle": "Looking for a swim school or a freediving club? Search by name or city.",
+      "field": "Name or city",
+      "placeholder": "e.g. Jerusalem",
+      "kind": "Kind",
+      "kinds": {
+        "all": "All",
+        "swim": "Swim school",
+        "freediving": "Freediving club"
+      },
+      "go": "Search",
+      "none": "No school like that. Try another name or a nearby city.",
+      "missing": "Your school isn't here? Ask the office for its link, or the QR at the pool.",
+      "back": "Back",
+      "signIn": "Sign in"
+    },
+    "join": {
+      "title": "Join {school}",
+      "sub": "Send a request to the office; they get back to you with a suitable group.",
+      "how": {
+        "signIn": "Sign in with your phone number (SMS code)",
+        "details": "A few details about the children",
+        "office": "The office accepts, and everything waits for you in the app"
+      },
+      "signIn": "Sign in with a phone number",
+      "demo": "Demo sign-in: Dana, a parent looking for a school",
+      "formSub": "A few details and the request goes straight to the office.",
+      "kind": "What suits you?",
+      "kinds": {
+        "trial": "A trial lesson first",
+        "join": "Join a group"
+      },
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone",
+      "email": "Email (optional)",
+      "children": "The children",
+      "childrenHint": "Who will swim with us? Leave empty if the lessons are for you.",
+      "childName": "Child {n} name",
+      "childDob": "Date of birth",
+      "note": "Anything we should know? (optional)",
+      "noteHint": "Days and times that suit you, fear of water, past experience",
+      "submit": "Send request",
+      "update": "Update request",
+      "sentTitle": "Request sent",
+      "sent": "The office has it and will get back to you soon.",
+      "sentEdit": "Want to change something? Update here and send again.",
+      "declined": "The previous request was not accepted. You can send a new one or talk to the office.",
+      "acceptedTitle": "You're in!",
+      "accepted": "{school} accepted your request. Your schedule, payments and messages wait for you in the app.",
+      "enter": "Enter the school",
+      "memberTitle": "You're already here",
+      "member": "You already have a place at this school.",
+      "toApp": "To the app",
+      "otherSchools": "Other schools",
+      "privacy": "Your details go only to this school's office."
+    },
+    "admin": {
+      "title": "New families",
+      "subtitle": "Requests from your link, your QR and the app's search, and the ways families find you.",
+      "requests": "Waiting requests",
+      "none": "No new requests",
+      "noneHint": "Share the link or hang the QR, and requests arrive here.",
+      "kind": {
+        "join": "Join",
+        "trial": "Trial lesson"
+      },
+      "children": "Children",
+      "accept": "Accept",
+      "decline": "Decline",
+      "declineConfirm": "Decline this request?",
+      "acceptHint": "Accepting opens a family with the children and gives the parent the app. If you already have the phone, the parent joins that family. Placing them in a group or a trial is done as usual.",
+      "decided": "Handled requests",
+      "status": {
+        "new": "New",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "withdrawn": "Withdrawn"
+      },
+      "linkTitle": "Your link and QR",
+      "linkBody": "Send it on WhatsApp, put it on Instagram, or print and hang it at the pool. Whoever opens it lands on your join page.",
+      "posterTitle": "Want to join?",
+      "posterBody": "Scan with your phone's camera and send a request",
+      "print": "Print a QR sign",
+      "listingTitle": "The app's search",
+      "listingBody": "Families searching the app see your name, city and a line about you.",
+      "listed": "Show in the search",
+      "city": "City",
+      "about": "A line about you",
+      "aboutHint": "Up to 400 characters. E.g.: swim classes for kids from age 4, heated indoor pool.",
+      "save": "Save",
+      "saved": "Saved",
+      "listedYes": "The school shows in the search. Only the owner can change this.",
+      "listedNo": "The school does not show in the search. Only the owner can change this."
+    }
   },
   "start": {
     "title": "Welcome",
     "subtitle": "You don't have a place here yet. How would you like to start?",
+    "found": {
+      "title": "We found you at {school}",
+      "body": "{school}'s office already has your phone number. Is that you? One tap joins your family, with the schedule, payments and messages.",
+      "bodyDive": "{school} already has your phone number. Is that you? One tap shows your pass, dives and forms.",
+      "yes": "Yes, that's me"
+    },
+    "requests": {
+      "title": "My requests",
+      "kind": {
+        "join": "Join",
+        "trial": "Trial lesson"
+      },
+      "status": {
+        "new": "Waiting for the office",
+        "accepted": "Accepted",
+        "declined": "Not accepted",
+        "withdrawn": "Withdrawn"
+      },
+      "enter": "Enter"
+    },
+    "search": {
+      "title": "Looking for a school",
+      "body": "Search by name or city, then ask to join or for a trial lesson.",
+      "go": "Find a school"
+    },
     "link": {
       "title": "I got a link or QR code from my school",
       "body": "Paste the link you got on WhatsApp, or scan the QR code at the pool.",
@@ -5619,6 +5750,19 @@
       "title": "I run a school and want to manage it here",
       "body": "Open your own school: schedule, attendance, billing and messages to parents in one place.",
       "go": "Open a school"
+    }
+  },
+  "join": {
+    "errors": {
+      "notFound": "We couldn't find this school",
+      "alreadyMember": "You already have a place at this school",
+      "name": "First and last name are needed",
+      "phone": "Phone number is not valid",
+      "childName": "A child's name is missing",
+      "childDob": "The date of birth doesn't look right",
+      "tooManyChildren": "Up to 4 children per request. A bigger family? Talk to the office",
+      "handled": "This request was already handled",
+      "noMatch": "We found no family with your phone number at this school"
     }
   },
   "account": {
