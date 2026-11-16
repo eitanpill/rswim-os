@@ -16,7 +16,7 @@ export interface SaasDataSummary {
 }
 
 export const TEMPLATE_NAMES = {
-  regulations: 'תקנון R-SWIM',
+  regulations: 'תקנון בסיסי לבית ספר',
   catalog: 'קטלוג חוגים ומחירון לדוגמה',
   messages: 'נוסחי הודעות WhatsApp',
 } as const;
@@ -57,7 +57,7 @@ export async function seedSaasData(client: pg.PoolClient): Promise<SaasDataSumma
   await insert(
     'regulations',
     TEMPLATE_NAMES.regulations,
-    'התקנון שבית הספר של רעות עובד לפיו: הודעה על היעדרות, השלמות, הקפאות, עזיבה וחיוב.',
+    'כללים מקובלים להודעה על היעדרות, השלמות, הקפאות, עזיבה וחיוב. כל בית ספר משנה לפי הצורך.',
     { rules: DEFAULT_ORG_RULES },
   );
   await insert(

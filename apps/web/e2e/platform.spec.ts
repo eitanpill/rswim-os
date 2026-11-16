@@ -43,7 +43,9 @@ test('a new school signs up, sets up from templates, gets its domain and is bill
   await expect(page).toHaveURL(/\/admin\/onboarding$/);
   await expect(page.getByTestId('org-name')).toHaveText('גלים (דמו)');
   await expect(page.getByTestId('trial-banner')).toContainText('תקופת הניסיון פעילה');
-  await expect(page.getByTestId('step-regulations')).toHaveAttribute('data-done', 'false');
+  // The starter kit brought basic regulations; the message wording waits for the owner.
+  await expect(page.getByTestId('step-regulations')).toHaveAttribute('data-done', 'true');
+  await expect(page.getByTestId('step-messages')).toHaveAttribute('data-done', 'false');
 
   // Marketplace: regulations, the sample catalog and the message wording.
   await page.goto('/admin/templates');

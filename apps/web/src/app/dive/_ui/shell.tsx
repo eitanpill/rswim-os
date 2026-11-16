@@ -22,6 +22,7 @@ const PAGE_ICON: Record<DivePage, ReactNode> = {
   forms: di.doc,
   payments: di.coin,
   plan: di.doc,
+  setup: di.anchor,
 };
 
 /**

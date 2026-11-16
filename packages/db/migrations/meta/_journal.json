@@ -414,6 +414,13 @@
       "when": 1794650879443,
       "tag": "0058_subscription_billing",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1794737279443,
+      "tag": "0059_starter_kits",
+      "breakpoints": true
     }
   ]
 }

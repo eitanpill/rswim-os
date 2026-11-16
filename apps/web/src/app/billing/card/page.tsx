@@ -21,7 +21,7 @@ export default async function CardStepPage({
 }) {
   const session = await getSession();
   if (!session?.orgId) redirect('/');
-  const next = session.vertical === 'freediving' ? '/dive' : '/admin/onboarding';
+  const next = session.vertical === 'freediving' ? '/dive/setup' : '/admin/onboarding';
   if (session.role !== 'owner') redirect(next);
   const { card } = await searchParams;
   const t = await getTranslations('platform.billing');

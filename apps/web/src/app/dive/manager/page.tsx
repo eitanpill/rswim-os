@@ -24,6 +24,7 @@ import { dateShort, dayLabel, hhmm, localDay } from '../_ui/format';
 import { di } from '../_ui/icons';
 import { CallBadge, Chip, Empty, Hero, Meter, Panel, type Tone } from '../_ui/kit';
 import { PersonLine, WindArrow } from '../_ui/widgets';
+import { SetupNudge } from '../_ui/setup-nudge';
 
 const small = 'min-h-8 px-2.5 text-xs';
 
@@ -55,6 +56,7 @@ export default async function OpsRoom() {
           paperwork: b.paperwork.length,
         })}
       />
+      <SetupNudge />
 
       <Panel title={t('manager.week')} icon={di.calendar} testId="week-board" flush>
         <div className="grid snap-x snap-mandatory auto-cols-[minmax(15rem,1fr)] grid-flow-col items-start gap-3 overflow-x-auto px-4 pb-4 [&>*]:snap-start">

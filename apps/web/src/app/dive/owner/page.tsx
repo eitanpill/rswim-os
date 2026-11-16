@@ -9,6 +9,7 @@ import { di } from '../_ui/icons';
 import { Bubbles, CallBadge, Empty, Kpi, Panel } from '../_ui/kit';
 import { Dismissible } from '../_ui/motion';
 import { InsightList, PersonLine, SeaCard, SessionRow } from '../_ui/widgets';
+import { SetupNudge } from '../_ui/setup-nudge';
 
 const STREAMS = ['courses', 'training', 'experiences', 'gear'] as const;
 
@@ -56,6 +57,7 @@ export default async function OwnerBridge() {
 
   return (
     <div className="flex flex-col gap-5" data-testid="owner-bridge">
+      <SetupNudge />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <section
           className="bg-ocean relative flex min-h-56 flex-col justify-between overflow-hidden rounded-3xl p-5 text-white md:p-7"
