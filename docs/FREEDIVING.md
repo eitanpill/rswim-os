@@ -162,6 +162,10 @@ card each, and a regular who uploaded a higher card, all waiting for the desk. P
 `planLines`, `clubInsights`.
 Each takes the rules version in force; defaults live in `@rswim/contracts` (`DEFAULT_DIVE_RULES`).
 
+A new club starts on `/dive/setup` (owner and manager): its first steps, dive sites, programs and prices (the starter
+kit's four, to edit), sessions on the calendar (one, or weekly), and invite links for instructors and managers. Its
+health, waiver and insurance forms arrive as drafts to publish on `/dive/forms`.
+
 The owner and the manager edit the rules on `/dive/rules` (from the ops room's rules panel): every rule, saved as a
 version from today or a later date. A version that already took effect is history and the database refuses to change
 it (migration 0039, `settings.write` only). The front desk reads them.

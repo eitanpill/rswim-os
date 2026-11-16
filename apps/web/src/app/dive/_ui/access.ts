@@ -5,7 +5,16 @@ import type { Session } from '@/lib/auth/types';
 
 /** The club's screens, and who opens each. The database (RLS) is the real gate; this keeps people on their own page. */
 export type DivePage =
-  'owner' | 'manager' | 'office' | 'instructor' | 'me' | 'divers' | 'forms' | 'payments' | 'plan';
+  | 'owner'
+  | 'manager'
+  | 'office'
+  | 'instructor'
+  | 'me'
+  | 'divers'
+  | 'forms'
+  | 'payments'
+  | 'plan'
+  | 'setup';
 
 export type DiveRole = 'owner' | 'manager' | 'office' | 'instructor' | 'customer';
 
@@ -17,8 +26,18 @@ export function diveRole(s: Session): DiveRole {
 }
 
 const PAGES: Record<DiveRole, DivePage[]> = {
-  owner: ['owner', 'manager', 'office', 'instructor', 'divers', 'forms', 'payments', 'plan'],
-  manager: ['manager', 'office', 'instructor', 'divers', 'forms'],
+  owner: [
+    'owner',
+    'manager',
+    'office',
+    'instructor',
+    'divers',
+    'forms',
+    'payments',
+    'plan',
+    'setup',
+  ],
+  manager: ['manager', 'office', 'instructor', 'divers', 'forms', 'setup'],
   office: ['office', 'divers', 'forms'],
   instructor: ['instructor', 'divers'],
   customer: ['me'],
@@ -37,7 +56,7 @@ export const HOME: Record<DiveRole, DivePage> = {
  * links, not a tab.
  */
 export function pagesFor(role: DiveRole): DivePage[] {
-  return PAGES[role].filter((p) => p !== 'payments' && p !== 'plan');
+  return PAGES[role].filter((p) => p !== 'payments' && p !== 'plan' && p !== 'setup');
 }
 
 /** Guard for one club page: signed in to a freediving club, and this page is one of the role's. */

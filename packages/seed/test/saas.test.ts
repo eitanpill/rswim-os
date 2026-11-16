@@ -6,7 +6,7 @@
  */
 import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { asAnon, asUser, type Tx } from '@rswim/db';
+import { asAnon, asUser, sql, type Tx } from '@rswim/db';
 import { ACCOUNT_PERSONAS, DEMO_ORG, PERSONAS } from '@rswim/db/personas';
 import { asPlatform, withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
@@ -42,6 +42,16 @@ import {
   updateSchool,
   verifyDomain,
 } from '@rswim/domain-platform';
+import {
+  addSessions,
+  clubSetup,
+  listFormTemplates,
+  ProgramInput,
+  saveProgram,
+  saveSite,
+  SessionsInput,
+  SiteInput,
+} from '@rswim/domain-dive';
 import { createVenue } from '@rswim/domain-venues';
 import { FakeDnsResolver, FakeInvoicingProvider, FakePaymentProvider } from '@rswim/integrations';
 import { seedDemo } from '../src/demo';
@@ -99,9 +109,32 @@ describe('a new school', () => {
       ['venues', 0, 1],
     ]);
     expect(await owner((tx) => myFeatures(tx))).toMatchObject({ reports: false, copilot: false });
+    // The starter kit: basic regulations from today, the common programs and a sample price list left as a draft.
     const steps = await owner((tx) => onboardingStatus(tx));
     expect(steps.ready).toBe(false);
-    expect(steps.doneCount).toBe(0);
+    expect(steps.steps.filter((s) => s.done).map((s) => s.step)).toEqual(['regulations']);
+    const kit = await owner((tx) =>
+      tx.execute<{
+        programs: number;
+        levels: number;
+        drafts: number;
+        items: number;
+        versions: number;
+      }>(
+        sql`select (select count(*)::int from programs) programs, (select count(*)::int from levels) levels,
+                   (select count(*)::int from price_lists where status = 'draft') drafts,
+                   (select count(*)::int from price_items) items, (select count(*)::int from policy_sets) versions`,
+      ),
+    );
+    expect(kit.rows[0]).toEqual({ programs: 4, levels: 5, drafts: 1, items: 6, versions: 1 });
+    // Opening it again adds nothing twice.
+    await owner((tx) => provisionSchool(tx, ctx()));
+    const again = await owner((tx) =>
+      tx.execute<{ programs: number; versions: number }>(
+        sql`select (select count(*)::int from programs) programs, (select count(*)::int from policy_sets) versions`,
+      ),
+    );
+    expect(again.rows[0]).toEqual({ programs: 4, versions: 1 });
     // The demo school sees nothing of it.
     expect(
       await asUser(t.db, { sub: PERSONAS.owner.userId, org_id: DEMO_ORG.id }, (tx) =>
@@ -404,5 +437,120 @@ describe('sharing a template', () => {
         admin((tx) => reviewTemplate(tx, { userId: platform }, submitted!.id, 'rejected')),
       ),
     ).toBe('platform.errors.notSubmitted');
+  });
+});
+
+describe('a new freediving club', () => {
+  let clubId = '';
+  const cctx = (): ServiceContext => ({ orgId: clubId, userId: newcomer });
+  const clubOwner = <T>(fn: (tx: Tx) => Promise<T>) =>
+    asUser(t.db, { sub: newcomer, org_id: clubId }, fn);
+  const site = (name: string) => ({
+    name,
+    kind: 'shore',
+    maxDepthM: '30',
+    hasLine: 'on',
+    meetingPoint: '',
+    active: 'on',
+  });
+
+  it('opens with the starter kit: the common programs and its forms as drafts', async () => {
+    clubId = await asUser(t.db, { sub: newcomer, org_id: null }, (tx) =>
+      createSchool(tx, {
+        name: 'מועדון כחול (דמו)',
+        slug: 'blue-demo',
+        plan: 'starter',
+        vertical: 'freediving',
+      }),
+    );
+    await clubOwner((tx) => provisionSchool(tx, cctx()));
+    await clubOwner((tx) => provisionSchool(tx, cctx()));
+    const setup = await clubOwner((tx) => clubSetup(tx));
+    expect(setup.programs.map((p) => p.code).sort()).toEqual([
+      'course1',
+      'discover',
+      'line',
+      'pool',
+    ]);
+    expect(setup.sites).toEqual([]);
+    expect(setup.publishedForms).toBe(0);
+    expect(setup.steps.filter((s) => s.done).map((s) => s.key)).toEqual([]);
+    const forms = await clubOwner((tx) => listFormTemplates(tx));
+    expect(forms.map((f) => [f.kind, f.publishedAt])).toEqual(
+      expect.arrayContaining([
+        ['health', null],
+        ['waiver', null],
+        ['insurance', null],
+      ]),
+    );
+    expect(forms).toHaveLength(3);
+  });
+
+  it('adds its site, sets a price and puts a weekly session on the calendar', async () => {
+    const siteId = await clubOwner((tx) => saveSite(tx, cctx(), SiteInput.parse(site('חוף הדמו'))));
+    // The starter plan has one place: a second open site is refused.
+    expect(
+      await code(clubOwner((tx) => saveSite(tx, cctx(), SiteInput.parse(site('אתר שני'))))),
+    ).toBe('platform.errors.limit.sites');
+    const line = (await clubOwner((tx) => clubSetup(tx))).programs.find((p) => p.code === 'line')!;
+    await clubOwner((tx) =>
+      saveProgram(
+        tx,
+        cctx(),
+        ProgramInput.parse({ ...line, id: line.id, price: '200', active: 'on' }),
+      ),
+    );
+    const added = await clubOwner((tx) =>
+      addSessions(
+        tx,
+        cctx(),
+        SessionsInput.parse({
+          programId: line.id,
+          siteId,
+          date: '2099-01-05',
+          time: '07:30',
+          capacity: '6',
+          leadStaffId: '',
+          weeks: '4',
+        }),
+      ),
+    );
+    expect(added).toBe(4);
+    const setup = await clubOwner((tx) => clubSetup(tx));
+    expect(setup.programs.find((p) => p.code === 'line')?.priceAgorot).toBe(20000);
+    expect(setup.upcomingSessions).toBe(4);
+    expect(setup.steps.filter((s) => s.done).map((s) => s.key)).toEqual([
+      'site',
+      'programs',
+      'session',
+    ]);
+    // A date in the past is refused.
+    expect(
+      await code(
+        clubOwner((tx) =>
+          addSessions(
+            tx,
+            cctx(),
+            SessionsInput.parse({
+              programId: line.id,
+              siteId,
+              date: '2020-01-05',
+              time: '07:30',
+              capacity: '6',
+              weeks: '',
+            }),
+          ),
+        ),
+      ),
+    ).toBe('dive.setup.errors.past');
+  });
+
+  it('is held to its plan: its divers count as the plan’s customers', async () => {
+    const page = await clubOwner((tx) => myPlanPage(tx));
+    expect(page.usage.map((u) => [u.limit, u.used])).toEqual([
+      ['students', 0],
+      ['staff', 0],
+      ['venues', 1],
+    ]);
   });
 });

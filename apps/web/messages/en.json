@@ -885,7 +885,9 @@
       "limit": {
         "students": "You reached the number of students your plan allows. You can upgrade on the plan screen.",
         "staff": "You reached the number of staff your plan allows. You can upgrade on the plan screen.",
-        "venues": "Your plan includes one venue only. Upgrade to add another."
+        "venues": "Your plan includes one venue only. Upgrade to add another.",
+        "divers": "You've reached the number of divers your plan allows. You can upgrade on the plan screen.",
+        "sites": "Your plan includes one dive site. To add another, upgrade your plan."
       },
       "vertical": "Pick the kind of business: swim school or freediving club",
       "renewFirst": "Renew the subscription first",
@@ -4094,7 +4096,8 @@
       "me": "My diving",
       "divers": "Divers",
       "forms": "Paperwork",
-      "plan": "Subscription"
+      "plan": "Subscription",
+      "setup": "Setup"
     },
     "clubFallback": "Freediving club",
     "tagline": "Freediving · Gulf of Eilat",
@@ -5270,6 +5273,116 @@
         "cautionAboveMax": "The caution limit is above the closing limit",
         "levelsOrder": "A higher level can't have a shallower limit than the level before it"
       }
+    },
+    "setup": {
+      "kicker": "Club setup",
+      "title": "Getting started",
+      "progress": "{done} of {total} first steps",
+      "back": "Back",
+      "save": "Save",
+      "saved": "Saved",
+      "closed": "Closed",
+      "off": "Off",
+      "steps": {
+        "title": "First steps",
+        "site": {
+          "title": "Add a dive site",
+          "hint": "The shore, boat or pool the club works from."
+        },
+        "programs": {
+          "title": "Check programs and prices",
+          "hint": "We added the common programs. Change prices and turn off what you don't teach."
+        },
+        "forms": {
+          "title": "Publish your forms",
+          "hint": "Health, waiver and insurance wait as drafts. Read, adapt and publish.",
+          "link": "To the forms"
+        },
+        "session": {
+          "title": "Put a first session on the calendar",
+          "hint": "Divers can only book a session that exists."
+        },
+        "staff": {
+          "title": "Invite instructors",
+          "hint": "A personal link for each instructor or manager."
+        }
+      },
+      "sites": {
+        "title": "Dive sites",
+        "none": "No dive site yet.",
+        "add": "New site",
+        "addSubmit": "Add site",
+        "name": "Site name",
+        "kind": "Kind",
+        "maxDepth": "Max depth (m)",
+        "meetingPoint": "Meeting point",
+        "hasLine": "Has a line",
+        "open": "Open for diving",
+        "depth": "to {m} m"
+      },
+      "siteKind": {
+        "shore": "Shore",
+        "boat": "Boat",
+        "pool": "Pool"
+      },
+      "programs": {
+        "title": "Programs and prices",
+        "hint": "Changes apply from the next booking. Sessions already paid don't change.",
+        "name": "Name",
+        "kind": "Kind",
+        "agency": "Agency",
+        "price": "Price (₪)",
+        "duration": "Length (minutes)",
+        "minLevel": "Level needed",
+        "active": "Active",
+        "add": "New program",
+        "addSubmit": "Add program"
+      },
+      "programKind": {
+        "experience": "Experience",
+        "course": "Course",
+        "training": "Training",
+        "workshop": "Workshop",
+        "trip": "Trip"
+      },
+      "agency": {
+        "molchanovs": "Molchanovs",
+        "aida": "AIDA",
+        "ssi": "SSI",
+        "padi": "PADI",
+        "club": "The club's own"
+      },
+      "sessions": {
+        "title": "Sessions on the calendar",
+        "upcoming": "{count, plural, =0 {No upcoming sessions} one {One upcoming session} other {# upcoming sessions}}",
+        "program": "Program",
+        "site": "Site",
+        "date": "Date",
+        "time": "Time",
+        "capacity": "Places",
+        "lead": "Instructor",
+        "noLead": "Not set yet",
+        "weeks": "Weeks",
+        "weeksHint": "Same day and time every week. 1 = just this one.",
+        "submit": "Add to calendar",
+        "added": "Sessions added",
+        "needSite": "To add a session you need an open site and an active program."
+      },
+      "team": {
+        "title": "Team",
+        "hint": "Creates a personal link to send on WhatsApp. Whoever opens it joins the club in the role you chose.",
+        "instructor": "Instructor",
+        "manager": "Manager",
+        "phone": "Phone",
+        "email": "Email"
+      },
+      "errors": {
+        "program": "That program is off",
+        "site": "That site is closed",
+        "past": "A session can't be in the past"
+      },
+      "open": "Club setup",
+      "openHint": "{done} of {total} steps"
     }
   },
   "agent": {

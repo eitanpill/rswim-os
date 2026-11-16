@@ -7,10 +7,12 @@ import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import {
   Branding,
+  CatalogTemplate,
   DEFAULT_ORG_RULES,
   OrgRole,
   PLAN_FEATURES,
   PRODUCT,
+  SWIM_STARTER_CATALOG,
   TemplateKind,
   type PlanFeature,
   type SubscriptionStatus,
@@ -20,6 +22,7 @@ import {
 import { and, asc, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
 import { ensureCommsDefaults, updateTemplate } from '@rswim/domain-comms';
 import { DomainError, emit, type ServiceContext } from '@rswim/domain-core';
+import { installDiveStarterKit } from '@rswim/domain-dive';
 import {
   addLevel,
   createPolicyVersion,
@@ -149,9 +152,10 @@ export async function mySubscription(tx: Tx) {
 export async function myUsage(tx: Tx): Promise<Usage> {
   const [r] = await rows<{ students: number; staff: number; venues: number }>(
     tx,
-    sql`select (select count(*)::int from students) students,
+    sql`select ((select count(*) from students) + (select count(*) from dive_divers))::int students,
                (select count(*)::int from staff_members where status = 'active') staff,
-               (select count(*)::int from venues where status <> 'closed') venues`,
+               ((select count(*) from venues where status <> 'closed')
+                 + (select count(*) from dive_sites where active))::int venues`,
   );
   return r as Usage;
 }
@@ -235,10 +239,44 @@ export async function createSchool(tx: Tx, raw: CreateSchoolInput): Promise<stri
   return (r as { id: string }).id;
 }
 
-/** The defaults inside a new school, added as its new owner through the ordinary services. */
+/**
+ * The defaults inside a new school, added as its new owner through the ordinary services: the message wording, and
+ * the starter kit for its kind of business (stage 4). A swim school gets basic regulations from today, the common
+ * programs with their levels and a sample price list as a draft; a freediving club gets the common programs and its
+ * forms as drafts. Running it again adds nothing a school already has.
+ */
 export async function provisionSchool(tx: Tx, ctx: ServiceContext) {
   await ensureCommsDefaults(tx, ctx.orgId);
+  const [org] = await rows<{ vertical: string }>(
+    tx,
+    sql`select vertical from organizations where id = ${ctx.orgId}`,
+  );
+  if (org?.vertical === 'freediving') {
+    await installDiveStarterKit(tx, ctx);
+    return;
+  }
+  const today = await todayIL(tx);
+  const [has] = await rows<{ versions: number; programs: number; lists: number }>(
+    tx,
+    sql`select (select count(*)::int from policy_sets) versions, (select count(*)::int from programs) programs,
+               (select count(*)::int from price_lists) lists`,
+  );
+  if (!has?.versions) {
+    await installRegulations(tx, ctx, { rules: DEFAULT_ORG_RULES }, STARTER_KIT_NAME, today);
+  }
+  if (!has?.programs && !has?.lists) {
+    await installCatalog(
+      tx,
+      ctx,
+      CatalogTemplate.parse(SWIM_STARTER_CATALOG),
+      STARTER_KIT_NAME,
+      today,
+    );
+  }
 }
+
+/** What the starter kit's regulations version and price list are called (the owner renames them freely). */
+export const STARTER_KIT_NAME = 'ערכת פתיחה';
 
 /** The onboarding checklist, from what the school already has. */
 export async function onboardingStatus(tx: Tx) {

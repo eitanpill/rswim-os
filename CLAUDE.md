@@ -98,7 +98,9 @@ by DNS TXT, or with `RSWIM_DNS_FAKE=1` accepts any `*.localhost`; it bills schoo
 (`RSWIM_GROW_FAKE=1`). Sign-up ends on `/billing/card`, where the owner saves the subscription's card (in sandbox mode
 on `/billing/card/<setup>/sandbox`; the callback is `/api/webhooks/platform-card`); she changes plan, cancels and
 renews on `/admin/plan` (`/dive/plan`). Each paid platform invoice gets a document from the platform's own invoicing
-(`platformInvoicing()` in the worker, fake with `RSWIM_INVOICING_FAKE=1`). `RSWIM_PLATFORM_HOSTS` (comma-separated) lists the platform's own hosts, which schools can't claim.
+(`platformInvoicing()` in the worker, fake with `RSWIM_INVOICING_FAKE=1`). A new business gets its starter kit on opening
+(`provisionSchool`, content in `@rswim/contracts` `starter-kits.ts`); a freediving club sets up sites, programs,
+sessions and its team on `/dive/setup`. `RSWIM_PLATFORM_HOSTS` (comma-separated) lists the platform's own hosts, which schools can't claim.
 Plan limits are a database trigger; plan features gate screens through `requireFeature`.
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase

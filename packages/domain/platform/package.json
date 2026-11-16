@@ -20,6 +20,7 @@
     "@rswim/db": "workspace:*",
     "@rswim/domain-comms": "workspace:*",
     "@rswim/domain-core": "workspace:*",
+    "@rswim/domain-dive": "workspace:*",
     "@rswim/domain-settings": "workspace:*",
     "@rswim/integrations": "workspace:*",
     "zod": "^4.6.5"

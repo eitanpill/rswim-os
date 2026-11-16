@@ -88,7 +88,38 @@ test('a visitor signs up and opens a freediving club', async ({ page }) => {
   await form.getByRole('button', { name: 'פתיחת בית הספר' }).click();
   await expect(page).toHaveURL(/\/billing\/card$/);
   await page.getByTestId('card-step-later').click();
-  await expect(page).toHaveURL(/\/dive/);
+
+  // The club opens on its setup with the starter kit: the common programs, the forms waiting as drafts.
+  await expect(page).toHaveURL(/\/dive\/setup$/);
+  await expect(page.getByTestId('setup-program-discover')).toBeVisible();
+  await expect(page.getByTestId('setup-step-site')).toHaveAttribute('data-done', 'false');
+  await expect(page.getByTestId('setup-step-forms')).toHaveAttribute('data-done', 'false');
+
+  // A site, a price, and a weekly session on the calendar.
+  const site = page.getByTestId('site-form');
+  await site.getByLabel('שם האתר').fill('חוף הדמו');
+  await site.getByLabel('עומק מרבי (מטר)').fill('25');
+  await site.getByTestId('site-add').click();
+  await expect(page.getByTestId('setup-site')).toContainText('חוף הדמו');
+  await expect(page.getByTestId('setup-step-site')).toHaveAttribute('data-done', 'true');
+
+  const line = page.getByTestId('setup-program-line');
+  await line.locator('summary').click();
+  await line.getByLabel('מחיר (₪)').fill('200');
+  await line.getByTestId('program-save').click();
+  await expect(line.getByTestId('program-price')).toContainText('200');
+
+  const sessions = page.getByTestId('sessions-form');
+  const soon = new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10);
+  await sessions.getByLabel('תאריך').fill(soon);
+  await sessions.getByLabel('כמה שבועות').fill('3');
+  await sessions.getByTestId('sessions-add').click();
+  await expect(page.getByTestId('setup-sessions')).toContainText('3 מפגשים קרובים');
+  await expect(page.getByTestId('setup-step-session')).toHaveAttribute('data-done', 'true');
+
+  // The owner's home leads back to what is left.
+  await page.goto('/dive/owner');
+  await expect(page.getByTestId('setup-nudge')).toContainText('3 מתוך 5');
 });
 
 test('sign-up refuses a taken email and a missing consent', async ({ page }) => {

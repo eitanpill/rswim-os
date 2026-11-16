@@ -921,6 +921,9 @@ importers:
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../core
+      '@rswim/domain-dive':
+        specifier: workspace:*
+        version: link:../dive
       '@rswim/domain-settings':
         specifier: workspace:*
         version: link:../settings

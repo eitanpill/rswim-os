@@ -368,6 +368,25 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - Not verified: the real confirmation email (needs Supabase + Resend). Card capture at sign-up came in stage 3. Terms of
   use and privacy policy pages come with the lawyer (stage 7); the consent box links to nothing yet.
 
+## Starter kits per kind of business, SaaS stage 4 (2026-11-16)
+- A new business gets its kit the moment it opens (`provisionSchool`, also for a school on its own database). The
+  content lives in `@rswim/contracts` (`starter-kits.ts`), generic and never a real school's:
+  - swim school: basic regulations from today, four common programs (kids groups with five levels, babies, adult
+    beginners, private) and a sample price list left as a draft for the owner to set;
+  - freediving club: four common programs (discover, a level-1 course, line training, pool) and its health, waiver
+    and insurance forms as drafts to read, adapt and publish.
+  Running it again adds nothing a school already has.
+- A freediving club sets itself up on `/dive/setup` (owner and manager; the owner's and manager's homes show the
+  first steps until they are done, and sign-up lands there): dive sites, programs and prices (edit, turn off, add),
+  sessions on the calendar (one, or weekly for up to 26 weeks), and a personal invite link for an instructor or a
+  manager. Before this a club could not add any of these in the app.
+- Plan limits count a club's divers as the plan's customers and its open dive sites as its places (migration 0059),
+  in the database trigger, the plan screen and the platform's list of schools.
+- The demo marketplace's regulations template is the generic one ("תקנון בסיסי לבית ספר"), no longer Reut's.
+- Verified: seed tests (the swim kit and its idempotence; a new club's kit, site, the one-site limit, a price, four
+  weekly sessions, a past date refused, divers counted), RLS and domain suites, E2E `signup.spec.ts` (a new club
+  through setup: site, price, three weekly sessions, the home's nudge) and `platform.spec.ts`.
+
 ## The subscription, SaaS stage 3 (2026-11-14)
 - Sign-up ends on `/billing/card`: the owner saves the card the subscription is paid with after the 14-day trial, on
   the platform processor's card page (not charged now; the demo processor's page is `/billing/card/<setup>/sandbox`).

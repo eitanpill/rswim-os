@@ -22,7 +22,7 @@ its regulations, its catalog with prices, and its WhatsApp wording. Reseeding re
 1. On `/login` pick **בית ספר חדש (הרשמה)**. With no school yet you land on **פתיחת בית ספר לשחייה**.
 2. Name **גלים (דמו)**, id `galim`, plan **בסיסי** (14 free trial days). Tap **פתיחת בית הספר**.
 3. You are the owner of the new school, on **צעדים ראשונים**, with a trial banner on top.
-4. **עוד › מאגר תבניות**: install **תקנון R-SWIM**, **קטלוג חוגים ומחירון לדוגמה** and **נוסחי הודעות WhatsApp**.
+4. **עוד › מאגר תבניות**: install **תקנון בסיסי לבית ספר**, **קטלוג חוגים ומחירון לדוגמה** and **נוסחי הודעות WhatsApp**.
    The catalog adds programs, levels and a draft price list; publish it on **מחירונים** to tick that step.
 5. **עוד › מיתוג ודומיין**: display name **גלים**, colour **אלמוג**, save; the header and buttons turn coral. Add the
    domain `galim.localhost`. It shows the TXT record to create, and the worker (fake DNS) verifies it within moments.
