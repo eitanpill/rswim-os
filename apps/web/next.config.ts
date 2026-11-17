@@ -15,6 +15,7 @@ const config: NextConfig = {
     '@rswim/domain-crm',
     '@rswim/domain-dive',
     '@rswim/domain-enrollment',
+    '@rswim/domain-imports',
     '@rswim/domain-people',
     '@rswim/domain-scheduling',
     '@rswim/domain-settings',
@@ -23,6 +24,8 @@ const config: NextConfig = {
     '@rswim/integrations',
   ],
   serverExternalPackages: ['pg'],
+  // Uploaded import files reach 5 MB (IMPORT_MAX_BYTES); the default limit for a server action is 1 MB.
+  experimental: { serverActions: { bodySizeLimit: '6mb' } },
   poweredByHeader: false,
   // The floating dev badge sits on top of demo screenshots; dev errors still show.
   devIndicators: false,

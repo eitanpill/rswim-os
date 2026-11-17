@@ -118,6 +118,10 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
     he: 'היי {{diver_name}} 🌊 תזכורת: מחר ({{date}}) בשעה {{time}} {{session}} ב{{site}}. {{pay_note}}כדאי להגיע 15 דקות לפני. לא מגיעים? עונים להודעה הזו ונפנה את המקום למישהו אחר. {{school_name}}',
     en: "Hi {{diver_name}} 🌊 A reminder: tomorrow ({{date}}) at {{time}}, {{session}} at {{site}}. {{pay_note}}Please come 15 minutes early. Can't make it? Reply here and we'll give the spot to someone else. {{school_name}}",
   },
+  mandate_request: {
+    he: 'היי {{guardian_name}}, {{school_name}} עברו למערכת חדשה 💙 כדי שהתשלום החודשי ימשיך כרגיל, צריך לחתום מחדש על הוראת הקבע. זה לוקח דקה, בקישור האישי שלך: {{url}}',
+    en: "Hi {{guardian_name}}, {{school_name}} moved to a new system 💙 To keep the monthly payment going, please sign the standing order again. It takes a minute, on your personal link: {{url}}",
+  },
   free_text: { he: '{{text}}', en: '{{text}}' },
 };
 
@@ -142,6 +146,7 @@ export const DEFAULT_AUTOMATIONS: [eventType: string, templateKey: Key][] = [
   ['scheduling.venue_migrated', 'venue_migration'],
   ['scheduling.venue_migration_reverted', 'venue_migration_reverted'],
   ['dive.session_reminder', 'dive_reminder'],
+  ['billing.mandate_requested', 'mandate_request'],
 ];
 
 /** Gives an organization every template and automation it lacks. Running it twice changes nothing. */

@@ -1340,7 +1340,8 @@
       "closure_credit": "Closure credit",
       "payment": "Payment",
       "refund": "Refund",
-      "reversal": "Reversal"
+      "reversal": "Reversal",
+      "import": "Balance from previous system"
     },
     "billingLineKind": {
       "seat": "Group seat",
@@ -1460,7 +1461,8 @@
       "venue_migration": "Venue move",
       "venue_migration_reverted": "Venue move cancelled",
       "bot_handoff": "Bot passed it to the team",
-      "dive_reminder": "Dive reminder for tomorrow"
+      "dive_reminder": "Dive reminder for tomorrow",
+      "mandate_request": "Standing order sign-up request"
     },
     "messageStatus": {
       "queued": "Queued",

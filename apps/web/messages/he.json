@@ -1340,7 +1340,8 @@
       "closure_credit": "זיכוי ביטול",
       "payment": "תשלום",
       "refund": "החזר",
-      "reversal": "ביטול רישום"
+      "reversal": "ביטול רישום",
+      "import": "יתרה ממערכת קודמת"
     },
     "billingLineKind": {
       "seat": "מקום בקבוצה",
@@ -1460,7 +1461,8 @@
       "venue_migration": "מעבר בריכה",
       "venue_migration_reverted": "ביטול מעבר בריכה",
       "bot_handoff": "הבוט העביר לצוות",
-      "dive_reminder": "תזכורת לצלילה מחר"
+      "dive_reminder": "תזכורת לצלילה מחר",
+      "mandate_request": "בקשה לחתום על הוראת קבע"
     },
     "messageStatus": {
       "queued": "בתור",

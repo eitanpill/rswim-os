@@ -239,6 +239,10 @@ export const RESOLVERS: Record<string, Resolver> = {
       },
     ];
   },
+  'billing.mandate_requested': async (_tx, raw) => {
+    const p = z.looseObject({ householdId: uuid, url: z.string() }).parse(raw);
+    return [{ key: p.householdId, householdId: p.householdId, vars: () => ({ url: p.url }) }];
+  },
   'billing.dunning_step': async (_tx, raw) => {
     const p = z.looseObject({ householdId: uuid, amountAgorot: z.number().int() }).parse(raw);
     return [
