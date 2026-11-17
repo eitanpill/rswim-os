@@ -117,7 +117,19 @@ export const ACCOUNT_PERSONAS = {
     name: 'מיכל (דמו, הורה שבית הספר מכיר)',
     phone: '+972500000206',
   },
+  /**
+   * A parent at the second school who deletes their account in the app (store launch, stage 8). Not on the sign-in
+   * screen: the E2E suite signs in as it and deletes it.
+   */
+  leaver: {
+    userId: '00000000-0000-4000-8000-000000000207',
+    name: 'עוזב (דמו)',
+    phone: '+972500000207',
+  },
 } as const;
+
+/** Account personas that sign-in screens leave out. */
+export const HIDDEN_PERSONAS = ['leaver'] as const;
 
 export type AccountPersonaKey = keyof typeof ACCOUNT_PERSONAS;
 

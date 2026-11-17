@@ -435,6 +435,13 @@
       "when": 1794910079443,
       "tag": "0061_ai_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1794906591449,
+      "tag": "0062_account_deletion",
+      "breakpoints": true
     }
   ]
 }
