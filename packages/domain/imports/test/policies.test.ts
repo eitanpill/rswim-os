@@ -161,12 +161,51 @@ describe('planning a families file', () => {
     const plan = planImport(
       'families',
       [
-        row('נועה כהן', '5/3/2018', 'מיכל כהן', '050-1234567', '', 'כרישים א', 'שלב 1', '300', 'בת', 'אבי', '052-7654321', 'אלרגיה'),
-        row('יואב כהן', '1.1.2020', 'מיכל כהן', '0501234567', '', 'דולפינים', 'שלב 9', '300', 'בן', '', '', 'מגיע באוטובוס'),
+        row(
+          'נועה כהן',
+          '5/3/2018',
+          'מיכל כהן',
+          '050-1234567',
+          '',
+          'כרישים א',
+          'שלב 1',
+          '300',
+          'בת',
+          'אבי',
+          '052-7654321',
+          'אלרגיה',
+        ),
+        row(
+          'יואב כהן',
+          '1.1.2020',
+          'מיכל כהן',
+          '0501234567',
+          '',
+          'דולפינים',
+          'שלב 9',
+          '300',
+          'בן',
+          '',
+          '',
+          'מגיע באוטובוס',
+        ),
         row('נועה כהן', '', 'מיכל כהן', '0501234567', '', '', '', '', '', '', '', ''),
         row('', '', '', '', '', '', '', '', '', '', '', ''),
         row('תמר', '', '', '123', '', '', '', '', '', '', '', ''),
-        row('רון לוי', '2030-01-01', 'שירה לוי', 'abc', 'shira@example.test', '', '', 'הרבה', '?', '', 'xx', ''),
+        row(
+          'רון לוי',
+          '2030-01-01',
+          'שירה לוי',
+          'abc',
+          'shira@example.test',
+          '',
+          '',
+          'הרבה',
+          '?',
+          '',
+          'xx',
+          '',
+        ),
         row('גיל', '', '', '', '', '', '', '', '', '', '', ''),
         row('', '', '', '', '', '', '', '', '', '', '', 'הערה בלבד'),
         row('אורי', '', 'דני רז', '053-1111111', 'nope', '', '', '-50', '', '', '', ''),
@@ -191,7 +230,9 @@ describe('planning a families file', () => {
       email: null,
     });
     expect(cohen.parent2).toEqual({ firstName: 'אבי', lastName: 'כהן', phone: '+972527654321' });
-    expect(cohen.children.map((c) => [c.firstName, c.lastName, c.dob, c.gender, c.levelId, c.groupId])).toEqual([
+    expect(
+      cohen.children.map((c) => [c.firstName, c.lastName, c.dob, c.gender, c.levelId, c.groupId]),
+    ).toEqual([
       ['נועה', 'כהן', '2018-03-05', 'female', 'lvl-1', 'grp-1'],
       ['יואב', 'כהן', '2020-01-01', 'male', null, null],
     ]);
@@ -249,7 +290,21 @@ describe('planning divers and staff', () => {
     const plan = planImport(
       'divers',
       [
-        ['רוני', 'אבן', '050-4444444', 'AIDA 2', '1/1/1990', 'ז', 'Eilat', 'r@example.test', 'AIDA', '123', 'אמא', '050-5555555', 'הערה'],
+        [
+          'רוני',
+          'אבן',
+          '050-4444444',
+          'AIDA 2',
+          '1/1/1990',
+          'ז',
+          'Eilat',
+          'r@example.test',
+          'AIDA',
+          '123',
+          'אמא',
+          '050-5555555',
+          'הערה',
+        ],
         ['רוני', 'אבן', '050-4444444', '', '', '', '', '', '', '', '', '', ''],
         ['סתיו', '', '', 'מתחיל', '1/1/2090', '', '', 'bad', '', '', '', 'xx', ''],
         ['סתיו', '', '', '', '', '', '', '', '', '', '', '', ''],
@@ -291,7 +346,12 @@ describe('planning divers and staff', () => {
       emergencyPhone: '+972505555555',
       notes: 'הערה',
     });
-    expect(plan.people[1]).toMatchObject({ firstName: 'סתיו', certLevel: 0, dob: null, email: null });
+    expect(plan.people[1]).toMatchObject({
+      firstName: 'סתיו',
+      certLevel: 0,
+      dob: null,
+      email: null,
+    });
     expect(plan.issues.map((i) => `${i.row}:${i.code}`)).toEqual([
       '3:duplicate',
       '4:badEmail',

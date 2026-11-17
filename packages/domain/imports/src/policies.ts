@@ -113,7 +113,7 @@ export function parseDate(value: string): string | null {
   m = /^(\d{1,2})[./-](\d{1,2})[./-](\d{2}|\d{4})$/.exec(v);
   if (m) {
     let y = Number(m[3]);
-    if (m[3]!.length === 2) y += y <= 30 ? 2000 : 1900;
+    if ((m[3] as string).length === 2) y += y <= 30 ? 2000 : 1900;
     return isoDate(y, Number(m[2]), Number(m[1]));
   }
   if (/^\d{4,5}$/.test(v)) {
@@ -168,7 +168,12 @@ export function parseDiveLevel(value: string): number | null {
 export function parseEmployment(value: string): EmploymentType {
   const v = normalizeHeader(value);
   if (v.includes('מורשה') || v.includes('licensed')) return 'freelancer_licensed';
-  if (v.includes('פטור') || v.includes('עצמאי') || v.includes('freelance') || v.includes('exempt')) {
+  if (
+    v.includes('פטור') ||
+    v.includes('עצמאי') ||
+    v.includes('freelance') ||
+    v.includes('exempt')
+  ) {
     return 'freelancer_exempt';
   }
   return 'employee';
@@ -344,7 +349,12 @@ function planFamilies(
     if (errors.length) {
       skipped++;
       for (const code of errors) {
-        issues.push({ row: n, code, severity: 'error', value: code === 'badPhone' ? c.phone : undefined });
+        issues.push({
+          row: n,
+          code,
+          severity: 'error',
+          value: code === 'badPhone' ? c.phone : undefined,
+        });
       }
       return;
     }
@@ -360,7 +370,9 @@ function planFamilies(
         displayName: lastName || parentName.first,
         parent: { firstName: parentName.first, lastName, phone, email },
         parent2:
-          p2.first || p2Phone ? { firstName: p2.first, lastName: p2.last || lastName, phone: p2Phone } : null,
+          p2.first || p2Phone
+            ? { firstName: p2.first, lastName: p2.last || lastName, phone: p2Phone }
+            : null,
         children: [],
         balanceAgorot: 0,
         balances: [],

@@ -103,8 +103,7 @@ function toRun(r: RunRow): ImportRun {
     startedAt: new Date(r.startedAt),
     committedAt,
     undoneAt: date(r.undoneAt),
-    canUndo:
-      r.status === 'succeeded' && canUndo(committedAt, new Date(r.now), IMPORT_UNDO_HOURS),
+    canUndo: r.status === 'succeeded' && canUndo(committedAt, new Date(r.now), IMPORT_UNDO_HOURS),
   };
 }
 
@@ -277,15 +276,16 @@ async function commitFamilies(
       ),
     );
     created.households.push(householdId);
-    if (fam.parent2) {
+    const p2 = fam.parent2;
+    if (p2) {
       await guarded(() =>
         addGuardian(tx, ctx, householdId, {
-          firstName: fam.parent2!.firstName,
-          lastName: fam.parent2!.lastName,
-          phoneE164: fam.parent2!.phone,
+          firstName: p2.firstName,
+          lastName: p2.lastName,
+          phoneE164: p2.phone,
           email: null,
           relation: null,
-          whatsappOptIn: optIn && Boolean(fam.parent2!.phone),
+          whatsappOptIn: optIn && Boolean(p2.phone),
           isBillingContact: false,
         }),
       );
@@ -498,7 +498,8 @@ export async function undoImport(tx: Tx, importId: string) {
     );
   }
   for (const id of run.created.divers ?? []) count(await removeIfUnused(tx, 'dive_divers', id, []));
-  for (const id of run.created.staff ?? []) count(await removeIfUnused(tx, 'staff_members', id, []));
+  for (const id of run.created.staff ?? [])
+    count(await removeIfUnused(tx, 'staff_members', id, []));
   await tx.execute(
     sql`update import_runs set status = 'undone', undone_at = now(),
                stats = stats || ${JSON.stringify({ removed, kept })}::jsonb
@@ -571,4 +572,3 @@ export async function requestMandates(
   }
   return sent;
 }
-

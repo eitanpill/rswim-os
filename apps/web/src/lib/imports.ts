@@ -28,7 +28,11 @@ export async function suggestMapping(kind: ImportKind, table: Table): Promise<Im
     .filter((c) => !base[String(c.index)] && c.samples.length > 0);
   if (!suggester || open.length === 0) return base;
   try {
-    const suggestion = await suggester.suggest({ kind, fields: IMPORT_FIELDS[kind], columns: open });
+    const suggestion = await suggester.suggest({
+      kind,
+      fields: IMPORT_FIELDS[kind],
+      columns: open,
+    });
     return mergeSuggestion(kind, base, suggestion);
   } catch {
     // Claude unreachable or refusing: the owner maps those columns by hand on the next screen.

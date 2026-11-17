@@ -135,7 +135,12 @@ describe('reading files', () => {
     const book = new ExcelJS.Workbook();
     const sheet = book.addWorksheet('משפחות');
     sheet.addRow(['שם הילד', 'תאריך לידה', 'טלפון', 'נוסחה']);
-    sheet.addRow(['נועה', new Date(Date.UTC(2018, 2, 5)), '0501234567', { formula: '1+1', result: 2 }]);
+    sheet.addRow([
+      'נועה',
+      new Date(Date.UTC(2018, 2, 5)),
+      '0501234567',
+      { formula: '1+1', result: 2 },
+    ]);
     sheet.addRow([{ richText: [{ text: 'יו' }, { text: 'אב' }] }, null, 501234568, null]);
     const bytes = new Uint8Array(await book.xlsx.writeBuffer());
     const table = await readTable('families.xlsx', bytes);
@@ -165,7 +170,8 @@ describe('reading files', () => {
     expect(sheetsCsvUrl('not a url')).toBeNull();
     const link = `https://docs.google.com/spreadsheets/d/${id}/edit`;
     const reply = (body: string, type: string, status = 200) =>
-      (async () => new Response(body, { status, headers: { 'content-type': type } })) as typeof fetch;
+      (async () =>
+        new Response(body, { status, headers: { 'content-type': type } })) as typeof fetch;
     expect((await fetchSheet(link, reply('שם\nדנה', 'text/csv'))).rows).toEqual([['דנה']]);
     expect(await code(fetchSheet(link, reply('<html>', 'text/html')))).toBe(
       'imports.errors.sheetPrivate',
@@ -231,17 +237,26 @@ describe('a families file', () => {
       await code(owner((tx) => commitImport(tx, ctx, { importId, whatsappOptIn: true }, TEXTS))),
     ).toBe('imports.errors.mapping');
     await owner((tx) =>
-      saveMapping(tx, MappingInput.parse({ importId, col_0: 'childFullName', col_1: 'childDob',
-        col_2: 'parentFullName', col_3: 'phone', col_4: 'group', col_5: 'level', col_6: 'balance',
-        col_7: 'childGender' })),
+      saveMapping(
+        tx,
+        MappingInput.parse({
+          importId,
+          col_0: 'childFullName',
+          col_1: 'childDob',
+          col_2: 'parentFullName',
+          col_3: 'phone',
+          col_4: 'group',
+          col_5: 'level',
+          col_6: 'balance',
+          col_7: 'childGender',
+        }),
+      ),
     );
   });
 
   it('saves families, children, groups and balances in one go, and drops the file rows', async () => {
     const started = Date.now();
-    const r = await owner((tx) =>
-      commitImport(tx, ctx, { importId, whatsappOptIn: true }, TEXTS),
-    );
+    const r = await owner((tx) => commitImport(tx, ctx, { importId, whatsappOptIn: true }, TEXTS));
     expect(Date.now() - started).toBeLessThan(20_000);
     expect(r).toEqual({ importId, records: 3, children: 4 });
     const fams = await q(
@@ -253,9 +268,30 @@ describe('a families file', () => {
       [ctx.orgId],
     );
     expect(fams).toEqual([
-      { display_name: 'כהן', first_name: 'מיכל', phone_e164: '+972501234567', whatsapp_opt_in: true, kids: 2, balance: 30000 },
-      { display_name: 'לוי', first_name: 'שירה', phone_e164: '+972527654321', whatsapp_opt_in: true, kids: 1, balance: 0 },
-      { display_name: 'רז', first_name: 'דני', phone_e164: '+972531111111', whatsapp_opt_in: true, kids: 1, balance: -5000 },
+      {
+        display_name: 'כהן',
+        first_name: 'מיכל',
+        phone_e164: '+972501234567',
+        whatsapp_opt_in: true,
+        kids: 2,
+        balance: 30000,
+      },
+      {
+        display_name: 'לוי',
+        first_name: 'שירה',
+        phone_e164: '+972527654321',
+        whatsapp_opt_in: true,
+        kids: 1,
+        balance: 0,
+      },
+      {
+        display_name: 'רז',
+        first_name: 'דני',
+        phone_e164: '+972531111111',
+        whatsapp_opt_in: true,
+        kids: 1,
+        balance: -5000,
+      },
     ]);
     const noa = (
       await q(
@@ -267,12 +303,20 @@ describe('a families file', () => {
     expect(noa).toEqual({ dob: '2018-03-05', gender: 'female', level: 'k1', grp: 'כרישים א' });
     // The small group took the first child; the second is in, but not in the group, and that is reported.
     expect(
-      await q(`select count(*)::int n from enrollments where class_template_id = $1`, [tinyGroupId]),
+      await q(`select count(*)::int n from enrollments where class_template_id = $1`, [
+        tinyGroupId,
+      ]),
     ).toEqual([{ n: 1 }]);
     const run = await owner((tx) => getImport(tx, importId));
     expect(run).toMatchObject({ status: 'succeeded', rows: [], canUndo: true });
     expect(run!.headers).toHaveLength(8);
-    expect(run!.stats).toMatchObject({ records: 3, children: 4, placed: 2, notPlaced: 1, balanceAgorot: 25000 });
+    expect(run!.stats).toMatchObject({
+      records: 3,
+      children: 4,
+      placed: 2,
+      notPlaced: 1,
+      balanceAgorot: 25000,
+    });
     expect(run!.report.find((i) => i.code === 'notPlaced')?.value).toMatch(/^קטנה\|/);
     expect(await owner((tx) => listImports(tx))).toHaveLength(1);
     expect(groupId).toBeTruthy();
@@ -315,7 +359,9 @@ describe('a families file', () => {
       [ctx.orgId],
     );
     expect(events).toHaveLength(2);
-    expect(events[0].payload.url).toMatch(/^https:\/\/app\.example\.test\/pay\/[A-Za-z0-9_-]{30,}$/);
+    expect(events[0].payload.url).toMatch(
+      /^https:\/\/app\.example\.test\/pay\/[A-Za-z0-9_-]{30,}$/,
+    );
     expect(await owner((tx) => importMandates(tx, '00000000-0000-4000-8000-000000000000'))).toEqual(
       [],
     );
@@ -364,7 +410,9 @@ describe('a families file', () => {
     expect(
       await q(`select whatsapp_opt_in from guardians where phone_e164 = '+972587777777'`),
     ).toEqual([{ whatsapp_opt_in: false }]);
-    await q(`update import_runs set committed_at = now() - interval '25 hours' where id = $1`, [id]);
+    await q(`update import_runs set committed_at = now() - interval '25 hours' where id = $1`, [
+      id,
+    ]);
     expect(await code(owner((tx) => undoImport(tx, id)))).toBe('imports.errors.undoClosed');
   });
 
@@ -377,13 +425,15 @@ describe('a families file', () => {
       }),
     );
     expect(
-      await code(owner((tx) => commitImport(tx, ctx, { importId: id, whatsappOptIn: true }, TEXTS))),
+      await code(
+        owner((tx) => commitImport(tx, ctx, { importId: id, whatsappOptIn: true }, TEXTS)),
+      ),
     ).toBe('imports.errors.nothing');
     await owner((tx) => discardImport(tx, id));
     expect(await code(owner((tx) => previewImport(tx, id)))).toBe('common.errors.notFound');
-    expect(
-      await code(owner((tx) => saveMapping(tx, MappingInput.parse({ importId: id })))),
-    ).toBe('common.errors.notFound');
+    expect(await code(owner((tx) => saveMapping(tx, MappingInput.parse({ importId: id }))))).toBe(
+      'common.errors.notFound',
+    );
     const old = await owner((tx) =>
       createImportDraft(tx, ctx, {
         kind: 'staff',
@@ -473,11 +523,44 @@ describe('divers and staff', () => {
       }),
     );
     expect(
-      await code(owner((tx) => commitImport(tx, ctx, { importId: id, whatsappOptIn: true }, TEXTS))),
+      await code(
+        owner((tx) => commitImport(tx, ctx, { importId: id, whatsappOptIn: true }, TEXTS)),
+      ),
     ).toBe('platform.errors.limit.divers');
     expect(await q(`select count(*)::int n from dive_divers`)).toEqual([{ n: 0 }]);
     expect(await q(`select status from import_runs where id = $1`, [id])).toEqual([
       { status: 'draft' },
     ]);
   });
+});
+
+describe('a large file', () => {
+  it('saves 200 families with 400 children well within two minutes, and takes them all back', async () => {
+    await q(`delete from org_subscriptions where organization_id = $1`, [ctx.orgId]);
+    const rows: string[][] = [];
+    for (let i = 0; i < 200; i++) {
+      const phone = `0537${String(100_000 + i).padStart(6, '0')}`;
+      for (const child of ['א', 'ב']) {
+        rows.push([
+          `הורה${i} משפחה${i}`,
+          phone,
+          `ילד${child} משפחה${i}`,
+          '01/02/2018',
+          'שלב 1',
+          '50',
+        ]);
+      }
+    }
+    const table = toTable([['שם ההורה', 'טלפון', 'שם הילד', 'תאריך לידה', 'רמה', 'יתרה'], ...rows]);
+    const id = await owner((tx) =>
+      createImportDraft(tx, ctx, { kind: 'families', fileName: 'גדול.csv', table }),
+    );
+    const started = Date.now();
+    await owner((tx) => commitImport(tx, ctx, { importId: id, whatsappOptIn: false }, TEXTS));
+    const ms = Date.now() - started;
+    const run = await owner((tx) => getImport(tx, id));
+    expect(run?.stats).toMatchObject({ records: 200, children: 400, skipped: 0 });
+    expect(ms).toBeLessThan(120_000);
+    expect(await owner((tx) => undoImport(tx, id))).toEqual({ removed: 200, kept: 0 });
+  }, 150_000);
 });

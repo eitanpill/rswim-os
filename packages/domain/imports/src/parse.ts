@@ -19,7 +19,7 @@ export function decodeText(bytes: Uint8Array): string {
   } catch {
     text = new TextDecoder('windows-1255').decode(bytes);
   }
-  return text.replace(/^﻿/, '');
+  return text.replace(/^\uFEFF/, '');
 }
 
 /** The separator the first line uses most: comma, semicolon or tab. */
@@ -87,7 +87,9 @@ function cellText(value: ExcelJS.CellValue): string {
 export async function parseXlsx(bytes: Uint8Array): Promise<string[][]> {
   const book = new ExcelJS.Workbook();
   try {
-    await book.xlsx.load(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer);
+    await book.xlsx.load(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
+    );
   } catch {
     throw new DomainError('imports.errors.unreadable');
   }

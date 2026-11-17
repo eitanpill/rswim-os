@@ -120,7 +120,7 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
   },
   mandate_request: {
     he: 'היי {{guardian_name}}, {{school_name}} עברו למערכת חדשה 💙 כדי שהתשלום החודשי ימשיך כרגיל, צריך לחתום מחדש על הוראת הקבע. זה לוקח דקה, בקישור האישי שלך: {{url}}',
-    en: "Hi {{guardian_name}}, {{school_name}} moved to a new system 💙 To keep the monthly payment going, please sign the standing order again. It takes a minute, on your personal link: {{url}}",
+    en: 'Hi {{guardian_name}}, {{school_name}} moved to a new system 💙 To keep the monthly payment going, please sign the standing order again. It takes a minute, on your personal link: {{url}}',
   },
   free_text: { he: '{{text}}', en: '{{text}}' },
 };

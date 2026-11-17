@@ -53,3 +53,15 @@ its regulations, its catalog with prices, and its WhatsApp wording. Reseeding re
 - `packages/seed/test/saas.test.ts`: templates install into a new school, domain checks, billing with paid and declined
   charges, trial end and suspension.
 - `apps/web/e2e/platform.spec.ts`: the acceptance criterion end to end.
+
+## SaaS stage 5: importing from the previous system
+
+1. Sign in as the owner (dev persona), open "עוד" → "ייבוא מהמערכת הקודמת".
+2. Choose "משפחות", upload a CSV with columns such as שם ההורה, טלפון, שם הילד, תאריך לידה, קבוצה, יתרה (fake people).
+3. The columns screen shows what was recognised; set any unknown column (e.g. "הערות") and update the preview.
+4. The preview counts families, children and balances, and lists each problem row (bad phone, duplicate, unknown
+   group) before anything is saved.
+5. Tick "the customers agreed to WhatsApp", import. The result shows what came in, the standing order list
+   (signed, got a link, not yet) and "send a link" (needs a processor connected in payments).
+6. "Undo the import" removes everything not yet in use, within 24 hours.
+7. As 🤿 the club owner: /dive/setup → "ייבוא צוללים וצוות" and the same flow with a divers file.
