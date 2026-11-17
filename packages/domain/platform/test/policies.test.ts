@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ORG_RULES } from '@rswim/contracts';
 import {
+  aiBudget,
   billingPeriod,
   brandPalette,
   catalogProblems,
@@ -377,5 +378,22 @@ describe('templates', () => {
       }).ok,
     ).toBe(true);
     expect(parseTemplate('messages', { messages: [] }).ok).toBe(false);
+  });
+});
+
+describe('aiBudget', () => {
+  it('has no limit without a cap', () => {
+    expect(aiBudget(null, 5000, 80)).toEqual({
+      state: 'unlimited',
+      percent: null,
+      used: 5000,
+      cap: null,
+    });
+  });
+  it('is ok, warns from the warn share, and is over at the cap', () => {
+    expect(aiBudget(300, 150, 80)).toMatchObject({ state: 'ok', percent: 50 });
+    expect(aiBudget(300, 240, 80)).toMatchObject({ state: 'warn', percent: 80 });
+    expect(aiBudget(300, 300, 80)).toMatchObject({ state: 'over', percent: 100 });
+    expect(aiBudget(0, 0, 80)).toMatchObject({ state: 'over', cap: 0 });
   });
 });

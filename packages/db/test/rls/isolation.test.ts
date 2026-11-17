@@ -130,6 +130,7 @@ const TENANT_TABLES = [
   'agent_settings',
   'business_snapshots',
   'business_memories',
+  'ai_usage',
   'bot_replies',
   'bot_knowledge',
   'weekly_digests',

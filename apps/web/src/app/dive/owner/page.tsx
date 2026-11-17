@@ -256,6 +256,13 @@ export default async function OwnerBridge() {
               >
                 {t('owner.toPlan')}
               </a>
+              <a
+                href="/dive/connections"
+                className="text-sm text-[var(--dive-sea)] hover:underline"
+                data-testid="to-connections"
+              >
+                {t('owner.toConnections')}
+              </a>
             </span>
           }
         >

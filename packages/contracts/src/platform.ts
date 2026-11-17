@@ -12,6 +12,8 @@ export const PLAN_FEATURES = [
   'transport',
   'institutions',
   'copilot',
+  // The parents' (and divers') WhatsApp bot (SaaS stage 6: growth and pro).
+  'parent_bot',
 ] as const;
 export const PlanFeature = z.enum(PLAN_FEATURES);
 export type PlanFeature = z.infer<typeof PlanFeature>;

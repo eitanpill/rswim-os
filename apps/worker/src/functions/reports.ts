@@ -2,7 +2,10 @@
  * The owner's weekly digest (brief §6.15): every Sunday at 07:00 each tenant's digest for the week is built from the
  * reports and stored for /admin/reports/digest. A tenant whose digest policy is off is skipped.
  */
+import type { ClaudeUsage } from '@rswim/contracts';
 import { schema } from '@rswim/db';
+import { aiAllowed, recordAiUsage } from '@rswim/domain-platform';
+import { trackUsage } from '@rswim/integrations';
 import { asPlatform, withOrg } from '@rswim/db/service';
 import {
   buildWeeklyDigest,
@@ -73,19 +76,30 @@ export const reportsDailyInsights = inngest.createFunction(
       );
       if (!refreshed?.aiNotes || !writer) continue;
       notes += await step.run(`notes-${orgId}`, async () => {
-        const pending = await withOrg(getDb(), orgId, (tx) => insightsWithoutNotes(tx));
+        // Past the month's AI allowance the insights stay, without Claude's notes.
+        const pending = await withOrg(getDb(), orgId, async (tx) =>
+          (await aiAllowed(tx)) ? insightsWithoutNotes(tx) : [],
+        );
         if (pending.length === 0) return 0;
         // The model is called outside any transaction; a note is kept only if its insight did not change meanwhile.
-        const written = await writer.write({
-          today,
-          insights: pending.map((i) => ({
-            id: i.id,
-            kind: i.kind,
-            severity: i.severity,
-            params: i.params,
-            detail: i.detail,
-          })),
-        });
+        const usage: ClaudeUsage[] = [];
+        let written: Awaited<ReturnType<typeof writer.write>>;
+        try {
+          written = await trackUsage(usage, () =>
+            writer.write({
+              today,
+              insights: pending.map((i) => ({
+                id: i.id,
+                kind: i.kind,
+                severity: i.severity,
+                params: i.params,
+                detail: i.detail,
+              })),
+            }),
+          );
+        } finally {
+          await withOrg(getDb(), orgId, (tx) => recordAiUsage(tx, orgId, 'insights', usage));
+        }
         let saved = 0;
         await withOrg(getDb(), orgId, async (tx) => {
           for (const n of written) {

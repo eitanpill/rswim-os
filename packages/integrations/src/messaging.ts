@@ -2,10 +2,12 @@
  * Messaging adapters (brief §4.2, §6.12): WhatsApp through GHL's conversations API, an in-memory fake for tests and
  * demos (`RSWIM_MESSAGING_FAKE=1`), and the optional AI triage classifier.
  */
+import { AI_MODEL_FOR } from '@rswim/contracts';
 import { createHash } from 'node:crypto';
 import Anthropic from '@anthropic-ai/sdk';
 import { GhlApiError } from './ghl';
 import type { MessagingProvider, OutboundMessage, ProviderContext } from './index';
+import { reportUsage } from './usage';
 
 const short = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
 
@@ -145,7 +147,7 @@ export class ClaudeTriageClassifier implements TriageClassifier {
 
   constructor(opts: { apiKey?: string; model?: string; client?: Anthropic } = {}) {
     this.client = opts.client ?? new Anthropic({ apiKey: opts.apiKey });
-    this.model = opts.model ?? 'claude-opus-5-5';
+    this.model = opts.model ?? AI_MODEL_FOR.triage;
     this.name = `claude:${this.model}`;
   }
 
@@ -185,6 +187,7 @@ export class ClaudeTriageClassifier implements TriageClassifier {
         },
       ],
     });
+    reportUsage(this.model, response.usage);
     if (response.stop_reason !== 'end_turn') return null;
     const text = response.content.find((b) => b.type === 'text');
     if (!text || text.type !== 'text') return null;

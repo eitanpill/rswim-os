@@ -134,3 +134,4 @@ export * from './dns';
 export * from './storage';
 export * from './supabase';
 export * from './columns';
+export * from './usage';

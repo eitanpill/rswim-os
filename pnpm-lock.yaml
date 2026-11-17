@@ -577,6 +577,9 @@ importers:
       '@rswim/domain-people':
         specifier: workspace:*
         version: link:../people
+      '@rswim/domain-platform':
+        specifier: workspace:*
+        version: link:../platform
       '@rswim/domain-reports':
         specifier: workspace:*
         version: link:../reports

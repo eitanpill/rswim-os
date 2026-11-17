@@ -73,6 +73,8 @@ export const BOT_HANDOFF_REASONS = [
   'sensitive',
   'needs_action',
   'model_failed',
+  // The school's monthly AI allowance is used up (SaaS stage 6).
+  'ai_cap',
 ] as const;
 export const BotHandoffReason = z.enum(BOT_HANDOFF_REASONS);
 export type BotHandoffReason = z.infer<typeof BotHandoffReason>;

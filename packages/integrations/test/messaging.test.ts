@@ -96,10 +96,10 @@ describe('ClaudeTriageClassifier', () => {
       content: [{ type: 'text', text: JSON.stringify(verdict) }],
     });
     const c = new ClaudeTriageClassifier({ client });
-    expect(c.name).toBe('claude:claude-opus-5-5');
+    expect(c.name).toBe('claude:claude-haiku-5-5');
     expect(await c.classify(input)).toEqual(verdict);
     expect(calls[0]).toMatchObject({
-      model: 'claude-opus-5-5',
+      model: 'claude-haiku-5-5',
       output_config: { format: { type: 'json_schema' } },
     });
   });

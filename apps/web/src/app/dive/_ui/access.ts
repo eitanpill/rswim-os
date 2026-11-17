@@ -15,7 +15,8 @@ export type DivePage =
   | 'payments'
   | 'plan'
   | 'setup'
-  | 'import';
+  | 'import'
+  | 'connections';
 
 export type DiveRole = 'owner' | 'manager' | 'office' | 'instructor' | 'customer';
 
@@ -38,6 +39,7 @@ const PAGES: Record<DiveRole, DivePage[]> = {
     'plan',
     'setup',
     'import',
+    'connections',
   ],
   manager: ['manager', 'office', 'instructor', 'divers', 'forms', 'setup', 'import'],
   office: ['office', 'divers', 'forms'],
@@ -59,7 +61,8 @@ export const HOME: Record<DiveRole, DivePage> = {
  */
 export function pagesFor(role: DiveRole): DivePage[] {
   return PAGES[role].filter(
-    (p) => p !== 'payments' && p !== 'plan' && p !== 'setup' && p !== 'import',
+    (p) =>
+      p !== 'payments' && p !== 'plan' && p !== 'setup' && p !== 'import' && p !== 'connections',
   );
 }
 
