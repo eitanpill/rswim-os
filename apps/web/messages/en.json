@@ -299,6 +299,10 @@
       "join": {
         "title": "New families",
         "hint": "Join requests, link and QR, and the app's search"
+      },
+      "import": {
+        "title": "Import from previous system",
+        "hint": "Families and team from Excel, CSV or Google Sheets"
       }
     }
   },
@@ -804,6 +808,10 @@
           "title": "Staff",
           "hint": "Invite instructors and office staff"
         }
+      },
+      "import": {
+        "title": "Import from your previous system",
+        "hint": "Have your families in Excel? Bring them over in minutes"
       }
     },
     "signup": {
@@ -1340,7 +1348,8 @@
       "closure_credit": "Closure credit",
       "payment": "Payment",
       "refund": "Refund",
-      "reversal": "Reversal"
+      "reversal": "Reversal",
+      "import": "Balance from previous system"
     },
     "billingLineKind": {
       "seat": "Group seat",
@@ -1460,7 +1469,8 @@
       "venue_migration": "Venue move",
       "venue_migration_reverted": "Venue move cancelled",
       "bot_handoff": "Bot passed it to the team",
-      "dive_reminder": "Dive reminder for tomorrow"
+      "dive_reminder": "Dive reminder for tomorrow",
+      "mandate_request": "Standing order sign-up request"
     },
     "messageStatus": {
       "queued": "Queued",
@@ -5382,7 +5392,8 @@
         "past": "A session can't be in the past"
       },
       "open": "Club setup",
-      "openHint": "{done} of {total} steps"
+      "openHint": "{done} of {total} steps",
+      "importLink": "Import divers and team from Excel or Google Sheets"
     }
   },
   "agent": {
@@ -6015,5 +6026,161 @@
     "unlimited": "unlimited",
     "trial": "{days}-day free trial",
     "footer": "Questions? Write to us: {email}"
+  },
+  "imports": {
+    "title": "Import from your previous system",
+    "subtitle": "Bring families, divers and the team over from Excel, CSV or a Google sheet. See what comes in before anything is saved.",
+    "upload": {
+      "title": "New file",
+      "kind": "What is in the file?",
+      "file": "Excel or CSV file",
+      "fileHint": "Up to {max} rows. The first sheet of an Excel file.",
+      "sheet": "Or a Google Sheets link",
+      "sheetHint": "Share the sheet with anyone who has the link (view only is enough).",
+      "privacy": "To recognise columns, the system may send Claude only the column names and two samples of each, with digits hidden. The rows themselves never leave the system.",
+      "submit": "Continue to the columns"
+    },
+    "kinds": {
+      "families": "families",
+      "divers": "divers",
+      "staff": "team members"
+    },
+    "status": {
+      "draft": "Draft",
+      "running": "Running",
+      "succeeded": "Imported",
+      "failed": "Failed",
+      "undone": "Undone"
+    },
+    "history": "Previous imports",
+    "noHistory": "No files imported yet",
+    "records": "{count} records",
+    "draftTitle": "Importing {kind}: check before saving",
+    "doneTitle": "Importing {kind}",
+    "columns": {
+      "title": "Which column is which",
+      "hint": "We marked what we recognised. Fix any column that is wrong, and leave the ones you don't need on \"Don't import\".",
+      "skip": "Don't import",
+      "empty": "The column is empty",
+      "save": "Update the preview"
+    },
+    "mappingSaved": "Columns updated",
+    "preview": {
+      "title": "What comes in",
+      "missing": "A column is missing for: {fields}. Choose it above.",
+      "sample": "The first records"
+    },
+    "stats": {
+      "rows": "Rows in the file",
+      "ready": "Good rows",
+      "skipped": "Rows left out",
+      "records": "{kind} to import",
+      "children": "Children",
+      "balance": "Balances owed"
+    },
+    "noIssues": "No problems found. Every row comes in.",
+    "errorsCount": "{count, plural, one {One row is left out} other {# rows are left out}}",
+    "warningsCount": "{count, plural, one {One note} other {# notes}} (the row comes in, without the value in brackets)",
+    "row": "Row {row}:",
+    "more": "and {count} more notes",
+    "issues": {
+      "missingName": "No name",
+      "noContact": "No valid phone or email",
+      "badPhone": "Invalid phone number",
+      "badEmail": "Invalid email",
+      "badDate": "Invalid date",
+      "badGender": "Gender not recognised",
+      "badMoney": "Invalid amount",
+      "badLevel": "Level not recognised",
+      "unknownLevel": "No level by this name",
+      "unknownGroup": "No group by this name",
+      "exists": "This phone is already in the system",
+      "duplicate": "Appears twice in the file",
+      "parentNameMissing": "No parent name, saved under the child's name",
+      "balanceSummed": "Several balances for the same family, added together",
+      "notPlaced": "Saved, but not placed in its group (full or not suitable)"
+    },
+    "commit": {
+      "title": "Save",
+      "optIn": "The customers in this file agreed to hear from us on WhatsApp",
+      "hint": "You can undo the whole import for {hours} hours. Records already in use stay.",
+      "submit": "Import {count} {kind}",
+      "discard": "Drop this file"
+    },
+    "saved": "The import was saved",
+    "balanceEntry": "Balance from previous system",
+    "result": {
+      "title": "What came in",
+      "records": "{count} {kind} came in",
+      "children": "{count} children",
+      "placed": "{count} placed in groups",
+      "balance": "Balances recorded:",
+      "skipped": "{count} rows did not come in (details below)",
+      "time": "Took {seconds} seconds",
+      "undone": "Import undone: {removed} removed, {kept} kept because they were already in use",
+      "issues": "Rows with notes"
+    },
+    "undo": "Undo the import",
+    "undoHint": "You can undo until {until}",
+    "undone": "Import undone: {removed} removed, {kept} kept",
+    "mandates": {
+      "title": "Standing orders again",
+      "hint": "Standing orders from the previous system don't transfer. Each family gets a personal WhatsApp link to sign again, and you see here who has signed.",
+      "summary": "Signed: {signed} · Got a link: {sent} · Not yet: {none}",
+      "send": "Send a link to {count} families",
+      "sent": "{count, plural, one {Sent a link to one family} other {Sent links to # families}}",
+      "state": {
+        "signed": "Signed",
+        "sent": "Got a link",
+        "none": "Not yet"
+      }
+    },
+    "mandateDescription": "Standing order for the monthly payment",
+    "back": "Back to import",
+    "fields": {
+      "parentFullName": "Parent (full name)",
+      "parentFirstName": "Parent first name",
+      "parentLastName": "Parent last name",
+      "phone": "Phone",
+      "email": "Email",
+      "parent2FullName": "Second parent (full name)",
+      "parent2Phone": "Second parent phone",
+      "childFullName": "Child (full name)",
+      "childFirstName": "Child first name",
+      "childLastName": "Child last name",
+      "childDob": "Child date of birth",
+      "childGender": "Child gender",
+      "level": "Level",
+      "group": "Group",
+      "balance": "Balance owed",
+      "notes": "Notes",
+      "fullName": "Full name",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "dob": "Date of birth",
+      "gender": "Gender",
+      "certLevel": "Certification level",
+      "certAgency": "Certification agency",
+      "certNumber": "Certification number",
+      "city": "City",
+      "emergencyName": "Emergency contact",
+      "emergencyPhone": "Emergency phone",
+      "employmentType": "Employee or self-employed",
+      "startDate": "Start date"
+    },
+    "errors": {
+      "empty": "The file is empty or has no rows under the headers",
+      "tooManyRows": "More than {max} rows. Split the file into several files.",
+      "unreadable": "We could not read the Excel file. Save it again as xlsx or CSV.",
+      "format": "This format is not supported. Save the file as xlsx or CSV and try again.",
+      "sheetLink": "This is not a Google Sheets link",
+      "sheetPrivate": "The sheet is not open. Share it with anyone who has the link and try again.",
+      "tooLarge": "The file is too large (up to 5 MB)",
+      "noFile": "Choose a file or paste a sheet link",
+      "mapping": "Required columns are missing. Choose them in the columns table.",
+      "nothing": "The file has no valid row to import",
+      "undoClosed": "More than 24 hours have passed; the import can no longer be undone",
+      "noProcessor": "To send standing order links, first connect a processor that supports standing orders (payments screen)."
+    }
   }
 }

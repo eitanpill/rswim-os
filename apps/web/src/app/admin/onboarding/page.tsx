@@ -62,6 +62,12 @@ export default async function OnboardingPage() {
           </li>
         ))}
       </ol>
+      <Link href="/admin/import" className="mt-4 block" data-testid="onboarding-import">
+        <Card className="hover:border-brand-500">
+          <p className="font-semibold">{t('import.title')}</p>
+          <p className="text-sm text-ink-muted">{t('import.hint')}</p>
+        </Card>
+      </Link>
     </>
   );
 }

@@ -102,6 +102,10 @@ renews on `/admin/plan` (`/dive/plan`). Each paid platform invoice gets a docume
 (`provisionSchool`, content in `@rswim/contracts` `starter-kits.ts`); a freediving club sets up sites, programs,
 sessions and its team on `/dive/setup`. `RSWIM_PLATFORM_HOSTS` (comma-separated) lists the platform's own hosts, which schools can't claim.
 Plan limits are a database trigger; plan features gate screens through `requireFeature`.
+Importing from the previous system (SaaS stage 5, `@rswim/domain-imports`): `/admin/import` and `/dive/import` read
+Excel, CSV or a shared Google sheet, place columns by header rules (and Claude with `ANTHROPIC_API_KEY`, digits
+masked), preview every row's problem, save in one transaction, undo within 24h, and send imported families a link to
+sign a new standing order.
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a

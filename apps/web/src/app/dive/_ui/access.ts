@@ -14,7 +14,8 @@ export type DivePage =
   | 'forms'
   | 'payments'
   | 'plan'
-  | 'setup';
+  | 'setup'
+  | 'import';
 
 export type DiveRole = 'owner' | 'manager' | 'office' | 'instructor' | 'customer';
 
@@ -36,8 +37,9 @@ const PAGES: Record<DiveRole, DivePage[]> = {
     'payments',
     'plan',
     'setup',
+    'import',
   ],
-  manager: ['manager', 'office', 'instructor', 'divers', 'forms', 'setup'],
+  manager: ['manager', 'office', 'instructor', 'divers', 'forms', 'setup', 'import'],
   office: ['office', 'divers', 'forms'],
   instructor: ['instructor', 'divers'],
   customer: ['me'],
@@ -56,7 +58,9 @@ export const HOME: Record<DiveRole, DivePage> = {
  * links, not a tab.
  */
 export function pagesFor(role: DiveRole): DivePage[] {
-  return PAGES[role].filter((p) => p !== 'payments' && p !== 'plan' && p !== 'setup');
+  return PAGES[role].filter(
+    (p) => p !== 'payments' && p !== 'plan' && p !== 'setup' && p !== 'import',
+  );
 }
 
 /** Guard for one club page: signed in to a freediving club, and this page is one of the role's. */

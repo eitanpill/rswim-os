@@ -101,6 +101,13 @@ export default async function SetupPage() {
             {t('steps.forms.link')}
           </Link>
         ) : null}
+        <Link
+          href="/dive/import"
+          className="mt-3 block text-sm font-medium text-[var(--dive-sea)] hover:underline"
+          data-testid="setup-to-import"
+        >
+          {t('importLink')}
+        </Link>
       </Panel>
 
       <Panel title={t('sites.title')} icon={di.anchor} testId="setup-sites">

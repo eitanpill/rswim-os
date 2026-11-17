@@ -105,7 +105,12 @@ export async function saveGhlLocation(
 }
 
 export async function listImportRuns(tx: Tx, limit = 10) {
-  return tx.select().from(importRuns).orderBy(desc(importRuns.startedAt)).limit(limit);
+  return tx
+    .select()
+    .from(importRuns)
+    .where(eq(importRuns.provider, 'ghl'))
+    .orderBy(desc(importRuns.startedAt))
+    .limit(limit);
 }
 
 /** Asks the worker to run an import; the web request returns at once. */

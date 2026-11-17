@@ -291,3 +291,38 @@ export async function addSessions(
   );
   return added.length;
 }
+
+// ─── Divers brought in from a file ──────────────────────────────────────────
+
+export interface NewDiver {
+  firstName: string;
+  lastName: string;
+  phoneE164: string | null;
+  email: string | null;
+  dob: string | null;
+  gender: 'female' | 'male' | null;
+  certLevel: number;
+  certAgency: string | null;
+  certNumber: string | null;
+  city: string | null;
+  emergencyName: string | null;
+  emergencyPhone: string | null;
+  notes: string | null;
+  source: string;
+}
+
+/** Adds a diver the office already knows (an import from the club's previous system). The plan's limit applies. */
+export async function addDiver(tx: Tx, ctx: ServiceContext, d: NewDiver): Promise<string> {
+  const r = await guarded(() =>
+    one<{ id: string }>(
+      tx,
+      sql`insert into dive_divers (organization_id, first_name, last_name, phone_e164, email, dob, gender, cert_level,
+                                   cert_agency, cert_number, city, emergency_name, emergency_phone, notes, source)
+          values (${ctx.orgId}, ${d.firstName}, ${d.lastName}, ${d.phoneE164}, ${d.email}, ${d.dob}, ${d.gender},
+                  ${d.certLevel}, ${d.certAgency}, ${d.certNumber}, ${d.city}, ${d.emergencyName},
+                  ${d.emergencyPhone}, ${d.notes}, ${d.source})
+          returning id`,
+    ),
+  );
+  return (r as { id: string }).id;
+}

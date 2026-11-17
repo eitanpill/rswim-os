@@ -27,6 +27,8 @@ export const LEDGER_SOURCES = [
   'payment',
   'refund',
   'reversal',
+  /** A balance brought in from the business's previous system (a file import). */
+  'import',
 ] as const;
 export const LedgerSource = z.enum(LEDGER_SOURCES);
 export type LedgerSource = z.infer<typeof LedgerSource>;
