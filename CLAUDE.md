@@ -106,6 +106,10 @@ Importing from the previous system (SaaS stage 5, `@rswim/domain-imports`): `/ad
 Excel, CSV or a shared Google sheet, place columns by header rules (and Claude with `ANTHROPIC_API_KEY`, digits
 masked), preview every row's problem, save in one transaction, undo within 24h, and send imported families a link to
 sign a new standing order.
+Claude's allowance (SaaS stage 6): every Claude call reports its tokens (`trackUsage` in `@rswim/integrations`), each
+piece of AI work is one row of `ai_usage` with its cost, and `plans.ai_monthly_actions` caps the month (`aiAllowance`
+in `@rswim/domain-platform`); past the cap the copilot refuses, the parents' bot hands off and the worker skips Claude.
+The owner sees the meter and what is connected on `/admin/connections` (`/dive/connections`).
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a

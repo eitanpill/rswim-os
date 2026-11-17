@@ -2,7 +2,9 @@
  * The model behind the owner's copilot (brief §6.15). The domain hands it a prompt and tools; the model may only read
  * through those tools and propose actions through them. Nothing it does changes data: proposals wait for the owner.
  */
+import { AI_MODEL_FOR } from '@rswim/contracts';
 import Anthropic from '@anthropic-ai/sdk';
+import { reportUsage } from './usage';
 
 export interface CopilotTool {
   name: string;
@@ -76,7 +78,7 @@ export class ClaudeCopilotModel implements CopilotModel {
     opts: { apiKey?: string; model?: string; client?: Anthropic; maxTurns?: number } = {},
   ) {
     this.client = opts.client ?? new Anthropic({ apiKey: opts.apiKey });
-    this.model = opts.model ?? 'claude-opus-5-5';
+    this.model = opts.model ?? AI_MODEL_FOR.copilot;
     this.name = `claude:${this.model}`;
     this.maxTurns = opts.maxTurns ?? 8;
   }
@@ -93,6 +95,7 @@ export class ClaudeCopilotModel implements CopilotModel {
         tools: input.tools,
         messages,
       });
+      reportUsage(this.model, response.usage);
       const text = response.content
         .flatMap((b) => (b.type === 'text' ? [b.text] : []))
         .join('\n')

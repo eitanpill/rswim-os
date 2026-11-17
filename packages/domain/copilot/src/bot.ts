@@ -16,6 +16,7 @@ import {
   type BotKnowledgeStatus,
   type AgentActionKind,
   type BotReview,
+  type ClaudeUsage,
   type CopilotActionStatus,
   type TriageActionKind,
 } from '@rswim/contracts';
@@ -25,10 +26,12 @@ import { makeupOffers } from '@rswim/domain-attendance';
 import { commsRules, enqueueMessage, israelLocalDateTime, schoolName } from '@rswim/domain-comms';
 import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
 import { guardiansOfHouseholds } from '@rswim/domain-people';
+import { aiAllowed, hasFeature, recordAiUsage } from '@rswim/domain-platform';
 import { todayIL } from '@rswim/domain-scheduling';
 import { resolvePolicyFor } from '@rswim/domain-settings';
 import {
   traced,
+  trackUsage,
   type CopilotModel,
   type CopilotRunInput,
   type CopilotTool,
@@ -477,7 +480,8 @@ export async function runParentBot(
     .from(triageActions)
     .where(and(eq(triageActions.inboundMessageId, row.id), eq(triageActions.status, 'pending')));
   const route = botRoute({
-    enabled: (await commsRules(tx)).botEnabled,
+    // The bot is a plan feature (growth and pro) as well as the school's own switch.
+    enabled: (await commsRules(tx)).botEnabled && (await hasFeature(tx, 'parent_bot')),
     family: row.householdId !== null && row.guardianId !== null,
     isStaff: row.staffMemberId !== null,
     open: row.status === 'new' || row.status === 'needs_human',
@@ -498,10 +502,12 @@ export async function runParentBot(
   let actions: BotAction[] = [];
   let trace: CopilotTraceStep[] = [];
   let modelName = 'rules';
-  if (route.route === 'handoff' || !model) {
+  // The month's AI allowance used up: the office answers, as when there is no model.
+  const overCap = route.route !== 'handoff' && model !== null && !(await aiAllowed(tx));
+  if (route.route === 'handoff' || !model || overCap) {
     decision = {
       kind: 'handoff',
-      reason: route.route === 'handoff' ? route.reason : 'model_failed',
+      reason: route.route === 'handoff' ? route.reason : overCap ? 'ai_cap' : 'model_failed',
       summary: row.body.slice(0, 500),
     };
   } else {
@@ -522,17 +528,16 @@ export async function runParentBot(
       knowledge: knowledge.slice(0, KNOWLEDGE_IN_PROMPT),
     });
     let failed = false;
+    const usage: ClaudeUsage[] = [];
     try {
-      const out = await model.run({
-        system,
-        prompt: row.body,
-        tools: BOT_TOOLS,
-        callTool: box.call,
-      });
+      const out = await trackUsage(usage, () =>
+        model.run({ system, prompt: row.body, tools: BOT_TOOLS, callTool: box.call }),
+      );
       trace = out.trace;
     } catch {
       failed = true;
     }
+    await recordAiUsage(tx, ctx.orgId, 'parent_bot', usage);
     actions = box.actions();
     decision = box.decision() ?? {
       kind: 'handoff',

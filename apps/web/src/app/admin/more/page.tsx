@@ -6,6 +6,7 @@ import { Card, PageHeader } from '@rswim/ui';
 import { withSession } from '@/lib/db';
 
 const LINKS = [
+  'connections',
   'import',
   'join',
   'onboarding',
@@ -42,6 +43,7 @@ const LINKS = [
   'ghl',
 ] as const;
 const HREF: Record<(typeof LINKS)[number], string> = {
+  connections: '/admin/connections',
   import: '/admin/import',
   join: '/admin/join',
   onboarding: '/admin/onboarding',
@@ -81,7 +83,6 @@ const HREF: Record<(typeof LINKS)[number], string> = {
 /** Screens that exist only on plans that include them. */
 const FEATURE: Partial<Record<(typeof LINKS)[number], PlanFeature>> = {
   reports: 'reports',
-  brain: 'copilot',
   copilot: 'copilot',
   transport: 'transport',
   cohorts: 'courses',

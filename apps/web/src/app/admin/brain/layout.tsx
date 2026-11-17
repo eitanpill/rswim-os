@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
-import { requireFeature } from '@/lib/platform';
 
-export default async function FeatureLayout({ children }: { children: ReactNode }) {
-  await requireFeature('copilot');
+/** The brain is on every plan (SaaS stage 6); its AI work is limited by the plan's monthly AI actions. */
+export default function BrainLayout({ children }: { children: ReactNode }) {
   return children;
 }

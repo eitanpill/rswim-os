@@ -5,6 +5,7 @@
  */
 import { sql } from 'drizzle-orm';
 import {
+  bigint,
   boolean,
   check,
   date,
@@ -20,6 +21,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import {
+  AI_FEATURES,
   DOMAIN_STATUSES,
   PLAN_FEATURES,
   PLATFORM_INVOICE_STATUSES,
@@ -53,12 +55,15 @@ export const plans = pgTable(
     /** A declined charge is tried again every this many days, at most `maxChargeAttempts` times. */
     retryEveryDays: smallint('retry_every_days').notNull().default(3),
     maxChargeAttempts: smallint('max_charge_attempts').notNull().default(4),
+    /** AI actions (rows of `ai_usage`) a school may run in a calendar month. null = no cap. */
+    aiMonthlyActions: integer('ai_monthly_actions'),
     active: boolean('active').notNull().default(true),
     sortOrder: smallint('sort_order').notNull().default(0),
     createdAt: createdAt(),
   },
   (t) => [
     check('plans_price_check', sql`${t.priceAgorot} >= 0`),
+    check('plans_ai_actions_check', sql`${t.aiMonthlyActions} >= 0`),
     check('plans_features_check', sql.raw(`features <@ array[${inList(PLAN_FEATURES)}]::text[]`)),
   ],
 );
@@ -287,5 +292,34 @@ export const directoryMemberships = pgTable(
   (t) => [
     primaryKey({ columns: [t.organizationId, t.userId] }),
     index('directory_memberships_user').on(t.userId),
+  ],
+);
+
+/**
+ * One piece of AI work for a school (SaaS stage 6): which feature, which model, the tokens and what it cost in
+ * millionths of a dollar. Append-only; the month's count is held against the plan's `ai_monthly_actions`.
+ */
+export const aiUsage = pgTable(
+  'ai_usage',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    feature: text('feature').notNull(),
+    model: text('model').notNull(),
+    inputTokens: integer('input_tokens').notNull().default(0),
+    outputTokens: integer('output_tokens').notNull().default(0),
+    cacheReadTokens: integer('cache_read_tokens').notNull().default(0),
+    cacheWriteTokens: integer('cache_write_tokens').notNull().default(0),
+    costMicros: bigint('cost_micros', { mode: 'number' }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('ai_usage_org_id').on(t.organizationId, t.id),
+    index('ai_usage_month').on(t.organizationId, t.createdAt),
+    check('ai_usage_feature_check', sql.raw(`feature in (${inList(AI_FEATURES)})`)),
+    check(
+      'ai_usage_tokens_check',
+      sql`${t.inputTokens} >= 0 and ${t.outputTokens} >= 0 and ${t.cacheReadTokens} >= 0 and ${t.cacheWriteTokens} >= 0 and ${t.costMicros} >= 0`,
+    ),
   ],
 );

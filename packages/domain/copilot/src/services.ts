@@ -12,6 +12,7 @@ import {
   DismissReason,
   SLOT_DEFAULT_CAPACITY,
   type AgentSource,
+  type ClaudeUsage,
   type CopilotActionKind,
   type CopilotActionStatus,
 } from '@rswim/contracts';
@@ -43,9 +44,11 @@ import {
   requestSubstitute,
   todayIL,
 } from '@rswim/domain-scheduling';
+import { assertAiAllowed, recordAiUsage } from '@rswim/domain-platform';
 import { resolvePolicyFor } from '@rswim/domain-settings';
 import {
   traced,
+  trackUsage,
   type CopilotModel,
   type CopilotRunInput,
   type CopilotTool,
@@ -842,6 +845,7 @@ export async function askCopilot(
 ): Promise<string> {
   const gate = await copilotAvailable(tx, model);
   if (!gate.ok) throw new DomainError(gate.code);
+  await assertAiAllowed(tx);
   const text = prompt.trim();
   if (!text || text.length > 2000) throw new DomainError('copilot.errors.prompt');
   const today = await todayIL(tx);
@@ -857,16 +861,21 @@ export async function askCopilot(
   });
   const box = copilotToolbox(tx, ctx, today, requestId);
   let out: { answer: string; trace: CopilotTraceStep[]; incomplete: boolean } | null = null;
+  const usage: ClaudeUsage[] = [];
+  const system = copilotSystem({ today, school: await schoolName(tx, ctx.orgId) });
   try {
-    out = await (model as CopilotModel).run({
-      system: copilotSystem({ today, school: await schoolName(tx, ctx.orgId) }),
-      prompt: text,
-      tools: COPILOT_TOOLS,
-      callTool: box.call,
-    });
+    out = await trackUsage(usage, () =>
+      (model as CopilotModel).run({
+        system,
+        prompt: text,
+        tools: COPILOT_TOOLS,
+        callTool: box.call,
+      }),
+    );
   } catch {
     out = null;
   }
+  await recordAiUsage(tx, ctx.orgId, 'copilot', usage);
   await tx
     .update(copilotRequests)
     .set({

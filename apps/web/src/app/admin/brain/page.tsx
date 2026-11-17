@@ -23,6 +23,7 @@ import {
   SelectField,
   SubmitButton,
 } from '@/components/form';
+import { AiMeter } from '@/components/ai-meter';
 import { withSession } from '@/lib/db';
 import { shekelValue } from '@/lib/options';
 import { AgentActionList } from './action-list';
@@ -109,6 +110,7 @@ export default async function BrainPage() {
               : t('activeHint', { alone: aloneToday, max: settings.maxAutoPerDay })}
           </p>
         </Card>
+        <AiMeter />
 
         <Card data-testid="brain-waiting">
           <CardTitle>{t('waiting.title', { n: waiting.length })}</CardTitle>
