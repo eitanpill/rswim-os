@@ -56,8 +56,10 @@ Vercel (project `aqua-web`, root directory `apps/web`, framework Next.js, instal
 
 Railway (project `aqua`, environments `staging` and `production`, service `worker`)
 - Source: this repository; staging branch `main`, production branch `production`.
-- Settings → Config-as-code → Railway config file: `deploy/production/railway.worker.json` (worker Dockerfile, health
-  check `/health`, one replica). Without it Railway reads the root `railway.json`, which builds the live demo.
+- Variable `RSWIM_IMAGE=worker`. Railway builds every service of this repository from the root `railway.json`
+  (`deploy/demo/Dockerfile`, and it no longer lets a new service pick another config file); with this variable that
+  Dockerfile builds the worker stage (the same as `deploy/production/worker.Dockerfile`) instead of the demo. The
+  health check path `/api/health` comes from `railway.json`; the worker answers it as well as `/health`. One replica.
 - Settings → Source → Repository: `eitanpill/rswim-os` (the Railway GitHub app needs access to it).
 - Variables: the worker column below.
 

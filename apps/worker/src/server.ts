@@ -10,7 +10,7 @@ initMonitoring();
 const port = Number(process.env.PORT ?? 3030);
 const inngestHandler = serve({ client: inngest, functions });
 
-/** GET /health for uptime monitors and the host's health check: 200 when the platform database answers. */
+/** GET /health (or /api/health, the path in the root railway.json) for uptime monitors and the host's health check: 200 when the platform database answers. */
 async function health(): Promise<{ status: number; body: Record<string, unknown> }> {
   const release = process.env.RSWIM_RELEASE ?? process.env.RAILWAY_GIT_COMMIT_SHA ?? null;
   try {
@@ -37,7 +37,7 @@ async function health(): Promise<{ status: number; body: Record<string, unknown>
 }
 
 createHttpServer((req, res) => {
-  if (req.method === 'GET' && req.url?.split('?')[0] === '/health') {
+  if (req.method === 'GET' && ['/health', '/api/health'].includes(req.url?.split('?')[0] ?? '')) {
     void health().then(({ status, body }) => {
       res.writeHead(status, { 'content-type': 'application/json' });
       res.end(JSON.stringify(body));
