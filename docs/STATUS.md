@@ -365,8 +365,75 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - Verified: RLS tests (vertical, anon price list, anon can't open a school), auth unit tests, E2E
   `e2e/signup.spec.ts` (landing → sign-up → swim school; → freediving club; taken email and missing consent; the
   sign-in link) and the existing `platform.spec.ts`.
-- Not verified: the real confirmation email (needs Supabase + Resend). Card capture at sign-up is stage 3. Terms of
+- Not verified: the real confirmation email (needs Supabase + Resend). Card capture at sign-up came in stage 3. Terms of
   use and privacy policy pages come with the lawyer (stage 7); the consent box links to nothing yet.
+
+## Importing from the previous system, SaaS stage 5 (2026-11-17)
+- `/admin/import` (swim: families, team) and `/dive/import` (club: divers, team), linked from "more", the first-steps
+  screen and the club's setup. The owner uploads an Excel (.xlsx) or CSV file (UTF-8 or Hebrew Windows encoding;
+  comma, semicolon or tab) or pastes a Google Sheets link shared by link, up to 3,000 rows and 5 MB
+  (`@rswim/domain-imports`).
+- Columns are placed by Hebrew and English header rules; with `ANTHROPIC_API_KEY` the columns the rules could not
+  place go to Claude (Haiku), which sees only the headers and two samples per column with every digit masked. The
+  owner corrects any column before the preview.
+- The preview shows what will come in and every row's problem before anything is saved: a missing name, no valid
+  phone or email, a bad phone, date, amount, gender or level, a level or group the school does not have, a phone
+  already in the system, a person twice in the file. Rows with an error stay out, rows with a warning come in
+  without that value. Rows of the same family (same phone, else email) become one family with its children.
+- Saving creates families (parents, a second parent, children placed in their groups when the group takes them, the
+  balance as one ledger entry from source `import`), divers or team members in one transaction, so a plan limit or
+  any failure saves nothing. The file's rows are dropped once saved or dropped, and after a week as a draft.
+- Undo within 24 hours removes what the import created unless it has been used since (enrolment kept aside: a
+  lesson, a payment, a message thread, a booking), using `app.referenced_elsewhere` (migration 0060), which also
+  lets an imported balance go with its family (the only exception to the append-only ledger).
+- Standing orders do not transfer: imported families get a personal link to sign a new one on the business's own
+  processor (`mandate_request` WhatsApp template, event `billing.mandate_requested`), and the screen shows who signed,
+  who got a link and who has not.
+- Verified: `packages/domain/imports` (policies 100%, services against a real database: encodings, xlsx, Sheets
+  links, preview, corrections, saving, links, undo and its 24h window, drafts dropped, divers and team, the plan
+  limit, and 200 families with 400 children saved in about 5 seconds and undone), the full unit and RLS suites,
+  E2E `imports.spec.ts` (a families file with a bad row, a corrected column, saved, links list, undone; a club's
+  divers saved and undone). Still open for the stage's done criterion: three real exports from Pit on staging.
+
+## Starter kits per kind of business, SaaS stage 4 (2026-11-16)
+- A new business gets its kit the moment it opens (`provisionSchool`, also for a school on its own database). The
+  content lives in `@rswim/contracts` (`starter-kits.ts`), generic and never a real school's:
+  - swim school: basic regulations from today, four common programs (kids groups with five levels, babies, adult
+    beginners, private) and a sample price list left as a draft for the owner to set;
+  - freediving club: four common programs (discover, a level-1 course, line training, pool) and its health, waiver
+    and insurance forms as drafts to read, adapt and publish.
+  Running it again adds nothing a school already has.
+- A freediving club sets itself up on `/dive/setup` (owner and manager; the owner's and manager's homes show the
+  first steps until they are done, and sign-up lands there): dive sites, programs and prices (edit, turn off, add),
+  sessions on the calendar (one, or weekly for up to 26 weeks), and a personal invite link for an instructor or a
+  manager. Before this a club could not add any of these in the app.
+- Plan limits count a club's divers as the plan's customers and its open dive sites as its places (migration 0059),
+  in the database trigger, the plan screen and the platform's list of schools.
+- The demo marketplace's regulations template is the generic one ("תקנון בסיסי לבית ספר"), no longer Reut's.
+- Verified: seed tests (the swim kit and its idempotence; a new club's kit, site, the one-site limit, a price, four
+  weekly sessions, a past date refused, divers counted), RLS and domain suites, E2E `signup.spec.ts` (a new club
+  through setup: site, price, three weekly sessions, the home's nudge) and `platform.spec.ts`.
+
+## The subscription, SaaS stage 3 (2026-11-14)
+- Sign-up ends on `/billing/card`: the owner saves the card the subscription is paid with after the 14-day trial, on
+  the platform processor's card page (not charged now; the demo processor's page is `/billing/card/<setup>/sandbox`).
+  It can wait: the trial banner and the plan screen keep offering it. The processor's verified callback
+  (`/api/webhooks/platform-card`) lands the card only on the school whose owner opened that visit (migration 0058,
+  `public.complete_card_setup`), and a school that owes money is charged again right away.
+- Billing: the day after the trial the worker bills the rest of that month (prorated by days), then the whole month
+  on the 1st. A declined charge is retried on the plan's schedule (`plans.retry_every_days`, `max_charge_attempts`:
+  every 3 days, 4 attempts) inside the existing past-due and suspension flow. Each paid invoice gets a tax
+  invoice-receipt from the platform's own invoicing account (Morning), made out to the school's billing details.
+- The owner's own screen (`/admin/plan`, `/dive/plan` for a club): the card, another plan (takes effect now; a
+  downgrade below what the school uses is refused), cancel (served to the end of the paid month or of the trial, then
+  locked), keep, renew (bills the rest of the month), and the invoice details (name, tax id, email).
+- Verified: policy tests (proration, retries, cancellation day), RLS tests (only the owner opens a card page and only
+  for her school; nobody signed in completes one; owner-only changes), the seed flow (retry → new card → paid with
+  document 10001; plan change → cancel → cancelled → renew → February prorated), the card vault's signature check,
+  E2E `signup.spec.ts` (card saved on sign-up, plan change, cancel and keep; card skipped, declined, then saved) and
+  `platform.spec.ts`.
+- Not verified: the real Grow "token only" card page and token charge, and the Morning API document; both wait for
+  Pit's sandbox accounts (the fakes stand in: `RSWIM_GROW_FAKE=1`, `RSWIM_INVOICING_FAKE=1`).
 
 ## Finding a school, store launch stage 4 (2026-11-13)
 - Verified (tests, local Postgres + E2E): the school search by name, city and kind, signed out; an opted-out school

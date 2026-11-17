@@ -6,9 +6,9 @@
  */
 import { randomBytes } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { asAnon, asUser, type Tx } from '@rswim/db';
+import { asAnon, asUser, sql, type Tx } from '@rswim/db';
 import { ACCOUNT_PERSONAS, DEMO_ORG, PERSONAS } from '@rswim/db/personas';
-import { withOrg } from '@rswim/db/service';
+import { asPlatform, withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import { toDomainError, type ServiceContext } from '@rswim/domain-core';
 import {
@@ -16,6 +16,13 @@ import {
   addDomain,
   billSchool,
   brandingForHost,
+  cancelMySubscription,
+  changeMyPlan,
+  completeCardSetup,
+  invoicesToRetry,
+  openCardSetup,
+  renewMySubscription,
+  saveBillingDetails,
   createSchool,
   installTemplate,
   listDomains,
@@ -35,8 +42,18 @@ import {
   updateSchool,
   verifyDomain,
 } from '@rswim/domain-platform';
+import {
+  addSessions,
+  clubSetup,
+  listFormTemplates,
+  ProgramInput,
+  saveProgram,
+  saveSite,
+  SessionsInput,
+  SiteInput,
+} from '@rswim/domain-dive';
 import { createVenue } from '@rswim/domain-venues';
-import { FakeDnsResolver, FakePaymentProvider } from '@rswim/integrations';
+import { FakeDnsResolver, FakeInvoicingProvider, FakePaymentProvider } from '@rswim/integrations';
 import { seedDemo } from '../src/demo';
 import { TEMPLATE_NAMES } from '../src/saas-data';
 
@@ -92,9 +109,32 @@ describe('a new school', () => {
       ['venues', 0, 1],
     ]);
     expect(await owner((tx) => myFeatures(tx))).toMatchObject({ reports: false, copilot: false });
+    // The starter kit: basic regulations from today, the common programs and a sample price list left as a draft.
     const steps = await owner((tx) => onboardingStatus(tx));
     expect(steps.ready).toBe(false);
-    expect(steps.doneCount).toBe(0);
+    expect(steps.steps.filter((s) => s.done).map((s) => s.step)).toEqual(['regulations']);
+    const kit = await owner((tx) =>
+      tx.execute<{
+        programs: number;
+        levels: number;
+        drafts: number;
+        items: number;
+        versions: number;
+      }>(
+        sql`select (select count(*)::int from programs) programs, (select count(*)::int from levels) levels,
+                   (select count(*)::int from price_lists where status = 'draft') drafts,
+                   (select count(*)::int from price_items) items, (select count(*)::int from policy_sets) versions`,
+      ),
+    );
+    expect(kit.rows[0]).toEqual({ programs: 4, levels: 5, drafts: 1, items: 6, versions: 1 });
+    // Opening it again adds nothing twice.
+    await owner((tx) => provisionSchool(tx, ctx()));
+    const again = await owner((tx) =>
+      tx.execute<{ programs: number; versions: number }>(
+        sql`select (select count(*)::int from programs) programs, (select count(*)::int from policy_sets) versions`,
+      ),
+    );
+    expect(again.rows[0]).toEqual({ programs: 4, versions: 1 });
     // The demo school sees nothing of it.
     expect(
       await asUser(t.db, { sub: PERSONAS.owner.userId, org_id: DEMO_ORG.id }, (tx) =>
@@ -258,17 +298,103 @@ describe('platform billing', () => {
     });
   });
 
+  it('retries a declined month on the plan’s schedule, takes a new card from its owner and invoices the payment', async () => {
+    // December was declined on 2026-12-01: the starter plan retries every 3 days.
+    expect(await system((tx) => invoicesToRetry(tx, '2026-12-03'))).toEqual([]);
+    expect(await system((tx) => invoicesToRetry(tx, '2026-12-04'))).toEqual(['2026-12-01']);
+    await owner((tx) =>
+      saveBillingDetails(tx, {
+        billingName: 'גלים בע״מ (דמו)',
+        billingTaxId: '514000000',
+        billingEmail: '',
+      }),
+    );
+    const setup = await owner((tx) => openCardSetup(tx, { orgId, userId: newcomer }));
+    await asPlatform(t.db, (tx) =>
+      completeCardSetup(tx, {
+        eventId: 'evt-1',
+        type: 'card.saved',
+        reference: setup,
+        mandateId: 'fake-card-galim',
+        cardLast4: '4242',
+        occurredAt: '2026-12-04T08:00:00+02:00',
+      }),
+    );
+    const docs = new FakeInvoicingProvider();
+    expect(
+      await system((tx) =>
+        billSchool(tx, ctx(), '2026-12-01', payments, '2026-12-04', { invoicing: docs }),
+      ),
+    ).toMatchObject({ status: 'paid' });
+    expect(docs.issued).toHaveLength(1);
+    expect(docs.issued[0]).toMatchObject({
+      client: { name: 'גלים בע״מ (דמו)', nationalId: '514000000' },
+      lines: [{ amount: 19900, quantity: 1 }],
+    });
+    const page = await owner((tx) => myPlanPage(tx));
+    expect(page.subscription).toMatchObject({ cardLast4: '4242', status: 'active' });
+    expect(page.invoices[0]).toMatchObject({
+      period: '2026-12-01',
+      status: 'paid',
+      attempts: 2,
+      documentNumber: '10001',
+    });
+  });
+
+  it('lets its owner change plan, cancel to the end of the paid month, and renew', async () => {
+    await owner((tx) => changeMyPlan(tx, { planCode: 'growth' }));
+    expect((await owner((tx) => myPlanPage(tx))).plan?.code).toBe('growth');
+    expect(await owner((tx) => cancelMySubscription(tx, '2026-12-15'))).toBe('2026-12-31');
+    expect(
+      await system((tx) => billSchool(tx, ctx(), '2027-01-01', payments, '2027-01-01')),
+    ).toEqual({ billed: false, reason: 'cancelled' });
+    expect(await system((tx) => subscriptionDailyStep(tx, ctx(), '2027-01-01'))).toMatchObject({
+      status: 'cancelled',
+      changed: true,
+    });
+    expect(await owner((tx) => accountState(tx))).toMatchObject({ locked: true });
+    await owner((tx) => renewMySubscription(tx));
+    expect(await owner((tx) => accountState(tx))).toMatchObject({
+      status: 'active',
+      cancelsOn: null,
+      locked: false,
+    });
+    // A renewal mid-month bills the rest of it: February 2027 from the 15th is 14 of 28 days.
+    expect(
+      await system((tx) =>
+        billSchool(tx, ctx(), '2027-02-01', payments, '2027-02-15', { from: '2027-02-15' }),
+      ),
+    ).toMatchObject({ status: 'paid' });
+    const inv = (await owner((tx) => myPlanPage(tx))).invoices.find(
+      (i) => i.period === '2027-02-01',
+    );
+    expect(inv).toMatchObject({
+      coversFrom: '2027-02-15',
+      amountAgorot: 19950,
+      planCode: 'growth',
+    });
+  });
+
   it('lets the platform admin see every school, move plans within size, and queue a billing run', async () => {
     const schools = await admin((tx) => listSchools(tx));
     expect(schools.find((s) => s.slug === 'galim-demo')).toMatchObject({
-      planCode: 'starter',
+      // The owner moved to growth and paid a renewed February in the tests above.
+      planCode: 'growth',
       venues: 1,
-      lastPeriod: '2026-12-01',
-      lastStatus: 'failed',
+      lastPeriod: '2027-02-01',
+      lastStatus: 'paid',
     });
     expect(schools.find((s) => s.organizationId === DEMO_ORG.id)).toMatchObject({
       planCode: 'pro',
     });
+    await admin((tx) =>
+      updateSchool(
+        tx,
+        { organizationId: orgId, action: 'plan', planCode: 'starter' },
+        '2026-12-12',
+      ),
+    );
+    expect(await owner((tx) => myFeatures(tx))).toMatchObject({ reports: false });
     await admin((tx) =>
       updateSchool(tx, { organizationId: orgId, action: 'plan', planCode: 'growth' }, '2026-12-12'),
     );
@@ -311,5 +437,120 @@ describe('sharing a template', () => {
         admin((tx) => reviewTemplate(tx, { userId: platform }, submitted!.id, 'rejected')),
       ),
     ).toBe('platform.errors.notSubmitted');
+  });
+});
+
+describe('a new freediving club', () => {
+  let clubId = '';
+  const cctx = (): ServiceContext => ({ orgId: clubId, userId: newcomer });
+  const clubOwner = <T>(fn: (tx: Tx) => Promise<T>) =>
+    asUser(t.db, { sub: newcomer, org_id: clubId }, fn);
+  const site = (name: string) => ({
+    name,
+    kind: 'shore',
+    maxDepthM: '30',
+    hasLine: 'on',
+    meetingPoint: '',
+    active: 'on',
+  });
+
+  it('opens with the starter kit: the common programs and its forms as drafts', async () => {
+    clubId = await asUser(t.db, { sub: newcomer, org_id: null }, (tx) =>
+      createSchool(tx, {
+        name: 'מועדון כחול (דמו)',
+        slug: 'blue-demo',
+        plan: 'starter',
+        vertical: 'freediving',
+      }),
+    );
+    await clubOwner((tx) => provisionSchool(tx, cctx()));
+    await clubOwner((tx) => provisionSchool(tx, cctx()));
+    const setup = await clubOwner((tx) => clubSetup(tx));
+    expect(setup.programs.map((p) => p.code).sort()).toEqual([
+      'course1',
+      'discover',
+      'line',
+      'pool',
+    ]);
+    expect(setup.sites).toEqual([]);
+    expect(setup.publishedForms).toBe(0);
+    expect(setup.steps.filter((s) => s.done).map((s) => s.key)).toEqual([]);
+    const forms = await clubOwner((tx) => listFormTemplates(tx));
+    expect(forms.map((f) => [f.kind, f.publishedAt])).toEqual(
+      expect.arrayContaining([
+        ['health', null],
+        ['waiver', null],
+        ['insurance', null],
+      ]),
+    );
+    expect(forms).toHaveLength(3);
+  });
+
+  it('adds its site, sets a price and puts a weekly session on the calendar', async () => {
+    const siteId = await clubOwner((tx) => saveSite(tx, cctx(), SiteInput.parse(site('חוף הדמו'))));
+    // The starter plan has one place: a second open site is refused.
+    expect(
+      await code(clubOwner((tx) => saveSite(tx, cctx(), SiteInput.parse(site('אתר שני'))))),
+    ).toBe('platform.errors.limit.sites');
+    const line = (await clubOwner((tx) => clubSetup(tx))).programs.find((p) => p.code === 'line')!;
+    await clubOwner((tx) =>
+      saveProgram(
+        tx,
+        cctx(),
+        ProgramInput.parse({ ...line, id: line.id, price: '200', active: 'on' }),
+      ),
+    );
+    const added = await clubOwner((tx) =>
+      addSessions(
+        tx,
+        cctx(),
+        SessionsInput.parse({
+          programId: line.id,
+          siteId,
+          date: '2099-01-05',
+          time: '07:30',
+          capacity: '6',
+          leadStaffId: '',
+          weeks: '4',
+        }),
+      ),
+    );
+    expect(added).toBe(4);
+    const setup = await clubOwner((tx) => clubSetup(tx));
+    expect(setup.programs.find((p) => p.code === 'line')?.priceAgorot).toBe(20000);
+    expect(setup.upcomingSessions).toBe(4);
+    expect(setup.steps.filter((s) => s.done).map((s) => s.key)).toEqual([
+      'site',
+      'programs',
+      'session',
+    ]);
+    // A date in the past is refused.
+    expect(
+      await code(
+        clubOwner((tx) =>
+          addSessions(
+            tx,
+            cctx(),
+            SessionsInput.parse({
+              programId: line.id,
+              siteId,
+              date: '2020-01-05',
+              time: '07:30',
+              capacity: '6',
+              weeks: '',
+            }),
+          ),
+        ),
+      ),
+    ).toBe('dive.setup.errors.past');
+  });
+
+  it('is held to its plan: its divers count as the plan’s customers', async () => {
+    const page = await clubOwner((tx) => myPlanPage(tx));
+    expect(page.usage.map((u) => [u.limit, u.used])).toEqual([
+      ['students', 0],
+      ['staff', 0],
+      ['venues', 1],
+    ]);
   });
 });

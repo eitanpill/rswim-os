@@ -8,6 +8,9 @@ import {
   dnsVerified,
   featureEnabled,
   invoiceFor,
+  lastDayOnCancel,
+  prorate,
+  retryDue,
   normalizeHost,
   onboardingChecklist,
   parseTemplate,
@@ -28,6 +31,8 @@ const starter: PlanFacts = {
   maxVenues: 1,
   features: ['reports'],
   graceDays: 10,
+  retryEveryDays: 3,
+  maxChargeAttempts: 4,
 };
 const pro: PlanFacts = {
   ...starter,
@@ -42,6 +47,7 @@ const sub = (s: Partial<SubscriptionFacts> = {}): SubscriptionFacts => ({
   trialEndsOn: null,
   mandateId: 'm-1',
   pastDueSince: null,
+  cancelsOn: null,
   ...s,
 });
 
@@ -90,6 +96,24 @@ describe('usage and features', () => {
 });
 
 describe('the subscription over time', () => {
+  it('ends a cancelled subscription the day after its last day, before anything else', () => {
+    const c = sub({ status: 'trialing', trialEndsOn: '2026-11-20', cancelsOn: '2026-11-20' });
+    expect(subscriptionOnDay(c, starter, '2026-11-20').changed).toBe(false);
+    expect(subscriptionOnDay(c, starter, '2026-11-21')).toEqual({
+      status: 'cancelled',
+      pastDueSince: null,
+      changed: true,
+      reason: 'cancelled',
+    });
+    expect(
+      subscriptionOnDay(
+        sub({ status: 'cancelled', cancelsOn: '2026-11-20' }),
+        starter,
+        '2026-12-01',
+      ).changed,
+    ).toBe(false);
+  });
+
   it('ends a trial the day after it runs out', () => {
     const t = sub({ status: 'trialing', trialEndsOn: '2026-10-20' });
     expect(subscriptionOnDay(t, starter, '2026-10-20').changed).toBe(false);
@@ -155,29 +179,85 @@ describe('the subscription over time', () => {
 
 describe('billing', () => {
   it('bills the plan’s price in advance once the trial is over', () => {
-    expect(billingPeriod('2026-11-17')).toBe('2026-11-01');
-    expect(invoiceFor(sub(), starter)).toEqual({
+    const P = '2026-11-01';
+    expect(billingPeriod('2026-11-17')).toBe(P);
+    expect(invoiceFor(sub(), starter, P)).toEqual({
       bill: true,
       amountAgorot: 14900,
       planCode: 'starter',
+      coversFrom: P,
     });
-    expect(invoiceFor(sub({ status: 'past_due' }), starter).bill).toBe(true);
-    expect(invoiceFor(sub({ status: 'trialing' }), starter)).toEqual({
+    expect(invoiceFor(sub({ status: 'past_due' }), starter, P).bill).toBe(true);
+    expect(invoiceFor(sub({ status: 'trialing' }), starter, P)).toEqual({
       bill: false,
       reason: 'trialing',
     });
-    expect(invoiceFor(sub({ status: 'suspended' }), starter)).toEqual({
+    expect(invoiceFor(sub({ status: 'suspended' }), starter, P)).toEqual({
       bill: false,
       reason: 'suspended',
     });
-    expect(invoiceFor(sub({ status: 'cancelled' }), starter)).toEqual({
+    expect(invoiceFor(sub({ status: 'cancelled' }), starter, P)).toEqual({
       bill: false,
       reason: 'cancelled',
     });
-    expect(invoiceFor(sub(), { ...starter, priceAgorot: 0 })).toEqual({
+    expect(invoiceFor(sub(), { ...starter, priceAgorot: 0 }, P)).toEqual({
       bill: false,
       reason: 'free',
     });
+  });
+
+  it('prorates a month that starts after the 1st, and bills nothing after the last day', () => {
+    // November has 30 days: from the 16th is 15 days, half the price.
+    expect(prorate(14900, '2026-11-01', '2026-11-16')).toBe(7450);
+    expect(prorate(19900, '2026-02-01', '2026-02-01')).toBe(19900);
+    expect(prorate(19900, '2026-02-01', '2026-02-28')).toBe(711);
+    expect(invoiceFor(sub(), starter, '2026-11-01', '2026-11-16')).toEqual({
+      bill: true,
+      amountAgorot: 7450,
+      planCode: 'starter',
+      coversFrom: '2026-11-16',
+    });
+    // A start date from another month bills the whole month.
+    expect(invoiceFor(sub(), starter, '2026-12-01', '2026-11-16')).toMatchObject({
+      amountAgorot: 14900,
+      coversFrom: '2026-12-01',
+    });
+    expect(invoiceFor(sub({ cancelsOn: '2026-11-30' }), starter, '2026-12-01')).toEqual({
+      bill: false,
+      reason: 'cancelled',
+    });
+    expect(invoiceFor(sub({ cancelsOn: '2026-11-30' }), starter, '2026-11-01').bill).toBe(true);
+  });
+
+  it('retries a declined invoice every few days, up to the plan’s attempts', () => {
+    const inv = (
+      o: Partial<{ status: string; attempts: number; lastAttemptOn: string | null }>,
+    ) => ({
+      status: 'failed',
+      attempts: 1,
+      lastAttemptOn: '2026-11-01',
+      ...o,
+    });
+    expect(retryDue(inv({}), starter, '2026-11-03')).toBe(false);
+    expect(retryDue(inv({}), starter, '2026-11-04')).toBe(true);
+    expect(retryDue(inv({ lastAttemptOn: null }), starter, '2026-11-01')).toBe(true);
+    expect(retryDue(inv({ attempts: 4 }), starter, '2026-12-01')).toBe(false);
+    expect(retryDue(inv({ status: 'paid' }), starter, '2026-12-01')).toBe(false);
+  });
+
+  it('serves a cancelled school to the end of its trial or of the paid month', () => {
+    expect(lastDayOnCancel({ status: 'trialing', trialEndsOn: '2026-11-20' }, '2026-11-10')).toBe(
+      '2026-11-20',
+    );
+    expect(lastDayOnCancel({ status: 'active', trialEndsOn: '2026-10-20' }, '2026-11-10')).toBe(
+      '2026-11-30',
+    );
+    expect(lastDayOnCancel({ status: 'trialing', trialEndsOn: '2026-11-01' }, '2026-11-10')).toBe(
+      '2026-11-30',
+    );
+    expect(lastDayOnCancel({ status: 'active', trialEndsOn: null }, '2028-02-03')).toBe(
+      '2028-02-29',
+    );
   });
 
   it('never charges a paid invoice again, nor without a payment method', () => {

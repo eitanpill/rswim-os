@@ -119,6 +119,7 @@ export interface CrmProvider {
 export * from './ghl';
 export * from './grow';
 export * from './gateways';
+export * from './cards';
 export * from './fakes';
 export * from './messaging';
 export * from './copilot';
@@ -132,3 +133,4 @@ export interface DnsResolver {
 export * from './dns';
 export * from './storage';
 export * from './supabase';
+export * from './columns';

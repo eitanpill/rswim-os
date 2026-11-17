@@ -3,8 +3,8 @@ import { PlanView } from './plan-view';
 export default async function PlanPage({
   searchParams,
 }: {
-  searchParams: Promise<{ feature?: string }>;
+  searchParams: Promise<{ feature?: string; card?: string }>;
 }) {
-  const { feature } = await searchParams;
-  return <PlanView feature={feature} />;
+  const { feature, card } = await searchParams;
+  return <PlanView feature={feature} card={card} />;
 }

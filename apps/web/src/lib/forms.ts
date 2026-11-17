@@ -6,7 +6,7 @@ import type { z } from 'zod';
 import type { Db, Tx } from '@rswim/db';
 import { parseShekels } from '@rswim/money';
 import { toDomainError, type ServiceContext } from '@rswim/domain-core';
-import { withSession, withSignedIn } from './db';
+import { withControlPlane, withSession, withSignedIn } from './db';
 import type { FormState } from './form-state';
 
 /**
@@ -36,8 +36,11 @@ export interface RunFormOptions<R> {
   success?: string | ((result: R, tr: Translate) => string);
   /** Maps a validation issue's path to the form field that shows it (default: the first path segment). */
   errorField?: (path: readonly PropertyKey[]) => string;
-  /** Who runs the handler: the user in their school (default), signed in without a school, or a platform admin. */
-  scope?: 'org' | 'user' | 'platform';
+  /**
+   * Who runs the handler: the user in their school (default), the same against the platform's database (`control`:
+   * the school's subscription), signed in without a school, or a platform admin.
+   */
+  scope?: 'org' | 'control' | 'user' | 'platform';
   /** With scope 'user': the database to run in (a school's own one), else the platform's. */
   database?: Db;
   /** Data the page shows once after success, e.g. an invite link. */
@@ -75,7 +78,9 @@ export async function runForm<S extends z.ZodType, R>(
     result =
       opts.scope === 'user' || opts.scope === 'platform'
         ? await withSignedIn(run, { platform: opts.scope === 'platform', database: opts.database })
-        : await withSession(run);
+        : opts.scope === 'control'
+          ? await withControlPlane(run)
+          : await withSession(run);
   } catch (e) {
     const de = toDomainError(e);
     if (!de) throw e;

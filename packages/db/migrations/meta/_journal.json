@@ -411,8 +411,29 @@
     {
       "idx": 58,
       "version": "7",
-      "when": 1794634693866,
-      "tag": "0058_account_deletion",
+      "when": 1794650879443,
+      "tag": "0058_subscription_billing",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1794737279443,
+      "tag": "0059_starter_kits",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1794823679443,
+      "tag": "0060_data_import",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1794905551899,
+      "tag": "0061_account_deletion",
       "breakpoints": true
     }
   ]

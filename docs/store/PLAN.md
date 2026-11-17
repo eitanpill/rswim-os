@@ -45,7 +45,7 @@ Proof: `packages/db/test/rls/school-switch.test.ts`, `apps/web/src/lib/join-link
   avatar on the freediving screens). It says what goes (the sign-in, every membership, join requests not yet
   accepted) and what the school keeps (the family's file, lessons, payments and receipts: the school's records, and
   the ledger is append-only). The person types "מחיקה" to confirm; then `/goodbye`.
-- `public.delete_my_account()` (migration 0058) runs on each school's own database first and on the platform's last.
+- `public.delete_my_account()` (migration 0061) runs on each school's own database first and on the platform's last.
   The only owner of an active school is refused (`public.my_sole_owned_schools()`) until another owner exists.
 - Google Play's "web link for deletion requests": the same page on the web (sign in, then delete).
 - Not verified: deleting from `auth.users` by SQL on a real Supabase project (no project yet).
