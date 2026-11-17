@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { agorot } from '@rswim/money';
 import { lastDayOnCancel, myPlanPage, subFacts, todayIL } from '@rswim/domain-platform';
 import { Badge, Card, CardTitle, Money, PageHeader } from '@rswim/ui';
+import { AiMeter } from '@/components/ai-meter';
 import { ActionForm, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { dmy } from '@/lib/options';
@@ -144,6 +145,11 @@ export async function PlanView({
           </ul>
         </Card>
       </div>
+      {owner ? (
+        <div className="mt-4">
+          <AiMeter />
+        </div>
+      ) : null}
 
       <h2 className="mt-6 mb-2 text-lg font-semibold">{t('plans')}</h2>
       <ul className="grid gap-3 md:grid-cols-3">
@@ -167,6 +173,11 @@ export async function PlanView({
                 {p.features.map((f) => (
                   <li key={f}>✓ {tEnum(`planFeature.${f}`)}</li>
                 ))}
+                <li>
+                  {p.aiMonthlyActions === null
+                    ? t('aiUnlimited')
+                    : t('aiActions', { count: p.aiMonthlyActions })}
+                </li>
               </ul>
               {owner && sub && page.plan ? (
                 p.code === page.plan.code ? (

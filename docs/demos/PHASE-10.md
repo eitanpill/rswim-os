@@ -65,3 +65,11 @@ its regulations, its catalog with prices, and its WhatsApp wording. Reseeding re
    (signed, got a link, not yet) and "send a link" (needs a processor connected in payments).
 6. "Undo the import" removes everything not yet in use, within 24 hours.
 7. As 🤿 the club owner: /dive/setup → "ייבוא צוללים וצוות" and the same flow with a divers file.
+
+## SaaS stage 6: AI allowance and the connections screen
+
+1. Sign in as the owner (dev persona), open "עוד" → "חיבורים": WhatsApp, payments, receipts ("בקרוב"), the parents' bot
+   and AI triage, each with its state and a link, and "שימוש ב-AI החודש" with the month's actions against the plan.
+2. "המסלול" shows the same meter and, per plan, its AI actions a month (300 / 2,000 / 3,000).
+3. The brain page shows the meter under the on/off card.
+4. As 🤿 the club owner: the bridge → "חיבורים" opens the same screen for the club.

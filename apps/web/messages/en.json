@@ -304,6 +304,10 @@
       "import": {
         "title": "Import from previous system",
         "hint": "Families and team from Excel, CSV or Google Sheets"
+      },
+      "connections": {
+        "title": "Connections",
+        "hint": "WhatsApp, payments, receipts and AI use in one place"
       }
     }
   },
@@ -728,7 +732,9 @@
       "unlimited": "Unlimited",
       "changeHint": "Change plan any time. The new price applies from the next charge.",
       "invoices": "Aqua Swim invoices",
-      "noInvoices": "No invoices yet."
+      "noInvoices": "No invoices yet.",
+      "aiActions": "{count, number} AI actions a month",
+      "aiUnlimited": "Unlimited AI actions"
     },
     "branding": {
       "title": "Branding and domain",
@@ -905,7 +911,8 @@
       "cardSetup": "Card page not found",
       "billingName": "A name of 2 to 120 characters",
       "billingTaxId": "A number of 5 to 9 digits",
-      "billingEmail": "Invalid email address"
+      "billingEmail": "Invalid email address",
+      "aiCap": "This month's AI actions are used up. A bigger plan raises the allowance, on the plan page."
     },
     "network": {
       "kicker": "From the top bridge",
@@ -1030,6 +1037,30 @@
         "note": "Demo page: nothing is sent anywhere and nothing is charged."
       },
       "manage": "Manage subscription"
+    },
+    "ai": {
+      "title": "AI use this month",
+      "state": {
+        "unlimited": "No cap",
+        "ok": "Within allowance",
+        "warn": "Running low",
+        "over": "Allowance used up"
+      },
+      "usedOf": "{used} of {cap} AI actions ({percent}%)",
+      "usedNoCap": "{used} AI actions this month",
+      "note": {
+        "warn": "Most of this month's allowance is used. When it runs out the AI stops until the 1st: the copilot doesn't answer and the parents' bot passes questions to the staff.",
+        "over": "This month's AI actions are used up. The AI returns on the 1st, or at once on a bigger plan. Meanwhile the parents' bot passes questions to the staff and the rules sort messages alone."
+      },
+      "feature": {
+        "copilot": "Copilot and brain",
+        "parent_bot": "Parents' bot",
+        "triage": "Sorting inbound messages",
+        "insights": "Morning insight notes",
+        "import_columns": "Import column matching"
+      },
+      "nothingYet": "No AI use yet this month.",
+      "hint": "An AI action is any piece of AI work: a copilot or parents' bot answer, sorting a message, a morning insight note or matching an import's columns. The allowance is part of the plan's price and resets on the 1st of each month."
     }
   },
   "calendar": {
@@ -1519,7 +1550,8 @@
       "unknown": "Did not know",
       "sensitive": "Sensitive topic",
       "needs_action": "Needs the team to act",
-      "model_failed": "Bot unavailable"
+      "model_failed": "Bot unavailable",
+      "ai_cap": "This month's AI allowance is used up"
     },
     "botOutcome": {
       "answered": "Answered",
@@ -1678,7 +1710,8 @@
       "courses": "Courses and cohorts",
       "transport": "Transport",
       "institutions": "Institutions",
-      "copilot": "AI copilot"
+      "copilot": "AI copilot",
+      "parent_bot": "Bot that answers parents and divers"
     },
     "planLimit": {
       "students": "Students",
@@ -4108,7 +4141,8 @@
       "divers": "Divers",
       "forms": "Paperwork",
       "plan": "Subscription",
-      "setup": "Setup"
+      "setup": "Setup",
+      "connections": "Connections"
     },
     "clubFallback": "Freediving club",
     "tagline": "Freediving · Gulf of Eilat",
@@ -4371,7 +4405,8 @@
         }
       },
       "toPayments": "Payment processor",
-      "toPlan": "Our Aqua Swim subscription"
+      "toPlan": "Our Aqua Swim subscription",
+      "toConnections": "Connections"
     },
     "stream": {
       "courses": "Courses",
@@ -6201,6 +6236,52 @@
       "nothing": "The file has no valid row to import",
       "undoClosed": "More than 24 hours have passed; the import can no longer be undone",
       "noProcessor": "To send standing order links, first connect a processor that supports standing orders (payments screen)."
+    }
+  },
+  "connections": {
+    "kicker": "Settings",
+    "title": "Connections",
+    "subtitle": "What the business is connected to, and what is still missing",
+    "summary": "{done} of {total} essential connections are active",
+    "state": {
+      "connected": "Connected",
+      "missing": "Not connected",
+      "failing": "Failing",
+      "soon": "Coming soon",
+      "on": "On",
+      "off": "Off",
+      "notInPlan": "Not in plan"
+    },
+    "whatsapp": {
+      "title": "WhatsApp",
+      "connected": "Messages go out from the business's number through LeadYourWay.",
+      "missing": "Not connected yet. Without it, reminders, confirmations and payment links don't go out on WhatsApp.",
+      "link": "Connect WhatsApp"
+    },
+    "payments": {
+      "title": "Payments",
+      "connected": "Customers pay by card, Bit or standing order straight to the business's account.",
+      "missing": "Not connected yet. Without it there are no payment links or standing orders.",
+      "failing": "The last check with the processor failed. Check the details.",
+      "link": "Connect payments"
+    },
+    "receipts": {
+      "title": "Receipts (Green Invoice)",
+      "soon": "Connecting the business's Green Invoice account so every payment gets a receipt automatically. Coming here soon."
+    },
+    "bot": {
+      "title": "Parents' bot",
+      "on": "The bot answers families from their own data and passes the rest to the staff.",
+      "off": "Off. Every message goes to the staff's inbox.",
+      "link": "Bot settings",
+      "notInPlan": "The parents' bot is part of the Growth and Pro plans.",
+      "linkPlan": "See plans"
+    },
+    "triage": {
+      "title": "AI message sorting",
+      "on": "Claude gives a second opinion on each inbound message and sorts it.",
+      "off": "Off. The rules sort messages alone.",
+      "link": "Policies"
     }
   }
 }

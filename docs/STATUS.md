@@ -368,6 +368,30 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - Not verified: the real confirmation email (needs Supabase + Resend). Card capture at sign-up came in stage 3. Terms of
   use and privacy policy pages come with the lawyer (stage 7); the consent box links to nothing yet.
 
+## Claude's allowance per school and one connections screen, SaaS stage 6 (first part, 2026-11-17)
+- Every Claude call reports its tokens (`@rswim/integrations` `usage.ts`, `trackUsage`), and each piece of AI work is
+  one "AI action": a row of `ai_usage` (migration 0061) with the feature, model, tokens and its cost in millionths of a
+  dollar at the price list in `@rswim/contracts` `ai.ts`. Append-only; the owner and admins read it, any staff
+  member's work and the worker add to it.
+- The plans carry the approved monthly AI actions (`plans.ai_monthly_actions`: starter 300, growth 2,000, pro 3,000).
+  `aiAllowance` counts the month (Asia/Jerusalem); from 80% the owner is warned, at the cap the copilot refuses
+  (`platform.errors.aiCap`), the parents' bot hands the family to the office (handoff reason `ai_cap`), the worker
+  skips Claude's triage and insight notes (the rules still run), and an import's columns are placed by the rules only.
+- Models per feature (decision 8): copilot and parents' bot on Opus, morning insight notes on Sonnet, message triage
+  and import columns on Haiku.
+- The brain (`/admin/brain`) is on every plan now; the owner's chat copilot stays on pro; the parents' bot is a plan
+  feature (`parent_bot`, growth and pro), per the approved price list.
+- The AI meter (month's actions against the plan, by feature) is on the plan page, the brain page and the new
+  connections screen `/admin/connections` (and `/dive/connections` for a club's owner): WhatsApp, payments, receipts
+  (marked "coming soon"), the parents' bot, AI triage, and the meter, each with a link to the screen that fixes it.
+- Verified: `packages/contracts/test/ai.test.ts`, `packages/integrations/test/usage.test.ts`, `aiBudget` at 100% in
+  `packages/domain/platform`, `packages/seed/test/ai-allowance.test.ts` (cost recorded, admin reads and instructor
+  does not, warn at 8 of 10, copilot refused and bot handed off at the cap, append-only), the RLS suite, E2E
+  `connections.spec.ts`. Not verified against the real Claude API (no key here).
+- Still in stage 6, waiting on Pit's accounts: WhatsApp Embedded Signup (Meta app review), the first real processor
+  adapter (a processor's sandbox), Green Invoice per business (a Morning key). The bot for divers needs inbound
+  messages matched to divers first and is the next part.
+
 ## Importing from the previous system, SaaS stage 5 (2026-11-17)
 - `/admin/import` (swim: families, team) and `/dive/import` (club: divers, team), linked from "more", the first-steps
   screen and the club's setup. The owner uploads an Excel (.xlsx) or CSV file (UTF-8 or Hebrew Windows encoding;

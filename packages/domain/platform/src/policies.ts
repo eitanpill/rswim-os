@@ -369,3 +369,26 @@ export function catalogProblems(c: TemplatePayload['catalog']): string[] {
   const codes = new Set(c.programs.map((p) => p.code));
   return [...new Set(c.prices.filter((p) => !codes.has(p.program)).map((p) => p.program))];
 }
+
+// ─── Claude's monthly allowance (SaaS stage 6) ────────────────────────────────
+export type AiBudgetState = 'unlimited' | 'ok' | 'warn' | 'over';
+export interface AiBudget {
+  state: AiBudgetState;
+  /** Share of the month's actions used, 0–100 (null when there is no cap). */
+  percent: number | null;
+  /** AI actions this month. */
+  used: number;
+  /** The plan's monthly actions; null = no cap. */
+  cap: number | null;
+}
+
+/**
+ * Where a school stands against its plan's monthly AI actions. No cap (no plan, or a plan without one) is unlimited;
+ * reaching the cap is over, and AI work waits for next month or a bigger plan; from `warnPercent` the owner is told.
+ */
+export function aiBudget(cap: number | null, used: number, warnPercent: number): AiBudget {
+  if (cap === null) return { state: 'unlimited', percent: null, used, cap };
+  if (used >= cap) return { state: 'over', percent: 100, used, cap };
+  const percent = Math.floor((used / cap) * 100);
+  return { state: percent >= warnPercent ? 'warn' : 'ok', percent, used, cap };
+}

@@ -3,7 +3,9 @@
  * could not place. It sees the column names and two sample values with every digit masked, never whole rows. Per
  * decision 8 a simple task runs on the small model. The owner confirms or corrects the result before anything is saved.
  */
+import { AI_MODEL_FOR } from '@rswim/contracts';
 import Anthropic from '@anthropic-ai/sdk';
+import { reportUsage } from './usage';
 
 export interface ColumnForSuggestion {
   index: number;
@@ -41,7 +43,7 @@ export class ClaudeColumnSuggester implements ColumnSuggester {
 
   constructor(opts: { apiKey?: string; model?: string; client?: Anthropic } = {}) {
     this.client = opts.client ?? new Anthropic({ apiKey: opts.apiKey });
-    this.model = opts.model ?? 'claude-haiku-5-5';
+    this.model = opts.model ?? AI_MODEL_FOR.import_columns;
     this.name = `claude:${this.model}`;
   }
 
@@ -95,6 +97,7 @@ export class ClaudeColumnSuggester implements ColumnSuggester {
         },
       ],
     });
+    reportUsage(this.model, response.usage);
     if (response.stop_reason !== 'end_turn') return {};
     const text = response.content.find((b) => b.type === 'text');
     if (!text || text.type !== 'text') return {};

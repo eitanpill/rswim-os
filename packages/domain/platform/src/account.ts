@@ -1,5 +1,5 @@
 /**
- * Deleting your own account from inside the app (store launch, stage 8). The database (migration 0061) removes the
+ * Deleting your own account from inside the app (store launch, stage 8). The database (migration 0062) removes the
  * sign-in and every membership; the school's records of the family stay with the school. The only owner of an active
  * school hands it over first.
  */

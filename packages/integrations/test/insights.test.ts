@@ -45,7 +45,7 @@ describe('ClaudeInsightWriter', () => {
       ),
     );
     const w = new ClaudeInsightWriter({ client });
-    expect(w.name).toBe('claude:claude-opus-5-5');
+    expect(w.name).toBe('claude:claude-sonnet-5-5');
     const out = await w.write({ today: '2026-10-08', insights });
     expect(out).toEqual([
       { id: 'i1', explanation: 'הילד החסיר שלושה שיעורים ברצף.', recommendation: 'להתקשר.' },

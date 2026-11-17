@@ -2,7 +2,9 @@
  * Claude's words on the owner's insights feed: for each thing the daily check noticed, a short Hebrew explanation of
  * why it matters and one concrete next step. Advisory only: the model gets the facts and returns text, nothing else.
  */
+import { AI_MODEL_FOR } from '@rswim/contracts';
 import Anthropic from '@anthropic-ai/sdk';
+import { reportUsage } from './usage';
 
 export interface InsightForNote {
   id: string;
@@ -44,7 +46,7 @@ export class ClaudeInsightWriter implements InsightWriter {
 
   constructor(opts: { apiKey?: string; model?: string; client?: Anthropic } = {}) {
     this.client = opts.client ?? new Anthropic({ apiKey: opts.apiKey });
-    this.model = opts.model ?? 'claude-opus-5-5';
+    this.model = opts.model ?? AI_MODEL_FOR.insights;
     this.name = `claude:${this.model}`;
   }
 
@@ -82,6 +84,7 @@ export class ClaudeInsightWriter implements InsightWriter {
       },
       messages: [{ role: 'user', content: JSON.stringify(input) }],
     });
+    reportUsage(this.model, response.usage);
     if (response.stop_reason !== 'end_turn') return [];
     const text = response.content.find((b) => b.type === 'text');
     if (!text || text.type !== 'text') return [];

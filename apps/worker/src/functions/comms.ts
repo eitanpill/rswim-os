@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { INBOUND_INTENTS, type DomainEventEnvelope } from '@rswim/contracts';
+import { INBOUND_INTENTS, type ClaudeUsage, type DomainEventEnvelope } from '@rswim/contracts';
 import { asPlatform, withOrg } from '@rswim/db/service';
 import {
   applyAiClassification,
@@ -16,6 +16,8 @@ import {
 import { runBrainInbound, runParentBot } from '@rswim/domain-copilot';
 import { syncPipelineStage, type PipelineStage } from '@rswim/domain-crm';
 import { consumeOnce } from '@rswim/domain-core/worker';
+import { aiAllowed, recordAiUsage } from '@rswim/domain-platform';
+import { trackUsage } from '@rswim/integrations';
 import { and, eq, lte, schema } from '@rswim/db';
 import { getDb, inngest, log } from '../client';
 import { ghlFor, messagingFor } from '../ghl';
@@ -149,13 +151,25 @@ export const commsAiTriage = inngest.createFunction(
     if (!classifier) return { skipped: 'not_configured' };
     const input = await step.run('context', () =>
       withOrg(getDb(), envelope.organizationId, async (tx) =>
-        (await commsRules(tx)).aiTriage ? inboundContext(tx, inboundMessageId) : null,
+        // Past the month's AI allowance the rules' verdict stands alone.
+        (await commsRules(tx)).aiTriage && (await aiAllowed(tx))
+          ? inboundContext(tx, inboundMessageId)
+          : null,
       ),
     );
     if (!input) return { skipped: 'off' };
-    const verdict = await step.run('classify', () =>
-      classifier.classify({ ...input, intents: INBOUND_INTENTS }),
-    );
+    const verdict = await step.run('classify', async () => {
+      const usage: ClaudeUsage[] = [];
+      try {
+        return await trackUsage(usage, () =>
+          classifier.classify({ ...input, intents: INBOUND_INTENTS }),
+        );
+      } finally {
+        await withOrg(getDb(), envelope.organizationId, (tx) =>
+          recordAiUsage(tx, envelope.organizationId, 'triage', usage),
+        );
+      }
+    });
     if (!verdict) return { skipped: 'no_verdict' };
     return step.run('apply', async () => {
       let outcome = 'already';
