@@ -43,7 +43,7 @@ Supabase (two projects: `aqua-staging`, `aqua-production`)
   (phone sign-ups stay on: a diver joining a club from its link signs up by phone).
 - Authentication → URL configuration → Redirect URLs: add `https://app.aqua-swim.co.il/auth/confirm` (staging: the
   staging host), where the confirmation email brings the new owner back.
-- Authentication → SMTP: custom SMTP through Resend (below), sender `no-reply@aqua-swim.co.il`.
+- Authentication → SMTP: custom SMTP through Resend (below), sender `no-reply@mail.aqua-swim.co.il` (Resend domain `mail.aqua-swim.co.il`).
 - Authentication → URL configuration: site URL `https://app.aqua-swim.co.il` (staging: `https://staging.aqua-swim.co.il`).
 - Storage: bucket `dive-documents`, private.
 - Database → Backups: daily backups are included in Pro; turn on Point-in-Time Recovery for production before the
@@ -56,7 +56,9 @@ Vercel (project `aqua-web`, root directory `apps/web`, framework Next.js, instal
 
 Railway (project `aqua`, environments `staging` and `production`, service `worker`)
 - Source: this repository; staging branch `main`, production branch `production`.
-- Variable `RAILWAY_DOCKERFILE_PATH=deploy/production/worker.Dockerfile`; health check path `/health`; one replica.
+- Settings → Config-as-code → Railway config file: `deploy/production/railway.worker.json` (worker Dockerfile, health
+  check `/health`, one replica). Without it Railway reads the root `railway.json`, which builds the live demo.
+- Settings → Source → Repository: `eitanpill/rswim-os` (the Railway GitHub app needs access to it).
 - Variables: the worker column below.
 
 Inngest (apps `aqua-staging`, `aqua-production`)
