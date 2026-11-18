@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { RUN_STAGES, type RunStage } from '@rswim/contracts';
 import type { RunView } from '@rswim/domain-transport';
-import { Badge, Card, CardTitle } from '@rswim/ui';
+import { Avatar, Badge, Card, CardTitle } from '@rswim/ui';
 import { ActionButton, type Action } from '@/components/form';
 import { explainer } from '@/lib/billing';
 import { enumLabel } from '@/lib/options';
@@ -46,6 +46,7 @@ export async function RunCard({ view, actions }: { view: RunView; actions: RunAc
             {label('runStatus', run.status)}
           </Badge>
         }
+        icon="🚌"
       >
         {route.name}
       </CardTitle>
@@ -114,15 +115,18 @@ export async function RunCard({ view, actions }: { view: RunView; actions: RunAc
           return (
             <li
               key={r.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3"
+              className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border p-3 ${marks.has('missing') ? 'border-danger/40 bg-danger/5' : marks.has('dropped_off') ? 'border-ok/30 bg-ok/5' : 'border-line'}`}
               data-testid="run-rider"
               data-student={r.studentId}
             >
-              <span>
-                <span className="font-medium">{r.name}</span>
-                <span className="block text-xs text-ink-muted">
-                  {t('card.dropoff', { point: r.dropoffPoint ?? route.schoolName })}
-                  {r.dropoffNote ? ` · ${r.dropoffNote}` : ''}
+              <span className="flex items-center gap-3">
+                <Avatar name={r.name} size="sm" />
+                <span>
+                  <span className="font-medium">{r.name}</span>
+                  <span className="block text-xs text-ink-muted">
+                    {t('card.dropoff', { point: r.dropoffPoint ?? route.schoolName })}
+                    {r.dropoffNote ? ` · ${r.dropoffNote}` : ''}
+                  </span>
                 </span>
               </span>
               <span className="flex flex-wrap items-center gap-2">

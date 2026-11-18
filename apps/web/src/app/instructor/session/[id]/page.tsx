@@ -77,7 +77,7 @@ export default async function InstructorSessionPage({
             <CardTitle>{tt('verdictTitle')}</CardTitle>
             <ul className="flex flex-col gap-3">
               {openTrials.map((tr) => (
-                <li key={tr.id} className="rounded-xl border border-line p-3">
+                <li key={tr.id} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                   <p className="mb-2 font-medium">{name.get(tr.studentId) ?? ''}</p>
                   <ActionForm action={instructorVerdictAction} testId="instructor-verdict">
                     <input type="hidden" name="id" value={tr.id} />

@@ -32,7 +32,11 @@ export async function ShiftChangeList({
       {changes.map((c) => {
         const open = c.status === 'pending' || c.status === 'escalated';
         return (
-          <li key={c.id} className="rounded-xl border border-line p-3" data-testid="shift-change">
+          <li
+            key={c.id}
+            className="rounded-2xl border border-line/70 bg-surface/50 p-3"
+            data-testid="shift-change"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-medium">
                 {c.kind === 'reassign_group'

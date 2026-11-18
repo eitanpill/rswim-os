@@ -126,7 +126,7 @@ export default async function ClosurePage({
                 {preview.sessions.map((s) => (
                   <li
                     key={s.id}
-                    className="rounded-xl border border-line p-3"
+                    className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                     data-testid="preview-session"
                   >
                     <p className="font-medium">

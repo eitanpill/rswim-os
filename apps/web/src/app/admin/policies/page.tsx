@@ -122,7 +122,7 @@ export default async function PoliciesPage({ searchParams }: { searchParams: Pro
           ) : (
             <ul className="flex flex-col gap-2">
               {versions.map((v) => (
-                <li key={v.id} className="rounded-xl border border-line p-3">
+                <li key={v.id} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                   <p className="font-medium">
                     {t('versionFrom', { date: dmy(v.effectiveFrom) })}
                     {v.id === current?.id
@@ -159,7 +159,7 @@ export default async function PoliciesPage({ searchParams }: { searchParams: Pro
             {sections.map((s) => (
               <details
                 key={s.key}
-                className="rounded-xl border border-line p-3"
+                className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                 open={s.key === 'absence' || s.key === 'makeup'}
               >
                 <summary className="min-h-tap cursor-pointer font-semibold">

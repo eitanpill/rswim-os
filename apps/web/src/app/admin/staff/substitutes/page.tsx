@@ -68,7 +68,7 @@ export default async function SubstitutesPage() {
               {requests.map((r) => (
                 <li
                   key={r.id}
-                  className="rounded-xl border border-line p-3"
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                   data-testid="substitute-request"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">

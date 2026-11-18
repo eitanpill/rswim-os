@@ -32,7 +32,7 @@ export default async function CashPage() {
             {cash.map((p) => (
               <li
                 key={p.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
               >
                 <span>
                   <Link

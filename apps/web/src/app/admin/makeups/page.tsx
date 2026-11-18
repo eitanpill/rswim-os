@@ -59,7 +59,7 @@ export default async function MakeupsPage({
                 return (
                   <li
                     key={c.id}
-                    className="rounded-xl border border-line p-3"
+                    className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                     data-testid="credit-row"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">

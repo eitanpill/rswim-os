@@ -4,7 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { SEAT_HOLDING_STATUSES, type EnrollmentStatus } from '@rswim/contracts';
 import { searchStudents, studentsByIds } from '@rswim/domain-people';
 import { getGroup, listShiftChanges } from '@rswim/domain-scheduling';
-import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import { Avatar, Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import { ActionButton, ActionForm, Field, SelectField, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { dmy, enumLabel, todayIL } from '@/lib/options';
@@ -164,19 +164,22 @@ export default async function GroupPage({
                 return (
                   <li
                     key={e.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
                   >
-                    <div>
-                      <Link
-                        href={`/admin/families/${s?.householdId ?? ''}`}
-                        className="font-medium underline"
-                      >
-                        {s ? `${s.firstName} ${s.lastName}` : '?'}
-                      </Link>
-                      <p className="text-xs text-ink-muted">
-                        {label('enrollmentStatus', e.status)} ·{' '}
-                        {t('since', { date: dmy(e.startsOn) })}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <Avatar name={s?.firstName ?? '?'} size="sm" />
+                      <div>
+                        <Link
+                          href={`/admin/families/${s?.householdId ?? ''}`}
+                          className="font-medium underline"
+                        >
+                          {s ? `${s.firstName} ${s.lastName}` : '?'}
+                        </Link>
+                        <p className="text-xs text-ink-muted">
+                          {label('enrollmentStatus', e.status)} ·{' '}
+                          {t('since', { date: dmy(e.startsOn) })}
+                        </p>
+                      </div>
                     </div>
                     <ActionButton
                       action={removeFromGroupAction.bind(null, group.id)}
@@ -236,7 +239,7 @@ export default async function GroupPage({
           ) : (
             <ul className="flex flex-col gap-2">
               {detail.upcoming.map((s) => (
-                <li key={s.id} className="rounded-xl border border-line p-3">
+                <li key={s.id} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium">
                       {dmy(s.date)} ·{' '}

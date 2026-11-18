@@ -78,7 +78,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
             {guardians.map((g) => (
               <li
                 key={g.id}
-                className="rounded-xl border border-line p-3"
+                className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                 data-testid="guardian-row"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -144,7 +144,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
               return (
                 <li
                   key={s.id}
-                  className="rounded-xl border border-line p-3"
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                   data-testid="student-row"
                 >
                   <p className="font-medium">
@@ -208,7 +208,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
               {relations.map((r) => (
                 <li
                   key={`${r.studentId}-${r.relatedStudentId}-${r.type}`}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+                  className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
                 >
                   <p>
                     {studentName(r.studentId)} · {studentName(r.relatedStudentId)} ·{' '}

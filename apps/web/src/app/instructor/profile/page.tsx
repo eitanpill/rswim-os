@@ -142,7 +142,7 @@ export default async function InstructorProfile() {
               {regular.map((g) => (
                 <li
                   key={`${g.name}-${g.weekday}-${g.time}`}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+                  className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
                 >
                   <span className="font-medium">{g.name}</span>
                   <span className="text-sm text-ink-muted">
@@ -163,7 +163,7 @@ export default async function InstructorProfile() {
               return (
                 <li
                   key={c.id}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+                  className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
                 >
                   <div>
                     <p className="font-medium">{label('certificationType', c.type)}</p>
@@ -197,7 +197,7 @@ export default async function InstructorProfile() {
             {availability.map((a) => (
               <li
                 key={a.id}
-                className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+                className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
                 data-testid="my-availability-row"
               >
                 <p>
@@ -272,7 +272,7 @@ export default async function InstructorProfile() {
             {futureExceptions.map((e) => (
               <li
                 key={e.id}
-                className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+                className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
                 data-testid="my-time-off-row"
               >
                 <p>
@@ -329,7 +329,7 @@ export default async function InstructorProfile() {
             <CardTitle>{t('rates')}</CardTitle>
             <ul className="flex flex-col gap-2">
               {currentPay.map((r) => (
-                <li key={r.id} className="rounded-xl border border-line p-3">
+                <li key={r.id} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                   <p className="font-medium">
                     <Money agorot={agorot(r.amountAgorot)} /> {label('payBasis', r.basis)} ·{' '}
                     {label('payRouting', r.routing)}

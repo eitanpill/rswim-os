@@ -104,7 +104,7 @@ export default async function InboxPage({
                   ) : null}
                   {action ? (
                     <div
-                      className="mt-3 rounded-xl border border-line p-3"
+                      className="mt-3 rounded-2xl border border-line/70 bg-surface/50 p-3"
                       data-testid="triage-action"
                     >
                       <p className="font-medium">{label('triageActionKind', action.kind)}</p>

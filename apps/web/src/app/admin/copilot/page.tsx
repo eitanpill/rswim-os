@@ -107,7 +107,7 @@ export default async function CopilotPage() {
                 {x.actions.map((a) => (
                   <li
                     key={a.id}
-                    className="rounded-xl border border-line p-3"
+                    className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                     data-testid="copilot-action"
                     data-status={a.status}
                   >

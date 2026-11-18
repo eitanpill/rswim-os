@@ -43,7 +43,7 @@ export default async function RunsPage() {
                   <li key={r.id}>
                     <Link
                       href={`/admin/money/runs/${r.id}`}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3 hover:border-brand-500"
+                      className="flex flex-wrap items-center justify-between gap-2 lift rounded-2xl border border-line/70 bg-surface-raised p-3 shadow-[var(--shadow-soft)] hover:border-brand-500"
                     >
                       <span className="font-medium">{periodLabel(r.period)}</span>
                       <span className="text-sm text-ink-muted">

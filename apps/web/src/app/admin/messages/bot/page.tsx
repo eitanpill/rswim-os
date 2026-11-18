@@ -92,7 +92,7 @@ export default async function BotPage() {
               {suggestions.map((s) => (
                 <li
                   key={s.id}
-                  className="rounded-xl border border-line p-3"
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                   data-testid="bot-suggestion"
                 >
                   <KnowledgeForm entry={s} approve />
@@ -220,7 +220,7 @@ export default async function BotPage() {
               {knowledge.map((k) => (
                 <li
                   key={k.id}
-                  className="rounded-xl border border-line p-3"
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                   data-testid="bot-entry"
                 >
                   <p className="font-medium" dir="auto">

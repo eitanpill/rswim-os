@@ -35,7 +35,7 @@ export async function AgentActionList({ actions }: { actions: AgentActionRow[] }
         return (
           <li
             key={a.id}
-            className="rounded-xl border border-line p-3"
+            className="rounded-2xl border border-line/70 bg-surface/50 p-3"
             data-testid="agent-action"
             data-status={a.status}
             data-kind={a.kind}

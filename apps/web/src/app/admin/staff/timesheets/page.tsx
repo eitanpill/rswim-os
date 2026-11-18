@@ -39,7 +39,7 @@ export default async function TimesheetsPage({
               return (
                 <li
                   key={r.staffId}
-                  className="rounded-xl border border-line p-3"
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                   data-testid="timesheet-row"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">

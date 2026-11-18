@@ -14,7 +14,7 @@ export async function LineupList({ rows }: { rows: readonly LineupRow[] }) {
       {rows.map((r) => (
         <li
           key={r.studentId}
-          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
           data-testid="lineup-row"
         >
           <div>

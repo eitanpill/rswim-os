@@ -50,7 +50,7 @@ export default async function GroupsPage() {
                     <li key={g.id}>
                       <Link
                         href={`/admin/groups/${g.id}`}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3 hover:border-brand-500"
+                        className="flex flex-wrap items-center justify-between gap-2 lift rounded-2xl border border-line/70 bg-surface-raised p-3 shadow-[var(--shadow-soft)] hover:border-brand-500"
                         data-testid="group-row"
                       >
                         <div>

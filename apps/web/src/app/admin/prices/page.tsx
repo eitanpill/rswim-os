@@ -169,7 +169,7 @@ export default async function PricesPage({ searchParams }: { searchParams: Promi
                   <li key={l.id}>
                     <Link
                       href={`/admin/prices/${l.id}`}
-                      className="flex items-center justify-between gap-2 rounded-xl border border-line p-3 hover:border-brand-500"
+                      className="flex items-center justify-between gap-2 lift rounded-2xl border border-line/70 bg-surface-raised p-3 shadow-[var(--shadow-soft)] hover:border-brand-500"
                     >
                       <div>
                         <p className="font-medium">{l.name}</p>
