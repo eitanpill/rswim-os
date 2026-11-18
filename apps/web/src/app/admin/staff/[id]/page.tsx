@@ -76,7 +76,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
               return (
                 <li
                   key={c.id}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+                  className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
                 >
                   <div>
                     <p className="font-medium">{label('certificationType', c.type)}</p>
@@ -142,7 +142,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
             {availability.map((a) => (
               <li
                 key={a.id}
-                className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+                className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
               >
                 <p>
                   <span className="font-medium">{tw(String(a.weekday))}</span>{' '}
@@ -215,7 +215,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
             {exceptions.map((e) => (
               <li
                 key={e.id}
-                className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+                className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
               >
                 <p>
                   {label('availabilityKind', e.kind)} ·{' '}
@@ -266,7 +266,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
             {payRules.length === 0 ? <EmptyState title={t('pay.empty')} /> : null}
             <ul className="mb-3 flex flex-col gap-2">
               {payRules.map((r) => (
-                <li key={r.id} className="rounded-xl border border-line p-3">
+                <li key={r.id} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                   <p className="font-medium">
                     <Money agorot={agorot(r.amountAgorot)} /> {label('payBasis', r.basis)} ·{' '}
                     {label('payRouting', r.routing)}

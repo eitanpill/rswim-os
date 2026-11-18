@@ -82,7 +82,7 @@ export default async function GhlPage() {
                   (l) => l.action === 'conflict' || l.action === 'duplicate_in_ghl',
                 );
                 return (
-                  <li key={r.id} className="rounded-xl border border-line p-3">
+                  <li key={r.id} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-medium">
                         {format.dateTime(r.startedAt, { dateStyle: 'short', timeStyle: 'short' })}

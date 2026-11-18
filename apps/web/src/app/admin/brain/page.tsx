@@ -158,7 +158,7 @@ export default async function BrainPage() {
             {AGENT_PROFILES.map((p) => (
               <li
                 key={p}
-                className="flex flex-col gap-2 rounded-xl border border-line p-3"
+                className="flex flex-col gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
                 data-testid={`brain-profile-${p}`}
               >
                 <span className="flex items-center gap-2 font-semibold">

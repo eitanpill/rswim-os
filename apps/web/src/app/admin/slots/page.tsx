@@ -52,7 +52,11 @@ export default async function SlotsPage() {
           ) : (
             <ul className="flex flex-col gap-2">
               {data.slots.map((s) => (
-                <li key={s.id} className="rounded-xl border border-line p-3" data-testid="slot-row">
+                <li
+                  key={s.id}
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
+                  data-testid="slot-row"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-medium">
                       {dmy(s.date)} ·{' '}

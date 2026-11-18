@@ -75,7 +75,7 @@ async function Levels({ program }: { program: Program }) {
         {program.levels.map((l, i) => (
           <li
             key={l.id}
-            className="flex items-start justify-between gap-2 rounded-xl border border-line p-3"
+            className="flex items-start justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
           >
             <div>
               <p className="font-medium">

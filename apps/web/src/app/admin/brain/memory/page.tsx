@@ -77,7 +77,7 @@ export default async function BrainMemoryPage() {
       {rows.map((m) => (
         <li
           key={m.id}
-          className="flex flex-wrap items-start justify-between gap-2 rounded-xl border border-line p-3"
+          className="flex flex-wrap items-start justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
           data-testid="memory-row"
           data-kind={m.kind}
         >

@@ -4,7 +4,7 @@ import { searchStudents } from '@rswim/domain-people';
 import { groupSuggestions, listGroups, listWaitlist } from '@rswim/domain-scheduling';
 import { listPrograms } from '@rswim/domain-settings';
 import { listVenues } from '@rswim/domain-venues';
-import { Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import { Avatar, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import {
   ActionButton,
   ActionForm,
@@ -96,11 +96,12 @@ export default async function WaitlistPage() {
                 return (
                   <li
                     key={e.id}
-                    className="rounded-xl border border-line p-3"
+                    className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                     data-testid="waitlist-row"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="font-medium">
+                      <p className="flex items-center gap-2 font-medium">
+                        <Avatar name={e.student?.firstName ?? '?'} size="sm" />
                         {e.student ? `${e.student.firstName} ${e.student.lastName}` : '?'}{' '}
                         <span className="text-sm text-ink-muted">{age(e.ageMonths)}</span>
                       </p>

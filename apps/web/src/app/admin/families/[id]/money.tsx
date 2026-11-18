@@ -486,7 +486,10 @@ export async function FamilyMoney({
                 (c) => c.enrollmentId === p.enrollmentId && c.status === 'active',
               );
               return (
-                <li key={p.enrollmentId} className="rounded-xl border border-line p-3">
+                <li
+                  key={p.enrollmentId}
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
+                >
                   <p className="font-medium">
                     {studentName.get(p.studentId) ?? ''} · {p.groupName}
                   </p>

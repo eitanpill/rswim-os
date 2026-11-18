@@ -420,7 +420,10 @@
     "home": {
       "title": "After-school transport",
       "empty": "No runs on your routes today",
-      "today": "Today, {date}"
+      "today": "Today, {date}",
+      "heroRuns": "{runs, plural, one {One run today} other {# runs today}}",
+      "heroDone": "All of today's runs are done",
+      "heroRiders": "{n, plural, =0 {No children listed} one {One child on your routes} other {# children on your routes}}"
     },
     "tabs": {
       "label": "Transport screens",
@@ -578,7 +581,8 @@
       "payroll": "Payroll",
       "payrollEmpty": "No approved payroll yet",
       "export": "Excel",
-      "payrollLine": "{period}: payslip {payslip} · transfer {transfer}"
+      "payrollLine": "{period}: payslip {payslip} · transfer {transfer}",
+      "owing": "Families owing"
     }
   },
   "parent": {
@@ -905,7 +909,13 @@
       "changePlan": "Change plan",
       "mandate": "Standing order (id)",
       "mandateHint": "The authorisation id at the payment provider",
-      "saveMandate": "Save standing order"
+      "saveMandate": "Save standing order",
+      "stats": {
+        "schools": "Schools",
+        "active": "Active",
+        "trialing": "On trial",
+        "trouble": "Need attention"
+      }
     },
     "review": {
       "title": "Templates to review",
@@ -6102,7 +6112,8 @@
         "failed": "Sign-up did not go through. Try again in a moment",
         "notConfigured": "Sign-up is not open in this environment yet"
       }
-    }
+    },
+    "signedIn": "Signed in to the app"
   },
   "landing": {
     "signIn": "Sign in",

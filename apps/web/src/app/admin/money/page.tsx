@@ -43,7 +43,7 @@ export default async function MoneyPage() {
               {rows.map((r) => (
                 <li
                   key={r.householdId}
-                  className="rounded-xl border border-line p-3"
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                   data-testid="debt-row"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { mySoleOwnedSchools } from '@rswim/domain-platform';
-import { Card, CardTitle, PageHeader } from '@rswim/ui';
+import { Avatar, Card, CardTitle, PageHeader } from '@rswim/ui';
 import { AppShell } from '@/components/app-shell';
 import { ActionForm, Field, SubmitButton } from '@/components/form';
 import { getSession } from '@/lib/auth/session';
@@ -22,9 +22,16 @@ export default async function MyAccountPage() {
   const blockers = [...new Map(soleOwner.map((s) => [s.orgId, s.name])).values()];
   return (
     <AppShell session={session} surface="account" nav={[]}>
-      <PageHeader title={t('title')} subtitle={session.displayName} />
-      <Card data-testid="delete-account">
-        <CardTitle>{t('delete.title')}</CardTitle>
+      <PageHeader icon="👤" title={t('title')} />
+      <Card className="bg-water-soft mb-4 flex items-center gap-4" data-testid="me-profile">
+        <Avatar name={session.displayName ?? '?'} size="lg" />
+        <div className="min-w-0">
+          <p className="truncate text-xl font-bold">{session.displayName}</p>
+          <p className="text-sm text-ink-muted">{t('signedIn')}</p>
+        </div>
+      </Card>
+      <Card className="border-danger/30" data-testid="delete-account">
+        <CardTitle icon="🗑️">{t('delete.title')}</CardTitle>
         <div className="flex flex-col gap-2 text-sm">
           <p>{t('delete.goes')}</p>
           <p className="text-ink-muted">{t('delete.stays')}</p>

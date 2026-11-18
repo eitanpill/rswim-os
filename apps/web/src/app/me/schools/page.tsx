@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { mySchools } from '@rswim/domain-platform';
-import { Button, Card, PageHeader } from '@rswim/ui';
+import { Button, buttonVariants, Card, PageHeader } from '@rswim/ui';
 import { AppShell } from '@/components/app-shell';
 import { getSession } from '@/lib/auth/session';
 import { withSignedIn } from '@/lib/db';
@@ -21,30 +21,36 @@ export default async function MySchoolsPage() {
   if (schools.length === 0) redirect('/start');
   return (
     <AppShell session={session} surface="schools" nav={[]}>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
-      <ul className="flex flex-col gap-3" data-testid="my-schools">
+      <PageHeader icon="🏫" title={t('title')} subtitle={t('subtitle')} />
+      <ul className="stagger flex flex-col gap-3" data-testid="my-schools">
         {schools.map((s) => {
           const here = s.orgId === session.orgId;
           return (
             <li key={s.orgId}>
-              <Card>
+              <Card className={here ? 'border-brand-500' : 'lift'}>
                 <form
                   action={switchSchoolAction}
-                  className="flex flex-wrap items-center justify-between gap-3"
+                  className="flex items-center gap-3"
                   data-testid={`school-${s.orgId}`}
                 >
                   <input type="hidden" name="orgId" value={s.orgId} />
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold">{s.name}</p>
+                  <span
+                    aria-hidden
+                    className="bg-water grid size-12 shrink-0 place-items-center rounded-2xl text-2xl"
+                  >
+                    {s.vertical === 'freediving' ? '🤿' : '🏊'}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-lg font-semibold">{s.name}</p>
+                    {here ? (
+                      <span className="mb-0.5 inline-block rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-surface">
+                        {t('current')}
+                      </span>
+                    ) : null}
                     <p className="text-sm text-ink-muted">
                       {tRole(s.role)} · {t(`vertical.${s.vertical}`)}
                     </p>
                   </div>
-                  {here ? (
-                    <span className="rounded-full bg-brand-50 px-3 py-1 text-sm text-brand-700 dark:bg-surface">
-                      {t('current')}
-                    </span>
-                  ) : null}
                   <Button type="submit" variant={here ? 'secondary' : 'primary'}>
                     {t('enter')}
                   </Button>
@@ -55,8 +61,8 @@ export default async function MySchoolsPage() {
         })}
       </ul>
       <p className="mt-6 text-sm">
-        <Link href="/start" className="text-brand-700 underline">
-          {t('joinAnother')}
+        <Link href="/start" className={buttonVariants({ variant: 'soft' })}>
+          ➕ {t('joinAnother')}
         </Link>
       </p>
     </AppShell>

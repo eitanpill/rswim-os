@@ -1,7 +1,15 @@
 import { getTranslations } from 'next-intl/server';
 import { debtsDashboard } from '@rswim/domain-billing';
 import { listPayrollRuns, type RunTotals } from '@rswim/domain-payroll';
-import { Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import {
+  Avatar,
+  buttonVariants,
+  Card,
+  CardTitle,
+  EmptyState,
+  PageHeader,
+  StatTile,
+} from '@rswim/ui';
 import { money, periodLabel } from '@/lib/billing';
 import { withSession } from '@/lib/db';
 import { dmy } from '@/lib/options';
@@ -18,39 +26,59 @@ export default async function Page() {
   const { rows, totals } = debts;
   return (
     <>
-      <PageHeader title={t('title')} />
+      <PageHeader icon="📊" title={t('title')} />
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3" data-testid="accountant-stats">
+        <StatTile
+          icon="🧾"
+          tone={totals.balance > 0 ? 'warn' : 'ok'}
+          label={t('debts')}
+          value={fmt(totals.balance)}
+        />
+        <StatTile icon="👪" label={t('owing')} value={rows.length} />
+        <StatTile
+          icon="💼"
+          label={t('payroll')}
+          value={runs.length}
+          className="col-span-2 md:col-span-1"
+        />
+      </div>
       <Card>
-        <CardTitle aside={<span className="font-semibold">{fmt(totals.balance)}</span>}>
+        <CardTitle icon="🧾" aside={<span className="font-semibold">{fmt(totals.balance)}</span>}>
           {t('debts')}
         </CardTitle>
         {rows.length === 0 ? (
-          <EmptyState title={t('empty')} />
+          <EmptyState icon="🎉" title={t('empty')} />
         ) : (
           <ul className="flex flex-col text-sm">
             {rows.map((r) => (
               <li
                 key={r.householdId}
-                className="flex flex-wrap justify-between gap-2 border-t border-line py-2"
+                className="flex flex-wrap items-center justify-between gap-2 border-t border-line py-2"
               >
-                <span>
-                  {r.name}
-                  {r.oldest ? (
-                    <span className="text-ink-muted">
-                      {' '}
-                      · {tm('since', { date: dmy(r.oldest) })}
-                    </span>
-                  ) : null}
+                <span className="flex items-center gap-3">
+                  <Avatar name={r.name} size="sm" />
+                  <span>
+                    {r.name}
+                    {r.oldest ? (
+                      <span className="text-ink-muted">
+                        {' '}
+                        · {tm('since', { date: dmy(r.oldest) })}
+                      </span>
+                    ) : null}
+                  </span>
                 </span>
-                <span>{fmt(r.balance)}</span>
+                <span className="rounded-full bg-warn/15 px-2 py-0.5 font-semibold tabular-nums">
+                  {fmt(r.balance)}
+                </span>
               </li>
             ))}
           </ul>
         )}
       </Card>
       <Card className="mt-4" data-testid="accountant-payroll">
-        <CardTitle>{t('payroll')}</CardTitle>
+        <CardTitle icon="💼">{t('payroll')}</CardTitle>
         {runs.length === 0 ? (
-          <EmptyState title={t('payrollEmpty')} />
+          <EmptyState icon="📭" title={t('payrollEmpty')} />
         ) : (
           <ul className="flex flex-col text-sm">
             {runs.map((r) => {
@@ -69,9 +97,9 @@ export default async function Page() {
                   </span>
                   <a
                     href={`/api/payroll/${r.id}`}
-                    className="min-h-tap inline-flex items-center text-brand-700 underline"
+                    className={buttonVariants({ variant: 'soft', size: 'sm' })}
                   >
-                    {t('export')}
+                    ⬇️ {t('export')}
                   </a>
                 </li>
               );

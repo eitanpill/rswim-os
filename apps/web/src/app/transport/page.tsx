@@ -1,8 +1,10 @@
 import { getTranslations } from 'next-intl/server';
 import { escortDay } from '@rswim/domain-transport';
-import { Card, EmptyState, PageHeader } from '@rswim/ui';
+import { Card, EmptyState, Hero, PageHeader } from '@rswim/ui';
 import { RunCard } from '@/components/run-card';
+import { getSession } from '@/lib/auth/session';
 import { withSession } from '@/lib/db';
+import { greeting } from '@/lib/greeting';
 import { dmy, todayIL } from '@/lib/options';
 import { escortMarkAction, escortStageAction } from './actions';
 
@@ -14,13 +16,26 @@ export default async function EscortHome() {
   const t = await getTranslations('transport.home');
   const today = todayIL();
   const runs = await withSession((tx, ctx) => escortDay(tx, ctx, today));
+  const hello = await greeting((await getSession())?.displayName);
+  const riders = runs.reduce((n, v) => n + v.riders.length, 0);
+  const left = runs.filter((v) => v.run.status === 'planned' || v.run.status === 'underway').length;
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('today', { date: dmy(today) })} />
+      <PageHeader icon="🚌" title={t('title')} subtitle={t('today', { date: dmy(today) })} />
       <div className="flex flex-col gap-4">
+        {runs.length > 0 ? (
+          <Hero
+            eyebrow={`${hello} 👋`}
+            emoji={left > 0 ? '🚌' : '🌟'}
+            title={left > 0 ? t('heroRuns', { runs: runs.length }) : t('heroDone')}
+            data-testid="escort-hero"
+          >
+            <p>{t('heroRiders', { n: riders })}</p>
+          </Hero>
+        ) : null}
         {runs.length === 0 ? (
           <Card>
-            <EmptyState title={t('empty')} />
+            <EmptyState icon="🚌" title={t('empty')} />
           </Card>
         ) : (
           runs.map((v) => (

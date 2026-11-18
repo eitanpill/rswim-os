@@ -133,7 +133,7 @@ export default async function HoursPage() {
           ) : (
             <ul className="flex flex-col gap-2">
               {data.statements.map((s) => (
-                <li key={s.period} className="rounded-xl border border-line p-3">
+                <li key={s.period} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                   <p className="font-medium">{periodLabel(s.period)}</p>
                   <p className="text-sm">
                     {t('payslip')}: {fmt(s.payslip)} · {t('transfer')}: {fmt(s.transfer)}

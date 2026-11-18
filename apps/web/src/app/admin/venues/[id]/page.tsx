@@ -170,7 +170,11 @@ async function PoolCard({
         <ol className="mb-3 flex flex-col gap-2" aria-label={t('window.title')}>
           {grid.map((day, weekday) =>
             day.map((w) => (
-              <li key={w.id} className="rounded-xl border border-line p-3" data-testid="window-row">
+              <li
+                key={w.id}
+                className="rounded-2xl border border-line/70 bg-surface/50 p-3"
+                data-testid="window-row"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold">{tw(String(weekday))}</span>
@@ -316,7 +320,7 @@ async function ClosuresCard({
           {closures.map((c) => (
             <li
               key={c.id}
-              className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+              className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
             >
               <div>
                 <p className="font-medium">{c.reason}</p>
@@ -383,7 +387,7 @@ async function ContractsCard({
           {contracts.map((c) => (
             <li
               key={c.id}
-              className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+              className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
             >
               <div>
                 <p className="font-medium">
