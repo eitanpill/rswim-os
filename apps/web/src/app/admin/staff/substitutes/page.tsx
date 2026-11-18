@@ -42,7 +42,7 @@ export default async function SubstitutesPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🪪" title={t('title')} subtitle={t('hint')} />
       <StaffOpsTabs active="substitutes" />
       <div className="flex flex-col gap-4">
         <Card>

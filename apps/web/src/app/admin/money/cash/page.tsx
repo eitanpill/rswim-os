@@ -21,7 +21,7 @@ export default async function CashPage() {
   const staffName = new Map(staff.map((s) => [s.id, `${s.firstName} ${s.lastName}`]));
   return (
     <>
-      <PageHeader title={t('title')} />
+      <PageHeader icon="💰" title={t('title')} />
       <MoneyTabs active="cash" />
       <Card>
         <CardTitle>{t('title')}</CardTitle>

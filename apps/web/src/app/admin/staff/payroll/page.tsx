@@ -54,7 +54,7 @@ export default async function PayrollPage({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🪪" title={t('title')} subtitle={t('hint')} />
       <StaffOpsTabs active="payroll" period={period} />
       <PeriodPicker period={period} />
       <div className="flex flex-col gap-4">

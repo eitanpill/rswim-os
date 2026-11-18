@@ -36,7 +36,7 @@ export default async function RecruitingPage({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🪪" title={t('title')} subtitle={t('hint')} />
       <StaffOpsTabs active="recruiting" />
       <div className="flex flex-col gap-4">
         {APPLICANT_STAGES.map((stage) => {

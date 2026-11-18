@@ -40,7 +40,11 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
 
   return (
     <>
-      <PageHeader title={route.name} subtitle={`${route.schoolName} → ${route.groupName}`} />
+      <PageHeader
+        icon="🚐"
+        title={route.name}
+        subtitle={`${route.schoolName} → ${route.groupName}`}
+      />
       <TransportTabs active="routes" />
       <div className="flex flex-col gap-4">
         <Card data-testid="route-riders">

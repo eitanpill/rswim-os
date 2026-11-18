@@ -23,7 +23,7 @@ export default async function TemplatesPage() {
   const mine = list.filter((x) => x.status !== 'published');
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="💬" title={t('title')} subtitle={t('subtitle')} />
       {published.length === 0 ? (
         <Card>
           <EmptyState title={t('empty')} />

@@ -55,7 +55,7 @@ export default async function PricesPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🏷️" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4">
         <Card>
           <CardTitle>{t('check.title')}</CardTitle>

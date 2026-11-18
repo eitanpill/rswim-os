@@ -13,7 +13,11 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   if (!r) notFound();
   return (
     <>
-      <PageHeader title={r.title} subtitle={`${r.date}${r.period ? ` · ${r.period}` : ''}`} />
+      <PageHeader
+        icon="🧾"
+        title={r.title}
+        subtitle={`${r.date}${r.period ? ` · ${r.period}` : ''}`}
+      />
       <Card data-testid="receipt">
         <p>
           {t('client')}: {r.client.name}

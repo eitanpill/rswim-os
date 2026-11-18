@@ -20,7 +20,7 @@ export default async function MoneyPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="💰" title={t('title')} subtitle={t('subtitle')} />
       <MoneyTabs active="overview" />
       <div className="flex flex-col gap-4">
         <Card data-testid="debt-totals">

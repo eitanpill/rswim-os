@@ -84,6 +84,7 @@ export default async function MigrationPage({ params }: { params: Promise<{ id: 
   return (
     <>
       <PageHeader
+        icon="🏊"
         title={t('wizardTitle', { venue: m.venueName })}
         subtitle={t('wizardLine', { date: dmy(m.effectiveOn), groups: p.groups.length })}
         actions={

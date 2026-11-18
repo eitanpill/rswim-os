@@ -4,6 +4,7 @@ import { listShiftChanges, mySessions } from '@rswim/domain-scheduling';
 import { listStaff } from '@rswim/domain-staff';
 import { buttonVariants, Card, CardTitle, EmptyState, Hero } from '@rswim/ui';
 import Link from 'next/link';
+import { DateChip } from '@/components/date-chip';
 import { TodayLine } from '@/components/today-card';
 import { ActionForm, Field, SubmitButton } from '@/components/form';
 import { requireSurface } from '@/lib/auth/session';
@@ -146,23 +147,28 @@ export default async function InstructorDay({
                 <li key={s.id}>
                   <Link
                     href={`/instructor/session/${s.id}`}
-                    className={`lift flex flex-wrap items-center justify-between gap-2 rounded-2xl border p-3 hover:border-brand-500 ${s.date === today ? 'border-brand-500/60 bg-brand-50/60 dark:bg-surface' : 'border-line'}`}
+                    className={`lift flex items-center justify-between gap-2 rounded-2xl border p-3 hover:border-brand-500 ${s.date === today ? 'border-brand-500/60 bg-brand-50/60 dark:bg-surface' : 'border-line'}`}
                     data-testid="my-session"
                   >
-                    <span className="flex items-center gap-2 font-medium">
-                      {s.date === today ? (
-                        <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs text-white">
-                          {t('todayTag')}
+                    <span className="flex min-w-0 items-center gap-3">
+                      <DateChip date={s.date} />
+                      <span className="min-w-0">
+                        <span className="block font-medium">{s.groupName}</span>
+                        <span className="text-sm text-ink-muted" dir="ltr">
+                          {clockIL(s.startsAt)}–{clockIL(s.endsAt)}
                         </span>
-                      ) : null}
-                      {s.groupName}
-                    </span>
-                    <span className="text-sm text-ink-muted">
-                      {dmy(s.date)} ·{' '}
-                      <span dir="ltr">
-                        {clockIL(s.startsAt)}–{clockIL(s.endsAt)}
                       </span>
                     </span>
+                    <svg
+                      aria-hidden
+                      viewBox="0 0 24 24"
+                      className="size-5 text-ink-muted rtl:-scale-x-100"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="m9 6 6 6-6 6" />
+                    </svg>
                   </Link>
                 </li>
               ))}

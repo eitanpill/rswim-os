@@ -31,6 +31,7 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader
+        icon="🗂️"
         title={t('title')}
         subtitle={t('subtitle')}
         actions={

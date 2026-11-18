@@ -19,7 +19,7 @@ export default async function RunsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="💰" title={t('title')} subtitle={t('subtitle')} />
       <MoneyTabs active="runs" />
       <div className="flex flex-col gap-4">
         <Card>

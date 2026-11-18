@@ -27,6 +27,7 @@ export default async function GroupsPage() {
   return (
     <>
       <PageHeader
+        icon="👥"
         title={t('title')}
         subtitle={t('subtitle')}
         actions={

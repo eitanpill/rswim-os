@@ -74,7 +74,7 @@ export default async function PassPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🎫" title={t('title')} subtitle={t('hint')} />
       <div className="flex flex-col gap-4">
         {cards.map(({ student, today: lesson, next, qr }) => {
           if (!lesson) {

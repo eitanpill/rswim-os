@@ -38,7 +38,7 @@ export default async function FunnelReport({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('funnel.subtitle')} />
+      <PageHeader icon="📊" title={t('title')} subtitle={t('funnel.subtitle')} />
       <ReportTabs active="funnel" />
       <RangeBar range={range} csv="funnel" />
       <div className="flex flex-col gap-4">

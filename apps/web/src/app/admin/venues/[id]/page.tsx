@@ -50,6 +50,7 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <PageHeader
+        icon="🏊"
         title={venue.name}
         subtitle={`${label('venueKind', venue.kind)} · ${label('venueStatus', venue.status)}`}
         actions={

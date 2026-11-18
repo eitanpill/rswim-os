@@ -42,6 +42,7 @@ export default async function SessionAttendancePage({
   return (
     <>
       <PageHeader
+        icon="✅"
         title={lineup.session.groupName}
         subtitle={
           <>

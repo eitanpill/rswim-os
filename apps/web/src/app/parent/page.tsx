@@ -44,7 +44,7 @@ export default async function ParentHome() {
                 </Link>
                 <Link
                   href="/parent/schedule"
-                  className="inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-medium text-white ring-1 ring-white/50 hover:bg-white/10"
+                  className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-white ring-1 ring-white/50 hover:bg-white/10"
                 >
                   {t('fullSchedule')}
                 </Link>

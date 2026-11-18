@@ -34,7 +34,7 @@ export default async function HoursPage() {
   if (!data) {
     return (
       <>
-        <PageHeader title={t('title')} />
+        <PageHeader icon="⏱️" title={t('title')} />
         <Card>
           <EmptyState title={t('empty')} />
         </Card>
@@ -45,7 +45,7 @@ export default async function HoursPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} />
+      <PageHeader icon="⏱️" title={t('title')} />
       <div className="flex flex-col gap-4" data-testid="instructor-content">
         {data.months.map((m) => {
           const status = m.timesheet?.status ?? 'open';

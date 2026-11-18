@@ -26,7 +26,7 @@ export default async function FormsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="✍️" title={t('title')} subtitle={t('subtitle')} />
       <AttendanceTabs active="forms" />
       <div className="flex flex-col gap-4">
         <Card>

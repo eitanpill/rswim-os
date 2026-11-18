@@ -75,6 +75,7 @@ export default async function GroupPage({
   return (
     <>
       <PageHeader
+        icon="👥"
         title={group.name}
         subtitle={`${tw(String(group.weekday))} ${hhmm(group.startsAt)} · ${choices.place.label}`}
         actions={

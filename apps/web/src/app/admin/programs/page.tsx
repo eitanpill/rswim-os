@@ -30,7 +30,7 @@ export default async function ProgramsPage() {
   const programs = await withSession((tx) => listPrograms(tx));
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="📚" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4">
         {programs.length === 0 ? (
           <Card>

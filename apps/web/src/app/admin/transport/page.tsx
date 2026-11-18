@@ -41,7 +41,7 @@ export default async function TransportToday({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🚐" title={t('title')} subtitle={t('hint')} />
       <TransportTabs active="today" />
       <form method="get" className="mb-4 flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-sm font-medium">

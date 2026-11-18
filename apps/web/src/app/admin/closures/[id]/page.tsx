@@ -64,6 +64,7 @@ export default async function ClosurePage({
   return (
     <>
       <PageHeader
+        icon="🚧"
         title={`${venue} · ${event.reason}`}
         subtitle={`${dmy(event.startsOn)}–${dmy(event.endsOn)} · ${label('closureSource', event.source)}`}
       />

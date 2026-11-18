@@ -19,7 +19,7 @@ export default async function PaymentsPage({
   const origin = await requestOrigin();
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🔌" title={t('title')} subtitle={t('subtitle')} />
       {session.role === 'owner' ? (
         <PaymentsConnect
           connection={connection}

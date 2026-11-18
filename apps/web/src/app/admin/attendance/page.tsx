@@ -29,7 +29,7 @@ export default async function AttendancePage({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="✅" title={t('title')} subtitle={t('subtitle')} />
       <AttendanceTabs active="day" />
       <div className="flex flex-col gap-4">
         <form className="flex flex-wrap items-end gap-2" method="get">

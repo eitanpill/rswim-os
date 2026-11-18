@@ -74,14 +74,15 @@ body {
 }
 
 /*
+ * Shared look (contrast: white text on brand-600..700 stays at or above 4.5:1 for every brand hue).
  * Shared look (all roles): water-coloured hero cards in the school's own brand hue, soft depth, and gentle motion.
  * Everything keys off --color-brand-*, which AppShell sets per school, so each tenant wears its own colour.
  */
 .bg-water {
   background:
-    radial-gradient(110% 90% at 100% 0%, oklch(100% 0 0 / 0.28), transparent 55%),
-    radial-gradient(80% 70% at 0% 100%, oklch(100% 0 0 / 0.12), transparent 60%),
-    linear-gradient(150deg, var(--color-brand-500), var(--color-brand-700));
+    radial-gradient(110% 90% at 100% 0%, oklch(100% 0 0 / 0.16), transparent 55%),
+    radial-gradient(80% 70% at 0% 100%, oklch(100% 0 0 / 0.08), transparent 60%),
+    linear-gradient(150deg, var(--color-brand-600), var(--color-brand-700));
   color: white;
 }
 .bg-water-soft {

@@ -30,7 +30,7 @@ export default async function StaffPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🪪" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4">
         <Card>
           {staff.length === 0 ? (

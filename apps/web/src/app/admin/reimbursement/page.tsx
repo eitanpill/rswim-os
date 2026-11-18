@@ -51,7 +51,7 @@ export default async function ReimbursementPage() {
   const profiles = await withSession((tx) => listProfiles(tx));
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="↩️" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4">
         <Card>
           {profiles.length === 0 ? (

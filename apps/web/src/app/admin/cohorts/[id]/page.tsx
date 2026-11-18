@@ -49,6 +49,7 @@ export default async function CohortPage({ params }: { params: Promise<{ id: str
   return (
     <>
       <PageHeader
+        icon="🏕️"
         title={c.name}
         subtitle={t('line', {
           program: c.programName,

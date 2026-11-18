@@ -46,6 +46,7 @@ export default async function PriceListPage({ params }: { params: Promise<{ id: 
   return (
     <>
       <PageHeader
+        icon="🏷️"
         title={list.name}
         subtitle={`${venueName} · ${t('from', { date: dmy(list.effectiveFrom) })}`}
         actions={

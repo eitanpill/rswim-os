@@ -17,7 +17,7 @@ export default async function ShiftsPage() {
   });
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🔁" title={t('title')} subtitle={t('subtitle')} />
       <Card>
         {changes.length === 0 ? (
           <EmptyState title={t('empty')} />

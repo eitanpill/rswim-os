@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { searchHouseholds } from '@rswim/domain-people';
-import { buttonVariants, Card, EmptyState, PageHeader } from '@rswim/ui';
+import { Avatar, buttonVariants, Card, EmptyState, PageHeader } from '@rswim/ui';
 import { inputClass } from '@/components/form';
 import { withSession } from '@/lib/db';
 
@@ -16,6 +16,7 @@ export default async function FamiliesPage({
   return (
     <>
       <PageHeader
+        icon="👨‍👩‍👧"
         title={t('title')}
         actions={
           <Link href="/admin/families/new" className={buttonVariants()}>
@@ -41,21 +42,32 @@ export default async function FamiliesPage({
       </form>
       {rows.length === 0 ? (
         <Card>
-          <EmptyState title={q ? t('noMatch') : t('empty')} />
+          <EmptyState icon={q ? '🔍' : '🏡'} title={q ? t('noMatch') : t('empty')} />
         </Card>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="stagger grid gap-2 md:grid-cols-2">
           {rows.map((h) => (
             <li key={h.id}>
-              <Link href={`/admin/families/${h.id}`} className="block">
-                <Card className="hover:border-brand-500">
-                  <p className="font-semibold">{h.displayName}</p>
-                  <p className="text-sm text-ink-muted">
-                    {h.guardians.map((g) => g.firstName).join(', ')}
-                    {h.students.length
-                      ? ` · ${t('children', { names: h.students.map((s) => s.firstName).join(', ') })}`
-                      : ''}
-                  </p>
+              <Link href={`/admin/families/${h.id}`} className="lift block rounded-card">
+                <Card className="flex items-center gap-3 hover:border-brand-500">
+                  <Avatar
+                    name={
+                      h.displayName
+                        .replace(/\(.*?\)/g, '')
+                        .trim()
+                        .split(' ')
+                        .at(-1) ?? h.displayName
+                    }
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold">{h.displayName}</p>
+                    <p className="truncate text-sm text-ink-muted">
+                      {h.guardians.map((g) => g.firstName).join(', ')}
+                      {h.students.length
+                        ? ` · ${t('children', { names: h.students.map((s) => s.firstName).join(', ') })}`
+                        : ''}
+                    </p>
+                  </div>
                 </Card>
               </Link>
             </li>

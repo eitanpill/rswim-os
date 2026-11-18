@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { CHURN_REASONS, FREEZE_REASONS } from '@rswim/contracts';
 import { addDays } from '@rswim/calendar';
-import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import { Avatar, Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import {
   ActionButton,
   ActionForm,
@@ -54,7 +54,10 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
 
   return (
     <>
-      <PageHeader title={`${student.firstName} ${student.lastName}`} />
+      <PageHeader
+        icon={<Avatar name={student.firstName} />}
+        title={`${student.firstName} ${student.lastName}`}
+      />
       <div className="flex flex-col gap-4">
         {ride ? (
           <Card data-testid="child-transport">

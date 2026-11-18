@@ -16,7 +16,7 @@ export default async function ParentDocuments() {
 
   return (
     <>
-      <PageHeader title={t('title')} />
+      <PageHeader icon="✍️" title={t('title')} />
       <Card data-testid="parent-forms">
         <CardTitle>{t('due')}</CardTitle>
         {!data || data.forms.due.length === 0 ? (

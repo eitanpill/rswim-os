@@ -31,7 +31,7 @@ export default async function MessageLogPage({
   };
   return (
     <>
-      <PageHeader title={t('comms.log.title')} />
+      <PageHeader icon="📨" title={t('comms.log.title')} />
       <MessagesTabs active="log" />
       <nav className="mb-3 flex flex-wrap gap-1 text-sm">
         {[undefined, ...MESSAGE_STATUSES].map((s) => (

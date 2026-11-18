@@ -27,7 +27,7 @@ export default async function TermsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="📆" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4">
         <Card>
           {terms.length === 0 ? (

@@ -27,7 +27,7 @@ export default async function ClosuresPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🚧" title={t('title')} subtitle={t('subtitle')} />
       <AttendanceTabs active="closures" />
       <div className="flex flex-col gap-4">
         <Card>

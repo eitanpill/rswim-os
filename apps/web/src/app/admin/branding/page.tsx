@@ -24,7 +24,7 @@ export default async function BrandingPage() {
   const hues = Object.keys(BRAND_HUES) as BrandHueKey[];
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🎨" title={t('title')} subtitle={t('subtitle')} />
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardTitle>{t('look')}</CardTitle>

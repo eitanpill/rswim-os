@@ -30,7 +30,7 @@ export default async function TemplatesPage() {
   }));
   return (
     <>
-      <PageHeader title={t('tabs.templates')} />
+      <PageHeader icon="📨" title={t('tabs.templates')} />
       <MessagesTabs active="templates" />
       <Card className="mb-4">
         <CardTitle>{t('templates.automations')}</CardTitle>

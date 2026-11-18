@@ -35,7 +35,7 @@ export default async function WaterReport({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🚐" title={t('title')} subtitle={t('hint')} />
       <TransportTabs active="report" />
       <PeriodPicker period={period} />
       <Card data-testid="water-report">

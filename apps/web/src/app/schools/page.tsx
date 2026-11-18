@@ -70,19 +70,27 @@ export default async function SchoolsPage({
         </button>
       </form>
       {list.length ? (
-        <ul className="flex flex-col gap-3" data-testid="school-results">
+        <ul className="stagger flex flex-col gap-3" data-testid="school-results">
           {list.map((s) => (
             <li key={s.slug}>
               <Link
                 href={`/join/${s.slug}`}
-                className="block rounded-card border border-line bg-surface-raised p-4 shadow-sm hover:border-brand-500"
+                className="lift flex items-start gap-3 rounded-card border border-line/70 bg-surface-raised p-4 shadow-[var(--shadow-soft)] hover:border-brand-500"
               >
-                <p className="text-lg font-semibold">{s.name}</p>
-                <p className="text-sm text-ink-muted">
-                  {t(`kinds.${s.vertical}`)}
-                  {s.city ? ` · ${s.city}` : ''}
-                </p>
-                {s.about ? <p className="mt-1 text-sm">{s.about}</p> : null}
+                <span
+                  aria-hidden
+                  className="bg-water grid size-12 shrink-0 place-items-center rounded-2xl text-2xl"
+                >
+                  {s.vertical === 'freediving' ? '🤿' : '🏊'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-semibold">{s.name}</p>
+                  <p className="text-sm text-ink-muted">
+                    {t(`kinds.${s.vertical}`)}
+                    {s.city ? ` · ${s.city}` : ''}
+                  </p>
+                  {s.about ? <p className="mt-1 text-sm">{s.about}</p> : null}
+                </div>
               </Link>
             </li>
           ))}
@@ -92,6 +100,9 @@ export default async function SchoolsPage({
           className="rounded-card border border-dashed border-line p-6 text-center text-ink-muted"
           data-testid="school-none"
         >
+          <span aria-hidden className="bob mb-2 block text-3xl">
+            🔍
+          </span>
           {t('none')}
         </p>
       )}

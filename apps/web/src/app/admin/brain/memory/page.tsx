@@ -40,6 +40,7 @@ export default async function BrainMemoryPage() {
   );
   const header = (
     <PageHeader
+      icon="🧠"
       title={t('title')}
       subtitle={t('subtitle')}
       actions={
