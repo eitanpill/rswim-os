@@ -59,7 +59,7 @@ export default async function FamiliesPage({
                         .at(-1) ?? h.displayName
                     }
                   />
-                  <span className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1">
                     <p className="font-semibold">{h.displayName}</p>
                     <p className="truncate text-sm text-ink-muted">
                       {h.guardians.map((g) => g.firstName).join(', ')}
@@ -67,7 +67,7 @@ export default async function FamiliesPage({
                         ? ` · ${t('children', { names: h.students.map((s) => s.firstName).join(', ') })}`
                         : ''}
                     </p>
-                  </span>
+                  </div>
                 </Card>
               </Link>
             </li>
