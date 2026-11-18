@@ -35,7 +35,23 @@
       "forbidden": "אין לך הרשאה לפעולה הזו"
     },
     "demoBanner": "סביבת הדגמה · כל הנתונים מומצאים · שום הודעה או חיוב לא יוצאים באמת",
-    "myAccount": "החשבון שלי"
+    "myAccount": "החשבון שלי",
+    "greet": {
+      "morning": "בוקר טוב",
+      "noon": "צהריים טובים",
+      "evening": "ערב טוב",
+      "night": "לילה טוב",
+      "morningName": "בוקר טוב, {name}",
+      "noonName": "צהריים טובים, {name}",
+      "eveningName": "ערב טוב, {name}",
+      "nightName": "לילה טוב, {name}"
+    },
+    "when": {
+      "today": "היום ב-{time}",
+      "tomorrow": "מחר ב-{time}",
+      "weekday": "ביום {day} ב-{time}",
+      "date": "ב-{date} ב-{time}"
+    }
   },
   "login": {
     "title": "כניסה",
@@ -153,19 +169,17 @@
     },
     "home": {
       "title": "מרכז הבקרה",
-      "today": "היום",
       "todayEmpty": "אין שיעורים מתוכננים עדיין",
-      "needsYou": "מחכה לך",
       "needsYouEmpty": "אין כרגע משהו שדורש החלטה שלך",
-      "money": "דופק כספי",
-      "growth": "צמיחה",
       "expected": "צפוי החודש",
       "collected": "נגבה",
       "inboxWaiting": "{n} הודעות וואטסאפ מחכות בתיבה",
-      "todayLessons": "{lessons, plural, one {שיעור אחד} other {# שיעורים}} היום, {children} ילדים צפויים",
       "seats": "ילדים בקבוצות",
       "seatsChange": "{n, plural, =0 {ללא שינוי בחודש} other {{s} בחודש האחרון}}",
-      "trials": "שיעורי ניסיון החודש"
+      "trials": "שיעורי ניסיון החודש",
+      "openBoard": "ללוח הקבוצות",
+      "heroLessons": "{lessons, plural, one {שיעור אחד היום} other {# שיעורים היום}}",
+      "heroChildren": "{children} ילדים צפויים במים"
     },
     "more": {
       "title": "עוד",
@@ -320,7 +334,7 @@
     },
     "home": {
       "title": "היום שלי",
-      "empty": "אין לך שיעורים היום",
+      "empty": "אין לך שיעורים השבוע",
       "emptyHint": "כשיהיו, תראו כאן את רשימת הילדים לכל שיעור",
       "waiting": "מחכה לתשובה שלך",
       "askGroup": "לקחת את {group} בימי {day} ב-{time}, החל מ-{date}?",
@@ -331,7 +345,13 @@
       "decline": "לא מתאים לי",
       "answered": "התשובה נשלחה",
       "week": "השיעורים שלי השבוע",
-      "sendDecline": "שליחת סירוב"
+      "sendDecline": "שליחת סירוב",
+      "heroToday": "{n, plural, one {שיעור אחד היום} other {# שיעורים היום}}",
+      "heroFree": "אין שיעורים היום",
+      "heroNext": "הבא בתור: {group},",
+      "heroNoNext": "השבוע פנוי. זמן טוב לנוח",
+      "openNext": "לפתיחת השיעור",
+      "todayTag": "היום"
     },
     "hours": {
       "title": "שעות ושכר",
@@ -577,7 +597,12 @@
       "signForms": "לחתימה",
       "children": "הילדים",
       "childCard": "התקדמות, הקפאה ועזיבה",
-      "pass": "כרטיס כניסה למלווה"
+      "pass": "כרטיס כניסה למלווה",
+      "heroNext": "השיעור הבא של {name}",
+      "fullSchedule": "כל השיעורים",
+      "nextLessonEmptyHint": "כשייקבע שיעור, הוא יופיע כאן עם תזכורת",
+      "formsHint": "לוקח דקה, אפשר לחתום מהטלפון",
+      "noCreditsHint": "כשמחסירים שיעור בהודעה מראש, נפתחת כאן השלמה"
     },
     "schedule": {
       "title": "השיעורים הקרובים",

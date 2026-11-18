@@ -28,7 +28,7 @@ export function BottomNav({
   return (
     <nav
       aria-label={label}
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface-raised pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-20 border-t border-line/70 bg-surface-raised/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-16px_oklch(30%_0.05_240/0.3)] backdrop-blur-md md:hidden"
     >
       <ul
         className="grid"
@@ -40,11 +40,19 @@ export function BottomNav({
               href={item.href}
               aria-current={item.active ? 'page' : undefined}
               className={cn(
-                'flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs',
-                item.active ? 'font-semibold text-brand-600' : 'text-ink-muted',
+                'group flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs transition-colors active:scale-95',
+                item.active ? 'font-semibold text-brand-700' : 'text-ink-muted hover:text-ink',
               )}
             >
-              <span aria-hidden className="text-xl leading-none">
+              <span
+                aria-hidden
+                className={cn(
+                  'grid h-7 w-12 place-items-center rounded-full text-xl leading-none transition-all duration-200',
+                  item.active
+                    ? 'bg-brand-100 text-brand-700 dark:bg-surface'
+                    : 'group-hover:bg-brand-50 dark:group-hover:bg-surface',
+                )}
+              >
                 {item.icon}
               </span>
               {item.label}
@@ -78,13 +86,21 @@ export function SideNav({
               href={item.href}
               aria-current={item.active ? 'page' : undefined}
               className={cn(
-                'flex min-h-tap items-center gap-3 rounded-xl px-3',
+                'flex min-h-tap items-center gap-3 rounded-xl px-3 transition-colors',
                 item.active
-                  ? 'bg-brand-50 font-semibold text-brand-700 dark:bg-surface'
+                  ? 'bg-brand-600 font-semibold text-white shadow-[0_6px_16px_-8px_var(--color-brand-600)]'
                   : 'text-ink hover:bg-brand-50 dark:hover:bg-surface',
               )}
             >
-              <span aria-hidden>{item.icon}</span>
+              <span
+                aria-hidden
+                className={cn(
+                  'grid size-7 place-items-center rounded-lg',
+                  item.active ? 'bg-white/20' : 'bg-brand-50 text-brand-700 dark:bg-surface',
+                )}
+              >
+                {item.icon}
+              </span>
               {item.label}
             </Link>
           </li>

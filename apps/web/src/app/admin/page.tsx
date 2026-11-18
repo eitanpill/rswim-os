@@ -1,5 +1,15 @@
 import { getTranslations } from 'next-intl/server';
-import { Badge, Card, CardTitle, EmptyState, Money, PageHeader } from '@rswim/ui';
+import {
+  Badge,
+  buttonVariants,
+  Card,
+  CardTitle,
+  EmptyState,
+  Hero,
+  Money,
+  PageHeader,
+  StatTile,
+} from '@rswim/ui';
 import { agorot } from '@rswim/money';
 import Link from 'next/link';
 import { openInboxCount } from '@rswim/domain-comms';
@@ -7,7 +17,9 @@ import { listAgentActions } from '@rswim/domain-copilot';
 import { homeSummary, listInsights, todayIL, type OwnerInsight } from '@rswim/domain-reports';
 import { ActionButton } from '@/components/form';
 import { TodayLine } from '@/components/today-card';
+import { getSession } from '@/lib/auth/session';
 import { withSession } from '@/lib/db';
+import { greeting } from '@/lib/greeting';
 import { insightDetailLines, insightText } from '@/lib/insights';
 import { dismissInsightAction, refreshInsightsAction } from './actions';
 import { AgentActionList } from './brain/action-list';
@@ -36,11 +48,66 @@ export default async function CommandCenter() {
   const text = await insightText();
   const lines = await insightDetailLines();
   const growth = home.seats - home.seatsBefore;
+  const hello = await greeting((await getSession())?.displayName);
 
   return (
     <>
       <PageHeader title={t('title')} subtitle={<TodayLine />} />
       <div className="grid gap-4 md:grid-cols-2" data-testid="home-grid">
+        <Hero
+          className="md:col-span-2"
+          eyebrow={`${hello} 👋`}
+          emoji={home.lessons > 0 ? '🌊' : '☀️'}
+          title={home.lessons > 0 ? t('heroLessons', { lessons: home.lessons }) : t('todayEmpty')}
+          data-testid="home-today"
+          actions={
+            <>
+              {inbox > 0 ? (
+                <Link
+                  href="/admin/messages"
+                  className={buttonVariants({ variant: 'onWater', size: 'sm' })}
+                  data-testid="home-inbox"
+                >
+                  💬 {t('inboxWaiting', { n: inbox })}
+                </Link>
+              ) : null}
+              <Link
+                href="/admin/board"
+                className="inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-medium text-white ring-1 ring-white/50 hover:bg-white/10"
+              >
+                {t('openBoard')}
+              </Link>
+            </>
+          }
+        >
+          {home.lessons > 0 ? <p>{t('heroChildren', { children: home.children })}</p> : null}
+          {inbox > 0 ? null : <p className="text-sm text-white/80">{t('needsYouEmpty')}</p>}
+        </Hero>
+        <div className="grid grid-cols-2 gap-3 md:col-span-2 md:grid-cols-4">
+          <div data-testid="home-money" className="contents">
+            <StatTile
+              icon="💰"
+              label={t('expected')}
+              value={<Money agorot={agorot(home.expectedAgorot)} />}
+            />
+            <StatTile
+              icon="✅"
+              tone="ok"
+              label={t('collected')}
+              value={<Money agorot={agorot(home.money.collectedAgorot)} />}
+            />
+          </div>
+          <div data-testid="home-growth" className="contents">
+            <StatTile
+              icon="🧒"
+              label={t('seats')}
+              value={home.seats}
+              tone={growth < 0 ? 'danger' : 'brand'}
+              hint={t('seatsChange', { n: growth, s: growth > 0 ? `+${growth}` : String(growth) })}
+            />
+            <StatTile icon="🐣" label={t('trials')} value={home.trials} />
+          </div>
+        </div>
         {waiting.length ? (
           <Card className="md:col-span-2" data-testid="home-brain-waiting">
             <CardTitle
@@ -50,7 +117,10 @@ export default async function CommandCenter() {
                 </Link>
               }
             >
-              {tb('waiting.homeTitle')}
+              <span className="flex items-center gap-2">
+                <span aria-hidden>🤖</span>
+                {tb('waiting.homeTitle')}
+              </span>
             </CardTitle>
             <AgentActionList actions={waiting} />
           </Card>
@@ -67,10 +137,15 @@ export default async function CommandCenter() {
               </ActionButton>
             }
           >
-            {ti('title')}
+            <span className="flex items-center gap-2">
+              <span aria-hidden>💡</span>
+              {ti('title')}
+            </span>
           </CardTitle>
           {insights.length === 0 ? (
-            <EmptyState title={ti('empty')}>{ti('emptyHint')}</EmptyState>
+            <EmptyState icon="🌤️" title={ti('empty')}>
+              {ti('emptyHint')}
+            </EmptyState>
           ) : (
             <ul className="flex flex-col divide-y divide-line">
               {insights.map((i) => (
@@ -93,65 +168,6 @@ export default async function CommandCenter() {
             </ul>
           )}
           <p className="mt-3 text-xs text-ink-muted">{ti('advisory')}</p>
-        </Card>
-        <Card>
-          <CardTitle>{t('today')}</CardTitle>
-          {home.lessons > 0 ? (
-            <p className="text-lg" data-testid="home-today">
-              {t('todayLessons', { lessons: home.lessons, children: home.children })}
-            </p>
-          ) : (
-            <EmptyState title={t('todayEmpty')} />
-          )}
-        </Card>
-        <Card>
-          <CardTitle>{t('needsYou')}</CardTitle>
-          {inbox > 0 ? (
-            <Link
-              href="/admin/messages"
-              className="font-medium text-brand-700 underline"
-              data-testid="home-inbox"
-            >
-              {t('inboxWaiting', { n: inbox })}
-            </Link>
-          ) : (
-            <EmptyState title={t('needsYouEmpty')} />
-          )}
-        </Card>
-        <Card>
-          <CardTitle>{t('money')}</CardTitle>
-          <dl className="grid grid-cols-2 gap-3" data-testid="home-money">
-            <div>
-              <dt className="text-sm text-ink-muted">{t('expected')}</dt>
-              <dd className="text-xl font-semibold">
-                <Money agorot={agorot(home.expectedAgorot)} />
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm text-ink-muted">{t('collected')}</dt>
-              <dd className="text-xl font-semibold">
-                <Money agorot={agorot(home.money.collectedAgorot)} />
-              </dd>
-            </div>
-          </dl>
-        </Card>
-        <Card>
-          <CardTitle>{t('growth')}</CardTitle>
-          <dl className="grid grid-cols-2 gap-3" data-testid="home-growth">
-            <div>
-              <dt className="text-sm text-ink-muted">{t('seats')}</dt>
-              <dd className="text-xl font-semibold">
-                {home.seats}{' '}
-                <span className={growth < 0 ? 'text-sm text-danger' : 'text-sm text-ok'}>
-                  {t('seatsChange', { n: growth, s: growth > 0 ? `+${growth}` : String(growth) })}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm text-ink-muted">{t('trials')}</dt>
-              <dd className="text-xl font-semibold">{home.trials}</dd>
-            </div>
-          </dl>
         </Card>
       </div>
     </>

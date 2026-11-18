@@ -35,7 +35,23 @@
       "forbidden": "You don't have permission for this"
     },
     "demoBanner": "Demo environment · all data is invented · no message or charge is really sent",
-    "myAccount": "My account"
+    "myAccount": "My account",
+    "greet": {
+      "morning": "Good morning",
+      "noon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Good night",
+      "morningName": "Good morning, {name}",
+      "noonName": "Good afternoon, {name}",
+      "eveningName": "Good evening, {name}",
+      "nightName": "Good night, {name}"
+    },
+    "when": {
+      "today": "Today at {time}",
+      "tomorrow": "Tomorrow at {time}",
+      "weekday": "{day} at {time}",
+      "date": "{date} at {time}"
+    }
   },
   "login": {
     "title": "Sign in",
@@ -153,19 +169,17 @@
     },
     "home": {
       "title": "Command center",
-      "today": "Today",
       "todayEmpty": "No sessions scheduled yet",
-      "needsYou": "Needs you",
       "needsYouEmpty": "Nothing needs your decision right now",
-      "money": "Money pulse",
-      "growth": "Growth",
       "expected": "Expected this month",
       "collected": "Collected",
       "inboxWaiting": "{n} WhatsApp messages waiting in the inbox",
-      "todayLessons": "{lessons, plural, one {One lesson} other {# lessons}} today, {children} children expected",
       "seats": "Children in groups",
       "seatsChange": "{n, plural, =0 {no change this month} other {{s} in the last month}}",
-      "trials": "Trial lessons this month"
+      "trials": "Trial lessons this month",
+      "openBoard": "Open the board",
+      "heroLessons": "{lessons, plural, one {One lesson today} other {# lessons today}}",
+      "heroChildren": "{children} children expected in the water"
     },
     "more": {
       "title": "More",
@@ -320,7 +334,7 @@
     },
     "home": {
       "title": "My day",
-      "empty": "No sessions today",
+      "empty": "No lessons this week",
       "emptyHint": "When you have sessions, each one's kids list shows here",
       "waiting": "Waiting for your answer",
       "askGroup": "Take {group} on {day}s at {time}, starting {date}?",
@@ -331,7 +345,13 @@
       "decline": "Doesn't work for me",
       "answered": "Your answer was sent",
       "week": "My lessons this week",
-      "sendDecline": "Send decline"
+      "sendDecline": "Send decline",
+      "heroToday": "{n, plural, one {One lesson today} other {# lessons today}}",
+      "heroFree": "No lessons today",
+      "heroNext": "Up next: {group},",
+      "heroNoNext": "Your week is free. Time to rest",
+      "openNext": "Open the lesson",
+      "todayTag": "Today"
     },
     "hours": {
       "title": "Hours and pay",
@@ -577,7 +597,12 @@
       "signForms": "Sign",
       "children": "Children",
       "childCard": "Progress, freeze and leaving",
-      "pass": "Companion pass"
+      "pass": "Companion pass",
+      "heroNext": "{name}'s next lesson",
+      "fullSchedule": "All lessons",
+      "nextLessonEmptyHint": "When a lesson is booked it shows up here",
+      "formsHint": "Takes a minute, sign right from your phone",
+      "noCreditsHint": "Miss a lesson with notice and a makeup opens here"
     },
     "schedule": {
       "title": "Upcoming lessons",

@@ -85,4 +85,16 @@ export const icons = {
       <path d="M14 2.5V8h5.5M8.5 13h7M8.5 17h5" />
     </Icon>
   ),
+  globe: (
+    <Icon>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+    </Icon>
+  ),
+  exit: (
+    <Icon>
+      <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
+      <path d="m10 16-4-4 4-4M6 12h10" />
+    </Icon>
+  ),
 };
