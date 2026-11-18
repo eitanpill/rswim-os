@@ -34,9 +34,9 @@ secrets (next section).
 
 Apple (App Store Connect, the organization account):
 1. Certificates, Identifiers & Profiles → Identifiers → **+** → App IDs → App: bundle id `il.co.aquaswim.app`,
-   capability **Associated Domains** on.
+   capability **Associated Domains** on. Done 18.11.2026.
 2. App Store Connect → Apps → **+** New App: iOS, name Aqua Swim, Hebrew primary language, bundle id from step 1.
-3. The web app's environment: `RSWIM_IOS_APP_IDS=<Team ID>.il.co.aquaswim.app` (the Team ID is on the Membership page).
+3. The web app's environment: `RSWIM_IOS_APP_IDS=6ZNNQLACFA.il.co.aquaswim.app` (Team ID 6ZNNQLACFA, also set as the Xcode project's team). Done for staging 18.11.2026.
 4. For builds from CI: Users and Access → Integrations → App Store Connect API → a key with the App Manager role. The
    key file goes into the repository's secrets, never into chat.
 
