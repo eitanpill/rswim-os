@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Aqua Swim</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f7fafc;
+        --ink: #0f2a3a;
+        --muted: #4b6475;
+        --brand: #1f7fb8;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b1a24;
+          --ink: #e8f3fa;
+          --muted: #9fb7c6;
+        }
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+      }
+      main {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+        box-sizing: border-box;
+        text-align: center;
+      }
+      svg {
+        width: 96px;
+        height: 96px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      p {
+        margin: 0;
+        max-width: 320px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      button {
+        margin-block-start: 8px;
+        border: 0;
+        border-radius: 14px;
+        background: var(--brand);
+        color: #fff;
+        font: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        padding: 14px 32px;
+        min-width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg viewBox="0 0 512 512" aria-hidden="true">
+        <rect width="512" height="512" rx="112" fill="#1f7fb8" />
+        <path
+          d="M80 300c40-30 80-30 120 0s80 30 120 0 80-30 112 0v40c-32-30-72-30-112 0s-80 30-120 0-80-30-120 0z"
+          fill="#fff"
+        />
+        <path
+          d="M80 380c40-30 80-30 120 0s80 30 120 0 80-30 112 0v40c-32-30-72-30-112 0s-80 30-120 0-80-30-120 0z"
+          fill="#bfe3f5"
+        />
+        <circle cx="300" cy="170" r="44" fill="#fff" />
+      </svg>
+      <h1>אין חיבור לאינטרנט</h1>
+      <p>נראה שאין קליטה כרגע. כשהחיבור יחזור, לחצו כאן וזה ייפתח מאיפה שעצרתם.</p>
+      <button type="button" id="retry">לנסות שוב</button>
+    </main>
+    <script src="site.js"></script>
+    <script>
+      // Back to the site: it opens on the person's home screen (or where a link pointed).
+      document.getElementById('retry').addEventListener('click', function () {
+        location.href = window.AQUA_SITE_URL || 'https://app.aqua-swim.co.il';
+      });
+      window.addEventListener('online', function () {
+        document.getElementById('retry').click();
+      });
+    </script>
+  </body>
+</html>

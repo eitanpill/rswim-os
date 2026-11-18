@@ -34,6 +34,7 @@ describe('decideRoute', () => {
     expect(decideRoute('/joined', null)).toMatchObject({ action: 'redirect' });
     // The landing page and sign-up are for visitors; "/" still sends a signed-in user home.
     expect(decideRoute('/', null)).toEqual({ action: 'next' });
+    expect(decideRoute('/.well-known/assetlinks.json', null)).toEqual({ action: 'next' });
     expect(decideRoute('/signup', null)).toEqual({ action: 'next' });
     expect(decideRoute('/signupx', null)).toMatchObject({ action: 'redirect' });
   });
@@ -42,6 +43,17 @@ describe('decideRoute', () => {
     expect(decideRoute('/admin/families', null)).toEqual({
       action: 'redirect',
       to: '/login?next=%2Fadmin%2Ffamilies',
+    });
+  });
+
+  it('opens the store app on sign-in, not on the marketing page', () => {
+    expect(decideRoute('/', null, { nativeApp: true })).toEqual({
+      action: 'redirect',
+      to: '/login',
+    });
+    expect(decideRoute('/', s('parent'), { nativeApp: true })).toEqual({
+      action: 'redirect',
+      to: '/parent',
     });
   });
 

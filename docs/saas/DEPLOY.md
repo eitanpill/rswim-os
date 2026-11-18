@@ -112,6 +112,8 @@ rotation: it unlocks every school's encrypted data.
 | `GROW_WEBHOOK_SECRET` | ✓ | | when Grow is live: verifies the processor's callbacks, including the owner's saved card (`/api/webhooks/platform-card`) |
 | `GHL_API_TOKEN` / `GHL_WEBHOOK_PUBLIC_KEY` | | ✓ / ✓ web | only if the platform keeps GHL as its own CRM |
 | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_ORG_SLUG` | | ✓ | only when the per-school database switch is turned on |
+| `RSWIM_IOS_APP_IDS` | ✓ | | the store app's `<Team ID>.il.co.aquaswim.app`; lets links open the iPhone app (`docs/store/APP.md`) |
+| `RSWIM_ANDROID_CERT_SHA256` | ✓ | | the Play signing fingerprints, comma-separated; lets links open the Android app |
 | `LOG_LEVEL` | | ✓ | `info` |
 | `RSWIM_SKIP_RELEASE` | | optional | `1` starts the worker without migrating (restores) |
 

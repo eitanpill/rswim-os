@@ -1,0 +1,64 @@
+name: Mobile app
+
+# Builds the store app (apps/mobile, docs/store/APP.md) on every change to it and on every merge to main.
+# Unsigned for now: signing, TestFlight and Google Play internal testing join once the store keys are in the
+# repository's secrets (APP_STORE_CONNECT_*, PLAY_SERVICE_ACCOUNT_JSON, ANDROID_KEYSTORE_*).
+on:
+  pull_request:
+    paths: ['apps/mobile/**', '.github/workflows/mobile.yml']
+  push:
+    branches: [main]
+    paths: ['apps/mobile/**', '.github/workflows/mobile.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Test builds load staging; the store builds will load production (the default in capacitor.config.ts).
+  AQUA_APP_URL: https://staging.aqua-swim.co.il
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @rswim/mobile sync:android
+      - run: ./gradlew assembleDebug
+        working-directory: apps/mobile/android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aqua-swim-android-debug
+          path: apps/mobile/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 14
+
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @rswim/mobile sync:ios
+      - name: Build for the simulator (no signing)
+        working-directory: apps/mobile/ios/App
+        run: >-
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build

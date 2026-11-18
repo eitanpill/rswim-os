@@ -4,6 +4,7 @@ import { sessionFromClaims } from './lib/auth/claims';
 import { DEV_COOKIE, readDevCookie } from './lib/auth/dev';
 import { decideRoute } from './lib/auth/routing';
 import type { Session } from './lib/auth/types';
+import { isNativeApp } from './lib/native-app';
 import { supabaseEnv } from './lib/supabase/env';
 
 /**
@@ -30,7 +31,9 @@ export async function middleware(request: NextRequest) {
     session = data?.claims ? sessionFromClaims(data.claims) : null;
   }
 
-  const decision = decideRoute(request.nextUrl.pathname, session);
+  const decision = decideRoute(request.nextUrl.pathname, session, {
+    nativeApp: isNativeApp(request.headers.get('user-agent')),
+  });
   if (decision.action === 'redirect') {
     const redirect = NextResponse.redirect(new URL(decision.to, request.url));
     for (const c of response.cookies.getAll()) redirect.cookies.set(c);
@@ -41,6 +44,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|icons/|manifest.webmanifest|sw.js|fonts/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icons/|manifest.webmanifest|sw.js|fonts/|\\.well-known/).*)',
   ],
 };
