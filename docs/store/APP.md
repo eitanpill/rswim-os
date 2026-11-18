@@ -13,7 +13,7 @@ review. What the shell adds is native.
 | Share | `components/share-button.tsx`: the phone's share sheet in the app (`@capacitor/share`), the browser's where it has one, WhatsApp otherwise. First used on the school's join link (`/admin/join`) |
 | No reception | `www/offline.html`, the app's own screen when the site can't be reached; "try again" goes back to the site. The instructors' offline attendance keeps working as before (service worker) |
 | Paying | the processors' pages (Grow, Cardcom, Tranzila, PayPlus) stay inside the app (`allowNavigation`), so the parent comes back to the app after paying. Other links open in the phone's browser |
-| Icon and splash | `assets/options/*.svg` holds the three options; `pnpm --filter @rswim/mobile icons <option>` then `pnpm --filter @rswim/mobile assets` writes every size. Pit picked option 2, `b-letter` (18.11.2026) |
+| Icon and splash | `assets/options/*.svg` holds the nine options; `pnpm --filter @rswim/mobile icons <option>` then `pnpm --filter @rswim/mobile assets` writes every size. Pit picked `d-swimmer`, a swimmer in the waves (18.11.2026); options 4 to 9 came in a second round |
 | Identity | bundle id / package `il.co.aquaswim.app` (permanent once published), iPhone only (no iPad build), Android API 36 |
 
 ## Building

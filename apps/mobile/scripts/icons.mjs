@@ -1,8 +1,8 @@
 // Makes the app's icon and splash sources from one of the options in assets/options, then the native sizes.
-// Usage: node scripts/icons.mjs b-letter   (then `pnpm assets` writes every iOS and Android size)
+// Usage: node scripts/icons.mjs d-swimmer   (then `pnpm assets` writes every iOS and Android size)
 import sharp from 'sharp';
 
-const option = process.argv[2] ?? 'b-letter';
+const option = process.argv[2] ?? 'd-swimmer';
 const svg = new URL(`../assets/options/${option}.svg`, import.meta.url).pathname;
 const out = (name) => new URL(`../assets/${name}`, import.meta.url).pathname;
 
