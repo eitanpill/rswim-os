@@ -28,6 +28,7 @@ export default async function ParentMakeup({ params }: { params: Promise<{ id: s
   return (
     <>
       <PageHeader
+        icon="🔄"
         title={t('title')}
         subtitle={t('subtitle', { until: dmy(data.credit.expiresOn) })}
       />

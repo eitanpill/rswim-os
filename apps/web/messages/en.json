@@ -50,7 +50,8 @@
       "today": "Today at {time}",
       "tomorrow": "Tomorrow at {time}",
       "weekday": "{day} at {time}",
-      "date": "{date} at {time}"
+      "date": "{date} at {time}",
+      "todayShort": "Today"
     }
   },
   "login": {
@@ -350,8 +351,7 @@
       "heroFree": "No lessons today",
       "heroNext": "Up next: {group},",
       "heroNoNext": "Your week is free. Time to rest",
-      "openNext": "Open the lesson",
-      "todayTag": "Today"
+      "openNext": "Open the lesson"
     },
     "hours": {
       "title": "Hours and pay",
@@ -2853,7 +2853,9 @@
       "lateBy": "Late by",
       "skills": "Level skills: {done} of {total}",
       "progressOffline": "No connection. The skill wasn't saved; try again when you're back online",
-      "back": "Back to my day"
+      "back": "Back to my day",
+      "progress": "How many children are marked",
+      "allMarked": "Everyone's marked. Into the water!"
     },
     "flags": {
       "waterFear": "Afraid of water",

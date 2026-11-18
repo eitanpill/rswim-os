@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { portalOpenSlots } from '@rswim/domain-scheduling';
-import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import { Avatar, Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import { DateChip } from '@/components/date-chip';
 import { ActionButton } from '@/components/form';
 import { sessionWhen } from '@/lib/attendance';
 import { withSession } from '@/lib/db';
+import { friendlyWhen } from '@/lib/greeting';
 import { parentAbsenceAction, parentCancelMakeupAction, parentWithdrawAction } from '../actions';
 import { familyOverview } from '../family';
 
@@ -23,10 +25,11 @@ export default async function ParentSchedule({
   const live = data?.bookings.filter((b) => b.status === 'booked') ?? [];
   const credits = new Map(data?.credits.map((c) => [c.id, c]) ?? []);
   const name = new Map(data?.family.students.map((s) => [s.id, s.firstName]) ?? []);
+  const when = await friendlyWhen();
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="📅" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4">
         {booked ? (
           <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok">
@@ -35,29 +38,42 @@ export default async function ParentSchedule({
         ) : null}
         <Link
           href="/parent/book"
-          className="flex min-h-tap items-center justify-between gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-brand-800 hover:bg-brand-100 dark:border-line dark:bg-surface dark:text-ink"
+          className="bg-water lift flex min-h-tap items-center justify-between gap-3 rounded-card px-4 py-3 shadow-[var(--shadow-soft)]"
           data-testid="book-private-cta"
         >
-          <span>
-            <span className="block font-semibold">{tb('cta')}</span>
-            <span className="text-sm">{tb('ctaHint', { n: openSlots.length })}</span>
+          <span aria-hidden className="bob text-3xl">
+            🧑‍🏫
           </span>
-          <span aria-hidden>‹</span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold">{tb('cta')}</span>
+            <span className="text-sm text-white/85">{tb('ctaHint', { n: openSlots.length })}</span>
+          </span>
+          <span
+            aria-hidden
+            className="grid size-8 place-items-center rounded-full bg-white/20 text-lg rtl:-scale-x-100"
+          >
+            ›
+          </span>
         </Link>
         {live.length ? (
           <Card data-testid="parent-makeups">
-            <CardTitle>{t('makeups')}</CardTitle>
+            <CardTitle icon="🔄">{t('makeups')}</CardTitle>
             <ul className="flex flex-col gap-2">
               {live.map((b) => (
                 <li
                   key={b.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ok/60 p-3"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-ok/50 bg-ok/5 p-3"
                 >
-                  <span>
-                    {name.get(credits.get(b.creditId)?.studentId ?? '') ?? ''} · {b.groupName}{' '}
-                    {b.date && b.startsAt
-                      ? sessionWhen({ date: b.date, startsAt: b.startsAt })
-                      : ''}
+                  <span className="flex items-center gap-3">
+                    {b.date ? <DateChip date={b.date} /> : null}
+                    <span>
+                      {name.get(credits.get(b.creditId)?.studentId ?? '') ?? ''} · {b.groupName}{' '}
+                      <span className="block text-sm text-ink-muted">
+                        {b.date && b.startsAt
+                          ? sessionWhen({ date: b.date, startsAt: b.startsAt })
+                          : ''}
+                      </span>
+                    </span>
                   </span>
                   <ActionButton
                     action={parentCancelMakeupAction}
@@ -74,11 +90,13 @@ export default async function ParentSchedule({
         ) : null}
         {(data?.lessons ?? []).map(({ student, sessions }) => (
           <Card key={student.id} data-testid="child-lessons">
-            <CardTitle>{student.firstName}</CardTitle>
+            <CardTitle icon={<Avatar name={student.firstName} size="sm" />}>
+              {student.firstName}
+            </CardTitle>
             {sessions.length === 0 ? (
-              <EmptyState title={t('none')} />
+              <EmptyState icon="🏖️" title={t('none')} />
             ) : (
-              <ul className="flex flex-col gap-2">
+              <ul className="stagger flex flex-col gap-2">
                 {sessions.map((s) => {
                   const notice = data?.notices.find(
                     (n) =>
@@ -89,14 +107,17 @@ export default async function ParentSchedule({
                   return (
                     <li
                       key={s.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3"
+                      className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border p-3 ${notice ? 'border-dashed border-line opacity-80' : 'border-line'}`}
                       data-testid="parent-lesson"
                       data-lesson={`${student.id}:${s.id}`}
                       data-date={s.date}
                     >
-                      <span>
-                        <span className="font-medium">{s.groupName}</span>{' '}
-                        <span className="text-sm text-ink-muted">{sessionWhen(s)}</span>
+                      <span className="flex min-w-0 items-center gap-3">
+                        <DateChip date={s.date} />
+                        <span className="min-w-0">
+                          <span className="block font-medium">{s.groupName}</span>
+                          <span className="text-sm text-ink-muted">{when(s)}</span>
+                        </span>
                       </span>
                       {notice ? (
                         <span className="flex flex-wrap items-center gap-2">

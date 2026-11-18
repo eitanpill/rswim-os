@@ -31,7 +31,7 @@ export default async function ParentBook({
   if (!data) {
     return (
       <>
-        <PageHeader title={t('title')} />
+        <PageHeader icon="🧑‍🏫" title={t('title')} />
         <Card>
           <EmptyState title={t('empty')} />
         </Card>
@@ -50,7 +50,7 @@ export default async function ParentBook({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🧑‍🏫" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4" data-testid="parent-book">
         {booked ? (
           <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok">

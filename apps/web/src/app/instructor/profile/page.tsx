@@ -42,7 +42,7 @@ export default async function InstructorProfile() {
   if (!data) {
     return (
       <>
-        <PageHeader title={t('title')} />
+        <PageHeader icon="🪪" title={t('title')} />
         <Card>
           <EmptyState title={t('noStaff')} />
         </Card>
@@ -80,6 +80,7 @@ export default async function InstructorProfile() {
   return (
     <>
       <PageHeader
+        icon="🪪"
         title={`${staff.firstName} ${staff.lastName}`}
         subtitle={label('employmentType', staff.employmentType)}
       />

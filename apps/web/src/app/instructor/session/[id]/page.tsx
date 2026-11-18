@@ -59,7 +59,7 @@ export default async function InstructorSessionPage({
 
   return (
     <>
-      <PageHeader title={session.groupName} subtitle={sessionWhen(session)} />
+      <PageHeader icon="🏊" title={session.groupName} subtitle={sessionWhen(session)} />
       <div className="flex flex-col gap-4" data-testid="instructor-lineup">
         <Link href="/instructor" className="text-brand-700">
           {t('back')}

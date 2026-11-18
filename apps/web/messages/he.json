@@ -50,7 +50,8 @@
       "today": "היום ב-{time}",
       "tomorrow": "מחר ב-{time}",
       "weekday": "ביום {day} ב-{time}",
-      "date": "ב-{date} ב-{time}"
+      "date": "ב-{date} ב-{time}",
+      "todayShort": "היום"
     }
   },
   "login": {
@@ -350,8 +351,7 @@
       "heroFree": "אין שיעורים היום",
       "heroNext": "הבא בתור: {group},",
       "heroNoNext": "השבוע פנוי. זמן טוב לנוח",
-      "openNext": "לפתיחת השיעור",
-      "todayTag": "היום"
+      "openNext": "לפתיחת השיעור"
     },
     "hours": {
       "title": "שעות ושכר",
@@ -2853,7 +2853,9 @@
       "lateBy": "באיחור של",
       "skills": "מיומנויות ברמה: {done} מתוך {total}",
       "progressOffline": "אין חיבור. סימון המיומנות לא נשמר, נסו שוב כשיחזור החיבור",
-      "back": "חזרה ליום שלי"
+      "back": "חזרה ליום שלי",
+      "progress": "כמה ילדים סומנו",
+      "allMarked": "כולם סומנו, אפשר לקפוץ למים!"
     },
     "flags": {
       "waterFear": "פחד ממים",

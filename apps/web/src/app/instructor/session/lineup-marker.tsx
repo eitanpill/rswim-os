@@ -6,7 +6,7 @@
  */
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
-import { Badge, Button, cn } from '@rswim/ui';
+import { Avatar, Badge, Button, cn } from '@rswim/ui';
 import { setProgressAction, syncMarksAction } from './actions';
 
 type Status = 'present' | 'late' | 'absent';
@@ -170,6 +170,14 @@ export function LineupMarker({
 
   const counts = { present: 0, late: 0, absent: 0 };
   for (const m of Object.values(marks)) counts[m.status]++;
+  const marked = counts.present + counts.late + counts.absent;
+  const allMarked = rows.length > 0 && marked >= rows.length;
+  const pick = (selected: boolean, tone: string) =>
+    cn(
+      'min-h-12 gap-1 px-2 font-semibold',
+      selected && tone,
+      selected && 'pop-in border-transparent shadow-none',
+    );
 
   return (
     <div className="flex flex-col gap-3">
@@ -191,6 +199,28 @@ export function LineupMarker({
           </Badge>
         )}
       </div>
+      <div
+        className="h-2 overflow-hidden rounded-full bg-line"
+        role="progressbar"
+        aria-label={t('progress')}
+        aria-valuemin={0}
+        aria-valuemax={rows.length}
+        aria-valuenow={marked}
+      >
+        <div
+          className="h-full rounded-full bg-gradient-to-l from-brand-500 to-ok transition-[width] duration-500"
+          style={{ width: `${rows.length ? (marked / rows.length) * 100 : 0}%` }}
+        />
+      </div>
+      {allMarked ? (
+        <p
+          className="pop-in rounded-2xl bg-ok/10 px-3 py-2 text-center font-semibold text-ok"
+          data-testid="all-marked"
+        >
+          <span aria-hidden>🎉 </span>
+          {t('allMarked')}
+        </p>
+      ) : null}
       {error ? (
         <p role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">
           {error}
@@ -203,31 +233,35 @@ export function LineupMarker({
             <li
               key={r.studentId}
               className={cn(
-                'rounded-xl border border-line p-3',
-                m?.status === 'absent' && 'border-danger/50',
-                m && m.status !== 'absent' && 'border-ok/60',
+                'rounded-2xl border border-line p-3 transition-colors',
+                m?.status === 'absent' && 'border-danger/50 bg-danger/5',
+                m?.status === 'late' && 'border-warn/60 bg-warn/5',
+                m?.status === 'present' && 'border-ok/60 bg-ok/5',
               )}
               data-testid="mark-row"
               data-student={r.name}
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="text-lg font-medium">
-                    {r.name} <span className="text-sm text-ink-muted">{r.age}</span>
-                  </p>
-                  <p className="flex flex-wrap gap-1 text-sm text-ink-muted">
-                    {r.levelName ? <span>{r.levelName}</span> : null}
-                    {r.kind !== 'member' ? (
-                      <Badge tone="warn">{te(`attendanceKind.${r.kind}`)}</Badge>
-                    ) : null}
-                    {r.frozen ? <Badge>{te('enrollmentStatus.frozen')}</Badge> : null}
-                    {r.notified ? <Badge tone="warn">{t('notified')}</Badge> : null}
-                    {r.flags.map((f) => (
-                      <Badge key={f} tone={f === 'medical' ? 'danger' : 'neutral'}>
-                        {tf(f)}
-                      </Badge>
-                    ))}
-                  </p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar name={r.name} />
+                  <div className="min-w-0">
+                    <p className="text-lg font-medium">
+                      {r.name} <span className="text-sm text-ink-muted">{r.age}</span>
+                    </p>
+                    <p className="flex flex-wrap gap-1 text-sm text-ink-muted">
+                      {r.levelName ? <span>{r.levelName}</span> : null}
+                      {r.kind !== 'member' ? (
+                        <Badge tone="warn">{te(`attendanceKind.${r.kind}`)}</Badge>
+                      ) : null}
+                      {r.frozen ? <Badge>{te('enrollmentStatus.frozen')}</Badge> : null}
+                      {r.notified ? <Badge tone="warn">{t('notified')}</Badge> : null}
+                      {r.flags.map((f) => (
+                        <Badge key={f} tone={f === 'medical' ? 'danger' : 'neutral'}>
+                          {tf(f)}
+                        </Badge>
+                      ))}
+                    </p>
+                  </div>
                 </div>
                 {m ? (
                   <Badge tone={m.status === 'absent' ? 'danger' : 'ok'} data-testid="mark-status">
@@ -240,22 +274,29 @@ export function LineupMarker({
                 <div className="mt-2 grid grid-cols-3 gap-2">
                   <Button
                     type="button"
-                    variant={m?.status === 'present' ? 'primary' : 'secondary'}
+                    variant="secondary"
+                    className={pick(m?.status === 'present', 'bg-ok text-white hover:bg-ok')}
+                    aria-pressed={m?.status === 'present'}
                     onClick={() => tap(r.studentId, 'present')}
                   >
+                    <span aria-hidden>✅</span>
                     {te('attendanceStatus.present')}
                   </Button>
                   <Button
                     type="button"
-                    variant={m?.status === 'late' ? 'primary' : 'secondary'}
+                    variant="secondary"
+                    className={pick(m?.status === 'late', 'bg-warn hover:bg-warn text-ink')}
                     onClick={() => setLateFor(lateFor === r.studentId ? null : r.studentId)}
                     aria-expanded={lateFor === r.studentId}
                   >
+                    <span aria-hidden>⏰</span>
                     {te('attendanceStatus.late')}
                   </Button>
                   <Button
                     type="button"
-                    variant={m?.status === 'absent' ? 'primary' : 'secondary'}
+                    variant="secondary"
+                    className={pick(m?.status === 'absent', 'bg-danger text-white hover:bg-danger')}
+                    aria-pressed={m?.status === 'absent'}
                     onClick={() => tap(r.studentId, 'absent')}
                   >
                     {te('attendanceStatus.absent')}
@@ -268,7 +309,8 @@ export function LineupMarker({
                     <Button
                       key={n}
                       type="button"
-                      variant="ghost"
+                      variant="soft"
+                      size="sm"
                       onClick={() => tap(r.studentId, 'late', n)}
                     >
                       {t('minutes', { n })}

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { householdMoney } from '@rswim/domain-billing';
-import { Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import { buttonVariants, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import { explainer, money, periodLabel } from '@/lib/billing';
 import { ActionForm, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
@@ -24,7 +24,7 @@ export default async function ParentPaymentsPage() {
   if (!data) {
     return (
       <>
-        <PageHeader title={t('title')} />
+        <PageHeader icon="💳" title={t('title')} />
         <Card>
           <EmptyState title={t('empty')} />
         </Card>
@@ -44,13 +44,19 @@ export default async function ParentPaymentsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} />
+      <PageHeader icon="💳" title={t('title')} />
       <div className="flex flex-col gap-4">
-        <Card data-testid="parent-balance">
-          <p className="text-sm text-ink-muted">{t('balance')}</p>
-          <p
-            className={m.balance > 0 ? 'text-2xl font-semibold' : 'text-2xl font-semibold text-ok'}
-          >
+        <Card
+          data-testid="parent-balance"
+          className={m.balance > 0 ? 'border-warn/50' : 'bg-water-soft border-ok/30'}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-sm text-ink-muted">{t('balance')}</p>
+            <span aria-hidden className="pop-in text-3xl leading-none">
+              {m.balance > 0 ? '🧾' : '🎉'}
+            </span>
+          </div>
+          <p className={m.balance > 0 ? 'text-2xl font-bold' : 'text-2xl font-bold text-ok'}>
             {m.balance > 0
               ? t('owes', { amount: fmt(m.balance) })
               : m.balance < 0
@@ -61,7 +67,7 @@ export default async function ParentPaymentsPage() {
             <a
               key={l.id}
               href={l.url ?? '#'}
-              className="mt-3 flex min-h-tap items-center justify-between rounded-xl bg-brand-600 px-4 font-semibold text-white"
+              className={`${buttonVariants({ size: 'full' })} mt-3 justify-between font-semibold`}
             >
               <span>{l.description}</span>
               <span>
@@ -85,7 +91,8 @@ export default async function ParentPaymentsPage() {
               ))}
             </div>
           ) : null}
-          <p className="mt-3 text-sm">
+          <p className="mt-3 flex items-center gap-2 text-sm">
+            <span aria-hidden>{mandate?.status === 'failing' ? '⚠️' : mandate ? '🔁' : '💡'}</span>
             {mandate
               ? mandate.status === 'failing'
                 ? t('mandateFailing')
@@ -105,9 +112,9 @@ export default async function ParentPaymentsPage() {
         </Card>
 
         <Card>
-          <CardTitle>{t('history')}</CardTitle>
+          <CardTitle icon="📒">{t('history')}</CardTitle>
           {m.entries.length === 0 ? (
-            <EmptyState title={t('empty')} />
+            <EmptyState icon="📭" title={t('empty')} />
           ) : (
             <ul className="flex flex-col text-sm">
               {m.entries.map((e) => (
@@ -129,7 +136,9 @@ export default async function ParentPaymentsPage() {
                       {e.explanation ? ` · ${explain(e.explanation)}` : ''}
                     </span>
                   </span>
-                  <span className={e.amountAgorot < 0 ? 'text-ok' : undefined}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-semibold tabular-nums ${e.amountAgorot < 0 ? 'bg-ok/10 text-ok' : 'bg-brand-50 dark:bg-surface'}`}
+                  >
                     {fmt(e.amountAgorot)}
                   </span>
                 </li>
@@ -139,7 +148,7 @@ export default async function ParentPaymentsPage() {
         </Card>
 
         <Card>
-          <CardTitle>{t('documents')}</CardTitle>
+          <CardTitle icon="🧾">{t('documents')}</CardTitle>
           {m.documents.filter((d) => d.status === 'issued').length === 0 ? (
             <EmptyState title={t('empty')} />
           ) : (
@@ -157,7 +166,7 @@ export default async function ParentPaymentsPage() {
                     </span>
                     <Link
                       href={`/parent/receipts/${d.id}`}
-                      className="min-h-tap inline-flex items-center py-3 text-brand-700 underline"
+                      className={buttonVariants({ variant: 'soft', size: 'sm' })}
                       data-testid="open-receipt"
                     >
                       {t('open')}
