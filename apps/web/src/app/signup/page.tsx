@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { ActionForm, Field, SubmitButton } from '@/components/form';
+import { publicPlans } from '@rswim/domain-platform';
 import { getSession } from '@/lib/auth/session';
+import { withAnon } from '@/lib/db';
 import { LoginFrame } from '../login/login-frame';
 import { signUpAction } from './actions';
 import { TermsField } from './terms-field';
@@ -16,9 +18,15 @@ export default async function SignupPage({
   if (await getSession()) redirect('/');
   const { sent } = await searchParams;
   const t = await getTranslations('account.signup');
+  const tTrial = await getTranslations('platform.trial');
+  const plans = process.env.DATABASE_URL ? await withAnon((tx) => publicPlans(tx)) : [];
+  const trialDays = plans[0]?.trialDays ?? null;
   if (sent) {
     return (
       <LoginFrame title={t('sentTitle')}>
+        <p className="aqua-float mb-2 text-center text-5xl" aria-hidden="true">
+          📬
+        </p>
         <p data-testid="signup-sent">{t('sentBody', { email: sent })}</p>
         <p className="mt-3 text-sm text-ink-muted">{t('sentHint')}</p>
       </LoginFrame>
@@ -26,6 +34,13 @@ export default async function SignupPage({
   }
   return (
     <LoginFrame title={t('title')}>
+      {trialDays ? (
+        <p className="mb-2 flex flex-wrap items-center gap-2" data-testid="signup-trial">
+          <span className="aqua-shine rounded-full px-3 py-1 text-sm font-bold text-ink">
+            🎁 {tTrial('free', { days: trialDays })}
+          </span>
+        </p>
+      ) : null}
       <p className="mb-4 text-sm text-ink-muted">{t('subtitle')}</p>
       <ActionForm action={signUpAction} testId="signup" keepValues>
         <Field name="name" label={t('name')} autoComplete="name" required />

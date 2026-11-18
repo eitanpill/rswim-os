@@ -183,3 +183,147 @@
     transform: none;
   }
 }
+
+/*
+ * Aqua: the sign-up and onboarding surfaces move a little, like water. Waves drift, bubbles rise, cards lift and the
+ * chosen one answers with a check. Everything stops for people who ask for less motion.
+ */
+.aqua-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  color: white;
+  background:
+    radial-gradient(90% 120% at 15% -20%, oklch(85% 0.12 190 / 0.7), transparent 60%),
+    radial-gradient(80% 90% at 100% 0%, oklch(78% 0.13 250 / 0.55), transparent 60%),
+    linear-gradient(160deg, oklch(60% 0.14 220), oklch(45% 0.13 240));
+}
+.aqua-waves {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -2px;
+  z-index: -1;
+  width: 200%;
+  height: 46px;
+  animation: aqua-drift 14s linear infinite;
+}
+[dir='rtl'] .aqua-waves {
+  animation-name: aqua-drift-rtl;
+}
+.aqua-waves.slow {
+  height: 60px;
+  opacity: 0.5;
+  animation-duration: 22s;
+}
+@keyframes aqua-drift {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes aqua-drift-rtl {
+  to {
+    transform: translateX(50%);
+  }
+}
+.aqua-bubble {
+  position: absolute;
+  inset-block-end: -20px;
+  z-index: -1;
+  border-radius: 9999px;
+  background: oklch(100% 0 0 / 0.25);
+  box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 0.4);
+  animation: aqua-rise 9s ease-in infinite;
+}
+@keyframes aqua-rise {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-260px) scale(1);
+    opacity: 0;
+  }
+}
+.aqua-float {
+  animation: aqua-bob 4s ease-in-out infinite;
+}
+@keyframes aqua-bob {
+  50% {
+    transform: translateY(-6px) rotate(-4deg);
+  }
+}
+.aqua-in {
+  animation: aqua-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes aqua-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.aqua-pick {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.aqua-pick:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -12px oklch(45% 0.13 230 / 0.45);
+}
+.aqua-pick:has(:checked) {
+  box-shadow:
+    0 0 0 2px var(--color-brand-500),
+    0 12px 28px -14px oklch(45% 0.13 230 / 0.6);
+}
+.aqua-pick .aqua-check {
+  transform: scale(0);
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.aqua-pick:has(:checked) .aqua-check {
+  transform: scale(1);
+}
+.aqua-shine {
+  background: linear-gradient(
+    100deg,
+    oklch(88% 0.16 85) 20%,
+    oklch(97% 0.08 95) 40%,
+    oklch(88% 0.16 85) 60%
+  );
+  background-size: 250% 100%;
+  animation: aqua-shine 3.5s linear infinite;
+}
+@keyframes aqua-shine {
+  to {
+    background-position: -150% 0;
+  }
+}
+.aqua-pulse {
+  animation: aqua-pulse 2.2s ease-in-out infinite;
+}
+@keyframes aqua-pulse {
+  50% {
+    box-shadow: 0 0 0 6px oklch(75% 0.15 75 / 0.25);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aqua-waves,
+  .aqua-bubble,
+  .aqua-float,
+  .aqua-in,
+  .aqua-shine,
+  .aqua-pulse {
+    animation: none;
+  }
+  .aqua-pick,
+  .aqua-pick .aqua-check {
+    transition: none;
+  }
+  .aqua-pick:hover {
+    transform: none;
+  }
+}

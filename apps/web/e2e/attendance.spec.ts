@@ -85,9 +85,10 @@ test('AC1: 13 hours of notice earns a credit until the end of the month; 11 hour
   // The credit is valid until the last day of the lesson's month; the late notice made none.
   await page.goto('/admin/makeups');
   const credits = page.getByTestId('credit-row');
-  await expect(credits.filter({ hasText: early })).toContainText(
-    `בתוקף עד ${dmy(endOfMonth(date))}`,
-  );
+  // Only this lesson's absence: the seed's course closures give the same child other credits as the month turns.
+  await expect(
+    credits.filter({ hasText: early }).filter({ hasText: `היעדרות ${dmy(date)}` }),
+  ).toContainText(`בתוקף עד ${dmy(endOfMonth(date))}`);
   await expect(credits.filter({ hasText: late })).toHaveCount(0);
 });
 

@@ -200,11 +200,18 @@ export async function accountState(tx: Tx): Promise<{
   cancelsOn: string | null;
   hasCard: boolean;
   locked: boolean;
+  /** The plan's monthly price, for the trial reminder. */
+  priceAgorot: number | null;
+  trialDays: number;
+  trialReminderDays: number;
 }> {
   const s = await mySubscription(tx);
   return {
     status: (s?.sub.status as SubscriptionStatus | undefined) ?? null,
     trialEndsOn: s?.sub.trialEndsOn ?? null,
+    priceAgorot: s?.plan.priceAgorot ?? null,
+    trialDays: s?.plan.trialDays ?? 0,
+    trialReminderDays: s?.plan.trialReminderDays ?? 0,
     cancelsOn: s?.sub.cancelsOn ?? null,
     hasCard: !!s?.sub.mandateId,
     locked: s?.sub.status === 'suspended' || s?.sub.status === 'cancelled',

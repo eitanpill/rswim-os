@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { accountState } from '@rswim/domain-platform';
 import { AppShell } from '@/components/app-shell';
+import { TrialBanner } from '@/components/trial-banner';
 import { requireSurface } from '@/lib/auth/session';
 import { withSession } from '@/lib/db';
 import { dmy } from '@/lib/options';
@@ -35,23 +36,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           </Link>
         </p>
       ) : account.status === 'trialing' && account.trialEndsOn ? (
-        <p
-          data-testid="trial-banner"
-          className="mb-4 rounded-xl bg-brand-50 px-3 py-2 text-sm dark:bg-surface"
-        >
-          {account.hasCard
-            ? t('trial', { date: dmy(account.trialEndsOn) })
-            : t('trialNoCard', { date: dmy(account.trialEndsOn) })}{' '}
-          {account.hasCard || session.role !== 'owner' ? null : (
-            <Link
-              href="/billing/card"
-              className="font-medium underline"
-              data-testid="trial-add-card"
-            >
-              {t('addCard')}
-            </Link>
-          )}
-        </p>
+        <TrialBanner
+          trialEndsOn={account.trialEndsOn}
+          trialDays={account.trialDays}
+          reminderDays={account.trialReminderDays}
+          priceAgorot={account.priceAgorot}
+          hasCard={account.hasCard}
+          isOwner={session.role === 'owner'}
+          planHref="/admin/plan"
+        />
       ) : null}
       {/* A suspended school's office sees only its plan page; parents and staff keep working. */}
       {account.locked ? <PlanView locked /> : children}

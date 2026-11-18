@@ -1,13 +1,15 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { mySubscription } from '@rswim/domain-platform';
-import { Card, PageHeader } from '@rswim/ui';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { mySubscription, trialTimeline } from '@rswim/domain-platform';
+import { Card } from '@rswim/ui';
 import { AppShell } from '@/components/app-shell';
+import { AquaHero, SignupSteps } from '@/components/aqua-hero';
 import { ActionForm, SubmitButton } from '@/components/form';
 import { getSession } from '@/lib/auth/session';
 import { withSession } from '@/lib/db';
-import { dmy } from '@/lib/options';
+import { TrialPromise } from '@/components/trial-promise';
+import { dmy, todayIL } from '@/lib/options';
 import { startCardAction } from '../actions';
 
 /**
@@ -25,6 +27,8 @@ export default async function CardStepPage({
   if (session.role !== 'owner') redirect(next);
   const { card } = await searchParams;
   const t = await getTranslations('platform.billing');
+  const tSignup = await getTranslations('platform.signup');
+  const locale = (await getLocale()) === 'en' ? 'en' : 'he';
   const s = await withSession((tx) => mySubscription(tx));
   if (!s) redirect(next);
   // The first charge is the day after the trial's last day.
@@ -32,10 +36,20 @@ export default async function CardStepPage({
     ? new Date(Date.parse(`${s.sub.trialEndsOn}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10)
     : null;
   const saved = card === 'saved' || !!s.sub.cardLast4;
+  const timeline =
+    s.sub.status === 'trialing' && s.sub.trialEndsOn
+      ? trialTimeline(s.sub.trialEndsOn, todayIL(), s.plan.trialReminderDays)
+      : null;
   return (
     <AppShell session={session} surface="onboarding" nav={[]}>
-      <PageHeader title={saved ? t('setup.savedTitle') : t('setup.title')} />
-      <Card data-testid="card-step">
+      <AquaHero
+        icon={saved ? '🎉' : '💳'}
+        title={saved ? t('setup.savedTitle') : t('setup.title')}
+        subtitle={saved ? undefined : t('setup.heroSubtitle')}
+      >
+        <SignupSteps current={3} labels={tSignup.raw('steps') as [string, string, string]} />
+      </AquaHero>
+      <Card className="aqua-in" data-testid="card-step">
         {saved ? (
           <div className="flex flex-col gap-3">
             <p data-testid="card-step-saved">
@@ -59,8 +73,15 @@ export default async function CardStepPage({
               </p>
             ) : null}
             <p>{t('setup.body')}</p>
+            {timeline ? (
+              <TrialPromise
+                days={s.plan.trialDays}
+                timeline={timeline}
+                priceAgorot={s.plan.priceAgorot}
+                locale={locale}
+              />
+            ) : null}
             {firstCharge ? <p>{t('setup.when', { date: dmy(firstCharge) })}</p> : null}
-            <p className="text-sm text-ink-muted">{t('setup.cancelAnytime')}</p>
             <p className="text-sm text-ink-muted">{t('card.safe')}</p>
             <ActionForm action={startCardAction}>
               <input type="hidden" name="back" value="/billing/card" />

@@ -392,3 +392,47 @@ export function aiBudget(cap: number | null, used: number, warnPercent: number):
   const percent = Math.floor((used / cap) * 100);
   return { state: percent >= warnPercent ? 'warn' : 'ok', percent, used, cap };
 }
+
+// ─── The free trial, as the owner sees it ───────────────────────────────────
+
+export interface TrialTimeline {
+  /** The trial's last free day. */
+  endsOn: string;
+  /** The day of the first charge: the day after the trial's last day. */
+  firstChargeOn: string;
+  /** From this day the owner sees the reminder: `reminderDays` days before the first charge. */
+  remindFrom: string;
+  /** Free days left, counting today; 0 once the trial is over. */
+  daysLeft: number;
+  /** Today falls in the reminder days. */
+  reminding: boolean;
+}
+
+const daysBetween = (from: string, to: string) =>
+  Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
+
+/**
+ * Where a trial stands on `today`: its dates, the free days left and whether the owner is in the reminder days
+ * (`plans.trial_reminder_days` before the first charge).
+ */
+export function trialTimeline(endsOn: string, today: string, reminderDays: number): TrialTimeline {
+  const firstChargeOn = addDays(endsOn, 1);
+  const remindFrom = addDays(firstChargeOn, -reminderDays);
+  const daysLeft = Math.max(0, daysBetween(today, endsOn) + 1);
+  return {
+    endsOn,
+    firstChargeOn,
+    remindFrom,
+    daysLeft,
+    reminding: daysLeft > 0 && today >= remindFrom,
+  };
+}
+
+/** The timeline of a trial that would start `today` on a plan with `trialDays` free days (as the database sets it). */
+export function trialPreview(
+  today: string,
+  trialDays: number,
+  reminderDays: number,
+): TrialTimeline {
+  return trialTimeline(addDays(today, trialDays), today, reminderDays);
+}
