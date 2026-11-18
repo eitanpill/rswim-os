@@ -170,9 +170,11 @@ export async function seedAttendanceData(
      from sessions s join class_templates ct on ct.id = s.class_template_id
      join enrollments e on e.class_template_id = ct.id and e.status = 'active' and e.starts_on <= s.date
        and (e.ends_on is null or e.ends_on > s.date)
+     join students st on st.id = e.student_id
      where s.organization_id = $1 and s.status = 'scheduled' and s.starts_at > now() + interval '2 days'
        and ct.name in ('בנות דולפין', 'בנים צפרדע', 'בנות כריש')
-     order by ct.name, s.starts_at, e.student_id`,
+     -- By name, not by the random student id, so the same children get these notices on every seed.
+     order by ct.name, s.starts_at, st.first_name, st.last_name`,
     [orgId],
   );
   const israel = (d: Date) =>

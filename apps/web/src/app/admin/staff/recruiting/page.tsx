@@ -54,7 +54,7 @@ export default async function RecruitingPage({
                   return (
                     <li
                       key={a.id}
-                      className="rounded-xl border border-line p-3"
+                      className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                       data-testid="applicant"
                     >
                       <p className="font-medium">

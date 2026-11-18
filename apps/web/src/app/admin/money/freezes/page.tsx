@@ -35,7 +35,7 @@ export default async function FreezesPage() {
             {freezes.map((f) => {
               const p = placeOf.get(f.enrollmentId);
               return (
-                <li key={f.id} className="rounded-xl border border-line p-3">
+                <li key={f.id} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                   <p className="font-medium">{p ? `${p.studentName} · ${p.groupName}` : ''}</p>
                   <p className="text-sm text-ink-muted">
                     {dmy(f.fromDate)}–{dmy(f.toDate)} · {label('freezeReason', f.reason)}

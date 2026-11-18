@@ -73,7 +73,7 @@ export default async function BrandingPage() {
             {domains.map((d) => (
               <li
                 key={d.id}
-                className="rounded-xl border border-line p-3"
+                className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                 data-testid={`domain-${d.host}`}
               >
                 <div className="flex items-center justify-between gap-2">

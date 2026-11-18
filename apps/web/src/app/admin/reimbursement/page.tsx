@@ -59,7 +59,7 @@ export default async function ReimbursementPage() {
           ) : (
             <ul className="flex flex-col gap-2">
               {profiles.map((p) => (
-                <li key={p.id} className="rounded-xl border border-line p-3">
+                <li key={p.id} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-medium">
                       {p.name}{' '}

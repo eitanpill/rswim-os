@@ -420,7 +420,10 @@
     "home": {
       "title": "הסעות צהרון",
       "empty": "אין היום נסיעות במסלולים שלך",
-      "today": "היום, {date}"
+      "today": "היום, {date}",
+      "heroRuns": "{runs, plural, one {נסיעה אחת היום} other {# נסיעות היום}}",
+      "heroDone": "כל הנסיעות של היום הסתיימו",
+      "heroRiders": "{n, plural, =0 {אין ילדים רשומים} one {ילד אחד במסלולים שלך} other {# ילדים במסלולים שלך}}"
     },
     "tabs": {
       "label": "מסכי הסעות",
@@ -578,7 +581,8 @@
       "payroll": "משכורות",
       "payrollEmpty": "עוד אין משכורות מאושרות",
       "export": "אקסל",
-      "payrollLine": "{period}: בתלוש {payslip} · בהעברה {transfer}"
+      "payrollLine": "{period}: בתלוש {payslip} · בהעברה {transfer}",
+      "owing": "משפחות עם חוב"
     }
   },
   "parent": {
@@ -905,7 +909,13 @@
       "changePlan": "החלפת תוכנית",
       "mandate": "הוראת קבע (מזהה)",
       "mandateHint": "מזהה ההרשאה אצל ספק התשלומים",
-      "saveMandate": "שמירת הוראת קבע"
+      "saveMandate": "שמירת הוראת קבע",
+      "stats": {
+        "schools": "בתי ספר",
+        "active": "פעילים",
+        "trialing": "בניסיון",
+        "trouble": "בבעיה"
+      }
     },
     "review": {
       "title": "תבניות לבדיקה",
@@ -6100,7 +6110,8 @@
         "failed": "ההרשמה לא הצליחה. נסו שוב בעוד רגע",
         "notConfigured": "ההרשמה עוד לא פתוחה בסביבה הזו"
       }
-    }
+    },
+    "signedIn": "מחובר/ת לאפליקציה"
   },
   "landing": {
     "signIn": "כניסה",

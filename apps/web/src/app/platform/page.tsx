@@ -1,7 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { agorot } from '@rswim/money';
 import { listPlans, listSchools } from '@rswim/domain-platform';
-import { Badge, Card, CardTitle, EmptyState, Money, PageHeader } from '@rswim/ui';
+import { Avatar, Badge, Card, CardTitle, EmptyState, Money, PageHeader, StatTile } from '@rswim/ui';
 import { ActionButton, ActionForm, Field, SelectField, SubmitButton } from '@/components/form';
 import { withSignedIn } from '@/lib/db';
 import { dmy, todayIL } from '@/lib/options';
@@ -31,13 +31,30 @@ export default async function PlatformHome() {
     label: locale === 'en' ? p.nameEn : p.nameHe,
   }));
   const planName = (code: string | null) => planOptions.find((p) => p.value === code)?.label ?? '—';
+  const count = (st: string) => schools.filter((s) => s.status === st).length;
+  const trouble = count('past_due') + count('suspended');
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle', { count: schools.length })} />
+      <PageHeader
+        icon="🛰️"
+        title={t('title')}
+        subtitle={t('subtitle', { count: schools.length })}
+      />
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="platform-stats">
+        <StatTile icon="🏫" label={t('stats.schools')} value={schools.length} />
+        <StatTile icon="✅" tone="ok" label={t('stats.active')} value={count('active')} />
+        <StatTile icon="🐣" label={t('stats.trialing')} value={count('trialing')} />
+        <StatTile
+          icon="⚠️"
+          tone={trouble > 0 ? 'danger' : 'brand'}
+          label={t('stats.trouble')}
+          value={trouble}
+        />
+      </div>
       <NetworkOverview />
       <SchoolDatabases />
       <Card className="mb-4">
-        <CardTitle>{t('billing')}</CardTitle>
+        <CardTitle icon="💳">{t('billing')}</CardTitle>
         <ActionForm
           action={requestBillingAction}
           className="md:flex-row md:items-end"
@@ -57,19 +74,22 @@ export default async function PlatformHome() {
       </Card>
       {schools.length === 0 ? (
         <Card>
-          <EmptyState title={t('empty')} />
+          <EmptyState icon="🏫" title={t('empty')} />
         </Card>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="stagger flex flex-col gap-3">
           {schools.map((s) => (
             <li key={s.organizationId}>
               <Card data-testid={`school-${s.slug}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <h2 className="text-lg font-semibold">{s.name}</h2>
-                    <p className="text-sm text-ink-muted" dir="ltr">
-                      {s.slug}
-                    </p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar name={s.name} />
+                    <div className="min-w-0">
+                      <h2 className="truncate text-lg font-semibold">{s.name}</h2>
+                      <p className="text-sm text-ink-muted" dir="ltr">
+                        {s.slug}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge>{planName(s.planCode)}</Badge>

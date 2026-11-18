@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { certificationStatus, listInvites, listStaff } from '@rswim/domain-staff';
-import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
+import { Avatar, Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import {
   ActionButton,
   ActionForm,
@@ -45,18 +45,21 @@ export default async function StaffPage() {
                   <li key={s.id}>
                     <Link
                       href={`/admin/staff/${s.id}`}
-                      className="flex items-center justify-between gap-2 rounded-xl border border-line p-3 hover:border-brand-500"
+                      className="flex items-center justify-between gap-2 lift rounded-2xl border border-line/70 bg-surface-raised p-3 shadow-[var(--shadow-soft)] hover:border-brand-500"
                     >
-                      <div>
-                        <p className="font-medium">
-                          {s.firstName} {s.lastName}
-                        </p>
-                        <p className="text-sm text-ink-muted">
-                          {label('employmentType', s.employmentType)}
-                          {s.skills.length
-                            ? ` · ${s.skills.map((k) => label('staffSkill', k)).join(', ')}`
-                            : ''}
-                        </p>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Avatar name={s.firstName} />
+                        <div className="min-w-0">
+                          <p className="font-medium">
+                            {s.firstName} {s.lastName}
+                          </p>
+                          <p className="text-sm text-ink-muted">
+                            {label('employmentType', s.employmentType)}
+                            {s.skills.length
+                              ? ` · ${s.skills.map((k) => label('staffSkill', k)).join(', ')}`
+                              : ''}
+                          </p>
+                        </div>
                       </div>
                       <div className="flex flex-wrap justify-end gap-1">
                         {s.status !== 'active' ? (
@@ -123,7 +126,7 @@ export default async function StaffPage() {
                 {invites.map((i) => (
                   <li
                     key={i.id}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-line p-3"
+                    className="flex items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
                   >
                     <div>
                       <p className="font-medium" dir="ltr">

@@ -76,7 +76,7 @@ export default async function TermPage({ params }: { params: Promise<{ id: strin
                     return (
                       <li
                         key={date}
-                        className="rounded-xl border border-line p-3"
+                        className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                         data-testid="skipped-day"
                       >
                         <p className="font-medium">

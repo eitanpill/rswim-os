@@ -71,7 +71,7 @@ export default async function SessionAttendancePage({
               {notices.map((n) => (
                 <li
                   key={n.id}
-                  className="rounded-xl border border-line p-3"
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                   data-testid="notice-row"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">

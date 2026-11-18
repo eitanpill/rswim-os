@@ -80,7 +80,7 @@ export default async function RunReviewPage({ params }: { params: Promise<{ id: 
               {anomalies.map((a, i) => (
                 <li
                   key={`${a.householdId}-${a.kind}-${i}`}
-                  className="rounded-xl border border-line p-3"
+                  className="rounded-2xl border border-line/70 bg-surface/50 p-3"
                   data-testid="flag-row"
                   data-kind={a.kind}
                 >

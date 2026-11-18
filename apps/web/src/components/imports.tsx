@@ -206,7 +206,7 @@ async function Draft({ base, id }: { base: Base; id: string }) {
             <input type="hidden" name="importId" value={run.id} />
             <div className="grid gap-3 sm:grid-cols-2">
               {run.headers.map((h, i) => (
-                <div key={i} className="rounded-xl border border-line p-3">
+                <div key={i} className="rounded-2xl border border-line/70 bg-surface/50 p-3">
                   <SelectField
                     name={`col_${i}`}
                     label={h}

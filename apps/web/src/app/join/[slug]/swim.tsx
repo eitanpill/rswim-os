@@ -133,7 +133,7 @@ export async function SwimJoin({
           required
         />
         <Field name="email" label={t('email')} type="email" autoComplete="email" dir="ltr" />
-        <fieldset className="flex flex-col gap-3 rounded-xl border border-line p-3">
+        <fieldset className="flex flex-col gap-3 rounded-2xl border border-line/70 bg-surface/50 p-3">
           <legend className="px-1 text-sm font-semibold">{t('children')}</legend>
           <p className="text-sm text-ink-muted">{t('childrenHint')}</p>
           {CHILD_ROWS.map((i) => (

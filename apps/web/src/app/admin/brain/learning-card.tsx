@@ -27,7 +27,7 @@ export async function LearningCard({ learning }: { learning: LearningState }) {
           {learning.suggestions.map((s) => (
             <li
               key={s.kind}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-3"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line/70 bg-surface/50 p-3"
               data-testid="learning-suggestion"
               data-kind={s.kind}
               data-to={s.to}
