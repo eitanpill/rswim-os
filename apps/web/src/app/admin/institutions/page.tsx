@@ -24,7 +24,7 @@ export default async function InstitutionsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🏫" title={t('title')} subtitle={t('hint')} />
       <div className="flex flex-col gap-4">
         <Card data-testid="institution-debts">
           <CardTitle>{t('debts.title')}</CardTitle>

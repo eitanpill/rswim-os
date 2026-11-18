@@ -54,7 +54,7 @@ export default async function BrainPage() {
   if (!data) {
     return (
       <>
-        <PageHeader title={t('title')} />
+        <PageHeader icon="🧠" title={t('title')} />
         <Card data-testid="brain-owner-only">
           <p className="text-sm">{t('ownerOnly')}</p>
         </Card>
@@ -71,6 +71,7 @@ export default async function BrainPage() {
   return (
     <>
       <PageHeader
+        icon="🧠"
         title={t('title')}
         subtitle={t('subtitle')}
         actions={

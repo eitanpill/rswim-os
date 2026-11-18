@@ -38,7 +38,7 @@ export default async function JoinRequestsPage() {
   return (
     <>
       <div className="print:hidden">
-        <PageHeader title={t('title')} subtitle={t('subtitle')} />
+        <PageHeader icon="🔗" title={t('title')} subtitle={t('subtitle')} />
       </div>
       <div className="flex flex-col gap-4">
         <Card data-testid="join-requests" className="print:hidden">

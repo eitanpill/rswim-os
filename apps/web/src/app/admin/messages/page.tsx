@@ -32,7 +32,7 @@ export default async function InboxPage({
   const items = await withSession((tx) => listInbox(tx, { status }));
   return (
     <>
-      <PageHeader title={t('inbox.title')} />
+      <PageHeader icon="📨" title={t('inbox.title')} />
       <MessagesTabs active="inbox" />
       <div className="mb-3 flex gap-2 text-sm">
         {(['open', 'closed'] as const).map((s) => (

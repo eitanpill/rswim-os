@@ -16,7 +16,7 @@ export default async function InstructorsReport({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('instructors.subtitle')} />
+      <PageHeader icon="📊" title={t('title')} subtitle={t('instructors.subtitle')} />
       <ReportTabs active="instructors" />
       <RangeBar range={range} csv="instructors" />
       <Card>

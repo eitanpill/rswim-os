@@ -38,7 +38,7 @@ export default async function MakeupsPage({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🔄" title={t('title')} subtitle={t('subtitle')} />
       <AttendanceTabs active="makeups" />
       <div className="flex flex-col gap-4">
         {booked ? (

@@ -21,7 +21,7 @@ export default async function ChurnReport({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('churn.subtitle')} />
+      <PageHeader icon="📊" title={t('title')} subtitle={t('churn.subtitle')} />
       <ReportTabs active="churn" />
       <RangeBar range={range} csv="churn" />
       <div className="flex flex-col gap-4">

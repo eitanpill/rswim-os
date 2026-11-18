@@ -20,6 +20,7 @@ export default async function VenuesPage() {
   return (
     <>
       <PageHeader
+        icon="🏊"
         title={t('title')}
         subtitle={t('subtitle')}
         actions={

@@ -18,7 +18,7 @@ export default async function GapsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🪪" title={t('title')} subtitle={t('hint')} />
       <StaffOpsTabs active="gaps" />
       <Card data-testid="staffing-gaps">
         {gaps.length === 0 ? (

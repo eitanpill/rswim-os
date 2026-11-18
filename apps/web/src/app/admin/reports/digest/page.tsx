@@ -18,7 +18,7 @@ export default async function DigestPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('digest.subtitle')} />
+      <PageHeader icon="📊" title={t('title')} subtitle={t('digest.subtitle')} />
       <ReportTabs active="digest" />
       <div className="mb-4">
         <ActionButton action={buildDigestAction} variant="secondary" data-testid="build-digest">

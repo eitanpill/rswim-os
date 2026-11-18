@@ -30,7 +30,7 @@ export default async function SchoolsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🚐" title={t('title')} subtitle={t('hint')} />
       <TransportTabs active="schools" />
       <div className="flex flex-col gap-4">
         {schools.length === 0 ? (

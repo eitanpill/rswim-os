@@ -7,7 +7,7 @@ export default async function NewVenuePage() {
   const t = await getTranslations('venues');
   return (
     <>
-      <PageHeader title={t('new')} />
+      <PageHeader icon="🏊" title={t('new')} />
       <Card>
         <VenueForm action={createVenueAction} />
       </Card>

@@ -147,7 +147,7 @@ export default async function CommandCenter() {
               {ti('emptyHint')}
             </EmptyState>
           ) : (
-            <ul className="flex flex-col divide-y divide-line">
+            <ul className="stagger flex flex-col">
               {insights.map((i) => (
                 <InsightRow
                   key={i.id}
@@ -188,7 +188,11 @@ function InsightRow({
   labels: Record<'severity' | 'open' | 'dismiss' | 'why' | 'next' | 'ai', string>;
 }) {
   return (
-    <li className="flex flex-col gap-1.5 py-3" data-testid="insight" data-kind={i.kind}>
+    <li
+      className={`my-1.5 flex flex-col gap-1.5 rounded-2xl border-s-4 bg-surface/60 p-3 ${i.severity === 'high' ? 'border-danger' : i.severity === 'medium' ? 'border-warn' : 'border-brand-500'}`}
+      data-testid="insight"
+      data-kind={i.kind}
+    >
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone={TONE[i.severity]}>{labels.severity}</Badge>
         <span className="font-medium">{title}</span>
@@ -214,7 +218,7 @@ function InsightRow({
       ) : null}
       <div className="flex flex-wrap items-center gap-3">
         {i.href ? (
-          <Link href={i.href} className="text-sm font-medium text-brand-700 underline">
+          <Link href={i.href} className={buttonVariants({ variant: 'soft', size: 'sm' })}>
             {labels.open}
           </Link>
         ) : null}

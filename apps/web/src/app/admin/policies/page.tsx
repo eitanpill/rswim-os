@@ -75,7 +75,7 @@ export default async function PoliciesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="📜" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4">
         <Card>
           <CardTitle>{t('scopeTitle')}</CardTitle>

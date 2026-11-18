@@ -19,7 +19,7 @@ export default async function VenuesReport({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('venues.subtitle')} />
+      <PageHeader icon="📊" title={t('title')} subtitle={t('venues.subtitle')} />
       <ReportTabs active="venues" />
       <RangeBar range={range} csv="venues" />
       <div className="flex flex-col gap-4">

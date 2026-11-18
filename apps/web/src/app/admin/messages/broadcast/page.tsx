@@ -31,7 +31,7 @@ export default async function BroadcastPage() {
   }));
   return (
     <>
-      <PageHeader title={t('title')} />
+      <PageHeader icon="📨" title={t('title')} />
       <MessagesTabs active="broadcast" />
       <Card className="mb-4">
         <CardTitle>{t('title')}</CardTitle>

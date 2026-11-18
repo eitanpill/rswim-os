@@ -26,7 +26,7 @@ export default async function TimesheetsPage({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('hint')} />
+      <PageHeader icon="🪪" title={t('title')} subtitle={t('hint')} />
       <StaffOpsTabs active="timesheets" period={period} />
       <PeriodPicker period={period} />
       <Card data-testid="timesheets">

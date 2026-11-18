@@ -70,7 +70,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
 
   return (
     <>
-      <PageHeader title={household.displayName} />
+      <PageHeader icon="👨‍👩‍👧" title={household.displayName} />
       <div className="flex flex-col gap-4">
         <Card>
           <CardTitle>{t('guardians')}</CardTitle>

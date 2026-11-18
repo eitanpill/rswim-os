@@ -11,7 +11,7 @@ export default async function ConnectionsPage() {
   const t = await getTranslations('connections');
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🔌" title={t('title')} subtitle={t('subtitle')} />
       <ConnectionsView vertical="swim" />
     </>
   );

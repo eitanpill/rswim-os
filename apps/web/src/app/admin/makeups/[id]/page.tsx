@@ -35,6 +35,7 @@ export default async function MakeupOffersPage({ params }: { params: Promise<{ i
   return (
     <>
       <PageHeader
+        icon="🔄"
         title={t('title', { name: student ? `${student.firstName} ${student.lastName}` : '' })}
         subtitle={t('subtitle', { until: dmy(credit.expiresOn) })}
       />

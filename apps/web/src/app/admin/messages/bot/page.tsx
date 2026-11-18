@@ -65,7 +65,7 @@ export default async function BotPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="📨" title={t('title')} subtitle={t('subtitle')} />
       <MessagesTabs active="bot" />
       <div className="flex flex-col gap-4">
         <Card data-testid="bot-status">

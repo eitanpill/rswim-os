@@ -8,7 +8,7 @@ export default async function NewFamilyPage() {
   const t = await getTranslations('families');
   return (
     <>
-      <PageHeader title={t('new')} />
+      <PageHeader icon="👨‍👩‍👧" title={t('new')} />
       <Card>
         <ActionForm action={createFamilyAction} testId="family-form">
           <h2 className="font-semibold">{t('guardian.first')}</h2>

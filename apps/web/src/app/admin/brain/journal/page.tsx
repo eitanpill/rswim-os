@@ -31,6 +31,7 @@ export default async function BrainJournalPage({
   return (
     <>
       <PageHeader
+        icon="🧠"
         title={t('journal.title')}
         subtitle={t('journal.subtitle')}
         actions={

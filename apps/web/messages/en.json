@@ -323,6 +323,14 @@
       "connections": {
         "title": "Connections",
         "hint": "WhatsApp, payments, receipts and AI use in one place"
+      },
+      "sections": {
+        "daily": "Day to day",
+        "schedule": "Groups and schedule",
+        "team": "Team",
+        "money": "Money and prices",
+        "smart": "Smart helpers and reports",
+        "business": "Business settings"
       }
     }
   },

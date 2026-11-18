@@ -30,6 +30,7 @@ export default async function RunReviewPage({ params }: { params: Promise<{ id: 
   return (
     <>
       <PageHeader
+        icon="💰"
         title={t('title', { period: periodLabel(run.period) })}
         subtitle={draft ? t('subtitle') : undefined}
       />

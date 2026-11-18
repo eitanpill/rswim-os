@@ -44,7 +44,7 @@ export default async function TrialsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="🐣" title={t('title')} subtitle={t('subtitle')} />
       <AttendanceTabs active="trials" />
       <div className="flex flex-col gap-4">
         <Card data-testid="trials">

@@ -18,7 +18,7 @@ export default async function NewGroupPage({ searchParams }: { searchParams: Pro
   const t = await getTranslations('scheduling.groups');
   return (
     <>
-      <PageHeader title={t('new')} />
+      <PageHeader icon="👥" title={t('new')} />
       <Card>
         <GroupForm
           action={createGroupAction}

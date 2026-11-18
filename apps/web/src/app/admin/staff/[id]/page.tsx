@@ -51,6 +51,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
   return (
     <>
       <PageHeader
+        icon="🪪"
         title={`${staff.firstName} ${staff.lastName}`}
         subtitle={label('employmentType', staff.employmentType)}
       />

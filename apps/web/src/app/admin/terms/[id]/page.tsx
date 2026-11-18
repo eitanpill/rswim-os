@@ -35,6 +35,7 @@ export default async function TermPage({ params }: { params: Promise<{ id: strin
   return (
     <>
       <PageHeader
+        icon="📆"
         title={term.name}
         subtitle={`${dmy(term.startsOn)} – ${dmy(term.endsOn)} · ${t('sessionCount', { n: sessionCount })}`}
       />

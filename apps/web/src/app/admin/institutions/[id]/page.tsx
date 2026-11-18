@@ -62,7 +62,7 @@ export default async function InstitutionPage({ params }: { params: Promise<{ id
 
   return (
     <>
-      <PageHeader title={inst.name} subtitle={label('institutionKind', inst.kind)} />
+      <PageHeader icon="🏫" title={inst.name} subtitle={label('institutionKind', inst.kind)} />
       <div className="flex flex-col gap-4">
         {contracts.map((c) => (
           <Card key={c.id} data-testid="contract">

@@ -24,7 +24,7 @@ export default async function FreezesPage() {
   const placeOf = new Map(places.map((p) => [p.enrollmentId, p]));
   return (
     <>
-      <PageHeader title={t('title')} />
+      <PageHeader icon="💰" title={t('title')} />
       <MoneyTabs active="freezes" />
       <Card>
         <CardTitle>{t('title')}</CardTitle>

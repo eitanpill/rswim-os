@@ -23,7 +23,7 @@ export default async function RevenueReport({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader icon="📊" title={t('title')} subtitle={t('subtitle')} />
       <ReportTabs active="revenue" />
       <RangeBar range={range} csv="revenue" />
       <div className="flex flex-col gap-4">

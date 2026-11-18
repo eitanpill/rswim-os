@@ -33,7 +33,7 @@ export default async function OccupancyReport({
 
   return (
     <>
-      <PageHeader title={t('title')} subtitle={t('occupancy.subtitle')} />
+      <PageHeader icon="📊" title={t('title')} subtitle={t('occupancy.subtitle')} />
       <ReportTabs active="occupancy" />
       <form method="get" className="mb-4 flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-sm font-medium">
