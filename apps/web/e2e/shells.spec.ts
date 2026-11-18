@@ -65,11 +65,9 @@ test.describe('role shells on mobile', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'המשפחה שלי' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'דיווח היעדרות' })).toBeVisible();
     await expectRtlMobileShell(page);
-    // The next lesson and the counts move with the calendar.
-    await expect(page).toHaveScreenshot('parent-mobile.png', {
-      fullPage: true,
-      mask: [page.locator('main')],
-    });
+    // The next lesson, the counts and the absences other tests report move the page's height: the screenshot covers
+    // the first screen of the shell, with the content masked.
+    await expect(page).toHaveScreenshot('parent-mobile.png', { mask: [page.locator('main')] });
   });
 
   test('bottom nav marks the current section', async ({ page }) => {
