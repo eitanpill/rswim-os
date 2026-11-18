@@ -47,7 +47,8 @@ Proof: `packages/db/test/rls/school-switch.test.ts`, `apps/web/src/lib/join-link
   processors' pages kept inside the app.
 - In the app, `/` opens sign-in rather than the marketing page with prices (`decideRoute`, user agent `AquaSwimApp`).
 - CI builds an Android APK and an iPhone simulator build on every change (`.github/workflows/mobile.yml`).
-- Waiting on Pit: the icon (three options, `apps/mobile/assets/options`), the App ID and app records in both
+- Icon: Pit picked option 2 (the A with water, `apps/mobile/assets/options/b-letter.svg`).
+- Waiting on Pit: the App ID and app records in both
   stores, then the first install on his phones (Xcode on the Mac for the iPhone, the CI APK for Android).
 - Not verified yet: anything on a real device or simulator (no Mac or Android SDK here); link verification needs the
   store identities in the web app's environment.

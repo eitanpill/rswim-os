@@ -676,7 +676,9 @@ export class FakeParentBotModel implements CopilotModel {
     if (hit) return reply(hit.answer, [hit.id]);
     switch (fakeBotIntent(input.prompt)) {
       case 'absence': {
-        const [next] = await lessonsOfNamed();
+        // The next lesson that hasn't begun: one already underway can't be reported (bot.errors.lessonStarted).
+        const now = israelLocalDateTime(new Date());
+        const [next] = (await lessonsOfNamed()).filter((x) => `${x.date}T${x.startsAt}` > now);
         if (!next) return handoff(`הודעה על היעדרות בלי שיעור קרוב: "${input.prompt}"`);
         const out = await use<ActOut>('report_absence', {
           childId: next.childId,

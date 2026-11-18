@@ -69,17 +69,30 @@
   </head>
   <body>
     <main>
-      <svg viewBox="0 0 512 512" aria-hidden="true">
-        <rect width="512" height="512" rx="112" fill="#1f7fb8" />
+      <svg viewBox="0 0 1024 1024" aria-hidden="true">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#36b3d9" />
+            <stop offset="1" stop-color="#1f5fa8" />
+          </linearGradient>
+          <clipPath id="a">
+            <path
+              d="M512 190 L800 830 H660 L604 700 H420 L364 830 H224 Z M512 400 L458 590 H566 Z"
+            />
+          </clipPath>
+        </defs>
+        <rect width="1024" height="1024" rx="230" fill="url(#g)" />
         <path
-          d="M80 300c40-30 80-30 120 0s80 30 120 0 80-30 112 0v40c-32-30-72-30-112 0s-80 30-120 0-80-30-120 0z"
+          d="M512 190 L800 830 H660 L604 700 H420 L364 830 H224 Z M512 400 L458 590 H566 Z"
           fill="#fff"
+          fill-rule="evenodd"
         />
-        <path
-          d="M80 380c40-30 80-30 120 0s80 30 120 0 80-30 112 0v40c-32-30-72-30-112 0s-80 30-120 0-80-30-120 0z"
-          fill="#bfe3f5"
-        />
-        <circle cx="300" cy="170" r="44" fill="#fff" />
+        <g clip-path="url(#a)">
+          <path
+            d="M150 650c70-45 140-45 210 0s140 45 210 0 140-45 210 0 140 45 210 0v260H150z"
+            fill="#bfe3f5"
+          />
+        </g>
       </svg>
       <h1>אין חיבור לאינטרנט</h1>
       <p>נראה שאין קליטה כרגע. כשהחיבור יחזור, לחצו כאן וזה ייפתח מאיפה שעצרתם.</p>
