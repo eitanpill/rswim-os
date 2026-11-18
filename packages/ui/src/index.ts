@@ -6,3 +6,6 @@ export { EmptyState } from './components/empty-state';
 export { Badge } from './components/badge';
 export { Money } from './components/money';
 export { BottomNav, SideNav, type NavItem } from './components/nav';
+export { Hero } from './components/hero';
+export { Avatar } from './components/avatar';
+export { StatTile } from './components/stat-tile';

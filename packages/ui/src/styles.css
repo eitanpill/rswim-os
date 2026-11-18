@@ -25,7 +25,14 @@
   --color-warn: oklch(75% 0.15 75);
   --color-danger: oklch(58% 0.2 25);
 
-  --radius-card: 1rem;
+  --color-sun: oklch(84% 0.15 85);
+  --color-coral: oklch(68% 0.17 35);
+  --color-mint: oklch(78% 0.12 170);
+  --color-grape: oklch(62% 0.15 300);
+
+  --radius-card: 1.25rem;
+  --shadow-soft: 0 1px 2px oklch(30% 0.04 240 / 0.06), 0 8px 24px -12px oklch(30% 0.06 240 / 0.18);
+  --shadow-pop: 0 2px 4px oklch(30% 0.05 240 / 0.08), 0 18px 36px -16px oklch(35% 0.1 230 / 0.35);
   /* Wet fingers: tap targets are at least 44px */
   --spacing-tap: 2.75rem;
 }
@@ -64,4 +71,140 @@ body {
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * Shared look (all roles): water-coloured hero cards in the school's own brand hue, soft depth, and gentle motion.
+ * Everything keys off --color-brand-*, which AppShell sets per school, so each tenant wears its own colour.
+ */
+.bg-water {
+  background:
+    radial-gradient(110% 90% at 100% 0%, oklch(100% 0 0 / 0.28), transparent 55%),
+    radial-gradient(80% 70% at 0% 100%, oklch(100% 0 0 / 0.12), transparent 60%),
+    linear-gradient(150deg, var(--color-brand-500), var(--color-brand-700));
+  color: white;
+}
+.bg-water-soft {
+  background: linear-gradient(160deg, var(--color-brand-50), var(--surface-raised) 70%);
+}
+.dark .bg-water-soft {
+  background: linear-gradient(160deg, oklch(28% 0.04 230), var(--surface-raised) 70%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .bg-water-soft {
+    background: linear-gradient(160deg, oklch(28% 0.04 230), var(--surface-raised) 70%);
+  }
+}
+
+@keyframes ui-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ui-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes ui-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  50% {
+    transform: translateY(-4px) rotate(-4deg);
+  }
+}
+@keyframes ui-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+/* Each screen's blocks surface in turn when it opens. */
+.page-in > *,
+.stagger > * {
+  animation: ui-rise 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.page-in > :nth-child(2),
+.stagger > :nth-child(2) {
+  animation-delay: 50ms;
+}
+.page-in > :nth-child(3),
+.stagger > :nth-child(3) {
+  animation-delay: 100ms;
+}
+.page-in > :nth-child(4),
+.stagger > :nth-child(4) {
+  animation-delay: 150ms;
+}
+.page-in > :nth-child(5),
+.stagger > :nth-child(5) {
+  animation-delay: 200ms;
+}
+.page-in > :nth-child(n + 6),
+.stagger > :nth-child(n + 6) {
+  animation-delay: 250ms;
+}
+.pop-in {
+  animation: ui-pop 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+.bob {
+  display: inline-block;
+  animation: ui-bob 3.2s ease-in-out infinite;
+}
+.lift {
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+.lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-pop);
+}
+.lift:active {
+  transform: scale(0.985);
+}
+.skeleton {
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, var(--line) 25%, var(--surface) 50%, var(--line) 75%) 0 0 /
+    200% 100%;
+  animation: ui-shimmer 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-in > *,
+  .stagger > *,
+  .pop-in,
+  .bob,
+  .skeleton {
+    animation: none;
+  }
+  .lift:hover,
+  .lift:active {
+    transform: none;
+  }
+}
+@media print {
+  .page-in > *,
+  .stagger > * {
+    animation: none;
+  }
 }

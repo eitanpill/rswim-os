@@ -3,12 +3,13 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { PRODUCT } from '@rswim/contracts';
 import { brandPalette, myBranding } from '@rswim/domain-platform';
-import { Button } from '@rswim/ui';
+import { Avatar, Button } from '@rswim/ui';
 import { setLocale } from '@/app/actions/locale';
 import { isDemoMode } from '@/lib/auth/dev';
 import { canSwitchSchool } from '@/lib/auth/schools';
 import type { Session } from '@/lib/auth/types';
 import { withSession } from '@/lib/db';
+import { icons } from './icons';
 import { DesktopNav, MobileNav, type NavSpec } from './nav-bar';
 import { OfflineBanner } from './offline-banner';
 
@@ -48,21 +49,29 @@ export async function AppShell({
           {t('demoBanner')}
         </p>
       ) : null}
-      <header className="sticky top-0 print:hidden z-10 flex items-center justify-between gap-3 border-b border-line bg-surface-raised px-4 py-2">
-        <div className="min-w-0">
-          <p className="truncate font-semibold" data-testid="org-name">
-            {name}
-          </p>
-          {/* The person's own account (store launch: deleting it is one tap away from every screen). */}
-          <Link
-            href="/me/account"
-            className="block truncate text-xs text-ink-muted underline-offset-2 hover:underline"
-            data-testid="my-account"
+      <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line/70 bg-surface-raised/85 px-4 py-2 backdrop-blur-md print:hidden">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span
+            aria-hidden
+            className="bg-water grid size-9 shrink-0 place-items-center rounded-xl text-lg shadow-sm"
           >
-            {[session.displayName, session.role ? t(`role.${session.role}`) : null]
-              .filter(Boolean)
-              .join(' · ')}
-          </Link>
+            {[...name.trim()][0] ?? '🌊'}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate leading-tight font-semibold" data-testid="org-name">
+              {name}
+            </p>
+            {/* The person's own account (store launch: deleting it is one tap away from every screen). */}
+            <Link
+              href="/me/account"
+              className="block truncate text-xs text-ink-muted underline-offset-2 hover:underline"
+              data-testid="my-account"
+            >
+              {[session.displayName, session.role ? t(`role.${session.role}`) : null]
+                .filter(Boolean)
+                .join(' · ')}
+            </Link>
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {switcher ? (
@@ -76,13 +85,39 @@ export async function AppShell({
           ) : null}
           <form action={setLocale}>
             <input type="hidden" name="locale" value={locale === 'he' ? 'en' : 'he'} />
-            <Button variant="ghost" type="submit" className="text-sm">
-              {t('language')}
+            <Button
+              variant="ghost"
+              type="submit"
+              className="gap-1 px-2.5 text-sm text-ink-muted"
+              aria-label={t('language')}
+              title={t('language')}
+            >
+              <span aria-hidden className="[&_svg]:size-5">
+                {icons.globe}
+              </span>
+              <span aria-hidden className="text-xs font-semibold">
+                {locale === 'he' ? 'EN' : 'עב'}
+              </span>
             </Button>
           </form>
+          <Link
+            href="/me/account"
+            aria-label={t('myAccount')}
+            className="hidden rounded-full sm:block"
+          >
+            <Avatar name={session.displayName ?? name} size="sm" />
+          </Link>
           <form action="/auth/signout" method="post">
-            <Button variant="secondary" type="submit" className="text-sm">
-              {t('signOut')}
+            <Button
+              variant="ghost"
+              type="submit"
+              className="px-2.5 text-ink-muted hover:text-danger"
+              aria-label={t('signOut')}
+              title={t('signOut')}
+            >
+              <span aria-hidden className="[&_svg]:size-5">
+                {icons.exit}
+              </span>
             </Button>
           </form>
         </div>
@@ -93,7 +128,7 @@ export async function AppShell({
             <DesktopNav items={nav} label={t('mainNav')} />
           </div>
         ) : null}
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-4 pb-24 md:pb-8 print:p-0">
+        <main className="page-in mx-auto w-full max-w-5xl flex-1 px-4 pt-5 pb-28 md:pb-8 print:p-0">
           {children}
         </main>
       </div>
