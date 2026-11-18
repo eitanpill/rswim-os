@@ -18,6 +18,8 @@ import {
   planChangeCheck,
   subscriptionAfterCharge,
   subscriptionOnDay,
+  trialPreview,
+  trialTimeline,
   usageOf,
   verificationRecord,
   type PlanFacts,
@@ -395,5 +397,42 @@ describe('aiBudget', () => {
     expect(aiBudget(300, 240, 80)).toMatchObject({ state: 'warn', percent: 80 });
     expect(aiBudget(300, 300, 80)).toMatchObject({ state: 'over', percent: 100 });
     expect(aiBudget(0, 0, 80)).toMatchObject({ state: 'over', cap: 0 });
+  });
+});
+
+describe('the free trial as the owner sees it', () => {
+  it('counts the free days left and dates the first charge the day after the last free day', () => {
+    expect(trialTimeline('2026-12-02', '2026-11-18', 3)).toEqual({
+      endsOn: '2026-12-02',
+      firstChargeOn: '2026-12-03',
+      remindFrom: '2026-11-30',
+      daysLeft: 15,
+      reminding: false,
+    });
+  });
+
+  it('reminds the owner in the last days before the first charge, and not after the trial', () => {
+    expect(trialTimeline('2026-12-02', '2026-11-29', 3).reminding).toBe(false);
+    expect(trialTimeline('2026-12-02', '2026-11-30', 3)).toMatchObject({
+      daysLeft: 3,
+      reminding: true,
+    });
+    expect(trialTimeline('2026-12-02', '2026-12-02', 3)).toMatchObject({
+      daysLeft: 1,
+      reminding: true,
+    });
+    expect(trialTimeline('2026-12-02', '2026-12-03', 3)).toMatchObject({
+      daysLeft: 0,
+      reminding: false,
+    });
+    expect(trialTimeline('2026-12-02', '2026-11-18', 0).reminding).toBe(false);
+  });
+
+  it('previews a trial that starts today the way the database sets it', () => {
+    expect(trialPreview('2026-11-18', 14, 3)).toMatchObject({
+      endsOn: '2026-12-02',
+      firstChargeOn: '2026-12-03',
+      remindFrom: '2026-11-30',
+    });
   });
 });

@@ -710,7 +710,8 @@
       "trial": "Your trial runs until {date}.",
       "trialNoCard": "Your trial runs until {date}. To continue after it, add a card.",
       "addCard": "Add a card",
-      "cancelling": "The subscription was cancelled and ends on {date}."
+      "cancelling": "The subscription was cancelled and ends on {date}.",
+      "trialNoCardShort": "To keep going after it, add a card."
     },
     "plan": {
       "title": "My plan",
@@ -844,7 +845,11 @@
           "title": "Freediving club",
           "body": "Sessions, bookings, passes, certifications and divers' health forms"
         }
-      }
+      },
+      "heroTitle": "Let's open your business",
+      "heroSubtitle": "Two minutes of details and you're in.",
+      "popular": "Most popular",
+      "steps": ["Account", "Business", "Card and go"]
     },
     "console": {
       "title": "Schools",
@@ -1024,7 +1029,8 @@
         "submit": "Save card",
         "later": "Later",
         "savedTitle": "Card saved",
-        "continue": "Continue setting up"
+        "continue": "Continue setting up",
+        "heroSubtitle": "Last step. The card is saved now and not charged before the trial ends."
       },
       "sandbox": {
         "title": "Card page (demo)",
@@ -1061,6 +1067,22 @@
       },
       "nothingYet": "No AI use yet this month.",
       "hint": "An AI action is any piece of AI work: a copilot or parents' bot answer, sorting a message, a morning insight note or matching an import's columns. The allowance is part of the plan's price and resets on the 1st of each month."
+    },
+    "trial": {
+      "free": "{days} days free",
+      "noChargeUntil": "No charge at all before {date}",
+      "today": "Today",
+      "stepStart": "You start working, free",
+      "stepRemind": "A clear reminder in the app, {days, plural, one {a day} other {# days}} before the charge",
+      "stepCharge": "First charge:",
+      "perMonth": "a month",
+      "stepChargePlan": "First charge, by the plan you choose",
+      "cancel": "Changed your mind? Cancel in one click on the plan screen before then and pay nothing.",
+      "daysLeft": "{days, plural, one {One free day left.} other {# free days left.}}",
+      "reminderTitle": "Reminder: {days, plural, one {today is the last day of your trial.} other {your trial ends in # days.}}",
+      "reminderCharge": "On {date} we charge your card ",
+      "reminderNoCard": "From {date} a card is needed to keep going.",
+      "changeOrCancel": "Change plan or cancel"
     }
   },
   "calendar": {

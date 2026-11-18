@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { brandingForHost, brandPalette } from '@rswim/domain-platform';
 import { demoProfile } from '@rswim/db/demo-profiles';
 import { isDemoMode } from '@/lib/auth/dev';
+import { WaterBand } from '@/components/aqua-hero';
 import { withAnon } from '@/lib/db';
 
 /** On a school's own verified domain, sign-in wears that school's name and colour. */
@@ -31,15 +32,27 @@ export async function LoginFrame({
       style={brandPalette(brand?.hue)}
       data-brand={brand?.hue ?? undefined}
     >
-      <div className="text-center" data-testid="login-brand">
-        <p className="text-3xl font-bold text-brand-600">
-          {brand ? (brand.displayName ?? brand.name) : t('app.name')}
-        </p>
-        <p className="text-ink-muted">
-          {brand ? t('login.poweredBy') : isDemoMode() ? demoProfile().tagline : t('app.tagline')}
-        </p>
-      </div>
-      <section className="rounded-card border border-line bg-surface-raised p-5 shadow-sm">
+      {brand ? (
+        <div className="text-center" data-testid="login-brand">
+          <p className="text-3xl font-bold text-brand-600">{brand.displayName ?? brand.name}</p>
+          <p className="text-ink-muted">{t('login.poweredBy')}</p>
+        </div>
+      ) : (
+        <div
+          className="aqua-hero aqua-in rounded-card px-5 pb-12 pt-6 text-center"
+          data-testid="login-brand"
+        >
+          <WaterBand />
+          <p className="text-3xl font-bold">
+            <span className="aqua-float inline-block" aria-hidden="true">
+              🌊
+            </span>{' '}
+            {t('app.name')}
+          </p>
+          <p className="text-white/90">{isDemoMode() ? demoProfile().tagline : t('app.tagline')}</p>
+        </div>
+      )}
+      <section className="aqua-in rounded-card border border-line bg-surface-raised p-5 shadow-sm">
         <h1 className="mb-4 text-xl font-semibold">{title}</h1>
         {error && known.includes(error) ? (
           <p role="alert" className="mb-4 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">

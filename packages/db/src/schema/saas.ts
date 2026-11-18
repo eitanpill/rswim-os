@@ -50,6 +50,8 @@ export const plans = pgTable(
       .notNull()
       .default(sql`'{}'::text[]`),
     trialDays: smallint('trial_days').notNull().default(14),
+    /** The owner is reminded this many days before the trial ends and the first charge. */
+    trialReminderDays: smallint('trial_reminder_days').notNull().default(3),
     /** Days a declined school stays past due before it is suspended. */
     graceDays: smallint('grace_days').notNull().default(10),
     /** A declined charge is tried again every this many days, at most `maxChargeAttempts` times. */
@@ -64,6 +66,7 @@ export const plans = pgTable(
   (t) => [
     check('plans_price_check', sql`${t.priceAgorot} >= 0`),
     check('plans_ai_actions_check', sql`${t.aiMonthlyActions} >= 0`),
+    check('plans_trial_reminder_days_check', sql`${t.trialReminderDays} >= 0`),
     check('plans_features_check', sql.raw(`features <@ array[${inList(PLAN_FEATURES)}]::text[]`)),
   ],
 );
