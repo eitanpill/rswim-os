@@ -126,6 +126,13 @@ jobs:
           CURRENT_PROJECT_VERSION=${{ github.run_number }}
           CODE_SIGNING_ALLOWED=NO
           archive
+      - name: Keep the app's entitlements in the unsigned archive
+        # The export takes the entitlements (Associated Domains for the links that open the app) from the archived
+        # app's signature, so the unsigned app gets an ad-hoc signature carrying App.entitlements.
+        if: env.HAS_KEY == 'true'
+        run: >-
+          codesign --force --sign - --entitlements apps/mobile/ios/App/App/App.entitlements
+          "$RUNNER_TEMP/AquaSwim.xcarchive/Products/Applications/App.app"
       - name: Sign for the App Store and check the links that open the app
         if: env.HAS_KEY == 'true'
         run: |
