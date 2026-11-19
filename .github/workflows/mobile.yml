@@ -8,7 +8,7 @@ on:
   pull_request:
     paths: ['apps/mobile/**', '.github/workflows/mobile.yml']
   push:
-    # A push to a testflight/* branch uploads that branch's build to TestFlight without merging it.
+    # A push to a testflight/* branch (after it exists) uploads that branch's build to TestFlight without merging it.
     branches: [main, 'testflight/**']
     paths: ['apps/mobile/**', '.github/workflows/mobile.yml']
   workflow_dispatch:
