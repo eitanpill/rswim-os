@@ -23,6 +23,7 @@ GoHighLevel (white-labeled "LeadYourWay") stays the marketing and lead engine. R
 apps/
   web/                 Next.js app (admin, instructor PWA, parent portal)
   worker/              Inngest worker
+  mobile/              Capacitor shell for the App Store and Google Play (docs/store/APP.md)
 packages/
   db/                  Drizzle schema, migrations (0001_security.sql = RLS, triggers, auth hook), test harness
   seed/                Fake Hebrew demo data (two orgs, brief §10 edge cases)
@@ -87,7 +88,10 @@ school's link, the phone the office knows, or opening a school); someone in seve
 (`public.switch_school`, dev persona **אסף (מדריך והורה)**). Families find a school on `/schools` (search, open
 signed out) or its link `/join/<slug>`; a swim school's office decides join and trial requests on `/admin/join` (link,
 printable QR, search listing), and `/start` offers the school that already has the person's phone (dev personas
-**דנה (הורה מחפשת בית ספר)** and **מיכל (הורה שבית הספר מכיר)**). Anyone deletes their own account on `/me/account`
+**דנה (הורה מחפשת בית ספר)** and **מיכל (הורה שבית הספר מכיר)**). The store app (`apps/mobile`, `docs/store/APP.md`) is a Capacitor shell that loads the site; it
+sends user agent `AquaSwimApp` (`lib/native-app.ts`), links open it through `/.well-known` files built from
+`RSWIM_IOS_APP_IDS` and `RSWIM_ANDROID_CERT_SHA256`, and `.github/workflows/mobile.yml` builds both platforms.
+Anyone deletes their own account on `/me/account`
 (`public.delete_my_account`, each school's database first; the only owner of a school is refused; hidden dev persona
 `leaver` for the E2E suite).
 

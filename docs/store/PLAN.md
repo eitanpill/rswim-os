@@ -40,6 +40,19 @@ Proof: `packages/db/test/rls/school-switch.test.ts`, `apps/web/src/lib/join-link
 - Limit: for a school with its own database, "we found you" works only after the person asked that school to join
   (their sign-in row reaches its database then). Shared schools, the default, work fully.
 
+## Stage 5: the app shell (18.11.2026)
+- `apps/mobile`: one Capacitor project for iPhone and Android that loads the site (`docs/store/APP.md`): links that
+  open the app on our hosts (`/.well-known` files on the site), the camera and gallery from the existing upload
+  buttons, the share sheet (first on the school's join link), the app's own no-connection screen, and the payment
+  processors' pages kept inside the app.
+- In the app, `/` opens sign-in rather than the marketing page with prices (`decideRoute`, user agent `AquaSwimApp`).
+- CI builds an Android APK and an iPhone simulator build on every change (`.github/workflows/mobile.yml`).
+- Icon: Pit picked a swimmer in the waves (`apps/mobile/assets/options/d-swimmer.svg`).
+- Waiting on Pit: the App ID and app records in both
+  stores, then the first install on his phones (Xcode on the Mac for the iPhone, the CI APK for Android).
+- Not verified yet: anything on a real device or simulator (no Mac or Android SDK here); link verification needs the
+  store identities in the web app's environment.
+
 ## Stage 8, first part: deleting your account (14.11.2026)
 - `/me/account` ("החשבון שלי"), one tap from every screen (the name under the school's name in the header, or the
   avatar on the freediving screens). It says what goes (the sign-in, every membership, join requests not yet

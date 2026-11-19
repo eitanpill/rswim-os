@@ -29,6 +29,8 @@ export const PUBLIC_PREFIXES = [
   '/schools',
   // Shown right after someone deleted their account (they are signed out by then).
   '/goodbye',
+  // The files that let links open the store app (lib/native-app.ts).
+  '/.well-known',
 ];
 
 export function surfaceForPath(pathname: string): Surface | 'platform' | null {
@@ -49,12 +51,20 @@ export function homePath(session: Session): string {
 
 export type RouteDecision = { action: 'next' } | { action: 'redirect'; to: string };
 
-/** The whole access rule for a request, as a pure function (unit tested). */
-export function decideRoute(pathname: string, session: Session | null): RouteDecision {
+/**
+ * The whole access rule for a request, as a pure function (unit tested). `nativeApp`: the request comes from the
+ * store app, which opens on sign-in rather than the marketing page (that page shows the subscription's prices).
+ */
+export function decideRoute(
+  pathname: string,
+  session: Session | null,
+  opts: { nativeApp?: boolean } = {},
+): RouteDecision {
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`)))
     return { action: 'next' };
   if (!session) {
-    if (pathname === '/') return { action: 'next' };
+    if (pathname === '/')
+      return opts.nativeApp ? { action: 'redirect', to: '/login' } : { action: 'next' };
     return { action: 'redirect', to: `/login?next=${encodeURIComponent(pathname)}` };
   }
   if (pathname === '/') return { action: 'redirect', to: homePath(session) };

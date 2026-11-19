@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { PRODUCT } from '@rswim/contracts';
+import { NativeBridge } from '@/components/native-bridge';
 import { ServiceWorkerRegister } from '@/components/sw-register';
 import { dirFor, type Locale } from '@/i18n/config';
 
@@ -37,6 +38,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           {children}
         </NextIntlClientProvider>
         <ServiceWorkerRegister />
+        <NativeBridge />
       </body>
     </html>
   );

@@ -11,6 +11,7 @@ import {
   TextareaField,
 } from '@/components/form';
 import { PrintButton } from '@/components/print-button';
+import { ShareButton } from '@/components/share-button';
 import { withSession } from '@/lib/db';
 import { requestOrigin } from '@/lib/payments';
 import { acceptJoinRequestAction, declineJoinRequestAction, saveListingAction } from './actions';
@@ -136,7 +137,8 @@ export default async function JoinRequestsPage() {
               />
               <p className="hidden text-lg print:block">{t('posterBody')}</p>
             </div>
-            <div className="mt-3 flex justify-center">
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <ShareButton label={t('share')} text={t('shareText')} url={link} />
               <PrintButton label={t('print')} />
             </div>
           </Card>
