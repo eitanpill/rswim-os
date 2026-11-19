@@ -20,15 +20,18 @@ review. What the shell adds is native.
 
 ```
 pnpm --filter @rswim/mobile sync          # writes www/site.js, copies the shell and plugins into ios/ and android/
-pnpm --filter @rswim/mobile open:ios      # Xcode (on a Mac): pick the team, run on a phone or archive for TestFlight
+pnpm --filter @rswim/mobile open:ios      # Xcode (optional, on a Mac): run on a phone from a cable
 pnpm --filter @rswim/mobile open:android  # Android Studio: run on a phone, or Build > Generate Signed Bundle
 ```
 `AQUA_APP_URL=https://staging.aqua-swim.co.il pnpm --filter @rswim/mobile sync` for a build that loads staging.
 
 `.github/workflows/mobile.yml` builds both on every change under `apps/mobile` and on every merge to main: an Android
 debug APK (downloadable from the run for 14 days) and an iPhone simulator build, both loading staging, unsigned.
-Signed builds to TestFlight and Google Play internal testing join once the store keys are in the repository's
-secrets (next section).
+On main (and from Actions → Mobile app → Run workflow) the `testflight` job archives the iPhone app on GitHub's Mac,
+signs it with Xcode's cloud signing through the App Store Connect key, and uploads it to TestFlight with the run number
+as build number. Nobody needs Xcode or a Mac (Pit has no room for Xcode, 19.11.2026). Without the key's secrets the job
+is skipped. TestFlight builds load staging for now; the store build switches `AQUA_APP_URL` to production. Google Play
+internal testing joins the same way once its keys are in the secrets.
 
 ## Setting up the stores (once)
 
@@ -37,8 +40,10 @@ Apple (App Store Connect, the organization account):
    capability **Associated Domains** on. Done 18.11.2026.
 2. App Store Connect → Apps → **+** New App: iOS, name Aqua Swim, Hebrew primary language, bundle id from step 1.
 3. The web app's environment: `RSWIM_IOS_APP_IDS=6ZNNQLACFA.il.co.aquaswim.app` (Team ID 6ZNNQLACFA, also set as the Xcode project's team). Done for staging 18.11.2026.
-4. For builds from CI: Users and Access → Integrations → App Store Connect API → a key with the App Manager role. The
-   key file goes into the repository's secrets, never into chat.
+4. For builds from CI: Users and Access → Integrations → App Store Connect API → Team Keys → **+**, role **Admin**
+   (cloud signing creates the distribution certificate itself). Repository secrets, never chat: `APPSTORE_ISSUER_ID`,
+   `APPSTORE_KEY_ID`, `APPSTORE_P8` (the whole .p8 file). Then install TestFlight on the iPhone; App Store Connect →
+   the app → TestFlight → Internal Testing → add yourself as a tester.
 
 Google (Play Console, the organization account):
 1. Create app: Aqua Swim, Hebrew, App, Free.
