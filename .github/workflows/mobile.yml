@@ -1,14 +1,15 @@
 name: Mobile app
 
 # Builds the store app (apps/mobile, docs/store/APP.md) on every change to it and on every merge to main.
-# Pull requests build unsigned. On main (and by hand) the testflight job signs the iPhone app in the cloud and uploads
+# Pull requests build unsigned. On main, testflight/* branches (and by hand) the testflight job signs the iPhone app in the cloud and uploads
 # it to TestFlight once the App Store Connect key is in the repository's secrets (APPSTORE_ISSUER_ID, APPSTORE_KEY_ID,
 # APPSTORE_P8); without them it is skipped. No Mac or Xcode is needed on anyone's desk (docs/store/APP.md).
 on:
   pull_request:
     paths: ['apps/mobile/**', '.github/workflows/mobile.yml']
   push:
-    branches: [main]
+    # A push to a testflight/* branch uploads that branch's build to TestFlight without merging it.
+    branches: [main, 'testflight/**']
     paths: ['apps/mobile/**', '.github/workflows/mobile.yml']
   workflow_dispatch:
 
