@@ -122,6 +122,8 @@ describe('connecting the business number', () => {
       phoneNumberId: '1000001',
       accessToken: 'fake-access-token-0123456789',
       appSecret: SECRET,
+      businessAccountId: '2000001',
+      verifyToken: expect.stringMatching(/^[0-9a-f]{48}$/) as string,
     });
     await asOwner((tx) =>
       connectWhatsApp(tx, ctx, {

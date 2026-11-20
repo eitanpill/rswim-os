@@ -1,11 +1,21 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
-import { whatsappConnection } from '@rswim/domain-comms';
+import { metaTemplateOverview, whatsappConnection } from '@rswim/domain-comms';
 import { Badge, Card, CardTitle, PageHeader } from '@rswim/ui';
 import { ActionButton, ActionForm, Field, SubmitButton } from '@/components/form';
 import { requireSurface } from '@/lib/auth/session';
 import { withSession } from '@/lib/db';
+import { enumLabel } from '@/lib/options';
 import { requestOrigin } from '@/lib/payments';
-import { connectWhatsAppAction, disconnectWhatsAppAction } from './actions';
+import {
+  checkWhatsAppAction,
+  connectWhatsAppAction,
+  disconnectWhatsAppAction,
+  submitMetaTemplatesAction,
+  testWhatsAppAction,
+} from './actions';
+
+const quality = (q: string | null) =>
+  q === 'GREEN' || q === 'YELLOW' || q === 'RED' ? q : ('NA' as const);
 
 /**
  * The business's own WhatsApp number on Meta's Cloud API (WhatsApp track W5). The owner enters what WhatsApp Manager
@@ -15,9 +25,24 @@ export default async function WhatsAppPage() {
   const session = await requireSurface('admin');
   const t = await getTranslations('whatsapp');
   const format = await getFormatter();
-  const connection = await withSession((tx) => whatsappConnection(tx));
+  const { connection, templates } = await withSession(async (tx, ctx) => {
+    const connection = await whatsappConnection(tx);
+    return {
+      connection,
+      templates: connection?.status === 'connected' ? await metaTemplateOverview(tx, ctx) : [],
+    };
+  });
   const origin = await requestOrigin();
   const connected = connection?.status === 'connected';
+  const label = await enumLabel();
+  const count = (state: string) => templates.filter((r) => r.state === state).length;
+  const attention = templates.filter(
+    (r) =>
+      r.state === 'rejected' ||
+      r.state === 'edge_variable' ||
+      r.state === 'too_long' ||
+      (r.state === 'not_sent' && r.metaError !== null),
+  );
   if (session.role !== 'owner')
     return (
       <>
@@ -97,6 +122,96 @@ export default async function WhatsAppPage() {
             <p className="text-sm text-ink-muted">{t('emptyHint')}</p>
           </Card>
         )}
+
+        {connected ? (
+          <Card data-testid="whatsapp-live">
+            <CardTitle>{t('live.title')}</CardTitle>
+            <ol className="flex flex-col gap-5">
+              <li data-testid="whatsapp-check" data-ok={connection.subscribedAt ? 'yes' : 'no'}>
+                <p className="font-semibold">{t('live.check')}</p>
+                <p className="mb-2 text-sm text-ink-muted">{t('live.checkHint')}</p>
+                {connection.checkedAt ? (
+                  connection.checkError ? (
+                    <p className="mb-2 rounded-xl bg-warn/10 px-3 py-2 text-sm">
+                      {t('live.checkFailed')} <span dir="ltr">{connection.checkError}</span>
+                    </p>
+                  ) : (
+                    <p className="mb-2 rounded-xl bg-ok/10 px-3 py-2 text-sm">
+                      {t('live.checkOk', {
+                        name: connection.verifiedName ?? connection.displayPhone,
+                        quality: t(`live.quality.${quality(connection.quality)}`),
+                      })}
+                    </p>
+                  )
+                ) : null}
+                <ActionButton
+                  action={checkWhatsAppAction}
+                  variant="secondary"
+                  data-testid="whatsapp-check-run"
+                  showSuccess
+                >
+                  {t('live.checkRun')}
+                </ActionButton>
+              </li>
+              <li data-testid="whatsapp-templates">
+                <p className="font-semibold">{t('live.templates')}</p>
+                <p className="mb-2 text-sm text-ink-muted">{t('live.templatesHint')}</p>
+                <p className="mb-2 flex flex-wrap gap-2 text-sm">
+                  <Badge tone="ok">{t('live.count.approved', { n: count('approved') })}</Badge>
+                  <Badge tone="warn">{t('live.count.waiting', { n: count('waiting') })}</Badge>
+                  <Badge>{t('live.count.not_sent', { n: count('not_sent') })}</Badge>
+                  {count('rejected') > 0 ? (
+                    <Badge tone="danger">
+                      {t('live.count.rejected', { n: count('rejected') })}
+                    </Badge>
+                  ) : null}
+                </p>
+                {attention.length > 0 ? (
+                  <ul
+                    className="mb-2 list-disc ps-5 text-sm"
+                    data-testid="whatsapp-template-problems"
+                  >
+                    {attention.map((r) => (
+                      <li key={`${r.key}-${r.locale}`}>
+                        {label('templateKey', r.key)} ({r.locale}): {t(`live.problem.${r.state}`)}
+                        {r.metaError ? (
+                          <span dir="ltr" className="text-ink-muted">
+                            {' '}
+                            {r.metaError}
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <ActionButton
+                  action={submitMetaTemplatesAction}
+                  variant="secondary"
+                  data-testid="whatsapp-templates-run"
+                  showSuccess
+                >
+                  {t('live.templatesRun')}
+                </ActionButton>
+              </li>
+              <li data-testid="whatsapp-test">
+                <p className="font-semibold">{t('live.test')}</p>
+                <p className="mb-2 text-sm text-ink-muted">{t('live.testHint')}</p>
+                <ActionForm action={testWhatsAppAction} resetOnSuccess testId="whatsapp-test-form">
+                  <Field
+                    name="phone"
+                    label={t('live.testPhone')}
+                    dir="ltr"
+                    inputMode="tel"
+                    required
+                  />
+                  <div>
+                    <SubmitButton variant="secondary">{t('live.testRun')}</SubmitButton>
+                  </div>
+                </ActionForm>
+              </li>
+            </ol>
+          </Card>
+        ) : null}
 
         <Card data-testid="whatsapp-connect">
           <CardTitle>{connection ? t('replace') : t('connect')}</CardTitle>

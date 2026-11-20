@@ -6616,6 +6616,43 @@
       "numberTaken": "This number is already connected to another business",
       "notConnected": "No number is connected",
       "unknownVariable": "Details the message does not have: {names}"
+    },
+    "live": {
+      "title": "Going live, three steps",
+      "check": "1. Check the connection",
+      "checkHint": "We check the details with Meta and connect incoming messages to the system. Nothing to paste into Meta.",
+      "checkRun": "Check the connection",
+      "checkAsked": "The check is on its way. Refresh the page in a moment.",
+      "checkOk": "Connected: {name}. Number quality: {quality}. Incoming messages reach the system.",
+      "checkFailed": "The check failed. Meta answered:",
+      "quality": {
+        "GREEN": "good",
+        "YELLOW": "medium",
+        "RED": "low",
+        "NA": "not rated yet"
+      },
+      "templates": "2. Message approval at Meta",
+      "templatesHint": "To message a customer who has not written in the last 24 hours, Meta has to approve the wording first. One tap sends every message for approval. It usually takes minutes to a day.",
+      "templatesRun": "Send the messages for approval",
+      "templatesAsked": "The messages are being sent for approval. Refresh the page in a moment.",
+      "count": {
+        "approved": "{n} approved",
+        "waiting": "{n} waiting",
+        "not_sent": "{n} not sent yet",
+        "rejected": "{n} rejected"
+      },
+      "problem": {
+        "rejected": "Meta rejected the wording. Edit it on the templates screen and send again.",
+        "edge_variable": "The wording starts or ends with a variable, which Meta does not approve. Add a word before or after it.",
+        "too_long": "The wording is longer than 1,024 characters.",
+        "not_sent": "Sending for approval failed."
+      },
+      "test": "3. Test message",
+      "testHint": "First send a message from your phone to the business number, then enter your number here. The message arrives within a minute.",
+      "testPhone": "Your phone",
+      "testRun": "Send a test message",
+      "testQueued": "The message is queued. You can see it in the message log.",
+      "testText": "Connection test: this message was sent from the system through your business number. Everything works!"
     }
   },
   "lodging": {
