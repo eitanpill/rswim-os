@@ -124,7 +124,10 @@ describe('signing', () => {
 
   it('a "yes" on a medical question waits; the office clears it and the medical counts', async () => {
     const { rows } = await t.pool.query<{ id: string }>(
-      `select id from dive_divers where organization_id = $1 and medical_expires_on is null limit 1`,
+      // A diver with no health form at all (the seed signs some, pending or refused, which would come out "latest").
+      `select d.id from dive_divers d where d.organization_id = $1 and d.medical_expires_on is null
+         and not exists (select 1 from dive_form_signatures s where s.diver_id = d.id and s.kind = 'health')
+       order by d.created_at, d.id limit 1`,
       [DIVE_ORG.id],
     );
     const diver = rows[0]?.id as string;
