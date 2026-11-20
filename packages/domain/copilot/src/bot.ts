@@ -40,6 +40,7 @@ import {
 } from '@rswim/integrations';
 import { getAgentSettings } from './agent';
 import { FakeLeadBotModel, runLeadBot } from './lead-bot';
+import { diverByPhone, FakeDiverBotModel, runDiverBot } from './diver-bot';
 import { isOwnerReply } from './brain-inbound';
 import {
   agentKindOfDraft,
@@ -580,6 +581,11 @@ export async function runParentBot(
   if (await isOwnerReply(tx, row)) return { outcome: 'skipped', reason: 'owner_reply' };
   // A new customer (a lead, not a family) gets the front-desk bot (lead-bot.ts, WhatsApp track W2).
   if (row.householdId === null && row.leadId !== null) return runLeadBot(tx, ctx, model, row, opts);
+  // A freediving club's registered diver gets the divers' bot (diver-bot.ts, WhatsApp track W6).
+  if (row.householdId === null && row.staffMemberId === null) {
+    const diver = await diverByPhone(tx, row.fromPhoneE164);
+    if (diver) return runDiverBot(tx, ctx, model, row, diver, opts);
+  }
   const drafted = await tx
     .select({ id: triageActions.id, kind: triageActions.kind })
     .from(triageActions)
@@ -737,6 +743,8 @@ export class FakeParentBotModel implements CopilotModel {
     // A new customer's message carries the front-desk tools: the lead bot's stand-in answers it.
     if (input.tools.some((t) => t.name === 'reply_to_lead'))
       return new FakeLeadBotModel().run(input);
+    if (input.tools.some((t) => t.name === 'reply_to_diver'))
+      return new FakeDiverBotModel().run(input);
     const trace: CopilotTraceStep[] = [];
     const use = async <T>(tool: string, args: unknown) => {
       const r = await traced(input, trace, tool, args);
@@ -1005,6 +1013,18 @@ export async function listBotReplies(
         .from(schema.leads)
         .where(inArray(schema.leads.id, leadIds))
     : [];
+  // A club's divers (W6).
+  const diverIds = [...new Set(list.map((r) => r.reply.diverId).filter((d) => d !== null))];
+  const diverNames = diverIds.length
+    ? await tx
+        .select({
+          id: schema.diveDivers.id,
+          first: schema.diveDivers.firstName,
+          last: schema.diveDivers.lastName,
+        })
+        .from(schema.diveDivers)
+        .where(inArray(schema.diveDivers.id, diverIds))
+    : [];
   // What the bot did through the brain; the journal is the owner's, so the office sees none.
   const inboundIds = list.map((r) => r.reply.inboundMessageId);
   const actions = inboundIds.length
@@ -1024,7 +1044,11 @@ export async function listBotReplies(
     body: r.body,
     receivedAt: r.receivedAt,
     inboundStatus: r.inboundStatus,
-    family: names.find((n) => n.id === r.reply.householdId)?.n ?? null,
+    family:
+      names.find((n) => n.id === r.reply.householdId)?.n ??
+      ((d) => (d ? `${d.first} ${d.last}` : null))(
+        diverNames.find((d) => d.id === r.reply.diverId),
+      ),
     lead: leadNames.find((l) => l.id === r.reply.leadId) ?? null,
     actions: actions
       .filter((a) => a.inboundMessageId === r.reply.inboundMessageId)

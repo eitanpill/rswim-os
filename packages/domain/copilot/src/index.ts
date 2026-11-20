@@ -16,3 +16,5 @@ export * from './lead-followup';
 export * from './lead-trial';
 export * from './lead-invite';
 export * from './lead-invite-public';
+export * from './diver-bot-policies';
+export * from './diver-bot';
