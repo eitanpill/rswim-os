@@ -16,7 +16,8 @@ export type DivePage =
   | 'plan'
   | 'setup'
   | 'import'
-  | 'connections';
+  | 'connections'
+  | 'lodging';
 
 export type DiveRole = 'owner' | 'manager' | 'office' | 'instructor' | 'customer';
 
@@ -40,9 +41,10 @@ const PAGES: Record<DiveRole, DivePage[]> = {
     'setup',
     'import',
     'connections',
+    'lodging',
   ],
-  manager: ['manager', 'office', 'instructor', 'divers', 'forms', 'setup', 'import'],
-  office: ['office', 'divers', 'forms'],
+  manager: ['manager', 'office', 'instructor', 'divers', 'forms', 'lodging', 'setup', 'import'],
+  office: ['office', 'divers', 'forms', 'lodging'],
   instructor: ['instructor', 'divers'],
   customer: ['me'],
 };

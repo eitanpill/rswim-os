@@ -149,6 +149,12 @@ export const di = {
       <path d="M12 7v14M5 12H2a10 10 0 0 0 20 0h-3M8 11h8" />
     </I>
   ),
+  bed: (
+    <I>
+      <path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5" />
+      <circle cx="7" cy="11" r="1.6" />
+    </I>
+  ),
   calendar: (
     <I>
       <rect x="3" y="4" width="18" height="17" rx="2" />

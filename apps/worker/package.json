@@ -22,6 +22,7 @@
     "@rswim/domain-dive": "workspace:*",
     "@rswim/domain-enrollment": "workspace:*",
     "@rswim/domain-institutions": "workspace:*",
+    "@rswim/domain-lodging": "workspace:*",
     "@rswim/domain-platform": "workspace:*",
     "@rswim/domain-reports": "workspace:*",
     "@rswim/domain-scheduling": "workspace:*",

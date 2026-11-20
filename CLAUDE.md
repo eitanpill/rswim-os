@@ -132,6 +132,11 @@ person signs in with the invited phone and enters the school at once (`openInvit
 bot to pay (a link for the open balance through the brain's `payment_link` level), for receipts, missing forms and
 transport, and a family with a lesson tomorrow who owes forms gets `forms_reminder` at 17:00, once a week.
 
+Lodging (`docs/LODGING.md`, optional per business, `@rswim/domain-lodging`): rooms by kind with beds and private or shared
+facilities, stays (dorms by the bed, overlaps refused in the database), `/admin/lodging` and `/dive/lodging` (today,
+board, rooms). At 07:00 the worker (`lodging-morning-brief`) sends the day's check-ins, check-outs and rooms to prepare
+on WhatsApp; the lead bot answers availability with `lodging_availability`.
+
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a
 local database with provider `local`). `DATABASE_URL` stays the platform's database (sign-in, schools, plans). Screens

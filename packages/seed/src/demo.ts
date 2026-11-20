@@ -9,6 +9,7 @@ import {
   DIVE_PERSONAS,
   PERSONAS,
   SECOND_ORG,
+  DIVE_ORG,
 } from '@rswim/db/personas';
 import { createDataKey, encryptField } from '@rswim/domain-core';
 import type pg from 'pg';
@@ -16,6 +17,7 @@ import { seedAttendanceData, type AttendanceDataSummary } from './attendance-dat
 import { seedBillingData, type BillingDataSummary } from './billing-data';
 import { seedCommsData, type CommsDataSummary } from './comms-data';
 import { seedLeadsData } from './leads-data';
+import { seedLodgingData, type LodgingDataSummary } from './lodging-data';
 import { seedStaffOpsData, type StaffOpsDataSummary } from './staffops-data';
 import { seedCoursesData, type CoursesDataSummary } from './courses-data';
 import { seedTransportData, type TransportDataSummary } from './transport-data';
@@ -51,6 +53,9 @@ export interface SeedSummary {
   billing?: BillingDataSummary;
   comms?: CommsDataSummary;
   leads?: number;
+  /** Lodging: rooms and stays around today (swim demo org and the Eilat club). */
+  lodging?: LodgingDataSummary;
+  diveLodging?: LodgingDataSummary;
   /** Phase 6 last month's payroll draft with a dispute, a substitute request and applicants (demo org only). */
   staffops?: StaffOpsDataSummary;
   transport?: TransportDataSummary;
@@ -406,6 +411,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         summary.billing = await seedBillingData(client, org.id, staffIds);
         summary.comms = await seedCommsData(client, org.id, PERSONAS.parent.phone);
         summary.leads = await seedLeadsData(client, org.id, fakePhone);
+        summary.lodging = await seedLodgingData(client, org.id, 'swim', fakePhone);
         summary.staffops = await seedStaffOpsData(client, org.id, staffIds);
         summary.transport = await seedTransportData(client, org.id, staffIds);
         summary.courses = await seedCoursesData(client, org.id, staffIds);
@@ -448,6 +454,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
     }
     summary.saas = await seedSaasData(client);
     summary.dive = await seedDiveData(client);
+    summary.diveLodging = await seedLodgingData(client, DIVE_ORG.id, 'dive', fakePhone);
     summary.paymentConnections = await seedPaymentConnections(client, options.masterKey);
     await client.query('commit');
   } catch (e) {
