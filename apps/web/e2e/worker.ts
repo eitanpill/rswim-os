@@ -191,3 +191,14 @@ export function runBot(inboundMessageId: string) {
     runParentBot(tx, { orgId, userId: null }, new FakeParentBotModel(), inboundMessageId),
   );
 }
+
+/** The bot on a number's latest WhatsApp message (a new customer's, W2), as the worker would run it. */
+export function runBotOnLatest(phoneE164: string) {
+  return asWorker(async (tx, orgId, client) => {
+    const { rows } = await client.query<{ id: string }>(
+      `select id from inbound_messages where from_phone_e164 = $1 order by received_at desc limit 1`,
+      [phoneE164],
+    );
+    return runParentBot(tx, { orgId, userId: null }, new FakeParentBotModel(), rows[0]!.id);
+  });
+}

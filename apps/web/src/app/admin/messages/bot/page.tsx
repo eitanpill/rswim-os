@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { displayPhoneIL } from '@rswim/contracts';
 import { commsRules } from '@rswim/domain-comms';
 import { botStats, listBotReplies, listKnowledge } from '@rswim/domain-copilot';
 import { Badge, Card, CardTitle, EmptyState, PageHeader, cn } from '@rswim/ui';
@@ -55,13 +56,15 @@ export default async function BotPage() {
   const ta = await getTranslations('agent');
   const explainSummary = await agentSummaryText();
   const label = await enumLabel();
-  const { enabled, stats, replies, suggestions, knowledge } = await withSession(async (tx) => ({
-    enabled: (await commsRules(tx)).botEnabled,
-    stats: await botStats(tx),
-    replies: await listBotReplies(tx, { limit: 50 }),
-    suggestions: await listKnowledge(tx, ['suggested']),
-    knowledge: await listKnowledge(tx, ['active']),
-  }));
+  const { enabled, leadsOn, stats, replies, suggestions, knowledge } = await withSession(
+    async (tx) => ({
+      ...(await commsRules(tx).then((r) => ({ enabled: r.botEnabled, leadsOn: r.leadBotEnabled }))),
+      stats: await botStats(tx),
+      replies: await listBotReplies(tx, { limit: 50 }),
+      suggestions: await listKnowledge(tx, ['suggested']),
+      knowledge: await listKnowledge(tx, ['active']),
+    }),
+  );
 
   return (
     <>
@@ -71,6 +74,9 @@ export default async function BotPage() {
         <Card data-testid="bot-status">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={enabled ? 'ok' : 'neutral'}>{enabled ? t('on') : t('off')}</Badge>
+            <Badge tone={leadsOn ? 'ok' : 'neutral'} data-testid="bot-leads">
+              {leadsOn ? t('leadsOn') : t('leadsOff')}
+            </Badge>
             <Link
               href="/admin/policies"
               className="min-h-tap py-2 text-sm text-brand-700 underline"
@@ -129,6 +135,16 @@ export default async function BotPage() {
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     {r.family ? <p className="font-semibold">{r.family}</p> : null}
+                    {r.lead ? (
+                      <Link
+                        href={`/admin/leads/${r.lead.id}`}
+                        className="font-semibold text-primary underline-offset-2 hover:underline"
+                      >
+                        {t('newCustomer', {
+                          name: r.lead.name ?? (r.lead.phone ? displayPhoneIL(r.lead.phone) : ''),
+                        })}
+                      </Link>
+                    ) : null}
                     <span className="text-sm text-ink-muted">{when(r.receivedAt)}</span>
                     <Badge tone={r.outcome === 'answered' ? 'ok' : 'warn'}>
                       {label('botOutcome', r.outcome)}

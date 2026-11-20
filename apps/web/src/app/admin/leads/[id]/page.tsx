@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Fragment } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 import { displayPhoneIL, LEAD_LOST_REASONS, LEAD_STAGES } from '@rswim/contracts';
@@ -16,6 +17,9 @@ import {
 } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { moveLeadAction, replyToLeadAction, updateLeadAction } from '../actions';
+
+/** The details the bot collects, in the order the office reads them. */
+const DETAIL_KEYS = ['child_age', 'area', 'days', 'experience', 'dates', 'note'] as const;
 
 const TIME = new Intl.DateTimeFormat('he-IL', {
   timeZone: 'Asia/Jerusalem',
@@ -154,6 +158,20 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
               </p>
             ) : null}
           </Card>
+
+          {Object.keys(lead.details).length ? (
+            <Card data-testid="lead-bot-details">
+              <CardTitle>{t('botCollected')}</CardTitle>
+              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+                {DETAIL_KEYS.filter((k) => typeof lead.details[k] === 'string').map((k) => (
+                  <Fragment key={k}>
+                    <dt className="text-ink-muted">{t(`detail.${k}`)}</dt>
+                    <dd>{String(lead.details[k])}</dd>
+                  </Fragment>
+                ))}
+              </dl>
+            </Card>
+          ) : null}
 
           <Card>
             <CardTitle>{t('details')}</CardTitle>

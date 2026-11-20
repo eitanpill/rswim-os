@@ -2437,6 +2437,7 @@
         "holiday_notice_days_before": "הודעת חג, ימים לפני",
         "ai_triage": "מיון הודעות נכנסות בעזרת AI",
         "bot_enabled": "הבוט להורים עונה לבד על שאלות",
+        "lead_bot_enabled": "הבוט עונה גם ללקוחות חדשים ואוסף פרטים",
         "triage_min_confidence_pct": "ביטחון מינימלי לטיוטה אוטומטית (%)"
       },
       "scheduling": {
@@ -3448,7 +3449,10 @@
       "learned": "נלמד מתשובה שלך",
       "edit": "עריכה",
       "actions": "מה הבוט עשה",
-      "actionsJournal": "(ביומן המוח)"
+      "actionsJournal": "(ביומן המוח)",
+      "newCustomer": "לקוח/ה חדש/ה: {name}",
+      "leadsOn": "עונה גם ללקוחות חדשים",
+      "leadsOff": "לא עונה ללקוחות חדשים"
     },
     "log": {
       "title": "יומן הודעות",
@@ -6500,6 +6504,15 @@
     "errors": {
       "nameOrPhone": "צריך שם או טלפון",
       "noPhone": "אין טלפון לפנייה הזו"
+    },
+    "botCollected": "מה הבוט אסף",
+    "detail": {
+      "child_age": "גיל הילד/ה",
+      "area": "אזור",
+      "days": "ימים ושעות",
+      "experience": "ניסיון",
+      "dates": "תאריכים",
+      "note": "הערה"
     }
   }
 }

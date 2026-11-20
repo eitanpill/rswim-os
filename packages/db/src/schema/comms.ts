@@ -253,6 +253,8 @@ export const botReplies = pgTable(
     organizationId: orgId(),
     inboundMessageId: uuid('inbound_message_id').notNull(),
     householdId: uuid('household_id'),
+    /** A new customer's message (WhatsApp track W2): the lead the bot answered, instead of a family. */
+    leadId: uuid('lead_id'),
     outcome: text('outcome').notNull(),
     /** The model (or `fake:rules`, or `rules` when the bot did not ask a model). */
     model: text('model').notNull(),
@@ -282,6 +284,7 @@ export const botReplies = pgTable(
     }).onDelete('cascade'),
     index('bot_replies_recent').on(t.organizationId, t.createdAt),
     index('bot_replies_household').on(t.householdId, t.createdAt),
+    index('bot_replies_lead').on(t.leadId, t.createdAt),
     check('bot_replies_outcome_check', sql.raw(`outcome in (${inList(BOT_REPLY_OUTCOMES)})`)),
     check('bot_replies_review_check', sql.raw(`review in (${inList(BOT_REVIEWS)})`)),
     check(

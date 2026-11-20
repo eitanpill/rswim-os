@@ -38,6 +38,7 @@ import {
   type CopilotTraceStep,
 } from '@rswim/integrations';
 import { getAgentSettings } from './agent';
+import { FakeLeadBotModel, runLeadBot } from './lead-bot';
 import { isOwnerReply } from './brain-inbound';
 import {
   agentKindOfDraft,
@@ -475,6 +476,8 @@ export async function runParentBot(
   if (done) return { outcome: 'skipped', reason: 'already' };
   // The owner answering a waiting action on WhatsApp is the brain's (brain-inbound.ts), not a family's question.
   if (await isOwnerReply(tx, row)) return { outcome: 'skipped', reason: 'owner_reply' };
+  // A new customer (a lead, not a family) gets the front-desk bot (lead-bot.ts, WhatsApp track W2).
+  if (row.householdId === null && row.leadId !== null) return runLeadBot(tx, ctx, model, row);
   const drafted = await tx
     .select({ id: triageActions.id, kind: triageActions.kind })
     .from(triageActions)
@@ -629,6 +632,9 @@ export class FakeParentBotModel implements CopilotModel {
   readonly name = 'fake:rules';
 
   async run(input: CopilotRunInput) {
+    // A new customer's message carries the front-desk tools: the lead bot's stand-in answers it.
+    if (input.tools.some((t) => t.name === 'reply_to_lead'))
+      return new FakeLeadBotModel().run(input);
     const trace: CopilotTraceStep[] = [];
     const use = async <T>(tool: string, args: unknown) => {
       const r = await traced(input, trace, tool, args);
@@ -815,6 +821,14 @@ export async function listBotReplies(
         .from(schema.households)
         .where(inArray(schema.households.id, households))
     : [];
+  // New customers (W2): the lead's name or phone, linked to its page.
+  const leadIds = [...new Set(list.map((r) => r.reply.leadId).filter((l) => l !== null))];
+  const leadNames = leadIds.length
+    ? await tx
+        .select({ id: schema.leads.id, name: schema.leads.name, phone: schema.leads.phoneE164 })
+        .from(schema.leads)
+        .where(inArray(schema.leads.id, leadIds))
+    : [];
   // What the bot did through the brain; the journal is the owner's, so the office sees none.
   const inboundIds = list.map((r) => r.reply.inboundMessageId);
   const actions = inboundIds.length
@@ -835,6 +849,7 @@ export async function listBotReplies(
     receivedAt: r.receivedAt,
     inboundStatus: r.inboundStatus,
     family: names.find((n) => n.id === r.reply.householdId)?.n ?? null,
+    lead: leadNames.find((l) => l.id === r.reply.leadId) ?? null,
     actions: actions
       .filter((a) => a.inboundMessageId === r.reply.inboundMessageId)
       .map((a) => ({

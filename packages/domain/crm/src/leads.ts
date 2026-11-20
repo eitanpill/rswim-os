@@ -107,6 +107,8 @@ export interface LeadRow {
   lastMessage: string | null;
   lastMessageAt: Date | null;
   householdId: string | null;
+  /** What the bot collected (W2): child_age, area, days, experience, dates, note. */
+  details: Record<string, unknown>;
   stageChangedAt: Date;
   createdAt: Date;
   attention: LeadAttention;
@@ -126,6 +128,7 @@ const cols = {
   lastMessage: leads.lastMessage,
   lastMessageAt: leads.lastMessageAt,
   householdId: leads.householdId,
+  details: leads.details,
   stageChangedAt: leads.stageChangedAt,
   createdAt: leads.createdAt,
 };
@@ -318,4 +321,23 @@ export async function advanceLead(tx: Tx, id: string, happened: LeadStage): Prom
       .set({ stage, lostReason: null, stageChangedAt: new Date() })
       .where(eq(leads.id, id));
   return stage;
+}
+
+/**
+ * The bot saved what a new customer told it (W2): the name when the lead has none or gave a new one, the interest, and
+ * details merged into `details` (a later value replaces an earlier one).
+ */
+export async function saveLeadDetails(
+  tx: Tx,
+  id: string,
+  patch: { name?: string | null; interest?: string | null; details: Record<string, unknown> },
+) {
+  await tx
+    .update(leads)
+    .set({
+      ...(patch.name ? { name: patch.name } : {}),
+      ...(patch.interest ? { interest: patch.interest } : {}),
+      details: sql`${leads.details} || ${JSON.stringify(patch.details)}::jsonb`,
+    })
+    .where(eq(leads.id, id));
 }

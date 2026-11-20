@@ -2437,6 +2437,7 @@
         "holiday_notice_days_before": "Holiday notice, days before",
         "ai_triage": "AI triage of inbound messages",
         "bot_enabled": "The parents’ bot answers questions by itself",
+        "lead_bot_enabled": "The bot also answers new customers and collects their details",
         "triage_min_confidence_pct": "Minimum confidence for a draft action (%)"
       },
       "scheduling": {
@@ -3448,7 +3449,10 @@
       "learned": "Learned from your answer",
       "edit": "Edit",
       "actions": "What the bot did",
-      "actionsJournal": "(in the brain's journal)"
+      "actionsJournal": "(in the brain's journal)",
+      "newCustomer": "New customer: {name}",
+      "leadsOn": "Also answers new customers",
+      "leadsOff": "Doesn't answer new customers"
     },
     "log": {
       "title": "Message log",
@@ -6500,6 +6504,15 @@
     "errors": {
       "nameOrPhone": "A name or a phone is needed",
       "noPhone": "No phone for this enquiry"
+    },
+    "botCollected": "What the bot collected",
+    "detail": {
+      "child_age": "Child's age",
+      "area": "Area",
+      "days": "Days and times",
+      "experience": "Experience",
+      "dates": "Dates",
+      "note": "Note"
     }
   }
 }

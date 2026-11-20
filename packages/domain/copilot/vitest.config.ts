@@ -13,6 +13,7 @@ export default defineConfig({
         'src/agent-policies.ts',
         'src/memory-policies.ts',
         'src/learning-policies.ts',
+        'src/lead-bot-policies.ts',
       ],
       thresholds: { branches: 100, functions: 100, lines: 100, statements: 100 },
     },

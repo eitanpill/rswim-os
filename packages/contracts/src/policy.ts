@@ -226,6 +226,8 @@ export const PolicyRules = z
         triage_min_confidence_pct: int(50, 100),
         /** The parents' WhatsApp bot answers families' questions by itself and hands the rest to the office. */
         bot_enabled: z.boolean(),
+        /** The same bot answers new customers (leads): prices, programs, open seats, and collects their details. */
+        lead_bot_enabled: z.boolean(),
       })
       .partial()
       .strict(),
@@ -446,6 +448,7 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
     holiday_notice_days_before: 2,
     ai_triage: false,
     bot_enabled: false,
+    lead_bot_enabled: false,
     triage_min_confidence_pct: 80,
   },
 };

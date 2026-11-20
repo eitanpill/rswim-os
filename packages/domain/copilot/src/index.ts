@@ -10,3 +10,5 @@ export * from './memory-policies';
 export * from './memory';
 export * from './learning-policies';
 export * from './learning';
+export * from './lead-bot-policies';
+export * from './lead-bot';
