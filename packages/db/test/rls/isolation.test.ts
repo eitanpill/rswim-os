@@ -162,6 +162,7 @@ const TENANT_TABLES = [
   'dive_certifications',
   'payment_connections',
   'checkouts',
+  'whatsapp_connections',
 ] as const;
 
 describe('schema guardrails', () => {
@@ -624,6 +625,37 @@ describe('custom access-token hook', () => {
       await expect(run(`select public.custom_access_token_hook('{}'::jsonb)`)).rejects.toThrow(
         /permission denied/,
       );
+    });
+  });
+});
+
+describe('the business WhatsApp number (WhatsApp track W5)', () => {
+  it('lets only the owner connect it, and nobody signed in read its sealed secrets', async () => {
+    await t.pool.query(
+      `insert into whatsapp_connections (organization_id, phone_number_id, business_account_id, display_phone,
+         verify_token, enc_access_token, enc_app_secret)
+       values ($1, '1000001', '2000001', '+972500000001', 'vt', decode('00', 'hex'), decode('00', 'hex'))`,
+      [A.orgId],
+    );
+    await as(A.users.admin, A.orgId, async (run) => {
+      expect(await run(`select display_phone from whatsapp_connections`)).toHaveLength(1);
+      await expect(run(`select enc_access_token from whatsapp_connections`)).rejects.toThrow(
+        /permission denied/,
+      );
+      expect(
+        await run(`update whatsapp_connections set status = 'disconnected' returning id`),
+      ).toEqual([]);
+    });
+    await as(A.users.owner, A.orgId, async (run) => {
+      await expect(run(`select enc_app_secret from whatsapp_connections`)).rejects.toThrow(
+        /permission denied/,
+      );
+      expect(
+        await run(`update whatsapp_connections set status = 'disconnected' returning id`),
+      ).toHaveLength(1);
+    });
+    await as(A.users.instructor, A.orgId, async (run) => {
+      expect(await run(`select id from whatsapp_connections`)).toEqual([]);
     });
   });
 });

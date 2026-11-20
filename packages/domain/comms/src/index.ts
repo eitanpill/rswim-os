@@ -5,3 +5,5 @@ export * from './services/inbox';
 export * from './services/outbound';
 export * from './services/templates';
 export * from './services/previews';
+export * from './services/whatsapp';
+export * from './services/whatsapp-webhook';

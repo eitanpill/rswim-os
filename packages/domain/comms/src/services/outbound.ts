@@ -12,8 +12,10 @@ import type { MessagingProvider } from '@rswim/integrations';
 import {
   commsRulesFrom,
   enqueueDecision,
+  outboundShape,
   renderTemplate,
   sendDecision,
+  windowOpen,
   type CommsRules,
 } from '../policies';
 import { ensureCommsDefaults, templateFor } from './templates';
@@ -82,11 +84,12 @@ export async function enqueueMessage(
   }
   cache.rules ??= await commsRules(tx);
   cache.school ??= await schoolName(tx, ctx.orgId);
-  const render = renderTemplate(template?.body ?? '', {
+  const vars = {
     guardian_name: input.guardian.firstName,
     school_name: cache.school,
     ...(typeof input.vars === 'function' ? input.vars(locale) : input.vars),
-  });
+  };
+  const render = renderTemplate(template?.body ?? '', vars);
   const decision = enqueueDecision({
     optedIn: input.guardian.whatsappOptIn,
     phoneE164: input.guardian.phoneE164,
@@ -116,6 +119,8 @@ export async function enqueueMessage(
       broadcastId: input.broadcastId ?? null,
       inboundMessageId: input.inboundMessageId ?? null,
       idempotencyKey: input.idempotencyKey,
+      // Kept for an approved Meta template outside the 24-hour window (W5).
+      vars,
       createdBy: ctx.userId,
     })
     .onConflictDoNothing()
@@ -138,6 +143,8 @@ export interface DispatchResult {
   held: number;
   failed: number;
   retrying: number;
+  /** Outside WhatsApp's 24-hour window with no approved template (W5). */
+  blocked: number;
 }
 
 const MAX_ATTEMPTS = 3;
@@ -153,7 +160,7 @@ export async function dispatchDue(
   now: Date = new Date(),
 ): Promise<DispatchResult> {
   const rules = await commsRules(tx);
-  const out: DispatchResult = { sent: 0, held: 0, failed: 0, retrying: 0 };
+  const out: DispatchResult = { sent: 0, held: 0, failed: 0, retrying: 0, blocked: 0 };
   const due = await tx
     .select()
     .from(messages)
@@ -183,20 +190,59 @@ export async function dispatchDue(
     return out;
   }
 
+  // Meta's Cloud API keeps to WhatsApp's 24-hour window: when each person last wrote to the business.
+  const lastIn = new Map<string, Date>();
+  if (provider.window) {
+    const phones = [...new Set(due.map((m) => m.toPhoneE164).filter((p): p is string => !!p))];
+    if (phones.length) {
+      const r = await tx.execute<{ phone: string; at: Date }>(
+        sql`select from_phone_e164 phone, max(received_at) at from ${schema.inboundMessages}
+            where from_phone_e164 in (${sql.join(
+              phones.map((p) => sql`${p}`),
+              sql`, `,
+            )}) group by from_phone_e164`,
+      );
+      for (const row of r.rows) lastIn.set(row.phone, new Date(row.at));
+    }
+  }
+
   for (const m of due) {
     try {
       const template = m.locale
         ? await templateFor(tx, m.templateKey as TemplateKey, m.locale)
         : null;
+      const locale = m.locale === 'en' ? 'en' : 'he';
+      const shape = outboundShape({
+        window: provider.window === true,
+        open: windowOpen(lastIn.get(m.toPhoneE164 as string) ?? null, now),
+        locale,
+        meta: template ? { name: template.metaName, params: template.metaParams } : null,
+        vars: (m.vars as Record<string, unknown> | null) ?? null,
+      });
+      if (shape.kind === 'blocked') {
+        await tx
+          .update(messages)
+          .set({
+            status: 'blocked',
+            blockReason: shape.reason,
+            explanation: shape.explanation,
+            holdReason: null,
+          })
+          .where(eq(messages.id, m.id));
+        out.blocked++;
+        continue;
+      }
       const sent = await provider.send(
         { organizationId: ctx.orgId, idempotencyKey: m.idempotencyKey },
         {
           toPhoneE164: m.toPhoneE164 as string,
           text: m.body as string,
-          locale: m.locale === 'en' ? 'en' : 'he',
-          ...(template?.ghlTemplateId
-            ? { template: { id: template.ghlTemplateId, variables: {} } }
-            : {}),
+          locale,
+          ...(shape.kind === 'template'
+            ? { template: { id: shape.name, variables: {}, values: shape.values } }
+            : !provider.window && template?.ghlTemplateId
+              ? { template: { id: template.ghlTemplateId, variables: {} } }
+              : {}),
         },
       );
       await tx

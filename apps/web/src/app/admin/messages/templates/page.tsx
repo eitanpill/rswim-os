@@ -4,6 +4,7 @@ import {
   listAutomations,
   listTemplates,
   templateVariables,
+  whatsappConnection,
 } from '@rswim/domain-comms';
 import { TemplateKey } from '@rswim/contracts';
 import { Badge, Card, CardTitle, PageHeader } from '@rswim/ui';
@@ -17,6 +18,7 @@ import {
 } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { enumLabel } from '@/lib/options';
+import { metaTemplateAction } from '../../integrations/whatsapp/actions';
 import { saveTemplateAction, setAutomationAction } from '../actions';
 import { MessagesTabs } from '../tabs';
 
@@ -24,9 +26,10 @@ import { MessagesTabs } from '../tabs';
 export default async function TemplatesPage() {
   const t = await getTranslations('comms');
   const label = await enumLabel();
-  const { templates, automations } = await withSession(async (tx) => ({
+  const { templates, automations, ownNumber } = await withSession(async (tx) => ({
     templates: await listTemplates(tx),
     automations: await listAutomations(tx),
+    ownNumber: (await whatsappConnection(tx))?.status === 'connected',
   }));
   return (
     <>
@@ -81,6 +84,11 @@ export default async function TemplatesPage() {
                     <span className="font-semibold">{label('templateKey', tpl.key)}</span>{' '}
                     <span className="text-sm text-ink-muted">({tpl.locale})</span>
                     {!tpl.active ? <Badge className="ms-2">{t('templates.off')}</Badge> : null}
+                    {ownNumber && tpl.metaName ? (
+                      <Badge className="ms-2" tone="ok">
+                        {t('templates.metaBadge')}
+                      </Badge>
+                    ) : null}
                   </summary>
                   <ActionForm action={saveTemplateAction}>
                     <input type="hidden" name="id" value={tpl.id} />
@@ -108,6 +116,33 @@ export default async function TemplatesPage() {
                     />
                     <SubmitButton>{t('templates.save')}</SubmitButton>
                   </ActionForm>
+                  {ownNumber ? (
+                    <ActionForm
+                      action={metaTemplateAction}
+                      className="mt-3 border-t border-line pt-3"
+                      testId={`meta-template-${tpl.key}-${tpl.locale}`}
+                    >
+                      <p className="text-sm text-ink-muted">{t('templates.metaHint')}</p>
+                      <input type="hidden" name="key" value={tpl.key} />
+                      <input type="hidden" name="locale" value={tpl.locale} />
+                      <Field
+                        name="metaName"
+                        label={t('templates.metaName')}
+                        defaultValue={tpl.metaName ?? ''}
+                        dir="ltr"
+                      />
+                      <Field
+                        name="metaParams"
+                        label={t('templates.metaParams')}
+                        hint={t('templates.metaParamsHint', {
+                          list: vars.join(', '),
+                        })}
+                        defaultValue={tpl.metaParams.join(', ')}
+                        dir="ltr"
+                      />
+                      <SubmitButton variant="secondary">{t('templates.metaSave')}</SubmitButton>
+                    </ActionForm>
+                  ) : null}
                 </details>
               </Card>
             </li>

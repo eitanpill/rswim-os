@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { paymentConnection } from '@rswim/domain-billing';
-import { commsRules } from '@rswim/domain-comms';
+import { commsRules, whatsappConnection } from '@rswim/domain-comms';
 import { ghlSettings } from '@rswim/domain-crm';
 import { hasFeature } from '@rswim/domain-platform';
 import { Badge, Card, CardTitle } from '@rswim/ui';
@@ -32,8 +32,9 @@ interface Row {
  */
 export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' }) {
   const t = await getTranslations('connections');
-  const { ghl, payments, rules, botInPlan } = await withSession(async (tx, ctx) => ({
+  const { ghl, own, payments, rules, botInPlan } = await withSession(async (tx, ctx) => ({
     ghl: await ghlSettings(tx, ctx.orgId),
+    own: await whatsappConnection(tx),
     payments: await paymentConnection(tx),
     rules: await commsRules(tx),
     botInPlan: await hasFeature(tx, 'parent_bot'),
@@ -43,8 +44,9 @@ export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' 
   const rows: Row[] = [
     {
       key: 'whatsapp',
-      state: ghl ? 'connected' : 'missing',
-      href: swim ? '/admin/integrations/ghl' : null,
+      state:
+        own?.status === 'connected' || ghl ? 'connected' : own?.lastError ? 'failing' : 'missing',
+      href: swim ? '/admin/integrations/whatsapp' : null,
     },
     {
       key: 'payments',

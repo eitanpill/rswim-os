@@ -365,6 +365,10 @@
       "leads": {
         "title": "פניות חדשות",
         "hint": "מי ששאל ועוד לא נרשם, משיחה ועד הרשמה"
+      },
+      "whatsapp": {
+        "title": "WhatsApp של העסק",
+        "hint": "חיבור המספר ישירות ל-Meta"
       }
     }
   },
@@ -1620,7 +1624,8 @@
       "no_phone": "אין טלפון",
       "missing_variable": "חסר פרט בתבנית",
       "template_inactive": "התבנית כבויה",
-      "no_provider": "אין ספק שליחה"
+      "no_provider": "אין ספק שליחה",
+      "outside_window": "מחוץ לחלון 24 השעות"
     },
     "inboundIntent": {
       "absence_notice": "הודעת היעדרות",
@@ -3479,7 +3484,13 @@
       "on": "פעילה",
       "off": "כבויה",
       "turnOn": "הפעלה",
-      "turnOff": "כיבוי"
+      "turnOff": "כיבוי",
+      "metaHint": "מחוץ לחלון 24 השעות WhatsApp שולח רק תבנית מאושרת ב-Meta. בלי תבנית ההודעה לא יוצאת ומסומנת ביומן.",
+      "metaName": "שם התבנית ב-Meta",
+      "metaParams": "הפרטים לפי הסדר של המשתנים בתבנית ב-Meta (1, 2, …)",
+      "metaParamsHint": "מופרדים בפסיק. אפשר: {list}",
+      "metaSave": "שמירת תבנית Meta",
+      "metaBadge": "Meta"
     },
     "broadcast": {
       "title": "הודעה לקבוצה",
@@ -3534,7 +3545,9 @@
         "no_phone": "אין מספר טלפון",
         "missing_variable": "חסר פרט בתבנית: {missing}",
         "template_inactive": "התבנית כבויה",
-        "no_provider": "אין ספק שליחה"
+        "no_provider": "אין ספק שליחה",
+        "outside_window": "מחוץ לחלון 24 השעות ואין תבנית Meta להודעה",
+        "outside_window_vars": "מחוץ לחלון 24 השעות: חסר פרט לתבנית ה-Meta"
       },
       "triage": {
         "always_human": {
@@ -6387,9 +6400,10 @@
     },
     "whatsapp": {
       "title": "WhatsApp",
-      "connected": "ההודעות לפונים יוצאות מהמספר של העסק דרך LeadYourWay.",
+      "connected": "ההודעות יוצאות מהמספר של העסק, ישירות דרך Meta או דרך LeadYourWay.",
       "missing": "עוד לא מחובר. בלי זה תזכורות, אישורים וקישורי תשלום לא יוצאים ב-WhatsApp.",
-      "link": "לחיבור WhatsApp"
+      "link": "לחיבור WhatsApp",
+      "failing": "המספר מחובר אבל השליחה האחרונה נכשלה. הסיבה מופיעה במסך החיבור."
     },
     "payments": {
       "title": "סליקה",
@@ -6540,6 +6554,57 @@
       "empty": "לא היו פניות בחודש הזה.",
       "prev": "החודש הקודם",
       "next": "החודש הבא"
+    }
+  },
+  "whatsapp": {
+    "title": "WhatsApp של העסק",
+    "subtitle": "המספר של העסק מחובר ישירות ל-Meta: הודעות יוצאות ממנו והתשובות נכנסות לתיבה ולבוט",
+    "ownerOnly": "רק בעל/ת העסק מחבר/ת את מספר ה-WhatsApp.",
+    "officeConnected": "מחובר: ההודעות יוצאות מהמספר {phone}.",
+    "status": {
+      "connected": "מחובר",
+      "disconnected": "מנותק",
+      "failed": "לא עובד"
+    },
+    "lastError": "השליחה האחרונה נכשלה:",
+    "webhookUrl": "כתובת ה-Webhook (להדבקה ב-Meta)",
+    "verifyToken": "Verify token (להדבקה ב-Meta)",
+    "phoneNumberId": "Phone number ID",
+    "phoneNumberIdHint": "מופיע ב-WhatsApp Manager ליד המספר",
+    "businessAccountId": "WhatsApp Business Account ID",
+    "displayPhone": "מספר הטלפון של העסק",
+    "accessToken": "Access token (משתמש מערכת)",
+    "appSecret": "App secret",
+    "secretHint": "נשמר מוצפן ולא מוצג שוב",
+    "lastInbound": "הודעה אחרונה שנכנסה",
+    "noInboundYet": "עוד לא נכנסה הודעה",
+    "disconnect": "ניתוק המספר",
+    "disconnectConfirm": "לנתק? ההודעות יחזרו לצאת דרך LeadYourWay, אם מחובר, או ימתינו.",
+    "emptyTitle": "עוד לא מחובר מספר",
+    "emptyHint": "בלי מספר משלכם ההודעות יוצאות דרך LeadYourWay (אם מחובר).",
+    "connect": "חיבור המספר",
+    "replace": "החלפת הפרטים",
+    "save": "שמירה",
+    "connected": "המספר חובר. עכשיו מדביקים ב-Meta את כתובת ה-Webhook וה-Verify token.",
+    "disconnected": "המספר נותק.",
+    "templateSaved": "תבנית Meta נשמרה.",
+    "howTitle": "איך מחברים",
+    "how1": "ב-Meta Business פותחים אפליקציה עם WhatsApp ומוסיפים את מספר העסק.",
+    "how2": "ב-WhatsApp Manager מעתיקים את Phone number ID ואת Business Account ID, ויוצרים Access token קבוע של משתמש מערכת.",
+    "how3": "בהגדרות האפליקציה מעתיקים את ה-App secret, ממלאים כאן הכל ושומרים.",
+    "how4": "בהגדרות ה-Webhook של WhatsApp ב-Meta מדביקים את הכתובת ואת ה-Verify token מכאן, ונרשמים ל-messages.",
+    "how5": "מחוץ לחלון של 24 שעות Meta מאפשרת רק תבניות מאושרות: במסך התבניות רושמים לכל הודעה את שם התבנית ב-Meta.",
+    "errors": {
+      "phoneNumberId": "מספר בלבד, כמו שמופיע ב-WhatsApp Manager",
+      "businessAccountId": "מספר בלבד, כמו שמופיע ב-WhatsApp Manager",
+      "accessToken": "ה-Access token קצר מדי",
+      "appSecret": "App secret הוא 32 תווים (0-9, a-f)",
+      "templateName": "שם תבנית: אותיות לטיניות קטנות, ספרות וקו תחתון",
+      "noMasterKey": "אי אפשר לשמור סודות: מפתח ההצפנה של המערכת לא מוגדר",
+      "ownerOnly": "רק בעל/ת העסק מחבר/ת את המספר",
+      "numberTaken": "המספר הזה כבר מחובר לעסק אחר",
+      "notConnected": "אין מספר מחובר",
+      "unknownVariable": "פרטים שלא קיימים בהודעה: {names}"
     }
   }
 }

@@ -4,6 +4,7 @@
  * (a deterministic Hebrew classifier), what the inbox does with it, when the holiday notice is due and who a broadcast
  * reaches. Every decision carries an i18n code; nothing here talks to the database or the network.
  */
+import { z } from 'zod';
 import {
   addDays,
   DEFAULT_CALENDAR_POLICY,
@@ -203,6 +204,168 @@ export function enqueueDecision(f: OutboundFacts): EnqueueDecision {
   if (!f.phoneE164) return block('no_phone');
   if (!f.render.ok) return block('missing_variable', { missing: f.render.missing.join(', ') });
   return { status: 'queued', text: f.render.text, explanation: explain('queued') };
+}
+
+// ─── WhatsApp Cloud API: the 24-hour window and templates (W5) ──────────────
+
+/** WhatsApp lets a business answer freely for this long after the person's last message. */
+export const WINDOW_HOURS = 24;
+
+/** Whether the person wrote within the last 24 hours, so free text may go. */
+export function windowOpen(lastInboundAt: Date | null, now: Date): boolean {
+  return (
+    lastInboundAt !== null && now.getTime() - lastInboundAt.getTime() < WINDOW_HOURS * 3_600_000
+  );
+}
+
+export type OutboundShape =
+  | { kind: 'text' }
+  | { kind: 'template'; name: string; language: 'he' | 'en'; values: string[] }
+  | { kind: 'blocked'; reason: 'outside_window'; explanation: Explanation };
+
+/**
+ * How a queued message goes out. A provider without the window (GHL decides by itself) or an open window sends the
+ * text; outside the window only the message's approved Meta template goes, filled from the variables it was rendered
+ * with; with no approved template (or a variable it lacks) the message is blocked rather than sent as something else.
+ */
+export function outboundShape(f: {
+  window: boolean;
+  open: boolean;
+  locale: 'he' | 'en';
+  meta: { name: string | null; params: readonly string[] } | null;
+  vars: Record<string, unknown> | null;
+}): OutboundShape {
+  if (!f.window || f.open) return { kind: 'text' };
+  const name = f.meta?.name;
+  const values = (f.meta?.params ?? []).map((p) => f.vars?.[p]);
+  if (name && values.every((v) => v !== undefined && v !== null && String(v) !== '')) {
+    return { kind: 'template', name, language: f.locale, values: values.map(String) };
+  }
+  return {
+    kind: 'blocked',
+    reason: 'outside_window',
+    explanation: explain(name ? 'blocked.outside_window_vars' : 'blocked.outside_window'),
+  };
+}
+
+/**
+ * The variables an approved template takes, as the owner typed them ("guardian_name, date"): each must be one the
+ * message's own text uses.
+ */
+export function metaParamsFrom(
+  typed: string,
+  body: string,
+): { ok: true; params: string[] } | { ok: false; unknown: string[] } {
+  const params = typed
+    .split(/[\s,]+/)
+    .map((p) => p.replace(/^\{\{|\}\}$/g, '').trim())
+    .filter(Boolean);
+  const known = new Set(templateVariables(body));
+  const unknown = params.filter((p) => !known.has(p));
+  return unknown.length ? { ok: false, unknown } : { ok: true, params };
+}
+
+const MetaMessage = z.looseObject({
+  id: z.string().min(1),
+  from: z.string().regex(/^\d{6,15}$/),
+  timestamp: z.string().regex(/^\d+$/),
+  type: z.string(),
+  text: z.looseObject({ body: z.string() }).optional(),
+  button: z.looseObject({ text: z.string() }).optional(),
+  interactive: z
+    .looseObject({
+      button_reply: z.looseObject({ title: z.string() }).optional(),
+      list_reply: z.looseObject({ title: z.string() }).optional(),
+    })
+    .optional(),
+});
+const MetaStatus = z.looseObject({
+  id: z.string().min(1),
+  status: z.string(),
+  timestamp: z.string().regex(/^\d+$/),
+  errors: z
+    .array(z.looseObject({ code: z.number().optional(), title: z.string().optional() }))
+    .optional(),
+});
+const MetaWebhook = z.looseObject({
+  object: z.literal('whatsapp_business_account'),
+  entry: z.array(
+    z.looseObject({
+      changes: z.array(
+        z.looseObject({
+          field: z.string(),
+          value: z.looseObject({
+            metadata: z.looseObject({ phone_number_id: z.string() }).optional(),
+            messages: z.array(z.unknown()).optional(),
+            statuses: z.array(z.unknown()).optional(),
+          }),
+        }),
+      ),
+    }),
+  ),
+});
+
+export interface MetaInbound {
+  phoneNumberId: string | null;
+  id: string;
+  fromE164: string;
+  text: string;
+  at: Date;
+}
+export interface MetaReceipt {
+  phoneNumberId: string | null;
+  id: string;
+  status: 'sent' | 'delivered' | 'read' | 'failed';
+  at: Date;
+  error: string | null;
+}
+
+/**
+ * Reads a Cloud API webhook: the people's messages (text, a template button, a list or button reply; anything else as
+ * its kind in brackets) and the receipts of ours. Anything that is not a WhatsApp change, or a part that is malformed,
+ * is skipped rather than failing the rest.
+ */
+export function parseMetaWebhook(body: unknown): {
+  inbound: MetaInbound[];
+  receipts: MetaReceipt[];
+} {
+  const out = { inbound: [] as MetaInbound[], receipts: [] as MetaReceipt[] };
+  const parsed = MetaWebhook.safeParse(body);
+  if (!parsed.success) return out;
+  for (const change of parsed.data.entry.flatMap((e) => e.changes)) {
+    if (change.field !== 'messages') continue;
+    const phoneNumberId = change.value.metadata?.phone_number_id ?? null;
+    for (const raw of change.value.messages ?? []) {
+      const m = MetaMessage.safeParse(raw);
+      if (!m.success) continue;
+      const text =
+        m.data.text?.body ??
+        m.data.button?.text ??
+        m.data.interactive?.button_reply?.title ??
+        m.data.interactive?.list_reply?.title ??
+        `[${m.data.type}]`;
+      out.inbound.push({
+        phoneNumberId,
+        id: m.data.id,
+        fromE164: `+${m.data.from}`,
+        text,
+        at: new Date(Number(m.data.timestamp) * 1000),
+      });
+    }
+    for (const raw of change.value.statuses ?? []) {
+      const r = MetaStatus.safeParse(raw);
+      if (!r.success || !['sent', 'delivered', 'read', 'failed'].includes(r.data.status)) continue;
+      const e = r.data.errors?.[0];
+      out.receipts.push({
+        phoneNumberId,
+        id: r.data.id,
+        status: r.data.status as MetaReceipt['status'],
+        at: new Date(Number(r.data.timestamp) * 1000),
+        error: e ? [e.code, e.title].filter((x) => x !== undefined).join(' ') || 'failed' : null,
+      });
+    }
+  }
+  return out;
 }
 
 // ─── Inbound classification (rules-v1) ──────────────────────────────────────

@@ -39,6 +39,13 @@ summary counts the day's new customers, and `/admin/leads` shows the month's sou
 Proof: `packages/seed/test/lead-followup.test.ts`, `packages/domain/copilot/test/lead-bot-policies.test.ts` (100%),
 `packages/domain/crm/test/lead-policies.test.ts` (100%), `apps/web/e2e/leads.spec.ts`.
 
+W5 Meta Cloud API direct (on fakes): the owner connects the business's own WhatsApp number
+(`/admin/integrations/whatsapp`, secrets sealed), Meta's webhook (`/api/webhooks/whatsapp/<id>`, signed with the app
+secret) brings messages into the inbox once and receipts onto the log, and the worker sends free text inside the
+24-hour window and the approved Meta template outside it, or blocks the message as `outside_window`. Proof:
+`packages/domain/comms/test/whatsapp.test.ts`, `packages/domain/comms/test/whatsapp-policies.test.ts` (100%),
+`packages/integrations/test/messaging.test.ts`, `packages/db/test/rls/isolation.test.ts`, `apps/web/e2e/whatsapp.spec.ts`.
+
 ## Freediving clubs (vertical)
 
 A freediving club runs on the same platform with its own module and screens (`docs/FREEDIVING.md`): the owner's
