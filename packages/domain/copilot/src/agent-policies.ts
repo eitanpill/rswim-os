@@ -103,6 +103,7 @@ const UNDOABLE: ReadonlySet<AgentActionKind> = new Set([
   'book_makeup',
   'freeze',
   'substitute',
+  'book_trial',
 ]);
 
 export function undoable(kind: AgentActionKind): boolean {
@@ -123,6 +124,7 @@ const SUMMARY_TEXT: Record<Locale, Record<string, string>> = {
     payment: 'לשלוח למשפחת {family} קישור תשלום על {amount} ({description})',
     absence: 'לרשום ש{student} לא מגיע/ה ל{group} ב-{date} {time}',
     makeup: 'לקבוע ל{student} השלמה ב{group}, {date} {time}',
+    trial: 'לקבוע ל{student} (משפחת {family}) שיעור ניסיון ב{group}, {date} {time}',
     freeze: 'להקפיא את המקום של {student} ב{group} מ-{date} עד {until}',
     cancelLessons: 'לבטל את השיעורים ב{venue} מ-{date} עד {until} ({sessions} שיעורים, {reason})',
     cancelLessonsAll: 'לבטל את כל השיעורים מ-{date} עד {until} ({sessions} שיעורים, {reason})',
@@ -137,6 +139,7 @@ const SUMMARY_TEXT: Record<Locale, Record<string, string>> = {
     payment: 'Send the {family} family a payment link for {amount} ({description})',
     absence: 'Record that {student} misses {group} on {date} {time}',
     makeup: 'Book a makeup for {student} in {group}, {date} {time}',
+    trial: 'Book a trial for {student} ({family} family) in {group}, {date} {time}',
     freeze: "Freeze {student}'s place in {group} from {date} to {until}",
     cancelLessons:
       'Cancel the lessons at {venue} from {date} to {until} ({sessions} lessons, {reason})',

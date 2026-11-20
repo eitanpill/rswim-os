@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   agesInWords,
+  fakeClosingIntent,
   fakeLeadDetails,
+  knownFromSystem,
+  parseChildBirth,
   fakeLeadIntent,
   leadBotRoute,
   leadBotSystem,
@@ -115,6 +118,7 @@ describe('leadBotSystem', () => {
     city: 'ירושלים',
     lead: { name: 'מיכל', details: { child_age: '5', area: '' }, phone: '+972500000000' },
     next: 'area' as const,
+    canBookTrial: true,
     facts: ['rule'],
     moduleFacts: ['rooms'],
     knowledge: [{ id: 'k1', question: 'q', answer: 'a' }],
@@ -126,11 +130,13 @@ describe('leadBotSystem', () => {
     expect(s).toContain('The next detail to ask for: area');
     expect(s).toContain('- rooms');
     expect(s).toContain('[k1]');
+    expect(s).toContain('trial_options');
   });
   it('without facts, knowledge, modules or anything known', () => {
     const s = leadBotSystem({
       ...base,
       vertical: 'freediving',
+      canBookTrial: false,
       city: null,
       lead: { name: null, details: {}, phone: '' },
       next: null,
@@ -144,6 +150,8 @@ describe('leadBotSystem', () => {
     expect(s).toContain('- (none)');
     expect(s).toContain('- (empty)');
     expect(s).not.toContain('More the business offers');
+    expect(s).not.toContain('trial_options');
+    expect(s).toContain('join_link');
   });
 });
 
@@ -169,5 +177,25 @@ describe('the stand-in', () => {
     expect(fakeLeadDetails('איפה זה?', 'area')).toEqual({});
     expect(fakeLeadDetails('שמי דן, בן 30', 'name')).toEqual({ name: 'דן', child_age: '30' });
     expect(fakeLeadDetails('שלום', null)).toEqual({});
+  });
+});
+
+describe('the stand-in closes', () => {
+  it('reads closing wishes, a child and what the bot knows', () => {
+    expect(fakeClosingIntent(' 2 ')).toBe('choice');
+    expect(fakeClosingIntent('אפשר שיעור ניסיון?')).toBe('trial');
+    expect(fakeClosingIntent('שלחו לי קישור להרשמה')).toBe('join');
+    expect(fakeClosingIntent('תודה')).toBeNull();
+    expect(parseChildBirth('נועה 3.7.2020')).toEqual({ name: 'נועה', dob: '2020-07-03' });
+    expect(parseChildBirth('12/03/2019')).toEqual({ name: null, dob: '2019-03-12' });
+    expect(parseChildBirth('אין תאריך')).toEqual({ name: null, dob: null });
+    expect(knownFromSystem('What you know about this person: name: דנה; child_age: 5.\nx')).toEqual(
+      {
+        name: 'דנה',
+        child_age: '5',
+      },
+    );
+    expect(knownFromSystem('What you know about this person: nothing yet.\n')).toEqual({});
+    expect(knownFromSystem('no line')).toEqual({});
   });
 });

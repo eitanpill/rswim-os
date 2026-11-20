@@ -463,6 +463,8 @@ export async function runParentBot(
   ctx: ServiceContext,
   model: CopilotModel | null,
   inboundMessageId: string,
+  /** Where links the bot sends point (the worker's RSWIM_PUBLIC_URL). */
+  opts: { publicUrl?: string } = {},
 ): Promise<BotRunResult> {
   const [row] = await tx
     .select()
@@ -477,7 +479,7 @@ export async function runParentBot(
   // The owner answering a waiting action on WhatsApp is the brain's (brain-inbound.ts), not a family's question.
   if (await isOwnerReply(tx, row)) return { outcome: 'skipped', reason: 'owner_reply' };
   // A new customer (a lead, not a family) gets the front-desk bot (lead-bot.ts, WhatsApp track W2).
-  if (row.householdId === null && row.leadId !== null) return runLeadBot(tx, ctx, model, row);
+  if (row.householdId === null && row.leadId !== null) return runLeadBot(tx, ctx, model, row, opts);
   const drafted = await tx
     .select({ id: triageActions.id, kind: triageActions.kind })
     .from(triageActions)

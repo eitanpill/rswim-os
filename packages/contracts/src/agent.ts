@@ -17,6 +17,8 @@ export const AGENT_ACTION_KINDS = [
   'substitute',
   'cancel_lessons',
   'open_makeup_slots',
+  // A new customer's trial lesson, booked by the WhatsApp bot (WhatsApp track W3).
+  'book_trial',
 ] as const;
 export const AgentActionKind = z.enum(AGENT_ACTION_KINDS);
 export type AgentActionKind = z.infer<typeof AgentActionKind>;
@@ -36,6 +38,7 @@ export const AGENT_WIRED_KINDS: readonly AgentActionKind[] = [
   'freeze',
   'cancel_lessons',
   'substitute',
+  'book_trial',
 ];
 
 /** off: never; suggest: a proposal only; approve: ready, runs on the owner's tap; auto: runs at once and is reported. */
@@ -57,6 +60,7 @@ export const AGENT_KIND_CEILING: Record<AgentActionKind, AutonomyLevel> = {
   // Cancelling lessons touches many families at once.
   cancel_lessons: 'approve',
   open_makeup_slots: 'auto',
+  book_trial: 'auto',
 };
 
 /** Ready-made settings for the whole table; the owner can change any row afterwards. */

@@ -375,6 +375,17 @@ describe('stage 3: cancelling lessons and substitutes', () => {
       code: 'copilot.summary.substituteOpen',
       params: { group: 'כרישים', date: '2026-11-10', time: '16:00' },
     });
+    const trial = {
+      student: 'נועה',
+      family: 'מיכל כהן',
+      group: 'דולפינים',
+      date: '2026-11-22',
+      time: '16:00',
+    };
+    expect(proposalSummary({ kind: 'book_trial', ...trial })).toEqual({
+      code: 'copilot.summary.trial',
+      params: trial,
+    });
   });
 
   it('understands cancelling a day and finding a substitute in the fake', () => {

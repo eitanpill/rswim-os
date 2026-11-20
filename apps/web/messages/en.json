@@ -4145,7 +4145,8 @@
       "cancelLessons": "Cancel the lessons at {venue} from {date} to {until} ({sessions} lessons, {reason})",
       "cancelLessonsAll": "Cancel all lessons from {date} to {until} ({sessions} lessons, {reason})",
       "substitute": "Find a substitute for {staff} in {group}, {date} {time}",
-      "substituteOpen": "Find an instructor for {group}, {date} {time}"
+      "substituteOpen": "Find an instructor for {group}, {date} {time}",
+      "trial": "Book a trial for {student} ({family} family) in {group}, {date} {time}"
     },
     "errors": {
       "ownerOnly": "The copilot is for the owner only",
@@ -5648,6 +5649,10 @@
       "open_makeup_slots": {
         "label": "Open makeup slots",
         "hint": "Opening makeup slots with an instructor"
+      },
+      "book_trial": {
+        "label": "Booking a trial for a new customer",
+        "hint": "The bot opens the family and books the trial lesson the customer chose from the open lessons"
       }
     },
     "status": {
@@ -6512,7 +6517,9 @@
       "days": "Days and times",
       "experience": "Experience",
       "dates": "Dates",
-      "note": "Note"
+      "note": "Note",
+      "child_name": "Child's name",
+      "child_dob": "Date of birth"
     }
   }
 }

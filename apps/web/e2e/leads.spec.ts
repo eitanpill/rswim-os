@@ -112,3 +112,45 @@ test('the bot answers a new customer and collects their details one question at 
   await expect(page.getByTestId('bot-leads')).toContainText('עונה גם ללקוחות חדשים');
   await expect(page.getByText('לקוח/ה חדש/ה: שירה').first()).toBeVisible();
 });
+
+test('the bot books a trial a new customer chose, and the owner approves it', async ({
+  page,
+  request,
+}) => {
+  page.on('dialog', (d) => void d.accept());
+  const digits = String(randomInt(1_000_000, 9_999_999));
+  const phone = `+97258${digits}`;
+  // A unique Hebrew name: the digits as letters.
+  const child = `תמר${[...digits.slice(-3)].map((d) => 'אבגדהוזחטי'[Number(d)]).join('')}`;
+  await whatsapp(request, phone, 'קוראים לי מיכל אברהם');
+  await runBotOnLatest(phone);
+  await whatsapp(request, phone, 'אפשר לקבוע שיעור ניסיון?');
+  await runBotOnLatest(phone);
+  // A five-year-old: the demo has mixed groups with places for that age.
+  const dob = new Date();
+  dob.setFullYear(dob.getFullYear() - 5);
+  await whatsapp(
+    request,
+    phone,
+    `${child} ${dob.getDate()}.${dob.getMonth() + 1}.${dob.getFullYear()}`,
+  );
+  await runBotOnLatest(phone);
+  await whatsapp(request, phone, '1');
+  await runBotOnLatest(phone);
+
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin/brain/journal');
+  const action = page.getByTestId('agent-action').filter({ hasText: child }).first();
+  await expect(action).toContainText('שיעור ניסיון');
+  if ((await action.getAttribute('data-status')) === 'proposed')
+    await action.getByTestId('agent-approve').click();
+  await expect(action).toHaveAttribute('data-status', 'confirmed');
+
+  await page.goto('/admin/leads');
+  await expect(
+    page
+      .getByTestId('lead-column-trial_booked')
+      .getByTestId('lead')
+      .filter({ hasText: 'מיכל אברהם' }),
+  ).toBeVisible();
+});

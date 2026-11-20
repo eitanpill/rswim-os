@@ -19,7 +19,16 @@ import { withSession } from '@/lib/db';
 import { moveLeadAction, replyToLeadAction, updateLeadAction } from '../actions';
 
 /** The details the bot collects, in the order the office reads them. */
-const DETAIL_KEYS = ['child_age', 'area', 'days', 'experience', 'dates', 'note'] as const;
+const DETAIL_KEYS = [
+  'child_name',
+  'child_dob',
+  'child_age',
+  'area',
+  'days',
+  'experience',
+  'dates',
+  'note',
+] as const;
 
 const TIME = new Intl.DateTimeFormat('he-IL', {
   timeZone: 'Asia/Jerusalem',

@@ -71,6 +71,8 @@ export const LeadDetailsPatch = z
     days: z.string().trim().min(1).max(80).optional(),
     experience: z.string().trim().min(1).max(120).optional(),
     dates: z.string().trim().min(1).max(80).optional(),
+    child_name: z.string().trim().min(1).max(60).optional(),
+    child_dob: z.iso.date().optional(),
     interest: z.string().trim().min(1).max(80).optional(),
     note: z.string().trim().min(1).max(300).optional(),
   })
@@ -161,6 +163,8 @@ export interface LeadBotPromptFacts {
   city: string | null;
   lead: LeadKnown & { phone: string };
   next: LeadDetailKey | null;
+  /** A swim school's bot books trials (trial_options, book_trial); a club's sends its sign-up link. */
+  canBookTrial: boolean;
   /** The school's rules in plain lines (policyFacts). */
   facts: string[];
   /** Facts an enabled module adds (lodging: rooms and nightly prices…). */
@@ -191,8 +195,18 @@ How to work:
 - Whenever the person tells you something about themselves (name, age of the child, area, days that suit them,
   experience, dates), save it with save_details before you answer.
 - After answering, ask for the next missing detail, one question per message, never a list of questions.
-- When you have the details, tell them the office will get back to them with a place (and a trial if they want one).
-  Booking, payment and forms are the office's for now: don't promise a specific place or date.
+${
+  c.canBookTrial
+    ? `- When they want a trial lesson: ask for the child's first name, date of birth, boy or girl, and the parent's full name
+  (one question per message), call trial_options with the date of birth, offer up to three lessons as a short
+  numbered list (day, date, time, group, place), and when they choose one call book_trial with the same childGender. "done": confirm the
+  lesson in one line (the school also sends its confirmation; when payment is "done" a payment link for the trial
+  went out too). "waiting": the office confirms soon. "failed" or "not_allowed": hand off with reason needs_action.
+  Never book a lesson trial_options did not offer, and never book before they chose.`
+    : `- When they want to come, send the sign-up link from join_link; the club confirms and they book their first dive
+  in the app.`
+}
+- For joining for good (not a trial), send the sign-up link from join_link.
 - Hand off with reason sensitive for health, injuries, complaints, refunds or safety, and with reason needs_action
   when they ask for a person, a discount or anything you can't answer.
 - Finish by calling exactly one of reply_to_lead or hand_off_to_office. The handoff summary is for the office, in
@@ -252,4 +266,34 @@ export function fakeLeadDetails(
     }
   }
   return out;
+}
+
+export type ClosingIntent = 'trial' | 'join' | 'choice' | null;
+
+/** A wish to come for a trial, to sign up, or a pick from a numbered list (the stand-in only). */
+export function fakeClosingIntent(text: string): ClosingIntent {
+  if (/^\s*[1-9]\s*$/.test(text)) return 'choice';
+  if (/ניסיון|לנסות|trial/i.test(text)) return 'trial';
+  if (/להירשם|הרשמה|לינק|קישור|sign up/i.test(text)) return 'join';
+  return null;
+}
+
+/** "נועה 12.3.2020": the child's first name and date of birth (the stand-in only). */
+export function parseChildBirth(text: string): { name: string | null; dob: string | null } {
+  const m = /(?:([\p{L}'-]{2,20})\s+)?(\d{1,2})[./](\d{1,2})[./](\d{4})/u.exec(text);
+  if (!m) return { name: null, dob: null };
+  const pad = (v: string) => v.padStart(2, '0');
+  return { name: m[1] ?? null, dob: `${m[4]}-${pad(m[3] as string)}-${pad(m[2] as string)}` };
+}
+
+/** What the instructions say the bot knows ("name: X; child_age: 5"), for the stand-in. */
+export function knownFromSystem(system: string): Record<string, string> {
+  const line = /What you know about this person: (.*)\.\n/.exec(system)?.[1] ?? '';
+  if (line === 'nothing yet') return {};
+  return Object.fromEntries(
+    line
+      .split('; ')
+      .map((p) => p.split(': '))
+      .filter((kv): kv is [string, string] => kv.length === 2),
+  );
 }

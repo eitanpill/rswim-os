@@ -21,7 +21,7 @@ import { trackUsage } from '@rswim/integrations';
 import { and, eq, lte, schema } from '@rswim/db';
 import { getDb, inngest, log } from '../client';
 import { ghlFor, messagingFor } from '../ghl';
-import { parentBotModel, triageClassifier } from '../providers';
+import { parentBotModel, publicUrl, triageClassifier } from '../providers';
 import { toEnvelope } from './core-ping';
 
 const sys = (envelope: DomainEventEnvelope) => ({ orgId: envelope.organizationId, userId: null });
@@ -201,7 +201,9 @@ export const commsParentBot = inngest.createFunction(
     return step.run('answer', async () => {
       let result: unknown = { skipped: 'already' };
       await consumeOnce(getDb(), 'comms-parent-bot', envelope, async (tx) => {
-        result = await runParentBot(tx, sys(envelope), model, inboundMessageId);
+        result = await runParentBot(tx, sys(envelope), model, inboundMessageId, {
+          publicUrl: publicUrl(),
+        });
       });
       return result;
     });

@@ -113,6 +113,22 @@ export const SubstituteProposal = z
   .object({ sessionId: z.uuid(), reason: z.string().trim().max(300).nullable() })
   .strict();
 
+/**
+ * A new customer's trial lesson (WhatsApp track W3): the family is opened from the lead (the parent's phone is the
+ * lead's), the child added, and the trial booked in the chosen lesson.
+ */
+export const TrialProposal = z
+  .object({
+    leadId: z.uuid(),
+    sessionId: z.uuid(),
+    parentFirstName: z.string().trim().min(1).max(80),
+    parentLastName: z.string().trim().min(1).max(80),
+    childFirstName: z.string().trim().min(1).max(80),
+    childDob: Date_,
+    childGender: z.enum(['female', 'male']).nullish(),
+  })
+  .strict();
+
 export const PROPOSALS = {
   move_student: MoveProposal,
   message_family: MessageProposal,
@@ -123,6 +139,7 @@ export const PROPOSALS = {
   freeze: FreezeProposal,
   cancel_lessons: CancelLessonsProposal,
   substitute: SubstituteProposal,
+  book_trial: TrialProposal,
 } as const;
 
 export type ProposalParams = {
@@ -135,6 +152,7 @@ export type ProposalParams = {
   freeze: z.infer<typeof FreezeProposal>;
   cancel_lessons: z.infer<typeof CancelLessonsProposal>;
   substitute: z.infer<typeof SubstituteProposal>;
+  book_trial: z.infer<typeof TrialProposal>;
 };
 
 /** Validates what the model proposed; anything off-shape is refused rather than repaired. */
@@ -166,6 +184,14 @@ export function proposalSummary(
         reason: string;
       }
     | { kind: 'substitute'; staff: string | null; group: string; date: string; time: string }
+    | {
+        kind: 'book_trial';
+        student: string;
+        family: string;
+        group: string;
+        date: string;
+        time: string;
+      }
     | {
         kind: 'open_makeup_slots';
         staff: string;
@@ -219,6 +245,17 @@ export function proposalSummary(
               reason: p.reason,
             },
           };
+    case 'book_trial':
+      return {
+        code: 'copilot.summary.trial',
+        params: {
+          student: p.student,
+          family: p.family,
+          group: p.group,
+          date: p.date,
+          time: p.time,
+        },
+      };
     case 'substitute':
       // A lesson nobody teaches yet asks for an instructor, not a substitute for someone.
       return p.staff === null
