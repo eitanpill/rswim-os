@@ -128,7 +128,9 @@ they go quiet), trials are reminded the day before at 17:00, and `/admin/leads` 
 `/api/webhooks/whatsapp/<connectionId>` signed with the app secret); the worker then sends through it, free text inside
 WhatsApp's 24-hour window and the approved Meta template outside it (named per message on the templates screen), with
 `RSWIM_MESSAGING_FAKE=1` on a fake that keeps the window rules. The bot's sign-up link is personal (`/i/<token>`, `lead-invite.ts`): the
-person signs in with the invited phone and enters the school at once (`openInviteFamily` + `claim_by_phone`).
+person signs in with the invited phone and enters the school at once (`openInviteFamily` + `claim_by_phone`). Existing families (W6) ask the
+bot to pay (a link for the open balance through the brain's `payment_link` level), for receipts, missing forms and
+transport, and a family with a lesson tomorrow who owes forms gets `forms_reminder` at 17:00, once a week.
 
 Lodging (`docs/LODGING.md`, optional per business, `@rswim/domain-lodging`): rooms by kind with beds and private or shared
 facilities, stays (dorms by the bed, overlaps refused in the database), `/admin/lodging` and `/dive/lodging` (today,

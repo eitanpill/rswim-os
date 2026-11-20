@@ -1,13 +1,15 @@
 /**
  * New customers (WhatsApp track W4): at 10:00 the brain follows up leads (after a trial, or once after they went
- * quiet) through its gate, and at 17:00 every trial lesson booked for tomorrow gets its reminder. Each school runs in
+ * quiet) through its gate, and at 17:00 every trial lesson booked for tomorrow gets its reminder, and families with a lesson tomorrow who still owe forms
+ * get the signing page (W6). Each school runs in
  * its own step, as the system for that school.
  */
 import { and, eq, schema } from '@rswim/db';
 import { asPlatform, withOrg } from '@rswim/db/service';
 import { runLeadFollowUps } from '@rswim/domain-copilot';
-import { queueTrialReminders } from '@rswim/domain-enrollment';
+import { queueFormsReminders, queueTrialReminders } from '@rswim/domain-enrollment';
 import { getDb, inngest, log } from '../client';
+import { publicUrl } from '../providers';
 
 const activeOrgs = (vertical?: 'swim') =>
   asPlatform(getDb(), async (tx) =>
@@ -57,12 +59,19 @@ export const enrollmentTrialReminders = inngest.createFunction(
   async ({ step }) => {
     const orgIds = await step.run('find-orgs', () => activeOrgs('swim'));
     let reminded = 0;
+    let forms = 0;
     for (const orgId of orgIds) {
       reminded += await step.run(`remind-${orgId}`, () =>
         withOrg(getDb(), orgId, (tx) => queueTrialReminders(tx, { orgId, userId: null })),
       );
+      // Families with a lesson tomorrow who still owe forms (WhatsApp track W6), once a week at most.
+      forms += await step.run(`forms-${orgId}`, () =>
+        withOrg(getDb(), orgId, (tx) =>
+          queueFormsReminders(tx, { orgId, userId: null }, publicUrl()),
+        ),
+      );
     }
-    if (reminded > 0) log.info({ reminded }, 'trial reminders queued');
-    return { reminded };
+    if (reminded > 0 || forms > 0) log.info({ reminded, forms }, 'day-before reminders queued');
+    return { reminded, forms };
   },
 );

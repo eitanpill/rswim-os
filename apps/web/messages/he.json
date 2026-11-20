@@ -1610,7 +1610,8 @@
       "bot_handoff": "הבוט העביר לצוות",
       "dive_reminder": "תזכורת לצלילה מחר",
       "mandate_request": "בקשה לחתום על הוראת קבע",
-      "trial_reminder": "תזכורת לשיעור ניסיון מחר"
+      "trial_reminder": "תזכורת לשיעור ניסיון מחר",
+      "forms_reminder": "תזכורת לחתום על טפסים לפני השיעור"
     },
     "messageStatus": {
       "queued": "בתור",
@@ -3535,7 +3536,8 @@
       "scheduling_venue_migrated": "מעבר בריכה בוצע",
       "scheduling_venue_migration_reverted": "מעבר בריכה בוטל",
       "dive_session_reminder": "תזכורת יומית לצוללים (יום לפני)",
-      "enrollment_trial_reminder": "שיעור ניסיון מחר (יום לפני)"
+      "enrollment_trial_reminder": "שיעור ניסיון מחר (יום לפני)",
+      "enrollment_forms_reminder": "טפסים חסרים לפני השיעור מחר (פעם בשבוע)"
     },
     "decision": {
       "send": "נשלח מיד",

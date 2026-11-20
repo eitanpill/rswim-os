@@ -1610,7 +1610,8 @@
       "bot_handoff": "Bot passed it to the team",
       "dive_reminder": "Dive reminder for tomorrow",
       "mandate_request": "Standing order sign-up request",
-      "trial_reminder": "Trial lesson reminder for tomorrow"
+      "trial_reminder": "Trial lesson reminder for tomorrow",
+      "forms_reminder": "Reminder to sign forms before the lesson"
     },
     "messageStatus": {
       "queued": "Queued",
@@ -3535,7 +3536,8 @@
       "scheduling_venue_migrated": "Venue move done",
       "scheduling_venue_migration_reverted": "Venue move reverted",
       "dive_session_reminder": "Daily diver reminder (day before)",
-      "enrollment_trial_reminder": "Trial lesson tomorrow (day before)"
+      "enrollment_trial_reminder": "Trial lesson tomorrow (day before)",
+      "enrollment_forms_reminder": "Forms missing before tomorrow's lesson (once a week)"
     },
     "decision": {
       "send": "Sent now",

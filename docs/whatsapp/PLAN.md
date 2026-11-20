@@ -13,7 +13,7 @@ until a business's Meta account is connected.
 | W3 The bot closes | Books a trial or an intro dive, sends a pre-filled join link, health form and payment link, by the brain's levels | Done (PR #59) |
 | W4 Follow-up and lead report | After-trial offer and reminder, one nudge for silent leads, morning count, monthly sources report | Done (PR #60) |
 | W5 Meta Cloud API direct (on fakes) | Send/receive without GHL, the 24-hour window, approved templates with variables, SMS/app fallback | Done (PR #61, SMS/app fallback later) |
-| W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | |
+| W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | Families done; divers next |
 | W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | |
 | W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | |
 | W9 One conversations screen | Every conversation in one place, "I'm taking over" per chat, bot performance | |
@@ -138,4 +138,23 @@ Always a person: discounts and refunds, complaints, health and safety, leaving, 
   (`prepareInviteFamily`), then the database's own phone check joins them (`claim_by_phone`). A freediving club: on to
   the club's sign-up for the diver's details. Another phone, a used or an expired link is refused
   (`openInviteFamily`); the lead keeps when it was used (`leads.invite_used_at`).
+
+## W6: the club on WhatsApp, families (first part)
+
+- The parents' bot (`bot.ts`) gets four new tools, each bound to the writing family:
+  - `pay_balance`: a payment link for the whole open balance through the brain's `payment_link` level and amount cap
+    (source `parent_whatsapp`). The link goes out on the school's usual `payment_link` message. A family that already
+    has an open link gets that link back, and nothing opens twice. A family with nothing open hears so.
+  - `family_receipts`: the last five issued receipts with number, date, total and the link to
+    `/parent/receipts/<id>` (from the worker's `RSWIM_PUBLIC_URL`).
+  - `missing_forms`: the forms the family still owes (`formsDueFor`: the regulations, a health declaration per child,
+    and so on) with the signing page `/parent/documents`.
+  - `family_transport`: each child's route, weekdays, when it leaves school, the drop-off point and today's ride.
+- The schedule was already there (`family_lessons`, the next 14 days).
+- Forms reminder: at 17:00 (worker `enrollment-trial-reminders`) a family with a lesson tomorrow who still owes forms
+  gets the new `forms_reminder` template with the forms' names and the signing page, once a week at most (the event's
+  key carries the week). The owner can switch it off with the other automations.
+- The stand-in understands "קישור לתשלום" / "איך משלמים", "קבלה", "טפסים", "הסעה".
+- Divers (the club's customers) on WhatsApp come in the second part of W6: their bookings, passes and missing forms,
+  and booking a dive from the chat.
 

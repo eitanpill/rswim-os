@@ -46,6 +46,11 @@ secret) brings messages into the inbox once and receipts onto the log, and the w
 `packages/domain/comms/test/whatsapp.test.ts`, `packages/domain/comms/test/whatsapp-policies.test.ts` (100%),
 `packages/integrations/test/messaging.test.ts`, `packages/db/test/rls/isolation.test.ts`, `apps/web/e2e/whatsapp.spec.ts`.
 
+W6 (families) existing customers on WhatsApp: the parents' bot sends a payment link for the open balance through the
+brain (once), the family's receipts with their links, the forms still to sign with the signing page, and each child's
+transport; at 17:00 a family with a lesson tomorrow who owes forms gets a reminder, once a week at most. Proof:
+`packages/seed/test/bot-customers.test.ts`, `packages/domain/copilot/test/bot-policies.test.ts`.
+
 ## Freediving clubs (vertical)
 
 A freediving club runs on the same platform with its own module and screens (`docs/FREEDIVING.md`): the owner's

@@ -34,6 +34,7 @@ export const TEMPLATE_KEYS = [
   'dive_reminder',
   'mandate_request',
   'trial_reminder',
+  'forms_reminder',
   'free_text',
 ] as const;
 export const TemplateKey = z.enum(TEMPLATE_KEYS);
