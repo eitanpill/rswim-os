@@ -33,6 +33,7 @@ describe('commsRulesFrom', () => {
       aiTriage: false,
       minConfidence: 80,
       botEnabled: false,
+      leadBotEnabled: false,
     });
   });
   it('falls back to the documented defaults', () => {
