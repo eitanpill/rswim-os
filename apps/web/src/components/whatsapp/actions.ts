@@ -14,19 +14,21 @@ import { getTranslations } from 'next-intl/server';
 import type { FormState } from '@/lib/form-state';
 import { runForm } from '@/lib/forms';
 
-const PAGE = '/admin/integrations/whatsapp';
+/** The connection page of a swim school and of a freediving club, and the screens that show whether it is on. */
+const PAGE = ['/admin/integrations/whatsapp', '/dive/whatsapp'];
+const ALL = [...PAGE, '/admin/connections', '/dive/connections'];
 
 /** The owner connects (or replaces) the business's own number; the token and the secret are never echoed back. */
 export async function connectWhatsAppAction(_: FormState, fd: FormData) {
   return runForm(fd, WhatsAppConnectInput, (tx, ctx, input) => connectWhatsApp(tx, ctx, input), {
-    revalidate: [PAGE, '/admin/connections'],
+    revalidate: ALL,
     success: 'whatsapp.connected',
   });
 }
 
 export async function disconnectWhatsAppAction(_: FormState, fd: FormData) {
   return runForm(fd, z.object({}), (tx) => disconnectWhatsApp(tx), {
-    revalidate: [PAGE, '/admin/connections'],
+    revalidate: ALL,
     success: 'whatsapp.disconnected',
   });
 }

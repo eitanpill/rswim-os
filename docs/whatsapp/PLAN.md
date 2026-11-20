@@ -230,7 +230,7 @@ All in `brain-inbound.ts` (worker function `brain-inbound`), texts in `agent-pol
 
 ## W10, first part: going live from the connection page
 
-Three steps on `/admin/integrations/whatsapp`, once the number's details are saved. The owner asks; the worker talks to
+Three steps on `/admin/integrations/whatsapp` (a club: `/dive/whatsapp`), once the number's details are saved. The owner asks; the worker talks to
 Meta (`whatsapp-admin.ts`, worker functions in `functions/whatsapp.ts`).
 
 - **Check the connection** (`comms.whatsapp_check_requested`): the worker reads the number from Meta (verified name,
@@ -249,5 +249,6 @@ Meta (`whatsapp-admin.ts`, worker functions in `functions/whatsapp.ts`).
 - With `RSWIM_MESSAGING_FAKE=1` Meta is a fake (`FakeWhatsAppAdmin`): the check passes, and templates are approved on
   the next look.
 - Still Pit's: Meta business verification, a number, a system-user token, and taking `RSWIM_MESSAGING_FAKE` off the
-  worker. Not built: Embedded Signup (one-click connect needs Meta's Tech Provider approval), and the connection page
-  for a freediving club.
+  worker. Not built: Embedded Signup (one-click connect needs Meta's Tech Provider approval).
+- A freediving club has the same page on `/dive/whatsapp` (owner only), opened from `/dive/connections`; both pages
+  are one component (`components/whatsapp/view.tsx`).

@@ -18,7 +18,8 @@ export type DivePage =
   | 'import'
   | 'connections'
   | 'lodging'
-  | 'chats';
+  | 'chats'
+  | 'whatsapp';
 
 export type DiveRole = 'owner' | 'manager' | 'office' | 'instructor' | 'customer';
 
@@ -44,6 +45,7 @@ const PAGES: Record<DiveRole, DivePage[]> = {
     'connections',
     'lodging',
     'chats',
+    'whatsapp',
   ],
   manager: [
     'manager',
@@ -81,7 +83,8 @@ export function pagesFor(role: DiveRole): DivePage[] {
       p !== 'setup' &&
       p !== 'import' &&
       p !== 'connections' &&
-      p !== 'chats',
+      p !== 'chats' &&
+      p !== 'whatsapp',
   );
 }
 

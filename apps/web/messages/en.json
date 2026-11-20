@@ -6569,6 +6569,7 @@
   },
   "whatsapp": {
     "title": "Business WhatsApp",
+    "kickerDive": "Connections",
     "subtitle": "The business's own number connected straight to Meta: messages go out from it and replies reach the inbox and the bot",
     "ownerOnly": "Only the owner connects the WhatsApp number.",
     "officeConnected": "Connected: messages go out from {phone}.",

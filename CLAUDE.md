@@ -130,7 +130,7 @@ they go quiet), trials are reminded the day before at 17:00, and `/admin/leads` 
 `/api/webhooks/whatsapp/<connectionId>` signed with the app secret); the worker then sends through it, free text inside
 WhatsApp's 24-hour window and the approved Meta template outside it (named per message on the templates screen), with
 `RSWIM_MESSAGING_FAKE=1` on a fake that keeps the window rules. Going live (W10, `whatsapp-admin.ts`) is three steps on
-that page, asked by the owner and done by the worker: a connection check that also subscribes the business's webhook at
+that page (a club's is `/dive/whatsapp`; one component, `components/whatsapp/view.tsx`), asked by the owner and done by the worker: a connection check that also subscribes the business's webhook at
 Meta, every message sent to Meta's review as a template (used only once approved; decisions synced every 30 minutes),
 and a test message; with the fake, Meta is `FakeWhatsAppAdmin`. The bot's sign-up link is personal (`/i/<token>`, `lead-invite.ts`): the
 person signs in with the invited phone and enters the school at once (`openInviteFamily` + `claim_by_phone`). Existing families (W6) ask the

@@ -66,3 +66,34 @@ test('the owner connects the business number and Meta can subscribe to it', asyn
   await page.getByRole('button', { name: 'ניתוק המספר' }).click();
   await expect(status).toHaveAttribute('data-status', 'disconnected');
 });
+
+test('a freediving club connects its own number from its connections screen', async ({ page }) => {
+  await page.goto('/dev/login?as=diveOwner');
+  await page.goto('/dive/connections');
+  await page.getByTestId('connection-whatsapp-link').click();
+  await expect(page).toHaveURL(/\/dive\/whatsapp$/);
+  const form = page.getByTestId('whatsapp-form');
+  await form.getByLabel('מספר הטלפון של העסק').fill('+972 8-555-0188');
+  await form.getByLabel('Phone number ID').fill('109900000002');
+  await form.getByLabel('WhatsApp Business Account ID').fill('209900000002');
+  await form.getByLabel('Access token (משתמש מערכת)').fill('fake-e2e-dive-token-not-real');
+  await form.getByLabel('App secret').fill('fedcba9876543210fedcba9876543210');
+  await page.getByTestId('whatsapp-save').click();
+  const status = page.getByTestId('whatsapp-status');
+  await expect(status).toHaveAttribute('data-status', 'connected');
+  await expect(page.getByTestId('whatsapp-live')).toBeVisible();
+  await page.getByTestId('whatsapp-check-run').click();
+  await expect(page.getByTestId('whatsapp-live')).toContainText('הבדיקה יצאה לדרך');
+
+  // The desk has no business on this page.
+  await page.goto('/dev/login?as=diveOffice');
+  await page.goto('/dive/whatsapp');
+  await expect(page).toHaveURL(/\/dive\/office$/);
+
+  // Leave the demo as it was.
+  await page.goto('/dev/login?as=diveOwner');
+  await page.goto('/dive/whatsapp');
+  page.once('dialog', (d) => d.accept());
+  await page.getByRole('button', { name: 'ניתוק המספר' }).click();
+  await expect(status).toHaveAttribute('data-status', 'disconnected');
+});
