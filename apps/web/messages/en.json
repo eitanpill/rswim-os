@@ -369,6 +369,10 @@
       "whatsapp": {
         "title": "Business WhatsApp",
         "hint": "Connect the number straight to Meta"
+      },
+      "lodging": {
+        "title": "Lodging",
+        "hint": "Rooms, beds, bookings and housekeeping"
       }
     }
   },
@@ -4264,7 +4268,8 @@
       "forms": "Paperwork",
       "plan": "Subscription",
       "setup": "Setup",
-      "connections": "Connections"
+      "connections": "Connections",
+      "lodging": "Lodging"
     },
     "clubFallback": "Freediving club",
     "tagline": "Freediving · Gulf of Eilat",
@@ -6605,6 +6610,160 @@
       "numberTaken": "This number is already connected to another business",
       "notConnected": "No number is connected",
       "unknownVariable": "Details the message does not have: {names}"
+    }
+  },
+  "lodging": {
+    "title": "Lodging",
+    "subtitle": "Rooms and beds, arrivals and departures, rooms to prepare",
+    "tabs": {
+      "today": "Today",
+      "board": "Occupancy",
+      "rooms": "Rooms & settings"
+    },
+    "off": "Lodging is still off: the bot and the morning message don't use it. Turn it on under Rooms & settings.",
+    "empty": {
+      "title": "No rooms yet",
+      "body": "Set up your rooms once: style, beds, guests, toilet and shower. From then on the system manages beds and bookings, and every morning says who arrives, who leaves and which room to prepare.",
+      "cta": "Set up rooms"
+    },
+    "today": {
+      "arrivals": "Arriving today",
+      "departures": "Leaving today",
+      "inHouse": "Sleeping here tonight",
+      "prepare": "Rooms to prepare",
+      "occupancy": "Tonight",
+      "occupancyOf": "{occupied} of {units}",
+      "noArrivals": "No arrivals today.",
+      "noDepartures": "No departures today.",
+      "noPrepare": "Every room is ready.",
+      "checkInAt": "Check-in from {time}",
+      "checkOutAt": "Check-out by {time}",
+      "why": {
+        "turnover": "Changeover today: ready it before arrival",
+        "departure": "Leaving today",
+        "dirty": "Not made up yet"
+      },
+      "markClean": "Done",
+      "briefTo": "Every morning at 07:00 a message with arrivals, departures and rooms to prepare goes to {phone}.",
+      "briefOwner": "Every morning at 07:00 a message with arrivals, departures and rooms to prepare goes to the brain's approvals number.",
+      "briefOff": "The morning message is off."
+    },
+    "guests": "{n, plural, one {1 guest} other {# guests}}",
+    "nights": "{n, plural, one {1 night} other {# nights}}",
+    "bed": "Bed {label}",
+    "status": {
+      "held": "On hold",
+      "confirmed": "Confirmed",
+      "checked_in": "In house",
+      "checked_out": "Left",
+      "cancelled": "Cancelled"
+    },
+    "source": {
+      "office": "Office",
+      "bot": "Bot",
+      "online": "Online"
+    },
+    "moves": {
+      "confirm": "Confirm",
+      "check_in": "Check in",
+      "check_out": "Check out",
+      "cancel": "Cancel"
+    },
+    "moved": "Updated",
+    "board": {
+      "prev": "Previous week",
+      "next": "Next week",
+      "now": "From today",
+      "free": "Free",
+      "room": "Room",
+      "find": "Find a free room and book",
+      "checkIn": "Arrival",
+      "checkOut": "Departure",
+      "guests": "Guests",
+      "search": "Search",
+      "none": "No free room for these dates and guests.",
+      "found": "{n, plural, one {1 option} other {# options}} for {nights}",
+      "total": "Total {amount}",
+      "noPrice": "No price",
+      "holds": "Up to {n} guests",
+      "freeBeds": "{n, plural, one {1 free bed} other {# free beds}}",
+      "book": "Book",
+      "guestName": "Guest name",
+      "phone": "Phone",
+      "hold": "Hold without confirming (waiting for approval or payment)",
+      "note": "Note",
+      "booked": "Booking saved",
+      "held": "On hold"
+    },
+    "stay": {
+      "title": "Booking",
+      "where": "Room",
+      "dates": "Dates",
+      "who": "Guest",
+      "total": "Total",
+      "back": "Back to the board",
+      "since": "{from} to {to}"
+    },
+    "rooms": {
+      "settings": "Lodging settings",
+      "enabled": "We have lodging (turn the module on)",
+      "checkInTime": "Check-in time",
+      "checkOutTime": "Check-out time",
+      "morningBrief": "Send a WhatsApp every morning at 07:00 with arrivals, departures and rooms to prepare",
+      "briefPhone": "Who gets the morning message",
+      "briefPhoneHint": "Reception or housekeeping. Without a number it goes to the brain's approvals number.",
+      "add": "Add rooms",
+      "addHint": "Several identical rooms at once: \"Family\" × 4 makes Family 1 to 4. A dorm is sold bed by bed, one guest a bed.",
+      "name": "Room name",
+      "count": "How many such rooms",
+      "kind": "Style",
+      "beds": "Beds",
+      "maxGuests": "Up to how many guests",
+      "maxGuestsHint": "Dorm: one guest a bed",
+      "toilet": "Toilet",
+      "shower": "Shower",
+      "price": "Price a night (₪)",
+      "priceHint": "Whole room; a dorm per bed",
+      "note": "Note",
+      "active": "Open for bookings",
+      "list": "Rooms ({n})",
+      "edit": "Edit",
+      "closed": "Closed",
+      "added": "{n, plural, one {Room added} other {# rooms added}}",
+      "summary": "{beds, plural, one {1 bed} other {# beds}} · up to {guests} guests",
+      "dormSummary": "{beds, plural, one {1 bed} other {# beds}} sold one by one",
+      "facilities": "Toilet {toilet} · shower {shower}",
+      "perNight": "{amount} a night",
+      "perBed": "{amount} a bed a night"
+    },
+    "kind": {
+      "single": "Single",
+      "double": "Double",
+      "family": "Family",
+      "dorm": "Shared dorm",
+      "suite": "Suite",
+      "other": "Other"
+    },
+    "facility": {
+      "private": "private",
+      "shared": "shared"
+    },
+    "housekeeping": {
+      "clean": "Ready",
+      "dirty": "To prepare",
+      "out_of_order": "Out of order"
+    },
+    "errors": {
+      "dates": "Departure must be after arrival.",
+      "tooLong": "Up to 60 nights in one booking.",
+      "roomClosed": "This room is closed for bookings.",
+      "tooManyGuests": "More guests than the room takes.",
+      "notEnoughBeds": "Not enough free dorm beds for these dates.",
+      "taken": "The room or bed is already taken on some of these nights.",
+      "bedOneGuest": "One guest sleeps in a dorm bed.",
+      "bedNotInRoom": "That bed is not in this room.",
+      "bedInUse": "A bed with a booking can't be closed. Move or cancel the booking first.",
+      "cannotMove": "This can't be done with the booking as it is now."
     }
   }
 }

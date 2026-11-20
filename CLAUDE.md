@@ -129,6 +129,11 @@ they go quiet), trials are reminded the day before at 17:00, and `/admin/leads` 
 WhatsApp's 24-hour window and the approved Meta template outside it (named per message on the templates screen), with
 `RSWIM_MESSAGING_FAKE=1` on a fake that keeps the window rules.
 
+Lodging (`docs/LODGING.md`, optional per business, `@rswim/domain-lodging`): rooms by kind with beds and private or shared
+facilities, stays (dorms by the bed, overlaps refused in the database), `/admin/lodging` and `/dive/lodging` (today,
+board, rooms). At 07:00 the worker (`lodging-morning-brief`) sends the day's check-ins, check-outs and rooms to prepare
+on WhatsApp; the lead bot answers availability with `lodging_availability`.
+
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a
 local database with provider `local`). `DATABASE_URL` stays the platform's database (sign-in, schools, plans). Screens

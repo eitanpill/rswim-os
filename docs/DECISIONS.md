@@ -220,3 +220,6 @@ Architecture decisions live in `docs/adr/`. This file holds product defaults and
 | 2026-11-20 | Outside WhatsApp's 24-hour window a message with no approved Meta template is blocked (`outside_window`) and shown in the log, not sent by SMS | Meta refuses it anyway; an SMS or app-notice fallback needs its own provider and consent, so it comes later |
 | 2026-11-20 | A connected Meta number takes over sending from GHL for that business; disconnecting it sends through GHL again | One sender per business keeps the 24-hour window and the receipts in one place |
 | 2026-11-20 | The webhook verify token is kept when the owner re-enters the number's details | Meta's subscription keeps working after a token rotation |
+| 2026-11-20 | A dorm is sold by the bed (one guest per bed), every other room as a whole room; a dorm group becomes one stay per bed | The board and the morning plan stay simple and exact, and a dorm can't be oversold |
+| 2026-11-20 | Double-booking is refused by a database trigger with an advisory lock per room, not only in the service | Two desk clerks or the bot booking at the same moment can't sell the same night twice |
+| 2026-11-20 | The morning brief goes to a lodging phone set on the rooms screen, else to the owner's approvals number | Housekeeping or reception usually need it, not the owner; without one, it still reaches someone |

@@ -27,6 +27,7 @@
     "@rswim/domain-enrollment": "workspace:*",
     "@rswim/domain-imports": "workspace:*",
     "@rswim/domain-institutions": "workspace:*",
+    "@rswim/domain-lodging": "workspace:*",
     "@rswim/domain-payroll": "workspace:*",
     "@rswim/domain-people": "workspace:*",
     "@rswim/domain-platform": "workspace:*",

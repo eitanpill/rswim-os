@@ -505,3 +505,11 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   membership go, open join requests go, the family's file stays with the school; the only owner of a school is
   refused until another owner exists; nobody else's account is touched; anonymous callers are refused.
 - Not verified: deletion against a real Supabase project's `auth.users`.
+
+## Lodging, stage 1 (2026-11-20)
+- Verified (tests, local Postgres + E2E): a business adds rooms of a kind with beds, guests and private or shared
+  toilet and shower; whole rooms and dorm beds are booked and the database refuses the same nights twice; a dorm
+  group splits bed by bed; check-in and check-out, the room then waits to be made up; the morning brief is sent once a
+  day to the lodging number; the lead bot answers free rooms and prices; instructors see nothing. Same screens on
+  `/admin/lodging` and `/dive/lodging`, demo data in both demo businesses.
+- Not verified: the morning brief on real WhatsApp (messaging runs on the fake).
