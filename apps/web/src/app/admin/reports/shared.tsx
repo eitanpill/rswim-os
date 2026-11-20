@@ -29,7 +29,7 @@ export async function ReportTabs({ active }: { active: ReportTab }) {
           aria-current={k === active ? 'page' : undefined}
           className={cn(
             'min-h-tap shrink-0 rounded-full border border-line px-4 py-2.5 text-sm',
-            k === active && 'border-brand-500 bg-brand-50 font-semibold dark:bg-surface',
+            k === active && 'border-brand-500 bg-brand-50 font-semibold',
           )}
         >
           {t(k)}
@@ -78,13 +78,13 @@ export async function RangeBar({
         <input type="month" name="to" defaultValue={range.to} className={inputClass} />
       </label>
       {children}
-      <button type="submit" className="min-h-tap px-2 text-brand-700 underline">
+      <button type="submit" className="min-h-tap px-2 text-brand-ink underline">
         {t('show')}
       </button>
       {csv ? (
         <a
           href={`/api/reports/${csv}?from=${range.from}&to=${range.to}`}
-          className="min-h-tap px-2 py-3 text-sm text-brand-700 underline"
+          className="min-h-tap px-2 py-3 text-sm text-brand-ink underline"
           data-testid="report-csv"
           download
         >

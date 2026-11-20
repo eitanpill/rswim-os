@@ -89,7 +89,9 @@ export default async function HoursPage() {
                   </details>
                 </>
               )}
-              {status === 'confirmed' ? <p className="text-sm text-ok">{t('confirmed')}</p> : null}
+              {status === 'confirmed' ? (
+                <p className="text-sm text-ok-ink">{t('confirmed')}</p>
+              ) : null}
               {status === 'disputed' && m.timesheet?.disputeNote ? (
                 <p className="text-sm">{t('disputed', { note: m.timesheet.disputeNote })}</p>
               ) : null}

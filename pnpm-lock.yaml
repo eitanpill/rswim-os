@@ -1102,6 +1102,9 @@ importers:
       '@rswim/config':
         specifier: workspace:*
         version: link:../../config
+      '@rswim/ui':
+        specifier: workspace:*
+        version: link:../../ui
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.4
@@ -1540,6 +1543,9 @@ importers:
       '@rswim/config':
         specifier: workspace:*
         version: link:../config
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
       '@types/react':
         specifier: ^19.0.0
         version: 19.3.0
@@ -1552,6 +1558,9 @@ importers:
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
 
 packages:
 

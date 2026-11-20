@@ -151,7 +151,7 @@ export default async function PayrollPage({
             </p>
             <p className="text-sm text-ink-muted">{explain(s.pension.explanation)}</p>
             {s.unpriced > 0 ? (
-              <p className="mt-1 text-sm text-warn" role="note">
+              <p className="mt-1 text-sm text-warn-ink" role="note">
                 {t('unpriced', { n: s.unpriced })}
               </p>
             ) : null}

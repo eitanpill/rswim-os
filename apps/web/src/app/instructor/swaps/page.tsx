@@ -26,7 +26,7 @@ export default async function SwapsPage({
       <PageHeader icon="🔁" title={t('title')} subtitle={t('hint')} />
       <div className="flex flex-col gap-4" data-testid="instructor-content">
         {answered === 'accepted' || answered === 'declined' ? (
-          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok">
+          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok-ink">
             {t(answered)}
           </p>
         ) : null}

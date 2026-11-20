@@ -68,7 +68,7 @@ export default async function CardStepPage({
         ) : (
           <div className="flex flex-col gap-3">
             {card === 'failed' ? (
-              <p role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-danger">
+              <p role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-danger-ink">
                 {t('card.failedToast')}
               </p>
             ) : null}

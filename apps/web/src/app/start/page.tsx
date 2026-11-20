@@ -18,7 +18,7 @@ function PathTitle({ icon, children }: { icon: string; children: ReactNode }) {
     <h2 className="mb-1 flex items-center gap-2 font-semibold">
       <span
         aria-hidden
-        className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-lg dark:bg-surface"
+        className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-lg"
       >
         {icon}
       </span>

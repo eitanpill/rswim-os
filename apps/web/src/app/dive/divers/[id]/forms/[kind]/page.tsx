@@ -27,7 +27,7 @@ export default async function DeskSign({
   if (!name) notFound();
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4" data-testid="desk-sign">
-      <a href={`/dive/divers/${id}`} className="text-sm text-[var(--dive-sea)] hover:underline">
+      <a href={`/dive/divers/${id}`} className="text-sm text-[var(--dive-sea-ink)] hover:underline">
         {t('backDiver')}
       </a>
       <Hero

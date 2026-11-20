@@ -25,13 +25,13 @@ export async function DateChip({ date, className }: { date: string; className?: 
       <span
         className={cn(
           'w-full py-1 text-[0.65rem] font-semibold',
-          today ? 'bg-white/15' : 'bg-brand-50 text-brand-700 dark:bg-surface',
+          today ? 'bg-white/15' : 'bg-brand-50 text-brand-700',
         )}
       >
         {today ? t('todayShort') : format.dateTime(d, { weekday: 'short' })}
       </span>
       <span className="pt-1 text-lg font-bold tabular-nums">{d.getDate()}</span>
-      <span className={cn('pb-1 text-[0.65rem]', today ? 'text-white/85' : 'text-ink-muted')}>
+      <span className={cn('pb-1 text-[0.65rem]', today ? 'text-white/90' : 'text-ink-muted')}>
         {format.dateTime(d, { month: 'short' })}
       </span>
     </span>

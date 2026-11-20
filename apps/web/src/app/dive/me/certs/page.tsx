@@ -23,7 +23,7 @@ export default async function MyCerts() {
     );
   return (
     <div className="flex flex-col gap-5" data-testid="my-certs">
-      <a href="/dive/me/welcome" className="text-sm text-[var(--dive-sea)] hover:underline">
+      <a href="/dive/me/welcome" className="text-sm text-[var(--dive-sea-ink)] hover:underline">
         {t('backWelcome')}
       </a>
       <Hero kicker={t('kicker')} title={t('myTitle')} sub={t('mySub')} />

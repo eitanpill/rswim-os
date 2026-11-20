@@ -20,7 +20,7 @@ export default async function ParentDocuments() {
       <Card data-testid="parent-forms">
         <CardTitle>{t('due')}</CardTitle>
         {!data || data.forms.due.length === 0 ? (
-          <p className="text-ok">{t('allDone')}</p>
+          <p className="text-ok-ink">{t('allDone')}</p>
         ) : (
           <FormsDue
             due={data.forms.due}

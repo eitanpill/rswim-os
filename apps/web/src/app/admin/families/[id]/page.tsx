@@ -99,7 +99,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
                   </div>
                 </div>
                 <details className="mt-2">
-                  <summary className="cursor-pointer text-sm text-brand-700">{tc('edit')}</summary>
+                  <summary className="cursor-pointer text-sm text-brand-ink">{tc('edit')}</summary>
                   <ActionForm
                     action={updateGuardianAction.bind(null, household.id, g.id)}
                     className="mt-2"
@@ -114,7 +114,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
             ))}
           </ul>
           <details className="mt-3">
-            <summary className="min-h-tap cursor-pointer text-brand-700">
+            <summary className="min-h-tap cursor-pointer text-brand-ink">
               {t('guardian.add')}
             </summary>
             <ActionForm
@@ -166,7 +166,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
                     </div>
                   ) : null}
                   <details className="mt-2">
-                    <summary className="cursor-pointer text-sm text-brand-700">
+                    <summary className="cursor-pointer text-sm text-brand-ink">
                       {tc('edit')}
                     </summary>
                     <ActionForm
@@ -184,7 +184,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
             })}
           </ul>
           <details className="mt-3">
-            <summary className="min-h-tap cursor-pointer text-brand-700">
+            <summary className="min-h-tap cursor-pointer text-brand-ink">
               {t('student.add')}
             </summary>
             <ActionForm
@@ -253,7 +253,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
         <Card data-testid="family-forms">
           <CardTitle>{t('forms.title')}</CardTitle>
           {forms.due.length === 0 ? (
-            <p className="mb-2 text-sm text-ok">{t('forms.allDone')}</p>
+            <p className="mb-2 text-sm text-ok-ink">{t('forms.allDone')}</p>
           ) : (
             <FormsDue
               due={forms.due}
@@ -268,7 +268,7 @@ export default async function FamilyPage({ params }: { params: Promise<{ id: str
           )}
           {accepted.length ? (
             <details className="mt-3">
-              <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-700">
+              <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-ink">
                 {t('forms.accepted', { n: accepted.length })}
               </summary>
               <ul className="flex flex-col gap-1 text-sm">

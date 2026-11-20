@@ -109,10 +109,10 @@ export default async function GhlPage() {
                         ))}
                       </dl>
                     ) : null}
-                    {r.error ? <p className="mt-2 text-sm text-danger">{r.error}</p> : null}
+                    {r.error ? <p className="mt-2 text-sm text-danger-ink">{r.error}</p> : null}
                     {problems.length ? (
                       <details className="mt-2">
-                        <summary className="cursor-pointer text-sm text-brand-700">
+                        <summary className="cursor-pointer text-sm text-brand-ink">
                           {t('problems', { count: problems.length })}
                         </summary>
                         <ul className="mt-1 text-sm">

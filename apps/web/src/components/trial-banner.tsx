@@ -42,7 +42,7 @@ export async function TrialBanner({
       className={
         tl.reminding
           ? 'aqua-pulse mb-4 rounded-xl border border-warn bg-warn/20 px-3 py-2 text-sm'
-          : 'mb-4 rounded-xl bg-brand-50 px-3 py-2 text-sm dark:bg-surface'
+          : 'mb-4 rounded-xl bg-brand-50 px-3 py-2 text-sm'
       }
     >
       <p>

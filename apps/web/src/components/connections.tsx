@@ -85,7 +85,7 @@ export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' 
               {r.href ? (
                 <Link
                   href={r.href}
-                  className="mt-2 inline-block text-sm text-brand-700 underline"
+                  className="mt-2 inline-block text-sm text-brand-ink underline"
                   data-testid={`connection-${r.key}-link`}
                 >
                   {r.state === 'notInPlan' ? t(`${r.key}.linkPlan`) : t(`${r.key}.link`)}

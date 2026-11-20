@@ -58,7 +58,7 @@ export async function SchoolDatabases() {
                   {[d.provider, d.projectRef, d.region].filter(Boolean).join(' · ')}
                 </p>
                 {d.lastError ? (
-                  <p className="text-xs text-danger" dir="ltr">
+                  <p className="text-xs text-danger-ink" dir="ltr">
                     {d.lastError}
                   </p>
                 ) : null}

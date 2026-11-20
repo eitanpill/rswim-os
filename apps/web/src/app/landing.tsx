@@ -25,10 +25,10 @@ export async function Landing() {
       data-testid="landing"
     >
       <header className="flex items-center justify-between gap-4">
-        <p className="text-2xl font-bold text-brand-600">{PRODUCT.name}</p>
+        <p className="text-2xl font-bold text-brand-ink">{PRODUCT.name}</p>
         <Link
           href="/login"
-          className="font-medium text-brand-600 underline-offset-4 hover:underline"
+          className="font-medium text-brand-ink underline-offset-4 hover:underline"
         >
           {t('signIn')}
         </Link>

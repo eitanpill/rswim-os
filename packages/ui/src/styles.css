@@ -5,16 +5,35 @@
 @import 'tailwindcss';
 @source '../src';
 
-@custom-variant dark (&:where(.dark, .dark *));
+/*
+ * `dark:` follows the phone's or computer's dark mode as well as an explicit `.dark` class (an explicit `.light`
+ * opts out). Before this it matched only `.dark`, which nothing sets, so every `dark:` fix silently never applied.
+ */
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not(.light), :root:not(.light) *) {
+      @slot;
+    }
+  }
+}
 
 @theme {
   --font-sans: 'Heebo', 'Assistant', system-ui, sans-serif;
 
-  --color-brand-50: oklch(97% 0.02 220);
-  --color-brand-100: oklch(93% 0.04 220);
+  /*
+   * Tints (selected chips and tabs, soft buttons, badges) follow the colour scheme: pale in light mode, deep in dark
+   * mode, so the ink on top stays readable in both. Text in the brand colour uses brand-ink, never brand-600/700
+   * (those stay dark for white-text fills). brandPalette() in @rswim/domain-platform emits the same scale per hue.
+   */
+  --color-brand-50: light-dark(oklch(97% 0.02 220), oklch(30% 0.05 220));
+  --color-brand-100: light-dark(oklch(93% 0.04 220), oklch(34% 0.06 220));
   --color-brand-500: oklch(62% 0.13 225);
-  --color-brand-600: oklch(54% 0.13 228);
+  --color-brand-600: oklch(53% 0.13 228);
   --color-brand-700: oklch(46% 0.12 230);
+  --color-brand-ink: light-dark(oklch(46% 0.12 230), oklch(84% 0.08 220));
 
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
@@ -24,6 +43,16 @@
   --color-ok: oklch(62% 0.15 150);
   --color-warn: oklch(75% 0.15 75);
   --color-danger: oklch(58% 0.2 25);
+  /*
+   * Status colours as text (amounts, labels, badges on their own /10 tints) use the -ink shades, which stay at
+   * 4.5:1 or better on the page, cards and the status tints in both modes. White text sits on ok-strong or danger;
+   * text on a bright fill (warn, sun, white) uses on-bright, which stays dark in dark mode too.
+   */
+  --color-ok-ink: light-dark(oklch(46% 0.12 150), oklch(80% 0.13 150));
+  --color-danger-ink: light-dark(oklch(50% 0.19 25), oklch(77% 0.13 25));
+  --color-warn-ink: light-dark(oklch(48% 0.1 70), oklch(84% 0.12 80));
+  --color-ok-strong: oklch(50% 0.13 150);
+  --color-on-bright: oklch(22% 0.02 240);
 
   --color-sun: oklch(84% 0.15 85);
   --color-coral: oklch(68% 0.17 35);
@@ -79,6 +108,7 @@ body {
  * Everything keys off --color-brand-*, which AppShell sets per school, so each tenant wears its own colour.
  */
 .bg-water {
+  color-scheme: dark;
   background:
     radial-gradient(110% 90% at 100% 0%, oklch(100% 0 0 / 0.16), transparent 55%),
     radial-gradient(80% 70% at 0% 100%, oklch(100% 0 0 / 0.08), transparent 60%),

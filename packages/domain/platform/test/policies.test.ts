@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_ORG_RULES } from '@rswim/contracts';
+import { BRAND_HUE_KEYS, DEFAULT_ORG_RULES } from '@rswim/contracts';
+import { contrast, over, parseColor, type Rgb } from '@rswim/ui/contrast';
 import {
   aiBudget,
   billingPeriod,
@@ -312,10 +313,49 @@ describe('onboarding', () => {
 
 describe('brand and domains', () => {
   it('builds the colour scale from a hue, keeping the default theme otherwise', () => {
-    expect(brandPalette('coral')).toMatchObject({ '--color-brand-600': 'oklch(54% 0.13 25)' });
-    expect(Object.keys(brandPalette('sea'))).toHaveLength(5);
+    expect(brandPalette('coral')).toMatchObject({ '--color-brand-600': 'oklch(53% 0.13 25)' });
+    expect(Object.keys(brandPalette('sea'))).toHaveLength(6);
     expect(brandPalette(undefined)).toEqual({});
     expect(brandPalette(null)).toEqual({});
+  });
+
+  // Every school's colour, in light and dark mode: selected chips/tabs (brand-50/100 under ink), brand text, and
+  // white on the filled buttons. Surfaces and ink as in @rswim/ui styles.css.
+  it.each(
+    BRAND_HUE_KEYS.flatMap((hue) =>
+      (['light', 'dark'] as const).map((scheme) => [hue, scheme] as const),
+    ),
+  )('keeps text readable for the %s brand in %s mode', (hue, scheme) => {
+    const p = brandPalette(hue);
+    const c = (k: string) => parseColor(p[k]!, scheme);
+    const ink = parseColor(
+      scheme === 'light' ? 'oklch(22% 0.02 240)' : 'oklch(95% 0.01 240)',
+      scheme,
+    );
+    const muted = parseColor(
+      scheme === 'light' ? 'oklch(48% 0.02 240)' : 'oklch(72% 0.02 240)',
+      scheme,
+    );
+    const card = parseColor(scheme === 'light' ? 'oklch(100% 0 0)' : 'oklch(23% 0.02 240)', scheme);
+    const page = parseColor(
+      scheme === 'light' ? 'oklch(98.5% 0.005 220)' : 'oklch(18% 0.02 240)',
+      scheme,
+    );
+    const white: Rgb = [1, 1, 1];
+    const grounds = [
+      c('--color-brand-50'),
+      c('--color-brand-100'),
+      over(c('--color-brand-50'), 0.6, card),
+      card,
+      page,
+    ];
+    for (const g of grounds) {
+      expect(contrast(ink, g)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(muted, g)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(c('--color-brand-ink'), g)).toBeGreaterThanOrEqual(4.5);
+    }
+    expect(contrast(white, c('--color-brand-600'))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(white, c('--color-brand-700'))).toBeGreaterThanOrEqual(4.5);
   });
 
   it('normalizes a typed host and refuses addresses, junk and the platform’s own domains', () => {

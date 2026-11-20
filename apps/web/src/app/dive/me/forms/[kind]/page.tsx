@@ -27,7 +27,7 @@ export default async function SignMyForm({ params }: { params: Promise<{ kind: s
   if (!data) notFound();
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4" data-testid="sign-page">
-      <a href="/dive/me/forms" className="text-sm text-[var(--dive-sea)] hover:underline">
+      <a href="/dive/me/forms" className="text-sm text-[var(--dive-sea-ink)] hover:underline">
         {t('backForms')}
       </a>
       <Hero kicker={t('kicker')} title={t(`kind.${kind}`)} sub={t(`signSub.${kind}`)} />

@@ -49,7 +49,7 @@ export default async function MoneyPage() {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Link
                       href={`/admin/families/${r.householdId}`}
-                      className="font-medium text-brand-700 underline"
+                      className="font-medium text-brand-ink underline"
                     >
                       {r.name}
                     </Link>

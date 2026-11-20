@@ -37,7 +37,7 @@ export default async function CashPage() {
                 <span>
                   <Link
                     href={`/admin/families/${p.householdId}`}
-                    className="font-medium text-brand-700 underline"
+                    className="font-medium text-brand-ink underline"
                   >
                     {fmt(p.amountAgorot)}
                   </Link>{' '}

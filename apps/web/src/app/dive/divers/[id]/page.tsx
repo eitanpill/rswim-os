@@ -39,12 +39,12 @@ export default async function DiverFilePage({
   const d = f.diver;
   return (
     <div className="flex flex-col gap-5" data-testid="diver-file">
-      <a href="/dive/divers" className="text-sm text-[var(--dive-sea)] hover:underline">
+      <a href="/dive/divers" className="text-sm text-[var(--dive-sea-ink)] hover:underline">
         {t('file.back')}
       </a>
       <DiverBanner home={f}>
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/15 pt-3 text-sm">
-          <span className="rounded-full bg-white/95 p-0.5">
+          <span className="rounded-full bg-white/95 p-0.5 scheme-light">
             <ReadinessChips items={f.readinessItems} />
           </span>
           {d.tags.map((x) => (
@@ -147,7 +147,7 @@ export default async function DiverFilePage({
       {sp.signed === 'health' || sp.signed === 'waiver' || sp.signed === 'insurance' ? (
         <p
           role="status"
-          className="flex items-center gap-2 rounded-2xl bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-4 py-3 font-semibold text-[color-mix(in_oklch,var(--dive-go)_70%,var(--ink))] [&_svg]:size-5"
+          className="flex items-center gap-2 rounded-2xl bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-4 py-3 font-semibold text-[var(--dive-go-ink)] [&_svg]:size-5"
           data-testid="signed-banner"
         >
           {di.check}
@@ -174,7 +174,7 @@ export default async function DiverFilePage({
         {certs.length ? <CertList certs={certs} /> : <Empty>{tc('noneOnFile')}</Empty>}
         {isOffice(role) ? (
           <details className="mx-4 mb-4 rounded-xl border border-line">
-            <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium text-[var(--dive-sea)]">
+            <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium text-[var(--dive-sea-ink)]">
               {tc('deskAdd')}
             </summary>
             <div className="p-3">

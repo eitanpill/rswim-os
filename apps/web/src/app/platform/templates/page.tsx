@@ -28,7 +28,7 @@ export default async function TemplateReviewPage() {
                 </div>
                 {x.description ? <p className="text-sm text-ink-muted">{x.description}</p> : null}
                 <details className="mt-2">
-                  <summary className="cursor-pointer text-sm text-brand-700">
+                  <summary className="cursor-pointer text-sm text-brand-ink">
                     {t('payload')}
                   </summary>
                   <pre

@@ -21,6 +21,21 @@
   --series-3: #1baf7a;
   --series-4: #eda100;
   --surface: oklch(98% 0.008 220);
+  /*
+   * Text in the club's colours, and fills that carry white text. The bright sea/coral/go shades above are for
+   * charts, dots and borders; as text they fall under 4.5:1. These hold 4.5:1+ on the page, cards and their own
+   * tints in both modes (checked by the contrast test in @rswim/ui).
+   */
+  --dive-sea-ink: light-dark(oklch(50% 0.1 205), oklch(80% 0.1 205));
+  --dive-coral-ink: light-dark(oklch(50% 0.15 35), oklch(80% 0.12 35));
+  --dive-go-ink: light-dark(oklch(46% 0.12 155), oklch(80% 0.12 155));
+  --dive-nogo-ink: light-dark(oklch(50% 0.18 27), oklch(80% 0.12 27));
+  --dive-caution-ink: light-dark(oklch(50% 0.1 70), oklch(82% 0.12 80));
+  --dive-sea-strong: oklch(50% 0.1 205);
+  --dive-coral-strong: oklch(52% 0.16 35);
+  --dive-go-strong: oklch(50% 0.12 155);
+  /* Pale sea text on the always-dark ocean chrome (dive-shallow itself darkens in dark mode). */
+  --dive-shallow-ink: oklch(86% 0.07 195);
 }
 @media (prefers-color-scheme: dark) {
   :root:not(.light) .dive {
@@ -44,6 +59,16 @@
   --surface: oklch(17% 0.025 245);
   --surface-raised: oklch(22% 0.03 245);
 }
+/*
+ * Always-dark surfaces (ocean chrome and heroes, the weather panel, the swim heroes) read their tokens in dark
+ * mode, so chips and -ink text on them stay light whatever the phone's setting. A white pill on them sets
+ * scheme-light back.
+ */
+.dive .bg-ocean,
+.dive .bg-shore,
+.aqua-hero {
+  color-scheme: dark;
+}
 .dive .bg-ocean {
   background:
     radial-gradient(120% 80% at 85% -10%, oklch(70% 0.12 195 / 0.55), transparent 60%),
@@ -52,8 +77,8 @@
 .dive .bg-shore {
   background: linear-gradient(
     180deg,
-    oklch(88% 0.06 200) 0%,
-    var(--dive-sea) 55%,
+    oklch(40% 0.09 205) 0%,
+    oklch(38% 0.09 215) 55%,
     var(--dive-deep) 100%
   );
 }
@@ -194,7 +219,7 @@
   isolation: isolate;
   color: white;
   background:
-    radial-gradient(90% 120% at 15% -20%, oklch(85% 0.12 190 / 0.7), transparent 60%),
+    radial-gradient(90% 120% at 15% -20%, oklch(85% 0.12 190 / 0.55), transparent 60%),
     radial-gradient(80% 90% at 100% 0%, oklch(78% 0.13 250 / 0.55), transparent 60%),
     linear-gradient(160deg, oklch(60% 0.14 220), oklch(45% 0.13 240));
 }

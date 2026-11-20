@@ -54,7 +54,7 @@ export default async function CopilotPage() {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={
-          <Link href="/admin/brain" className="text-sm text-brand-700 underline">
+          <Link href="/admin/brain" className="text-sm text-brand-ink underline">
             {t('brainLink')}
           </Link>
         }
@@ -89,7 +89,7 @@ export default async function CopilotPage() {
             </p>
             {x.trace.length ? (
               <details className="mt-2">
-                <summary className="min-h-tap cursor-pointer py-2 text-xs text-brand-700">
+                <summary className="min-h-tap cursor-pointer py-2 text-xs text-brand-ink">
                   {t('trace', { n: x.trace.length })}
                 </summary>
                 <ul className="ms-4 list-disc text-xs text-ink-muted">
@@ -116,7 +116,7 @@ export default async function CopilotPage() {
                       <Badge tone={TONE[a.status]}>{label('copilotActionStatus', a.status)}</Badge>
                     </div>
                     {a.errorCode ? (
-                      <p className="mt-1 text-sm text-danger">
+                      <p className="mt-1 text-sm text-danger-ink">
                         {explain({
                           code: a.errorCode,
                           params: (a.result as { params?: object } | null)?.params ?? {},

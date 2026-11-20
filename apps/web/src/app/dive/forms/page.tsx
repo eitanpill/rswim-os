@@ -69,7 +69,7 @@ export default async function FormsCenter() {
                   </a>
                   <a
                     href={`/dive/signed/${p.signatureId}`}
-                    className="shrink-0 text-sm text-[var(--dive-sea)] hover:underline"
+                    className="shrink-0 text-sm text-[var(--dive-sea-ink)] hover:underline"
                   >
                     {t('viewSigned')}
                   </a>
@@ -77,7 +77,7 @@ export default async function FormsCenter() {
                 <ul className="flex flex-col gap-1 text-sm">
                   {p.flagged.map((q) => (
                     <li key={q} className="flex items-start gap-1.5">
-                      <span className="mt-0.5 text-[var(--dive-nogo)] [&_svg]:size-4">
+                      <span className="mt-0.5 text-[var(--dive-nogo-ink)] [&_svg]:size-4">
                         {di.bang}
                       </span>
                       {q}
@@ -116,7 +116,7 @@ export default async function FormsCenter() {
                       href={`/api/dive/files/${c.fileId}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="shrink-0 text-sm text-[var(--dive-sea)] hover:underline"
+                      className="shrink-0 text-sm text-[var(--dive-sea-ink)] hover:underline"
                       data-testid="cert-photo"
                     >
                       {tc('viewPhoto')}
@@ -244,7 +244,7 @@ export default async function FormsCenter() {
                   ) : null}
                   {editable ? (
                     <details className="rounded-xl border border-line" open={draft !== null}>
-                      <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-[var(--dive-sea)]">
+                      <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-[var(--dive-sea-ink)]">
                         {draft ? t('editDraft') : t('newVersion')}
                       </summary>
                       <ActionForm action={saveDraftAction} className="p-3" testId={`draft-${kind}`}>

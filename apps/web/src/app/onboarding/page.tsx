@@ -32,9 +32,7 @@ export default async function OnboardingPage() {
       <AquaHero icon="🏊" title={t('heroTitle')} subtitle={t('heroSubtitle')}>
         <SignupSteps current={2} labels={t.raw('steps') as [string, string, string]} />
       </AquaHero>
-      <p className="mb-4 rounded-xl bg-brand-50 px-3 py-2 text-sm dark:bg-surface">
-        {t('parentHint')}
-      </p>
+      <p className="mb-4 rounded-xl bg-brand-50 px-3 py-2 text-sm">{t('parentHint')}</p>
       <Card className="aqua-in">
         <ActionForm action={createSchoolAction} testId="create-school">
           <Field name="name" label={t('name')} placeholder={t('namePlaceholder')} />
@@ -45,7 +43,7 @@ export default async function OnboardingPage() {
               {(['swim', 'freediving'] as const).map((v, i) => (
                 <label
                   key={v}
-                  className="aqua-pick relative flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-surface-raised p-4 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 dark:has-[:checked]:bg-surface"
+                  className="aqua-pick relative flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-surface-raised p-4 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50"
                   data-testid={`vertical-${v}`}
                 >
                   <input
@@ -78,12 +76,12 @@ export default async function OnboardingPage() {
               {plans.map((p, i) => (
                 <label
                   key={p.code}
-                  className="aqua-pick aqua-in relative flex cursor-pointer flex-col gap-2 rounded-xl border border-line bg-surface-raised p-4 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 dark:has-[:checked]:bg-surface"
+                  className="aqua-pick aqua-in relative flex cursor-pointer flex-col gap-2 rounded-xl border border-line bg-surface-raised p-4 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50"
                   style={{ animationDelay: `${0.05 + i * 0.08}s` }}
                   data-testid={`plan-${p.code}`}
                 >
                   {p.code === popular ? (
-                    <span className="aqua-shine absolute -top-3 start-3 rounded-full px-2 py-0.5 text-xs font-bold text-ink">
+                    <span className="aqua-shine absolute -top-3 start-3 rounded-full px-2 py-0.5 text-xs font-bold text-on-bright">
                       {t('popular')}
                     </span>
                   ) : null}
@@ -97,7 +95,7 @@ export default async function OnboardingPage() {
                     />
                     <span className="font-semibold">{locale === 'en' ? p.nameEn : p.nameHe}</span>
                   </span>
-                  <span className="text-2xl font-bold text-brand-700 dark:text-brand-500">
+                  <span className="text-2xl font-bold text-brand-ink">
                     <Money agorot={agorot(p.priceAgorot)} locale={locale} />{' '}
                     <span className="text-sm font-normal text-ink-muted">{t('perMonth')}</span>
                   </span>
@@ -114,7 +112,7 @@ export default async function OnboardingPage() {
                       })
                       .join(' · ')}
                   </span>
-                  <span className="text-sm font-medium text-ok">
+                  <span className="text-sm font-medium text-ok-ink">
                     🎁 {t('trial', { days: p.trialDays })}
                   </span>
                 </label>

@@ -56,7 +56,7 @@ export default async function ParentPaymentsPage() {
               {m.balance > 0 ? '🧾' : '🎉'}
             </span>
           </div>
-          <p className={m.balance > 0 ? 'text-2xl font-bold' : 'text-2xl font-bold text-ok'}>
+          <p className={m.balance > 0 ? 'text-2xl font-bold' : 'text-2xl font-bold text-ok-ink'}>
             {m.balance > 0
               ? t('owes', { amount: fmt(m.balance) })
               : m.balance < 0
@@ -137,7 +137,7 @@ export default async function ParentPaymentsPage() {
                     </span>
                   </span>
                   <span
-                    className={`rounded-full px-2 py-0.5 font-semibold tabular-nums ${e.amountAgorot < 0 ? 'bg-ok/10 text-ok' : 'bg-brand-50 dark:bg-surface'}`}
+                    className={`rounded-full px-2 py-0.5 font-semibold tabular-nums ${e.amountAgorot < 0 ? 'bg-ok/10 text-ok-ink' : 'bg-brand-50'}`}
                   >
                     {fmt(e.amountAgorot)}
                   </span>

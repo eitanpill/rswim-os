@@ -44,7 +44,7 @@ export default async function BrainMemoryPage() {
       title={t('title')}
       subtitle={t('subtitle')}
       actions={
-        <Link href="/admin/brain" className="text-sm text-brand-700 underline">
+        <Link href="/admin/brain" className="text-sm text-brand-ink underline">
           {t('back')}
         </Link>
       }

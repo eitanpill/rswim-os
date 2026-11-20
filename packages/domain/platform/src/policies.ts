@@ -306,17 +306,19 @@ export function onboardingChecklist(f: OnboardingFacts) {
 
 /**
  * The brand colour scale for a hue, as the design tokens the UI already uses. Lightness and chroma stay those of the
- * default theme, so contrast holds for every school.
+ * default theme, so contrast holds for every school. Tints and brand-ink switch with light/dark mode
+ * (`light-dark()`); the contrast test in this package checks every hue in both modes.
  */
 export function brandPalette(hue: BrandHueKey | undefined | null): Record<string, string> {
   if (!hue) return {};
   const h = BRAND_HUES[hue];
   return {
-    '--color-brand-50': `oklch(97% 0.02 ${h})`,
-    '--color-brand-100': `oklch(93% 0.04 ${h})`,
+    '--color-brand-50': `light-dark(oklch(97% 0.02 ${h}), oklch(30% 0.05 ${h}))`,
+    '--color-brand-100': `light-dark(oklch(93% 0.04 ${h}), oklch(34% 0.06 ${h}))`,
     '--color-brand-500': `oklch(62% 0.13 ${h})`,
-    '--color-brand-600': `oklch(54% 0.13 ${h})`,
+    '--color-brand-600': `oklch(53% 0.13 ${h})`,
     '--color-brand-700': `oklch(46% 0.12 ${h})`,
+    '--color-brand-ink': `light-dark(oklch(46% 0.12 ${h}), oklch(84% 0.08 ${h}))`,
   };
 }
 

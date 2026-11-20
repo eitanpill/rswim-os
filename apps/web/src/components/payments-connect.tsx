@@ -134,7 +134,7 @@ export async function PaymentsConnect({
               href={`${basePath}?p=${k}`}
               aria-current={k === selected ? 'true' : undefined}
               data-testid={`payments-provider-${k}`}
-              className="flex min-h-tap items-center gap-2 rounded-xl border border-line px-3 text-sm aria-[current=true]:border-brand-500 aria-[current=true]:bg-brand-50 dark:aria-[current=true]:bg-surface"
+              className="flex min-h-tap items-center gap-2 rounded-xl border border-line px-3 text-sm aria-[current=true]:border-brand-500 aria-[current=true]:bg-brand-50"
             >
               {k === 'fake' ? t('demoProcessor') : PAYMENT_GATEWAYS[k].name}
             </a>

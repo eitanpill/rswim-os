@@ -130,7 +130,9 @@ export default async function InboxPage({
                           </ActionButton>
                         </div>
                       ) : (
-                        <p className="mt-1 text-sm text-ok">{label('inboundStatus', 'actioned')}</p>
+                        <p className="mt-1 text-sm text-ok-ink">
+                          {label('inboundStatus', 'actioned')}
+                        </p>
                       )}
                     </div>
                   ) : null}
@@ -153,7 +155,7 @@ export default async function InboxPage({
                       {m.householdId ? (
                         <Link
                           href={`/admin/families/${m.householdId}`}
-                          className="min-h-tap px-3 py-2.5 text-sm text-brand-700 underline"
+                          className="min-h-tap px-3 py-2.5 text-sm text-brand-ink underline"
                         >
                           {t('inbox.familyCard')}
                         </Link>

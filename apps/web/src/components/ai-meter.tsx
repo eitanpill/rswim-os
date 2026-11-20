@@ -44,7 +44,7 @@ export async function AiMeter() {
       {budget.state === 'warn' || budget.state === 'over' ? (
         <p
           role={budget.state === 'over' ? 'alert' : 'status'}
-          className={budget.state === 'over' ? 'mt-2 text-sm text-danger' : 'mt-2 text-sm'}
+          className={budget.state === 'over' ? 'mt-2 text-sm text-danger-ink' : 'mt-2 text-sm'}
           data-testid="ai-meter-note"
         >
           {t(`note.${budget.state}`)}

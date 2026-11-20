@@ -45,7 +45,7 @@ export default async function RunReviewPage({ params }: { params: Promise<{ id: 
             })}
           </p>
           {run.status === 'posted' && run.postedAt ? (
-            <p role="status" className="mt-2 text-sm text-ok">
+            <p role="status" className="mt-2 text-sm text-ok-ink">
               {t('posted', { at: dateTimeIL(run.postedAt) })}
             </p>
           ) : null}
@@ -74,7 +74,7 @@ export default async function RunReviewPage({ params }: { params: Promise<{ id: 
         <Card data-testid="run-flags">
           <CardTitle>{t('flags', { n: anomalies.length })}</CardTitle>
           {anomalies.length === 0 ? (
-            <p className="text-sm text-ok">{t('noFlags')}</p>
+            <p className="text-sm text-ok-ink">{t('noFlags')}</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {anomalies.map((a, i) => (
@@ -96,7 +96,7 @@ export default async function RunReviewPage({ params }: { params: Promise<{ id: 
                     </Badge>
                     <Link
                       href={`/admin/families/${a.householdId}`}
-                      className="font-medium text-brand-700 underline"
+                      className="font-medium text-brand-ink underline"
                     >
                       {nameOf.get(a.householdId) ?? ''}
                     </Link>
@@ -147,7 +147,7 @@ export default async function RunReviewPage({ params }: { params: Promise<{ id: 
                         </span>
                       ) : null}
                     </span>
-                    <span className={l.amountAgorot < 0 ? 'text-ok' : undefined}>
+                    <span className={l.amountAgorot < 0 ? 'text-ok-ink' : undefined}>
                       {fmt(l.amountAgorot)}
                     </span>
                   </li>

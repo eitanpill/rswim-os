@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <p
           role="alert"
           data-testid="past-due-banner"
-          className="mb-4 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger"
+          className="mb-4 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger-ink"
         >
           {t('pastDue')}{' '}
           <Link href="/admin/plan" className="font-medium underline">

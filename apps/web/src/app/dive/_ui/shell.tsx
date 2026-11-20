@@ -54,7 +54,7 @@ export async function DiveShell({
     <div className="dive flex min-h-dvh flex-col bg-[var(--surface)]" data-surface="dive">
       {isDemoMode() ? (
         <p
-          className="bg-[var(--dive-coral)] px-4 py-1 text-center text-[11px] leading-snug font-medium text-white sm:text-xs print:hidden"
+          className="bg-[var(--dive-coral-strong)] px-4 py-1 text-center text-[11px] leading-snug font-medium text-white sm:text-xs print:hidden"
           data-testid="demo-banner"
         >
           {tc('demoBanner')}
@@ -103,7 +103,7 @@ export async function DiveShell({
             {(await canSwitchSchool(session)) ? (
               <Link
                 href="/me/schools"
-                className="inline-flex min-h-tap items-center rounded-xl px-2.5 text-sm text-white/85 hover:bg-white/10"
+                className="inline-flex min-h-tap items-center rounded-xl px-2.5 text-sm text-white/90 hover:bg-white/10"
                 data-testid="switch-school"
               >
                 {tc('switchOrg')}
@@ -113,7 +113,7 @@ export async function DiveShell({
               <input type="hidden" name="locale" value={locale === 'he' ? 'en' : 'he'} />
               <button
                 type="submit"
-                className="min-h-tap rounded-xl px-2.5 text-sm text-white/85 hover:bg-white/10"
+                className="min-h-tap rounded-xl px-2.5 text-sm text-white/90 hover:bg-white/10"
               >
                 {tc('language')}
               </button>

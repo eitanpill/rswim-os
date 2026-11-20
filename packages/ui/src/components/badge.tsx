@@ -5,10 +5,10 @@ import { cn } from '../cn';
 const badge = cva('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', {
   variants: {
     tone: {
-      neutral: 'bg-brand-50 text-brand-700 dark:bg-surface dark:text-ink',
-      ok: 'bg-ok/15 text-ok',
+      neutral: 'bg-brand-50 text-brand-ink',
+      ok: 'bg-ok/15 text-ok-ink',
       warn: 'bg-warn/20 text-ink',
-      danger: 'bg-danger/15 text-danger',
+      danger: 'bg-danger/15 text-danger-ink',
     },
   },
   defaultVariants: { tone: 'neutral' },

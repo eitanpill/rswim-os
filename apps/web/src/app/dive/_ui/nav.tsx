@@ -63,7 +63,7 @@ export function DiveBottomNav({
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] [&_svg]:size-[22px]',
-                  active ? 'font-semibold text-[var(--dive-shallow)]' : 'text-white/60',
+                  active ? 'font-semibold text-[var(--dive-shallow-ink)]' : 'text-white/60',
                 )}
               >
                 <span

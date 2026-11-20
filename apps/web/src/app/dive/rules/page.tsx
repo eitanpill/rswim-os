@@ -52,7 +52,7 @@ export default async function RulesPage() {
           inEffect ? t('inEffectSince', { date: dateShort(inEffect.effectiveFrom) }) : t('defaults')
         }
         aside={
-          <Link href="/dive/manager" className="text-sm font-medium text-[var(--dive-sea)]">
+          <Link href="/dive/manager" className="text-sm font-medium text-[var(--dive-sea-ink)]">
             {t('back')}
           </Link>
         }

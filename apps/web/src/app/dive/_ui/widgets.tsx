@@ -59,13 +59,13 @@ export async function SeaCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-[0.16em] text-white/80 uppercase">
+          <p className="text-xs font-semibold tracking-[0.16em] text-white/90 uppercase">
             {t('sea.title')}
           </p>
-          <p className="mt-0.5 text-sm text-white/85">{c?.siteName ?? t('sea.gulf')}</p>
+          <p className="mt-0.5 text-sm text-white/90">{c?.siteName ?? t('sea.gulf')}</p>
         </div>
         {c ? (
-          <span className="rounded-full bg-white/95 p-0.5">
+          <span className="rounded-full bg-white/95 p-0.5 scheme-light">
             <CallBadge call={c.call} label={t(`call.${c.call}`)} size="lg" />
           </span>
         ) : (
@@ -105,12 +105,12 @@ export async function SeaCard({
               className="flex min-w-[5.5rem] flex-1 flex-col items-center gap-1 rounded-xl bg-white/12 px-2 py-2 backdrop-blur-sm"
               title={`${t(`windDir.${d.windDir}`)} ${d.windKts} ${t('sea.kts')} · ${d.waveCm} ${t('sea.cm')}`}
             >
-              <span className="text-xs text-white/85">{dayLabel(d.observedOn, locale)}</span>
+              <span className="text-xs text-white/90">{dayLabel(d.observedOn, locale)}</span>
               <span className="flex items-center gap-1 text-sm font-semibold">
                 <WindArrow dir={d.windDir} size={14} />
                 {d.windKts}
               </span>
-              <span className="rounded-full bg-white/95 p-px">
+              <span className="rounded-full bg-white/95 p-px scheme-light">
                 <CallBadge call={d.call} label={t(`callShort.${d.call}`)} size="sm" />
               </span>
             </li>
@@ -209,11 +209,11 @@ export async function InsightList({
             className={cn(
               'mt-0.5 rounded-lg p-1.5 [&_svg]:size-[18px]',
               tone === 'nogo' &&
-                'bg-[color-mix(in_oklch,var(--dive-nogo)_12%,transparent)] text-[var(--dive-nogo)]',
+                'bg-[color-mix(in_oklch,var(--dive-nogo)_12%,transparent)] text-[var(--dive-nogo-ink)]',
               tone === 'caution' &&
-                'bg-[color-mix(in_oklch,var(--dive-caution)_16%,transparent)] text-[color-mix(in_oklch,var(--dive-caution)_75%,var(--ink))]',
+                'bg-[color-mix(in_oklch,var(--dive-caution)_16%,transparent)] text-[var(--dive-caution-ink)]',
               tone === 'info' &&
-                'bg-[color-mix(in_oklch,var(--dive-sea)_14%,transparent)] text-[var(--dive-sea)]',
+                'bg-[color-mix(in_oklch,var(--dive-sea)_14%,transparent)] text-[var(--dive-sea-ink)]',
             )}
           >
             {INSIGHT_ICON[i.kind]}
@@ -228,7 +228,7 @@ export async function InsightList({
           {href ? (
             <a
               href={href}
-              className="shrink-0 self-center text-sm font-medium text-[var(--dive-sea)] hover:underline"
+              className="shrink-0 self-center text-sm font-medium text-[var(--dive-sea-ink)] hover:underline"
             >
               {t('insight.open')}
             </a>
@@ -244,7 +244,7 @@ export async function InsightList({
       </ul>
       {rest.length > 0 ? (
         <details>
-          <summary className="cursor-pointer py-1 text-sm font-medium text-[var(--dive-sea)]">
+          <summary className="cursor-pointer py-1 text-sm font-medium text-[var(--dive-sea-ink)]">
             {t('insight.more', { count: rest.length })}
           </summary>
           <ul className="mt-2 flex flex-col gap-2">{render(rest, limit)}</ul>
@@ -313,13 +313,16 @@ export async function SessionRow({ s, children }: { s: SessionCard; children?: R
         </div>
         <div className="w-16 shrink-0 text-end sm:w-24">
           <p
-            className={cn('text-sm font-semibold tabular-nums', full && 'text-[var(--dive-coral)]')}
+            className={cn(
+              'text-sm font-semibold tabular-nums',
+              full && 'text-[var(--dive-coral-ink)]',
+            )}
           >
             {s.booked}/{s.capacity}
           </p>
           {s.pending > 0 ? (
             <p
-              className="text-[11px] text-[var(--dive-coral)] tabular-nums"
+              className="text-[11px] text-[var(--dive-coral-ink)] tabular-nums"
               data-testid="session-pending"
             >
               {t('common.pending', { count: s.pending })}

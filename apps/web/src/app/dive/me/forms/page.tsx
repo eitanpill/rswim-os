@@ -27,14 +27,14 @@ export default async function MyForms({
     );
   return (
     <div className="flex flex-col gap-5" data-testid="my-forms">
-      <a href="/dive/me" className="text-sm text-[var(--dive-sea)] hover:underline">
+      <a href="/dive/me" className="text-sm text-[var(--dive-sea-ink)] hover:underline">
         {t('backHome')}
       </a>
       <Hero kicker={t('kicker')} title={t('myTitle')} sub={t('mySub')} />
       {sp.signed ? (
         <p
           role="status"
-          className="flex items-center gap-2 rounded-2xl bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-4 py-3 font-semibold text-[color-mix(in_oklch,var(--dive-go)_70%,var(--ink))] [&_svg]:size-5"
+          className="flex items-center gap-2 rounded-2xl bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-4 py-3 font-semibold text-[var(--dive-go-ink)] [&_svg]:size-5"
           data-testid="signed-banner"
         >
           {di.check}
