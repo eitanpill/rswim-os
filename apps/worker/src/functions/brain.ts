@@ -8,12 +8,16 @@
 import { schema } from '@rswim/db';
 import { asPlatform, withOrg } from '@rswim/db/service';
 import {
+  aiLevel,
   refreshMemory,
   runMorningCheck,
   sendEveningSummary,
   sendLearningDigest,
+  sendWeeklyCoach,
 } from '@rswim/domain-copilot';
+import { todayIL } from '@rswim/domain-scheduling';
 import { getDb, inngest } from '../client';
+import { ownerCopilotModel } from '../providers';
 
 const allOrgs = () =>
   asPlatform(getDb(), async (tx) =>
@@ -92,6 +96,35 @@ export const brainLearning = inngest.createFunction(
     for (const orgId of orgIds) {
       const r = await step.run(`learning-${orgId}`, () =>
         withOrg(getDb(), orgId, (tx) => sendLearningDigest(tx, { orgId, userId: null })),
+      );
+      if (r.sent) sent++;
+    }
+    return { orgs: orgIds.length, sent };
+  },
+);
+
+/**
+ * The weekly coach (WhatsApp track W8): Sundays at 08:00 each owner's approvals number gets the week in one message,
+ * what matters this week with what to reply, and the next holiday against last year.
+ */
+export const brainWeeklyCoach = inngest.createFunction(
+  {
+    id: 'brain-weekly-coach',
+    triggers: [{ cron: 'TZ=Asia/Jerusalem 0 8 * * 0' }, { event: 'brain/coach.run' }],
+    concurrency: { limit: 1 },
+  },
+  async ({ step }) => {
+    const orgIds = await step.run('find-orgs', allOrgs);
+    let sent = 0;
+    for (const orgId of orgIds) {
+      const r = await step.run(`coach-${orgId}`, () =>
+        withOrg(getDb(), orgId, async (tx) =>
+          sendWeeklyCoach(
+            tx,
+            { orgId, userId: null },
+            ownerCopilotModel(await aiLevel(tx), await todayIL(tx)),
+          ),
+        ),
       );
       if (r.sent) sent++;
     }

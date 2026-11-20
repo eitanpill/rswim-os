@@ -12,12 +12,15 @@ import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import { intakeInbound } from '@rswim/domain-comms';
 import {
   askCopilot,
+  coachFacts,
   confirmCopilotAction,
   FakeCopilotModel,
   FakeParentBotModel,
+  holidaysAhead,
   listCopilot,
   runBrainInbound,
   runParentBot,
+  sendWeeklyCoach,
   setApprovalPhone,
   undoCopilotAction,
 } from '@rswim/domain-copilot';
@@ -323,5 +326,25 @@ describe('the brain takes requests from the owner and the instructors', () => {
     expect(
       await q(`select 1 from sessions where date = $1::date and status = 'scheduled'`, [later]),
     ).toHaveLength(0);
+  });
+
+  it('sends the weekly coach to the owner once a week (W8)', async () => {
+    const facts = await withOrg(t.db, DEMO_ORG.id, (tx) => coachFacts(tx, today));
+    expect(facts.groups.length).toBeGreaterThan(0);
+    const first = await withOrg(t.db, DEMO_ORG.id, (tx) => sendWeeklyCoach(tx, worker, model));
+    expect(first).toEqual({ sent: true });
+    const [msg] = await q(`select to_phone_e164, body from messages where idempotency_key = $1`, [
+      `agent.coach:${facts.weekOf}`,
+    ]);
+    expect(msg.to_phone_e164).toBe(OWNER_PHONE);
+    expect(msg.body).toContain('השבוע שלך');
+    expect(await withOrg(t.db, DEMO_ORG.id, (tx) => sendWeeklyCoach(tx, worker, model))).toEqual({
+      sent: false,
+      reason: 'already',
+    });
+    // Pesach 2027 starts on 22 April: one entry for the holiday, not one per day.
+    const ahead = holidaysAhead('2027-04-01');
+    expect(ahead[0]).toMatchObject({ date: '2027-04-22', daysAway: 21 });
+    expect(new Set(ahead.map((h) => h.name)).size).toBe(ahead.length);
   });
 });
