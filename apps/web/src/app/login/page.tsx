@@ -48,6 +48,13 @@ export default async function LoginPage({
         </Button>
       </form>
       <Link
+        href="/login/forgot"
+        data-testid="forgot-link"
+        className="mt-3 block text-center text-sm text-ink-muted underline-offset-4 hover:underline"
+      >
+        {t('forgotLink')}
+      </Link>
+      <Link
         href="/login/phone"
         className="mt-4 block text-center font-medium text-brand-600 underline-offset-4 hover:underline"
       >

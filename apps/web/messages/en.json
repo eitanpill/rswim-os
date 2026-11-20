@@ -158,7 +158,36 @@
       "diveInstructor": "Instructor",
       "diveCustomer": "Diver"
     },
-    "signupLink": "Own a school or club? Create an account"
+    "signupLink": "Own a school or club? Create an account",
+    "forgotLink": "Forgot password",
+    "forgot": {
+      "title": "Forgot password",
+      "intro": "Enter your account's email and we'll send a link to choose a new password.",
+      "email": "Email",
+      "submit": "Send link",
+      "back": "Back to sign in",
+      "sent": "If an account uses this email, we sent it a link. Open the email and tap the link to choose a new password. Nothing there? Check spam too.",
+      "errors": {
+        "email": "Invalid email address",
+        "tooSoon": "We just sent a link. Wait a minute and try again.",
+        "failed": "We couldn't send the link. Try again in a few minutes.",
+        "notConfigured": "Sign-in isn't set up in this environment yet"
+      }
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "password": "New password",
+      "hint": "At least 8 characters",
+      "submit": "Save and sign in",
+      "back": "Back to sign in",
+      "again": "Send a new link",
+      "errors": {
+        "password": "The password needs 8 to 72 characters",
+        "same": "That's your current password. Choose another.",
+        "expired": "This link was already used or has expired. Ask for a new one.",
+        "failed": "We couldn't save the password. Try again."
+      }
+    }
   },
   "admin": {
     "nav": {
