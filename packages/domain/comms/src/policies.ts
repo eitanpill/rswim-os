@@ -218,6 +218,34 @@ export function windowOpen(lastInboundAt: Date | null, now: Date): boolean {
   );
 }
 
+// ─── The conversations screen (W9) ──────────────────────────────────────────
+
+export interface BotScore {
+  /** Messages the bot dealt with. */
+  total: number;
+  /** Out of 100, how many it answered without a person; null when it had none. */
+  alonePercent: number | null;
+}
+
+/** How much of its work the bot finished alone: the one number the owner reads on the conversations screen. */
+export function botScore(f: { answered: number; handedOff: number }): BotScore {
+  const total = f.answered + f.handedOff;
+  return { total, alonePercent: total === 0 ? null : Math.round((f.answered / total) * 100) };
+}
+
+/** Who a conversation is with, from what the last message was matched to. */
+export type ChatKind = 'family' | 'lead' | 'staff' | 'unknown';
+
+export function chatKind(f: {
+  householdId: string | null;
+  leadId: string | null;
+  staffMemberId: string | null;
+}): ChatKind {
+  if (f.householdId) return 'family';
+  if (f.staffMemberId) return 'staff';
+  return f.leadId ? 'lead' : 'unknown';
+}
+
 export type OutboundShape =
   | { kind: 'text' }
   | { kind: 'template'; name: string; language: 'he' | 'en'; values: string[] }

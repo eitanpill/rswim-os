@@ -156,6 +156,7 @@ const TENANT_TABLES = [
   'dive_sales',
   'dive_conditions',
   'leads',
+  'chat_holds',
   'lodging_settings',
   'lodging_rooms',
   'lodging_beds',
