@@ -14,6 +14,7 @@ import {
 } from '@rswim/contracts';
 import { undoable } from './agent-policies';
 import { periodFromWords, rememberRequest } from './memory-policies';
+import { FOLLOWUP_REASONS } from './lead-bot-policies';
 
 export type Check = { ok: true } | { ok: false; code: string };
 export type Explanation = { code: string; params: Record<string, string | number> };
@@ -129,6 +130,15 @@ export const TrialProposal = z
   })
   .strict();
 
+/** A follow-up WhatsApp to a new customer (WhatsApp track W4): after the trial, or once after going quiet. */
+export const LeadFollowUpProposal = z
+  .object({
+    leadId: z.uuid(),
+    reason: z.enum(FOLLOWUP_REASONS),
+    text: z.string().trim().min(1).max(1000),
+  })
+  .strict();
+
 export const PROPOSALS = {
   move_student: MoveProposal,
   message_family: MessageProposal,
@@ -140,6 +150,7 @@ export const PROPOSALS = {
   cancel_lessons: CancelLessonsProposal,
   substitute: SubstituteProposal,
   book_trial: TrialProposal,
+  lead_followup: LeadFollowUpProposal,
 } as const;
 
 export type ProposalParams = {
@@ -153,6 +164,7 @@ export type ProposalParams = {
   cancel_lessons: z.infer<typeof CancelLessonsProposal>;
   substitute: z.infer<typeof SubstituteProposal>;
   book_trial: z.infer<typeof TrialProposal>;
+  lead_followup: z.infer<typeof LeadFollowUpProposal>;
 };
 
 /** Validates what the model proposed; anything off-shape is refused rather than repaired. */
@@ -184,6 +196,7 @@ export function proposalSummary(
         reason: string;
       }
     | { kind: 'substitute'; staff: string | null; group: string; date: string; time: string }
+    | { kind: 'lead_followup'; who: string; text: string }
     | {
         kind: 'book_trial';
         student: string;
@@ -256,6 +269,8 @@ export function proposalSummary(
           time: p.time,
         },
       };
+    case 'lead_followup':
+      return { code: 'copilot.summary.followUp', params: { who: p.who, text: p.text } };
     case 'substitute':
       // A lesson nobody teaches yet asks for an instructor, not a substitute for someone.
       return p.staff === null

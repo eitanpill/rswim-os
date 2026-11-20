@@ -3,6 +3,8 @@ import {
   agesInWords,
   fakeClosingIntent,
   fakeLeadDetails,
+  followUpFor,
+  followUpText,
   knownFromSystem,
   parseChildBirth,
   fakeLeadIntent,
@@ -197,5 +199,56 @@ describe('the stand-in closes', () => {
     );
     expect(knownFromSystem('What you know about this person: nothing yet.\n')).toEqual({});
     expect(knownFromSystem('no line')).toEqual({});
+  });
+});
+
+describe('follow-up', () => {
+  const quiet = {
+    stage: 'talking' as const,
+    quietDays: 3,
+    weWroteLast: true,
+    officeRecently: false,
+    trial: null,
+    done: [] as const,
+  };
+  it('nudges a quiet lead once, two to fourteen days after its last message', () => {
+    expect(followUpFor(quiet)).toBe('silent');
+    expect(followUpFor({ ...quiet, stage: 'new', quietDays: 14 })).toBe('silent');
+    expect(followUpFor({ ...quiet, quietDays: 1 })).toBeNull();
+    expect(followUpFor({ ...quiet, quietDays: 15 })).toBeNull();
+    expect(followUpFor({ ...quiet, quietDays: null })).toBeNull();
+    expect(followUpFor({ ...quiet, weWroteLast: false })).toBeNull();
+    expect(followUpFor({ ...quiet, done: ['silent'] })).toBeNull();
+    expect(followUpFor({ ...quiet, officeRecently: true })).toBeNull();
+    expect(followUpFor({ ...quiet, stage: 'joined' })).toBeNull();
+  });
+  it('follows a trial up with an offer, or a new date when the child missed it', () => {
+    const trial = { ...quiet, stage: 'trial_booked' as const };
+    const t = (status: string, daysAgo: number) => ({ status, daysAgo });
+    expect(followUpFor({ ...trial, trial: t('attended', 1) })).toBe('after_trial');
+    expect(followUpFor({ ...trial, trial: t('booked', 7) })).toBe('after_trial');
+    expect(followUpFor({ ...trial, trial: t('no_show', 2) })).toBe('missed_trial');
+    expect(followUpFor({ ...trial, trial: t('attended', 0) })).toBeNull();
+    expect(followUpFor({ ...trial, trial: t('attended', 8) })).toBeNull();
+    expect(followUpFor({ ...trial, trial: t('cancelled', 2) })).toBeNull();
+    expect(followUpFor({ ...trial, trial: null })).toBeNull();
+    expect(followUpFor({ ...trial, trial: t('attended', 2), done: ['after_trial'] })).toBeNull();
+  });
+  it('words each follow-up', () => {
+    const c = {
+      name: 'רונית כהן',
+      child: 'נועה',
+      offerUntil: '2026-12-03',
+      vertical: 'swim' as const,
+    };
+    expect(followUpText('after_trial', c)).toBe(
+      'היי רונית, איך היה השיעור של נועה? 😊 אם בא לכם להמשיך, כתבו לנו כאן ונשריין לכם מקום בקבוצה. דמי שיעור הניסיון יקוזזו מהתשלום הראשון אם נרשמים עד 03/12/2026.',
+    );
+    expect(followUpText('after_trial', { ...c, offerUntil: null })).not.toContain('יקוזזו');
+    expect(followUpText('missed_trial', { ...c, child: null })).toContain('ראינו שהילד/ה לא');
+    expect(followUpText('silent', { ...c, name: null })).toMatch(/^היי, .*שיעור ניסיון\.$/);
+    expect(followUpText('silent', { ...c, name: ' ', vertical: 'freediving' })).toContain(
+      'צלילה ראשונה',
+    );
   });
 });

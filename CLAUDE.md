@@ -121,7 +121,9 @@ opens a lead (`leads`, `@rswim/domain-crm` `leads.ts`; one list for swim and div
 group seats and divers move it on through database triggers (`app.touch_lead`). The office works them on
 `/admin/leads` (the club's front desk shows the same list) and answers on WhatsApp from the lead's page. With `comms.lead_bot_enabled` the parents' bot answers leads too
 (`lead-bot.ts` in `@rswim/domain-copilot`): prices, programs and open places, collecting details one question at a time;
-an optional module (lodging) joins it with `registerLeadBotModule`.
+an optional module (lodging) joins it with `registerLeadBotModule`. It books a swim school's trial (`book_trial`, a brain
+kind) and sends the sign-up link; the brain follows leads up at 10:00 (`lead_followup`: after the trial, or once when
+they go quiet), trials are reminded the day before at 17:00, and `/admin/leads` shows the month's sources.
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a

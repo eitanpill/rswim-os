@@ -297,3 +297,75 @@ export function knownFromSystem(system: string): Record<string, string> {
       .filter((kv): kv is [string, string] => kv.length === 2),
   );
 }
+
+// ─── Follow-up (WhatsApp track W4) ──────────────────────────────────────────
+
+export const FOLLOWUP_REASONS = ['after_trial', 'missed_trial', 'silent'] as const;
+export type FollowUpReason = (typeof FOLLOWUP_REASONS)[number];
+
+/** A quiet lead is nudged once, from this many days after its last message ... */
+export const SILENT_AFTER_DAYS = 2;
+/** ... and not after this many: by then the conversation is over. */
+export const SILENT_UNTIL_DAYS = 14;
+/** A trial is followed up from the day after it, for this many days. */
+export const AFTER_TRIAL_DAYS = 7;
+
+export interface FollowUpFacts {
+  stage: LeadStage;
+  /** Days since the person last wrote; null when they never did. */
+  quietDays: number | null;
+  /** The business wrote after the person's last message (the bot answered, then silence). */
+  weWroteLast: boolean;
+  /** Someone in the office wrote to this number in the last three days: they are on it. */
+  officeRecently: boolean;
+  /** The lead's latest trial, once one was booked. */
+  trial: { status: string; daysAgo: number } | null;
+  /** Follow-ups this lead already had (any outcome, dropped ones too). */
+  done: readonly FollowUpReason[];
+}
+
+/**
+ * Which follow-up a lead is due, if any. After a trial (from the next day, for a week): an offer to continue, or a
+ * new date when the child did not come. A lead that went quiet after the bot answered: one nudge, two to fourteen
+ * days later. Each reason goes once per lead, and never while the office is talking with them.
+ */
+export function followUpFor(f: FollowUpFacts): FollowUpReason | null {
+  if (f.officeRecently) return null;
+  if (f.stage === 'trial_booked') {
+    const t = f.trial;
+    if (!t || t.daysAgo < 1 || t.daysAgo > AFTER_TRIAL_DAYS || t.status === 'cancelled')
+      return null;
+    const reason: FollowUpReason = t.status === 'no_show' ? 'missed_trial' : 'after_trial';
+    return f.done.includes(reason) ? null : reason;
+  }
+  if (f.stage !== 'new' && f.stage !== 'talking') return null;
+  if (!f.weWroteLast || f.quietDays === null || f.done.includes('silent')) return null;
+  return f.quietDays >= SILENT_AFTER_DAYS && f.quietDays <= SILENT_UNTIL_DAYS ? 'silent' : null;
+}
+
+/** The follow-up's words, in Hebrew (leads are written to in Hebrew). */
+export function followUpText(
+  reason: FollowUpReason,
+  c: { name: string | null; child: string | null; offerUntil: string | null; vertical: Vertical },
+): string {
+  const hi = `היי${c.name?.trim() ? ` ${c.name.trim().split(/\s+/)[0]}` : ''}`;
+  const child = c.child?.trim() || 'הילד/ה';
+  switch (reason) {
+    case 'after_trial':
+      return [
+        `${hi}, איך היה השיעור של ${child}? 😊`,
+        'אם בא לכם להמשיך, כתבו לנו כאן ונשריין לכם מקום בקבוצה.',
+        ...(c.offerUntil
+          ? [
+              `דמי שיעור הניסיון יקוזזו מהתשלום הראשון אם נרשמים עד ${c.offerUntil.split('-').reverse().join('/')}.`,
+            ]
+          : []),
+      ].join(' ');
+    case 'missed_trial':
+      return `${hi}, ראינו ש${child} לא הגיע/ה לשיעור הניסיון. רוצים לקבוע מועד אחר? כתבו לנו כאן ונמצא זמן שמתאים.`;
+    default:
+      return `${hi}, רק בודקים אם נשארו שאלות 😊 אפשר לכתוב לנו כאן בכל זמן, ונשמח לעזור לקבוע ${
+        c.vertical === 'freediving' ? 'צלילה ראשונה' : 'שיעור ניסיון'
+      }.`;
+  }
+}

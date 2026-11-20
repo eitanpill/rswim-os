@@ -114,6 +114,10 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
     he: 'תודה {{guardian_name}}, קיבלנו את ההודעה 🙏 העברנו אותה לצוות ונחזור אליך בהקדם. {{school_name}}',
     en: 'Thanks {{guardian_name}}, we got your message 🙏 We passed it to the team and will get back to you soon. {{school_name}}',
   },
+  trial_reminder: {
+    he: 'היי {{guardian_name}} 😊 תזכורת: מחר ({{date}}) בשעה {{time}} שיעור הניסיון של {{student_name}} ב{{venue}}. כדאי להגיע 10 דקות לפני, עם בגד ים, מגבת וכובע ים. לא מתאים? כתבו לנו כאן ונמצא מועד אחר. {{school_name}}',
+    en: "Hi {{guardian_name}} 😊 A reminder: tomorrow ({{date}}) at {{time}}, {{student_name}}'s trial lesson at {{venue}}. Please come 10 minutes early with a swimsuit, towel and cap. Can't make it? Reply here and we'll find another time. {{school_name}}",
+  },
   dive_reminder: {
     he: 'היי {{diver_name}} 🌊 תזכורת: מחר ({{date}}) בשעה {{time}} {{session}} ב{{site}}. {{pay_note}}כדאי להגיע 15 דקות לפני. לא מגיעים? עונים להודעה הזו ונפנה את המקום למישהו אחר. {{school_name}}',
     en: "Hi {{diver_name}} 🌊 A reminder: tomorrow ({{date}}) at {{time}}, {{session}} at {{site}}. {{pay_note}}Please come 15 minutes early. Can't make it? Reply here and we'll give the spot to someone else. {{school_name}}",
@@ -147,6 +151,7 @@ export const DEFAULT_AUTOMATIONS: [eventType: string, templateKey: Key][] = [
   ['scheduling.venue_migration_reverted', 'venue_migration_reverted'],
   ['dive.session_reminder', 'dive_reminder'],
   ['billing.mandate_requested', 'mandate_request'],
+  ['enrollment.trial_reminder', 'trial_reminder'],
 ];
 
 /** Gives an organization every template and automation it lacks. Running it twice changes nothing. */

@@ -56,6 +56,7 @@ import {
 } from '@rswim/integrations';
 import { gateFor, getAgentSettings } from './agent';
 import { approvalText } from './agent-policies';
+import { sendLeadFollowUp } from './lead-followup';
 import { bookLeadTrial, cancelLeadTrial } from './lead-trial';
 import { listMemories, monthReport, remember } from './memory';
 import { changeLines, memoryLine } from './memory-policies';
@@ -1115,6 +1116,8 @@ async function apply(tx: Tx, ctx: ServiceContext, a: typeof copilotActions.$infe
     }
     case 'book_trial':
       return bookLeadTrial(tx, ctx, a.params as ProposalParams['book_trial']);
+    case 'lead_followup':
+      return sendLeadFollowUp(tx, ctx, a.params as ProposalParams['lead_followup']);
     default: {
       const p = a.params as ProposalParams['open_makeup_slots'];
       const slotIds = await openSlots(tx, ctx, {

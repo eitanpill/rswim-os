@@ -73,6 +73,14 @@ test('a phone call is written down by hand and dropped with a reason', async ({ 
   await lost.locator('select[name="lostReason"]').selectOption('price');
   await lost.getByRole('button').click();
   await expect(page.getByText('ירד/ה: המחיר')).toBeVisible();
+
+  // The month's sources report counts the phone call.
+  await page.goto('/admin/leads');
+  const sources = page.getByTestId('lead-sources');
+  await expect(sources.getByTestId('lead-source-phone')).toBeVisible();
+  await sources.getByTestId('lead-sources-prev').click();
+  await expect(page).toHaveURL(/month=\d{4}-\d{2}/);
+  await expect(page.getByTestId('lead-sources')).toBeVisible();
 });
 
 test('the freediving club front desk shows the same lead list', async ({ page }) => {

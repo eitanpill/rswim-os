@@ -23,7 +23,9 @@ import {
   leadAttention,
   leadStageAfter,
   leadStageAfterMessage,
+  sourcesReport,
   type LeadAttention,
+  type SourceMonth,
 } from './lead-policies';
 
 const { leads, inboundMessages, messages } = schema;
@@ -340,4 +342,21 @@ export async function saveLeadDetails(
       details: sql`${leads.details} || ${JSON.stringify(patch.details)}::jsonb`,
     })
     .where(eq(leads.id, id));
+}
+
+/**
+ * Where this month's customers came from (WhatsApp track W4): the leads opened in `month` (YYYY-MM, Israel time) by
+ * source, with how many booked a trial (or joined) and how many joined since.
+ */
+export async function leadSources(tx: Tx, month: string) {
+  const list = await rows<SourceMonth>(
+    tx,
+    sql`select source, count(*)::int leads,
+               count(*) filter (where stage in ('trial_booked', 'joined'))::int trials,
+               count(*) filter (where stage = 'joined')::int joined
+        from leads
+        where to_char(created_at at time zone 'Asia/Jerusalem', 'YYYY-MM') = ${month}
+        group by source`,
+  );
+  return sourcesReport(list);
 }

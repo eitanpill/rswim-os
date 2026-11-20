@@ -32,6 +32,13 @@ brain (`book_trial`, by the owner's level), sends the trial fee link, and sends 
 Proof: `packages/seed/test/lead-bot.test.ts` (waiting for the owner, booking alone with the fee link, the sign-up
 link), `packages/domain/copilot/test/policies.test.ts`, `apps/web/e2e/leads.spec.ts`.
 
+W4 follow-up and lead report: the day before a trial lesson the family gets a reminder (`trial_reminder`, 17:00);
+at 10:00 the brain follows up new customers through its gate (`lead_followup`): an offer to continue the day after the
+trial (or a new date when the child missed it) and one nudge to whoever went quiet after the bot answered. The evening
+summary counts the day's new customers, and `/admin/leads` shows the month's sources (leads, trials, joined, rate).
+Proof: `packages/seed/test/lead-followup.test.ts`, `packages/domain/copilot/test/lead-bot-policies.test.ts` (100%),
+`packages/domain/crm/test/lead-policies.test.ts` (100%), `apps/web/e2e/leads.spec.ts`.
+
 ## Freediving clubs (vertical)
 
 A freediving club runs on the same platform with its own module and screens (`docs/FREEDIVING.md`): the owner's

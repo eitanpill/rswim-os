@@ -125,6 +125,7 @@ const SUMMARY_TEXT: Record<Locale, Record<string, string>> = {
     absence: 'לרשום ש{student} לא מגיע/ה ל{group} ב-{date} {time}',
     makeup: 'לקבוע ל{student} השלמה ב{group}, {date} {time}',
     trial: 'לקבוע ל{student} (משפחת {family}) שיעור ניסיון ב{group}, {date} {time}',
+    followUp: 'לשלוח ל{who} הודעת מעקב: "{text}"',
     freeze: 'להקפיא את המקום של {student} ב{group} מ-{date} עד {until}',
     cancelLessons: 'לבטל את השיעורים ב{venue} מ-{date} עד {until} ({sessions} שיעורים, {reason})',
     cancelLessonsAll: 'לבטל את כל השיעורים מ-{date} עד {until} ({sessions} שיעורים, {reason})',
@@ -140,6 +141,7 @@ const SUMMARY_TEXT: Record<Locale, Record<string, string>> = {
     absence: 'Record that {student} misses {group} on {date} {time}',
     makeup: 'Book a makeup for {student} in {group}, {date} {time}',
     trial: 'Book a trial for {student} ({family} family) in {group}, {date} {time}',
+    followUp: 'Send {who} a follow-up: "{text}"',
     freeze: "Freeze {student}'s place in {group} from {date} to {until}",
     cancelLessons:
       'Cancel the lessons at {venue} from {date} to {until} ({sessions} lessons, {reason})',
@@ -348,6 +350,19 @@ export interface DayFacts {
   failed: number;
   tomorrowLessons: number;
   tomorrowUncovered: number;
+  /** New customers today (WhatsApp track W4): new leads, trials booked, and who joined. */
+  leads?: { new: number; trials: number; joined: number };
+}
+
+/** Today's new customers, when there were any. */
+function leadLine(d: DayFacts, locale: Locale): string[] {
+  const l = d.leads;
+  if (!l || l.new + l.trials + l.joined === 0) return [];
+  return [
+    locale === 'en'
+      ? `New customers: ${l.new} new, ${l.trials} booked a trial, ${l.joined} joined`
+      : `לקוחות חדשים: ${l.new} פניות, ${l.trials} קבעו שיעור ניסיון, ${l.joined} הצטרפו`,
+  ];
 }
 
 /** The evening WhatsApp to the owner: what the brain did today and what tomorrow holds. */
@@ -360,6 +375,7 @@ export function eveningText(d: DayFacts, locale: Locale): string {
       `• Approved by you: ${d.approved}`,
       `• Waiting for you: ${d.waiting}${d.waiting ? ' (reply "yes <number>" to approve)' : ''}`,
       `• Refused by the rules: ${d.failed}`,
+      ...leadLine(d, 'en'),
       `Tomorrow: ${d.tomorrowLessons} lessons${d.tomorrowUncovered ? `, ${d.tomorrowUncovered} without an instructor` : ''}.`,
     ].join('\n');
   }
@@ -369,6 +385,7 @@ export function eveningText(d: DayFacts, locale: Locale): string {
     `• אושרו על ידך: ${d.approved}`,
     `• מחכות לך: ${d.waiting}${d.waiting ? ' (לאישור השיבו "כן <מספר>")' : ''}`,
     `• הכללים לא אפשרו: ${d.failed}`,
+    ...leadLine(d, 'he'),
     `מחר: ${d.tomorrowLessons} שיעורים${d.tomorrowUncovered ? `, ${d.tomorrowUncovered} בלי מדריך` : ''}.`,
   ].join('\n');
 }

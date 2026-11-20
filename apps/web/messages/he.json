@@ -1601,7 +1601,8 @@
       "venue_migration_reverted": "ביטול מעבר בריכה",
       "bot_handoff": "הבוט העביר לצוות",
       "dive_reminder": "תזכורת לצלילה מחר",
-      "mandate_request": "בקשה לחתום על הוראת קבע"
+      "mandate_request": "בקשה לחתום על הוראת קבע",
+      "trial_reminder": "תזכורת לשיעור ניסיון מחר"
     },
     "messageStatus": {
       "queued": "בתור",
@@ -3518,7 +3519,8 @@
       "transport_rider_dropped": "ילד/ה ירד/ה בנקודת ההורדה",
       "scheduling_venue_migrated": "מעבר בריכה בוצע",
       "scheduling_venue_migration_reverted": "מעבר בריכה בוטל",
-      "dive_session_reminder": "תזכורת יומית לצוללים (יום לפני)"
+      "dive_session_reminder": "תזכורת יומית לצוללים (יום לפני)",
+      "enrollment_trial_reminder": "שיעור ניסיון מחר (יום לפני)"
     },
     "decision": {
       "send": "נשלח מיד",
@@ -4146,7 +4148,8 @@
       "cancelLessonsAll": "לבטל את כל השיעורים מ-{date} עד {until} ({sessions} שיעורים, {reason})",
       "substitute": "למצוא מחליף ל{staff} בשיעור {group}, {date} {time}",
       "substituteOpen": "למצוא מדריך/ה לשיעור {group}, {date} {time}",
-      "trial": "לקבוע ל{student} (משפחת {family}) שיעור ניסיון ב{group}, {date} {time}"
+      "trial": "לקבוע ל{student} (משפחת {family}) שיעור ניסיון ב{group}, {date} {time}",
+      "followUp": "לשלוח ל{who} הודעת מעקב: \"{text}\""
     },
     "errors": {
       "ownerOnly": "העוזר זמין רק לבעלים",
@@ -5653,6 +5656,10 @@
       "book_trial": {
         "label": "קביעת שיעור ניסיון ללקוח חדש",
         "hint": "הבוט פותח משפחה וקובע שיעור ניסיון שהלקוח בחר מהשיעורים הפנויים"
+      },
+      "lead_followup": {
+        "label": "הודעות מעקב ללקוחות חדשים",
+        "hint": "אחרי שיעור הניסיון הצעה להמשיך (או מועד חדש), ותזכורת אחת למי שהפסיק לענות"
       }
     },
     "status": {
@@ -6520,6 +6527,19 @@
       "note": "הערה",
       "child_name": "שם הילד/ה",
       "child_dob": "תאריך לידה"
+    },
+    "sources": {
+      "title": "מאיפה הגיעו הלקוחות החדשים",
+      "hint": "פניות שנפתחו בחודש, לפי מקור, ומה קרה איתן מאז.",
+      "source": "מקור",
+      "leads": "פניות",
+      "trials": "קבעו ניסיון",
+      "joined": "הצטרפו",
+      "rate": "הצטרפות",
+      "total": "סה״כ",
+      "empty": "לא היו פניות בחודש הזה.",
+      "prev": "החודש הקודם",
+      "next": "החודש הבא"
     }
   }
 }

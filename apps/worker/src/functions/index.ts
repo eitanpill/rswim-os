@@ -41,11 +41,14 @@ import {
   platformSchoolCreated,
 } from './platform';
 import { diveDailyReminders } from './dive';
+import { brainLeadFollowUps, enrollmentTrialReminders } from './leads';
 import { platformProvisionDatabase, platformSyncSchool } from './tenancy';
 import { transportPlanRuns } from './transport';
 
 export const functions = [
   outboxRelay,
+  brainLeadFollowUps,
+  enrollmentTrialReminders,
   transportPlanRuns,
   reportsWeeklyDigest,
   reportsDailyInsights,
