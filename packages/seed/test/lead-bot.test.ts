@@ -248,9 +248,12 @@ describe('the bot for new customers', () => {
     expect(links.length).toBe(1);
   });
 
-  it('sends the sign-up link', async () => {
+  it("sends the person's own invite link", async () => {
     const r = await write(DIVE_ORG.id, '+972585550013', 'אפשר קישור להרשמה?');
-    expect(r.sent.body).toContain(`/join/${DIVE_ORG.slug}`);
+    const [lead] = await q(`select invite_token from leads where phone_e164 = $1`, [
+      '+972585550013',
+    ]);
+    expect(r.sent.body).toContain(`/i/${lead.invite_token}`);
   });
 });
 

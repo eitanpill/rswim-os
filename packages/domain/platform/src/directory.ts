@@ -241,6 +241,12 @@ export interface PhoneMatch {
 }
 
 /** Schools that have the signed-in person's phone on a family nobody holds yet. */
+/** The signed-in person's verified phone (from their sign-in), or null. */
+export async function myPhone(tx: Tx): Promise<string | null> {
+  const [r] = await rows<{ p: string | null }>(tx, sql`select app.my_phone() as p`);
+  return r?.p ?? null;
+}
+
 export async function myPhoneMatches(tx: Tx): Promise<PhoneMatch[]> {
   const list = await rows<{ organization_id: string; organization_name: string; vertical: string }>(
     tx,

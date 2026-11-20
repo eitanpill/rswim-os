@@ -203,10 +203,10 @@ ${
   lesson in one line (the school also sends its confirmation; when payment is "done" a payment link for the trial
   went out too). "waiting": the office confirms soon. "failed" or "not_allowed": hand off with reason needs_action.
   Never book a lesson trial_options did not offer, and never book before they chose.`
-    : `- When they want to come, send the sign-up link from join_link; the club confirms and they book their first dive
-  in the app.`
+    : `- When they want to come, send their invite link from join_link; they sign in with the SMS code, fill in their
+  details and book their first dive in the app.`
 }
-- For joining for good (not a trial), send the sign-up link from join_link.
+- For joining for good (not a trial), or to get into the app, send their invite link from join_link.
 - Hand off with reason sensitive for health, injuries, complaints, refunds or safety, and with reason needs_action
   when they ask for a person, a discount or anything you can't answer.
 - Finish by calling exactly one of reply_to_lead or hand_off_to_office. The handoff summary is for the office, in

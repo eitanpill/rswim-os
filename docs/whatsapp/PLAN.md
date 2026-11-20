@@ -127,3 +127,15 @@ Always a person: discounts and refunds, complaints, health and safety, leaving, 
 - With `RSWIM_MESSAGING_FAKE=1` a connected number runs on a fake that keeps the window rules, so demos and tests show
   the same behaviour. A real connection needs W10 (Meta verification, a number, approved templates).
 
+## Personal invite link (Pit, 2026-11-20)
+
+- The bot's `join_link` now gives each new customer their own link, `/i/<token>` (`leadInviteToken`,
+  `lead-invite.ts`), instead of the business's general `/join/<slug>`: the same link while it is valid, a new one
+  after it was used or after 30 days (`INVITE_DAYS`). Every screen path opens the store app when it is installed.
+- The page shows the business, greets the person by name and shows their number half hidden; sign-in is by SMS code
+  with the number ready (`/login/phone?invite=`), and back on the invite one tap enters. A swim school: the family the
+  trial opened, a family the office has with that phone, or one opened now from the lead's name
+  (`prepareInviteFamily`), then the database's own phone check joins them (`claim_by_phone`). A freediving club: on to
+  the club's sign-up for the diver's details. Another phone, a used or an expired link is refused
+  (`openInviteFamily`); the lead keeps when it was used (`leads.invite_used_at`).
+

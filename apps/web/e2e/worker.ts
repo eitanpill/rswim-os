@@ -7,7 +7,7 @@ import { createDb, type Tx } from '@rswim/db';
 import { processAbsenceNotice } from '@rswim/domain-attendance';
 import { processPortalRequest } from '@rswim/domain-billing';
 import { runAutomation } from '@rswim/domain-comms';
-import { FakeParentBotModel, runParentBot } from '@rswim/domain-copilot';
+import { FakeParentBotModel, leadInviteToken, runParentBot } from '@rswim/domain-copilot';
 import { billingPeriod, billSchool, pendingDomainIds, verifyDomain } from '@rswim/domain-platform';
 import { FakeDnsResolver, FakePaymentProvider } from '@rswim/integrations';
 import { ACCOUNT_PERSONAS } from '@rswim/db/personas';
@@ -200,5 +200,20 @@ export function runBotOnLatest(phoneE164: string) {
       [phoneE164],
     );
     return runParentBot(tx, { orgId, userId: null }, new FakeParentBotModel(), rows[0]!.id);
+  });
+}
+
+/** A new customer the bot is talking to, with their personal invite (WhatsApp track). Returns the invite's token. */
+export function leadWithInvite(phone: string, name: string): Promise<string> {
+  return asWorker(async (tx, orgId, client) => {
+    await client.query(`delete from leads where organization_id = $1 and phone_e164 = $2`, [
+      orgId,
+      phone,
+    ]);
+    const { rows } = await client.query<{ id: string }>(
+      `insert into leads (organization_id, name, phone_e164, source) values ($1, $2, $3, 'whatsapp') returning id`,
+      [orgId, name, phone],
+    );
+    return (await leadInviteToken(tx, rows[0]!.id)) as string;
   });
 }
