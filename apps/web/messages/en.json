@@ -5831,7 +5831,8 @@
       "errors": {
         "gone": "This suggestion is no longer current; refresh the page"
       }
-    }
+    },
+    "chatLink": "Talk to the assistant"
   },
   "payments": {
     "kicker": "Money",

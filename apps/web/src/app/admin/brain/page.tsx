@@ -83,6 +83,13 @@ export default async function BrainPage() {
             >
               {t('memory.link')}
             </Link>
+            <Link
+              href="/admin/copilot"
+              className="text-sm font-semibold text-brand-700 underline"
+              data-testid="brain-chat-link"
+            >
+              {t('chatLink')}
+            </Link>
             <Link href="/admin/brain/journal" className="text-sm text-brand-700 underline">
               {t('journal.link')}
             </Link>
