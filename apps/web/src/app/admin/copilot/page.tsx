@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import {
+  aiLevel,
   copilotAvailable,
   listCopilot,
   undoable,
@@ -38,7 +39,7 @@ export default async function CopilotPage() {
   const label = await enumLabel();
   const explain = await explainer();
   const { gate, exchanges } = await withSession(async (tx) => ({
-    gate: await copilotAvailable(tx, copilotModel(await todayIL(tx))),
+    gate: await copilotAvailable(tx, copilotModel(await todayIL(tx), await aiLevel(tx))),
     exchanges: await listCopilot(tx),
   }));
   const summary = (a: CopilotActionRow) => {

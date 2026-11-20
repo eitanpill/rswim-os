@@ -13,7 +13,7 @@ import {
   runAutomation,
   sendHolidayNotice,
 } from '@rswim/domain-comms';
-import { runBrainInbound, runParentBot } from '@rswim/domain-copilot';
+import { aiLevel, runBrainInbound, runParentBot } from '@rswim/domain-copilot';
 import { syncPipelineStage, type PipelineStage } from '@rswim/domain-crm';
 import { consumeOnce } from '@rswim/domain-core/worker';
 import { aiAllowed, recordAiUsage } from '@rswim/domain-platform';
@@ -21,7 +21,7 @@ import { trackUsage } from '@rswim/integrations';
 import { and, eq, lte, schema } from '@rswim/db';
 import { getDb, inngest, log } from '../client';
 import { ghlFor, messagingFor } from '../ghl';
-import { parentBotModel, publicUrl, triageClassifier } from '../providers';
+import { botConfigured, parentBotModel, publicUrl, triageClassifier } from '../providers';
 import { toEnvelope } from './core-ping';
 
 const sys = (envelope: DomainEventEnvelope) => ({ orgId: envelope.organizationId, userId: null });
@@ -204,11 +204,12 @@ export const commsParentBot = inngest.createFunction(
   async ({ event, step }) => {
     const envelope = toEnvelope(event);
     const { inboundMessageId } = z.object({ inboundMessageId: z.uuid() }).parse(envelope.payload);
-    const model = parentBotModel();
-    if (!model) return { skipped: 'not_configured' };
+    if (!botConfigured()) return { skipped: 'not_configured' };
     return step.run('answer', async () => {
       let result: unknown = { skipped: 'already' };
       await consumeOnce(getDb(), 'comms-parent-bot', envelope, async (tx) => {
+        const model = parentBotModel(await aiLevel(tx));
+        if (!model) return;
         result = await runParentBot(tx, sys(envelope), model, inboundMessageId, {
           publicUrl: publicUrl(),
         });

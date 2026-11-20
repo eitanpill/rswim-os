@@ -1,0 +1,2 @@
+ALTER TABLE "agent_settings" ADD COLUMN "ai_level" text DEFAULT 'balanced' NOT NULL;--> statement-breakpoint
+ALTER TABLE "agent_settings" ADD CONSTRAINT "agent_settings_ai_level_check" CHECK (ai_level in ('frugal', 'balanced', 'smart'));

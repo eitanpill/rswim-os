@@ -6,6 +6,8 @@
 import {
   AGENT_DEFAULT_SETTINGS,
   AGENT_PROFILE_LEVELS,
+  AI_DEFAULT_LEVEL,
+  AiLevel,
   AgentSettingsInput,
   toE164IL,
   type AgentActionKind,
@@ -75,6 +77,17 @@ async function upsert(
       target: agentSettings.organizationId,
       set: { ...values, updatedBy: ctx.userId },
     });
+}
+
+/** How strong a model answers for the business; the default until the owner picks one. */
+export async function aiLevel(tx: Tx): Promise<AiLevel> {
+  const [row] = await tx.select({ level: agentSettings.aiLevel }).from(agentSettings).limit(1);
+  return AiLevel.catch(AI_DEFAULT_LEVEL).parse(row?.level);
+}
+
+/** The owner picks how strong a model answers for the business (the bot and her assistant). */
+export async function setAiLevel(tx: Tx, ctx: ServiceContext, level: AiLevel) {
+  await upsert(tx, ctx, { aiLevel: AiLevel.parse(level) });
 }
 
 /** Saves the whole table. A level above a kind's ceiling is refused. */

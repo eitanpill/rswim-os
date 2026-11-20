@@ -17,6 +17,12 @@ test('AC: the connections screen shows what is connected and the month of AI use
   await expect(page.getByTestId('connection-bot')).toHaveAttribute('data-state', 'on');
   await expect(page.getByTestId('ai-meter')).toBeVisible();
   await expect(page.getByTestId('ai-meter-used')).toContainText('0 מתוך 3000 פעולות AI');
+  // The owner picks how strong a model answers for the business.
+  await expect(page.getByTestId('ai-level')).toHaveAttribute('data-level', 'balanced');
+  await page.getByTestId('ai-level-pick-frugal').click();
+  await expect(page.getByTestId('ai-level')).toHaveAttribute('data-level', 'frugal');
+  await page.getByTestId('ai-level-pick-balanced').click();
+  await expect(page.getByTestId('ai-level')).toHaveAttribute('data-level', 'balanced');
   await page.getByTestId('connection-payments-link').click();
   await expect(page).toHaveURL(/\/admin\/integrations\/payments$/);
 
@@ -35,5 +41,6 @@ test('AC: a freediving club owner opens the same screen', async ({ page }) => {
     'href',
     '/dive/payments',
   );
+  await expect(page.getByTestId('ai-level')).toBeVisible();
   await expect(page.getByTestId('ai-meter')).toBeVisible();
 });

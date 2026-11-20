@@ -21,6 +21,8 @@ import {
 import {
   AGENT_ACTION_KINDS,
   AGENT_PROFILES,
+  AI_DEFAULT_LEVEL,
+  AI_LEVELS,
   AGENT_SOURCES,
   DISMISS_REASONS,
   AUTONOMY_LEVELS,
@@ -152,11 +154,14 @@ export const agentSettings = pgTable(
     eveningSummary: boolean('evening_summary').notNull().default(true),
     /** What the brain learned and the owner answered: { declined: { kind: 'YYYY-MM-DD' } } (a suggestion she declined, until when). */
     learning: jsonb('learning').notNull().default({}),
+    /** How strong a model answers for the business (the bot and the owner's assistant): `AI_LEVELS`. */
+    aiLevel: text('ai_level').notNull().default(AI_DEFAULT_LEVEL),
     updatedBy: uuid('updated_by'),
     updatedAt: updatedAt(),
   },
   () => [
     check('agent_settings_profile_check', sql.raw(`profile in (${inList(AGENT_PROFILES)})`)),
+    check('agent_settings_ai_level_check', sql.raw(`ai_level in (${inList(AI_LEVELS)})`)),
     check('agent_settings_caps_check', sql`max_auto_per_day >= 0 and max_auto_payment_agorot >= 0`),
   ],
 );

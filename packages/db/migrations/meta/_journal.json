@@ -533,6 +533,13 @@
       "when": 1795188350749,
       "tag": "0075_dive_seats_system",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1795188769305,
+      "tag": "0076_ai_level",
+      "breakpoints": true
     }
   ]
 }
