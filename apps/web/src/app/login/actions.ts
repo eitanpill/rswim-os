@@ -34,6 +34,10 @@ async function joiningClub(v: FormDataEntryValue | null): Promise<string | null>
   return club?.open ? v : null;
 }
 
+/** A personal invite from a business's bot (its token is checked again on the invite's page). */
+const inviteOf = (v: FormDataEntryValue | null) =>
+  typeof v === 'string' && /^[A-Za-z0-9_-]{24,64}$/.test(v) ? v : null;
+
 const phonePage = (params: Record<string, string | null>) =>
   `/login/phone?${new URLSearchParams(
     Object.entries(params).filter((e): e is [string, string] => e[1] !== null),
@@ -41,10 +45,11 @@ const phonePage = (params: Record<string, string | null>) =>
 
 export async function sendPhoneCode(formData: FormData) {
   const join = await joiningClub(formData.get('join'));
+  const invite = inviteOf(formData.get('invite'));
   const phone = PhoneE164.safeParse(String(formData.get('phone') ?? ''));
-  if (!phone.success) redirect(phonePage({ error: 'phone', join }));
+  if (!phone.success) redirect(phonePage({ error: 'phone', join, invite }));
   const supabase = await createSupabaseServerClient();
-  if (!supabase) redirect(phonePage({ error: 'not_configured', join }));
+  if (!supabase) redirect(phonePage({ error: 'not_configured', join, invite }));
   // One app for everyone (store launch): a new number becomes an account. Someone with no school yet lands on the
   // front door (/start): the school that has their phone on file, a school's link, or the school search. Supabase's
   // own rate limits and captcha guard the SMS sending.
@@ -52,18 +57,19 @@ export async function sendPhoneCode(formData: FormData) {
     phone: phone.data,
     options: { shouldCreateUser: true },
   });
-  if (error) redirect(phonePage({ error: 'phone', join }));
-  redirect(phonePage({ phone: phone.data, join }));
+  if (error) redirect(phonePage({ error: 'phone', join, invite }));
+  redirect(phonePage({ phone: phone.data, join, invite }));
 }
 
 export async function verifyPhoneCode(formData: FormData) {
   const join = await joiningClub(formData.get('join'));
+  const invite = inviteOf(formData.get('invite'));
   const phone = PhoneE164.safeParse(String(formData.get('phone') ?? ''));
   const token = String(formData.get('code') ?? '').trim();
-  if (!phone.success) redirect(phonePage({ error: 'phone', join }));
+  if (!phone.success) redirect(phonePage({ error: 'phone', join, invite }));
   const supabase = await createSupabaseServerClient();
-  if (!supabase) redirect(phonePage({ error: 'not_configured', join }));
+  if (!supabase) redirect(phonePage({ error: 'not_configured', join, invite }));
   const { error } = await supabase.auth.verifyOtp({ phone: phone.data, token, type: 'sms' });
-  if (error) redirect(phonePage({ phone: phone.data, error: 'code', join }));
-  redirect(join ? `/join/${join}` : '/');
+  if (error) redirect(phonePage({ phone: phone.data, error: 'code', join, invite }));
+  redirect(invite ? `/i/${invite}` : join ? `/join/${join}` : '/');
 }

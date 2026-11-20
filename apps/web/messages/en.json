@@ -6765,5 +6765,33 @@
       "bedInUse": "A bed with a booking can't be closed. Move or cancel the booking first.",
       "cannotMove": "This can't be done with the booking as it is now."
     }
+  },
+  "leadInvite": {
+    "hello": "You're invited to join {school}",
+    "helloName": "{name}, you're invited to join {school}",
+    "sub": "This link was sent only to you. Sign in with your phone number, no forms.",
+    "how": {
+      "phone": "Confirm your number: {phone}",
+      "code": "Type the code from the SMS",
+      "in": "Go straight into the school's app"
+    },
+    "signIn": "Sign in with my phone",
+    "enterSub": "One tap left. What you've already told us is saved.",
+    "enter": "Enter {school}",
+    "inTitle": "You're in",
+    "in": "You're already in {school}.",
+    "toApp": "To the app",
+    "expiredTitle": "This link is no longer valid",
+    "expired": "The link expired. Ask for a new one on WhatsApp, or join from the school's page.",
+    "used": "This link was already used. If it wasn't you, join from the school's page.",
+    "toJoin": "To the school's page",
+    "unknownTitle": "Link not found",
+    "unknown": "The link may have been copied only in part. Ask for a new one on WhatsApp.",
+    "findSchool": "Find a school",
+    "errors": {
+      "unknown": "Link not found",
+      "expired": "This link is no longer valid",
+      "otherPhone": "This link was sent to another number. Sign in with the number it was sent to."
+    }
   }
 }

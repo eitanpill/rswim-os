@@ -27,5 +27,6 @@ export function joinPathFromLink(input: string): string | null {
   if (rest.some((p) => p !== '') || !value) return null;
   if (kind === 'join' && SLUG.test(value.toLowerCase())) return `/join/${value.toLowerCase()}`;
   if (kind === 'invite' && TOKEN.test(value)) return `/invite/${value}`;
+  if (kind === 'i' && TOKEN.test(value)) return `/i/${value}`;
   return null;
 }
