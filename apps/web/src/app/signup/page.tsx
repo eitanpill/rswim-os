@@ -6,7 +6,7 @@ import { publicPlans } from '@rswim/domain-platform';
 import { getSession } from '@/lib/auth/session';
 import { withAnon } from '@/lib/db';
 import { LoginFrame } from '../login/login-frame';
-import { signUpAction } from './actions';
+import { resendSignupAction, signUpAction } from './actions';
 import { TermsField } from './terms-field';
 
 /** A new business owner creates an account; opening the business itself comes next (/onboarding). */
@@ -29,6 +29,19 @@ export default async function SignupPage({
         </p>
         <p data-testid="signup-sent">{t('sentBody', { email: sent })}</p>
         <p className="mt-3 text-sm text-ink-muted">{t('sentHint')}</p>
+        <ActionForm action={resendSignupAction} testId="signup-resend" className="mt-4">
+          <input type="hidden" name="email" value={sent} />
+          <SubmitButton variant="secondary">{t('resend.button')}</SubmitButton>
+        </ActionForm>
+        <p className="mt-4 text-center text-sm">
+          {t('resend.already')}{' '}
+          <Link
+            href="/login"
+            className="font-medium text-brand-600 underline-offset-4 hover:underline"
+          >
+            {t('signIn')}
+          </Link>
+        </p>
       </LoginFrame>
     );
   }
