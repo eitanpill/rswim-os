@@ -15,7 +15,7 @@ until a business's Meta account is connected.
 | W5 Meta Cloud API direct (on fakes) | Send/receive without GHL, the 24-hour window, approved templates with variables, SMS/app fallback | Done (PR #61, SMS/app fallback later) |
 | W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | Done |
 | W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | Done |
-| W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | |
+| W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | Done (first cut) |
 | W9 One conversations screen | Every conversation in one place, "I'm taking over" per chat, bot performance | |
 | W10 Live at Reut's | Real number and templates, careful mode, two weeks of close watch, then one-click connect per business | Needs Pit |
 
@@ -190,4 +190,20 @@ All in `brain-inbound.ts` (worker function `brain-inbound`), texts in `agent-pol
   in the worker (`ANTHROPIC_API_KEY`, or the stand-in with `RSWIM_COPILOT_FAKE=1`); otherwise her message stays in the
   inbox. Once the assistant is on, the parents' bot leaves every message from that number alone.
 - An owner who also teaches: the instructor's rules read her message first.
+
+## W8: the brain on WhatsApp, the weekly coach
+
+`coach.ts` and `coach-policies.ts` in `@rswim/domain-copilot`, worker function `brain-weekly-coach` (Sundays 08:00).
+
+- One message to the owner's approvals number: last week in a line (joined, left, collected), at most three things
+  that matter this week, and the next holiday in the coming six weeks with how the same month went a year ago (from
+  the brain's month snapshots, when it remembers that month).
+- Priorities in a fixed order: actions that wait for her (each with its "כן N" / "לא N"), lessons of the coming week
+  without an instructor, families whose debt passed the digest's attention age, and the emptiest group under the
+  digest's low-occupancy mark.
+- What she can do is a reply: "כן N" decides a waiting action, and with her assistant on WhatsApp (W7) the message
+  suggests asking it ("מי חייב לנו?"). Without the assistant it points to the screen instead.
+- Not sent without an approvals number, with her summaries turned off, or with nothing to say; once a week.
+- Still open from brain stages 7 and 8: a three-month forecast with ranges, and tracking whether last week's advice
+  worked.
 

@@ -605,6 +605,9 @@ importers:
 
   packages/domain/copilot:
     dependencies:
+      '@rswim/calendar':
+        specifier: workspace:*
+        version: link:../../calendar
       '@rswim/contracts':
         specifier: workspace:*
         version: link:../../contracts

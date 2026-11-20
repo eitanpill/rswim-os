@@ -18,3 +18,5 @@ export * from './lead-invite';
 export * from './lead-invite-public';
 export * from './diver-bot-policies';
 export * from './diver-bot';
+export * from './coach';
+export * from './coach-policies';

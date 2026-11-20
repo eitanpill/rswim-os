@@ -540,3 +540,10 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - An instructor asks for their day or for attendance on WhatsApp and gets the lessons and the link (swim and dive).
 - The owner's free message from the approvals number is answered by her assistant, with "כן N" for what waits.
 - Not verified: the assistant's answers on the real model, and real WhatsApp delivery (both on fakes in tests).
+
+## WhatsApp W8: the weekly coach (2026-11-20)
+
+- Sundays at 08:00 the owner's approvals number gets the week: last week, three priorities with replies, the next
+  holiday against last year (`brain-weekly-coach`, `coach.ts`).
+- Not built yet: the three-month forecast and tracking last week's advice.
+- Not verified: real WhatsApp delivery (messaging runs on the fake).
