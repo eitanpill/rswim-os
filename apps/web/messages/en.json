@@ -928,11 +928,7 @@
       "heroTitle": "Let's open your business",
       "heroSubtitle": "Two minutes of details and you're in.",
       "popular": "Most popular",
-      "steps": [
-        "Account",
-        "Business",
-        "Card and go"
-      ]
+      "steps": ["Account", "Business", "Card and go"]
     },
     "console": {
       "title": "Schools",
