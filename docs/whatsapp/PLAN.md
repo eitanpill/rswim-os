@@ -11,8 +11,8 @@ until a business's Meta account is connected.
 | W1 Leads in one place | A new number on WhatsApp opens a lead; one list for swim and dive; triggers move it on | Done (PR #57) |
 | W2 The bot answers a new customer | Prices, programs, open seats, FAQ; collects details one question at a time; modules (lodging) plug in | Done (PR #58) |
 | W3 The bot closes | Books a trial or an intro dive, sends a pre-filled join link, health form and payment link, by the brain's levels | Done (PR #59) |
-| W4 Follow-up and lead report | After-trial offer and reminder, one nudge for silent leads, morning count, monthly sources report | **This PR** |
-| W5 Meta Cloud API direct (on fakes) | Send/receive without GHL, the 24-hour window, approved templates with variables, SMS/app fallback | |
+| W4 Follow-up and lead report | After-trial offer and reminder, one nudge for silent leads, morning count, monthly sources report | Done (PR #60) |
+| W5 Meta Cloud API direct (on fakes) | Send/receive without GHL, the 24-hour window, approved templates with variables, SMS/app fallback | **This PR** (SMS/app fallback later) |
 | W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | |
 | W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | |
 | W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | |
@@ -107,3 +107,23 @@ Always a person: discounts and refunds, complaints, health and safety, leaving, 
   source, with the months before it a tap away (`leadSources`, `sourcesReport`).
 - Real WhatsApp only lets a business start a conversation after 24 hours with an approved template; the follow-ups and
   reminders move onto templates with W5 (Meta Cloud API).
+
+## W5: Meta Cloud API direct (on fakes)
+
+- The owner connects the business's own number on `/admin/integrations/whatsapp` (`/admin/more`, and the WhatsApp
+  row of `/admin/connections`): the phone number id, the business account id, a system-user access token and the app
+  secret from Meta. The token and the secret are sealed with the organization's data key (`whatsapp_connections`,
+  `enc_*` columns no signed-in user can select); the page shows the webhook address and a verify token to paste into
+  Meta. The office sees only whether it is connected.
+- Meta's webhook is `/api/webhooks/whatsapp/<connectionId>`: the GET answers the subscription check with the verify
+  token, the POST is checked against the app secret (`X-Hub-Signature-256`), then each message goes into the inbox
+  once by Meta's id (provider `meta`, where the bots pick it up) and each receipt lands on our message
+  (`delivered_at`, `read_at`, or failed). `ingestMetaWebhook`, `parseMetaWebhook`.
+- The worker sends through the connected number (`MetaCloudMessagingProvider`) instead of GHL. Inside WhatsApp's
+  24-hour window (since the person last wrote) free text goes; outside it the message goes as its approved Meta
+  template, with the message's details in the template's order, or it is blocked as `outside_window` and visible in
+  the message log (`outboundShape`). The owner names each message's Meta template on the templates screen. A send
+  Meta refuses is kept on the connection for the owner.
+- With `RSWIM_MESSAGING_FAKE=1` a connected number runs on a fake that keeps the window rules, so demos and tests show
+  the same behaviour. A real connection needs W10 (Meta verification, a number, approved templates).
+

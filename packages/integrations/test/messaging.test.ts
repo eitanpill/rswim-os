@@ -5,6 +5,10 @@ import {
   FakeMessagingProvider,
   GhlApiError,
   GhlMessagingProvider,
+  MetaApiError,
+  MetaCloudMessagingProvider,
+  signMetaBody,
+  verifyMetaSignature,
 } from '../src';
 
 const ctx = { organizationId: 'org', idempotencyKey: 'msg-1' };
@@ -12,7 +16,9 @@ const msg = { toPhoneE164: '+972501234567', text: 'שלום', locale: 'he' as co
 
 describe('FakeMessagingProvider', () => {
   it('sends once per idempotency key and fails on demand', async () => {
+    expect(new FakeMessagingProvider(true).window).toBe(true);
     const p = new FakeMessagingProvider();
+    expect(p.window).toBe(false);
     const a = await p.send(ctx, msg);
     expect(await p.send(ctx, msg)).toEqual(a);
     expect(p.sent).toHaveLength(1);
@@ -65,6 +71,88 @@ describe('GhlMessagingProvider', () => {
     expect(new GhlMessagingProvider({ token: 't', locationId: 'l' })).toBeInstanceOf(
       GhlMessagingProvider,
     );
+  });
+});
+
+describe('MetaCloudMessagingProvider', () => {
+  const capture = (reply: unknown, status = 200) => {
+    const requests: { url: string; body: Record<string, unknown>; auth: string | null }[] = [];
+    const fetchImpl = (async (url: string, init: RequestInit) => {
+      requests.push({
+        url,
+        body: JSON.parse(String(init.body)),
+        auth: new Headers(init.headers).get('Authorization'),
+      });
+      return new Response(typeof reply === 'string' ? reply : JSON.stringify(reply), { status });
+    }) as unknown as typeof fetch;
+    return { requests, fetchImpl };
+  };
+  it('sends free text, and a template by name with its values in order', async () => {
+    const { requests, fetchImpl } = capture({ messages: [{ id: 'wamid.1' }] });
+    const p = new MetaCloudMessagingProvider({
+      phoneNumberId: '1234567',
+      accessToken: 'token',
+      fetch: fetchImpl,
+    });
+    expect(p.window).toBe(true);
+    expect(await p.send(ctx, msg)).toEqual({ providerMessageId: 'wamid.1' });
+    expect(requests[0]).toMatchObject({
+      url: 'https://graph.facebook.com/v21.0/1234567/messages',
+      auth: 'Bearer token',
+      body: { to: '972501234567', type: 'text', text: { body: 'שלום' } },
+    });
+    await p.send(ctx, {
+      ...msg,
+      template: { id: 'trial_reminder_v1', variables: {}, values: ['דנה', '21/11'] },
+    });
+    expect(requests[1]?.body).toMatchObject({
+      type: 'template',
+      template: {
+        name: 'trial_reminder_v1',
+        language: { code: 'he' },
+        components: [
+          {
+            type: 'body',
+            parameters: [
+              { type: 'text', text: 'דנה' },
+              { type: 'text', text: '21/11' },
+            ],
+          },
+        ],
+      },
+    });
+    await p.send(ctx, { ...msg, text: undefined, template: { id: 'hello', variables: {} } });
+    expect(requests[2]?.body).toMatchObject({ template: { components: [] } });
+    await p.send(ctx, { ...msg, text: undefined });
+    expect(requests[3]?.body).toMatchObject({ text: { body: '' } });
+  });
+  it('raises errors and answers without an id', async () => {
+    const bad = capture('{"error":{"message":"bad"}}', 400);
+    await expect(
+      new MetaCloudMessagingProvider({
+        phoneNumberId: '1',
+        accessToken: 't',
+        fetch: bad.fetchImpl,
+      }).send(ctx, msg),
+    ).rejects.toBeInstanceOf(MetaApiError);
+    const empty = capture({});
+    await expect(
+      new MetaCloudMessagingProvider({
+        phoneNumberId: '1',
+        accessToken: 't',
+        fetch: empty.fetchImpl,
+      }).send(ctx, msg),
+    ).rejects.toThrow(/Meta Cloud API 200/);
+    expect(new MetaCloudMessagingProvider({ phoneNumberId: '1', accessToken: 't' })).toBeTruthy();
+  });
+  it("checks Meta's signature", () => {
+    const secret = 'a'.repeat(32);
+    const sig = signMetaBody('{"x":1}', secret);
+    expect(verifyMetaSignature('{"x":1}', sig, secret)).toBe(true);
+    expect(verifyMetaSignature('{"x":2}', sig, secret)).toBe(false);
+    expect(verifyMetaSignature('{"x":1}', sig, 'b'.repeat(32))).toBe(false);
+    expect(verifyMetaSignature('{"x":1}', 'sha1=abc', secret)).toBe(false);
+    expect(verifyMetaSignature('{"x":1}', null, secret)).toBe(false);
   });
 });
 

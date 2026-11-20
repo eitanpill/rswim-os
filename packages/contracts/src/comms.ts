@@ -55,6 +55,8 @@ export const BLOCK_REASONS = [
   'missing_variable',
   'template_inactive',
   'no_provider',
+  // WhatsApp only lets a business start a conversation after 24 hours with an approved template (WhatsApp W5).
+  'outside_window',
 ] as const;
 export type BlockReason = (typeof BLOCK_REASONS)[number];
 
@@ -121,3 +123,41 @@ export const Classification = z.object({
   signals: z.array(z.string()).default([]),
 });
 export type Classification = z.infer<typeof Classification>;
+
+// ─── WhatsApp Cloud API (WhatsApp track W5) ─────────────────────────────────
+
+/** A business's own WhatsApp number on Meta's Cloud API: connected, switched off, or refused by Meta's check. */
+export const WHATSAPP_CONNECTION_STATUSES = ['connected', 'disconnected', 'failed'] as const;
+export type WhatsAppConnectionStatus = (typeof WHATSAPP_CONNECTION_STATUSES)[number];
+
+/** What the owner copies from Meta's WhatsApp Manager to connect the business's number. */
+export const WhatsAppConnectInput = z.object({
+  phoneNumberId: z
+    .string()
+    .trim()
+    .regex(/^\d{6,20}$/, 'whatsapp.errors.phoneNumberId'),
+  businessAccountId: z
+    .string()
+    .trim()
+    .regex(/^\d{6,20}$/, 'whatsapp.errors.businessAccountId'),
+  displayPhone: z.string().trim().min(6).max(30),
+  accessToken: z.string().trim().min(20, 'whatsapp.errors.accessToken').max(1000),
+  appSecret: z
+    .string()
+    .trim()
+    .regex(/^[0-9a-f]{32}$/i, 'whatsapp.errors.appSecret'),
+});
+export type WhatsAppConnectInput = z.input<typeof WhatsAppConnectInput>;
+
+/** An approved Meta template for a message key: its name in WhatsApp Manager and its {{1}}, {{2}}… in order. */
+export const MetaTemplateInput = z.object({
+  key: TemplateKey,
+  locale: z.enum(['he', 'en']),
+  metaName: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9_]{1,512}$/, 'whatsapp.errors.templateName')
+    .or(z.literal('')),
+  metaParams: z.string().trim().max(500),
+});
+export type MetaTemplateInput = z.input<typeof MetaTemplateInput>;

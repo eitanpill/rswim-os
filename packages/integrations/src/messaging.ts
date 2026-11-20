@@ -3,7 +3,7 @@
  * demos (`RSWIM_MESSAGING_FAKE=1`), and the optional AI triage classifier.
  */
 import { AI_MODEL_FOR } from '@rswim/contracts';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import Anthropic from '@anthropic-ai/sdk';
 import { GhlApiError } from './ghl';
 import type { MessagingProvider, OutboundMessage, ProviderContext } from './index';
@@ -24,6 +24,9 @@ export interface FakeSent {
 export class FakeMessagingProvider implements MessagingProvider {
   readonly sent: FakeSent[] = [];
   failNext = 0;
+
+  /** With `window`, it stands in for Meta's Cloud API (WhatsApp W5): the dispatcher keeps to the 24-hour window. */
+  constructor(readonly window = false) {}
 
   async send(ctx: ProviderContext, message: OutboundMessage) {
     const seen = this.sent.find((s) => s.ctx.idempotencyKey === ctx.idempotencyKey);
@@ -95,6 +98,104 @@ export class GhlMessagingProvider implements MessagingProvider {
     );
     return { providerMessageId: res.messageId };
   }
+}
+
+// ─── Meta's WhatsApp Cloud API (WhatsApp track W5) ──────────────────────────
+
+export interface MetaCloudOptions {
+  phoneNumberId: string;
+  accessToken: string;
+  apiVersion?: string;
+  baseUrl?: string;
+  fetch?: typeof fetch;
+}
+
+export class MetaApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly body: string,
+  ) {
+    super(`Meta Cloud API ${status}: ${body.slice(0, 300)}`);
+  }
+}
+
+/**
+ * WhatsApp through the business's own number on Meta's Cloud API: POST /<phone-number-id>/messages with free text
+ * inside the 24-hour window, or an approved template (by name, language, and its body's values in order) outside it.
+ * Meta has no idempotency header, so a retry after a lost answer can send twice; the dispatcher retries only failed
+ * calls. Written against Meta's published API (2026-11); not yet exercised against a live number.
+ */
+export class MetaCloudMessagingProvider implements MessagingProvider {
+  readonly window = true;
+  private readonly fetchImpl: typeof fetch;
+
+  constructor(private readonly opts: MetaCloudOptions) {
+    this.fetchImpl = opts.fetch ?? fetch;
+  }
+
+  async send(_ctx: ProviderContext, message: OutboundMessage) {
+    const to = message.toPhoneE164.replace(/^\+/, '');
+    const body = message.template
+      ? {
+          messaging_product: 'whatsapp',
+          to,
+          type: 'template',
+          template: {
+            name: message.template.id,
+            language: { code: message.locale },
+            components: message.template.values?.length
+              ? [
+                  {
+                    type: 'body',
+                    parameters: message.template.values.map((text) => ({ type: 'text', text })),
+                  },
+                ]
+              : [],
+          },
+        }
+      : {
+          messaging_product: 'whatsapp',
+          to,
+          type: 'text',
+          text: { body: message.text ?? '', preview_url: true },
+        };
+    const res = await this.fetchImpl(
+      `${this.opts.baseUrl ?? 'https://graph.facebook.com'}/${this.opts.apiVersion ?? 'v21.0'}/${this.opts.phoneNumberId}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.opts.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      },
+    );
+    const text = await res.text();
+    if (!res.ok) throw new MetaApiError(res.status, text);
+    const id = (JSON.parse(text) as { messages?: { id: string }[] }).messages?.[0]?.id;
+    if (!id) throw new MetaApiError(res.status, text);
+    return { providerMessageId: id };
+  }
+}
+
+/**
+ * Checks Meta's webhook signature (`X-Hub-Signature-256: sha256=<hex>`, an HMAC-SHA256 of the raw body with the app
+ * secret), in constant time. False on anything malformed.
+ */
+export function verifyMetaSignature(
+  rawBody: string,
+  header: string | null,
+  appSecret: string,
+): boolean {
+  const m = /^sha256=([0-9a-f]{64})$/i.exec(header ?? '');
+  if (!m) return false;
+  const expected = createHmac('sha256', appSecret).update(rawBody).digest();
+  return timingSafeEqual(expected, Buffer.from(m[1] as string, 'hex'));
+}
+
+/** Signs a body as Meta would (the fake webhook in demos and tests). */
+export function signMetaBody(rawBody: string, appSecret: string): string {
+  return `sha256=${createHmac('sha256', appSecret).update(rawBody).digest('hex')}`;
 }
 
 // ─── AI triage ──────────────────────────────────────────────────────────────

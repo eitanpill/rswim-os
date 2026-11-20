@@ -365,6 +365,10 @@
       "leads": {
         "title": "New enquiries",
         "hint": "Who asked and hasn't joined yet, from chat to sign-up"
+      },
+      "whatsapp": {
+        "title": "Business WhatsApp",
+        "hint": "Connect the number straight to Meta"
       }
     }
   },
@@ -1620,7 +1624,8 @@
       "no_phone": "No phone",
       "missing_variable": "Template detail missing",
       "template_inactive": "Template switched off",
-      "no_provider": "No messaging provider"
+      "no_provider": "No messaging provider",
+      "outside_window": "Outside the 24-hour window"
     },
     "inboundIntent": {
       "absence_notice": "Absence notice",
@@ -3479,7 +3484,13 @@
       "on": "On",
       "off": "Off",
       "turnOn": "Turn on",
-      "turnOff": "Turn off"
+      "turnOff": "Turn off",
+      "metaHint": "Outside the 24-hour window WhatsApp sends only a template approved in Meta. Without one the message does not go out and is marked in the log.",
+      "metaName": "Template name in Meta",
+      "metaParams": "Details in the order of the Meta template's variables (1, 2, …)",
+      "metaParamsHint": "Comma-separated. Available: {list}",
+      "metaSave": "Save Meta template",
+      "metaBadge": "Meta"
     },
     "broadcast": {
       "title": "Broadcast",
@@ -3534,7 +3545,9 @@
         "no_phone": "No phone number",
         "missing_variable": "Template detail missing: {missing}",
         "template_inactive": "Template switched off",
-        "no_provider": "No messaging provider"
+        "no_provider": "No messaging provider",
+        "outside_window": "Outside the 24-hour window with no Meta template for this message",
+        "outside_window_vars": "Outside the 24-hour window: a detail for the Meta template is missing"
       },
       "triage": {
         "always_human": {
@@ -6387,9 +6400,10 @@
     },
     "whatsapp": {
       "title": "WhatsApp",
-      "connected": "Messages go out from the business's number through LeadYourWay.",
+      "connected": "Messages go out from the business's number, straight through Meta or through LeadYourWay.",
       "missing": "Not connected yet. Without it, reminders, confirmations and payment links don't go out on WhatsApp.",
-      "link": "Connect WhatsApp"
+      "link": "Connect WhatsApp",
+      "failing": "The number is connected but the last send failed. The reason is on the connection screen."
     },
     "payments": {
       "title": "Payments",
@@ -6540,6 +6554,57 @@
       "empty": "No leads this month.",
       "prev": "Previous month",
       "next": "Next month"
+    }
+  },
+  "whatsapp": {
+    "title": "Business WhatsApp",
+    "subtitle": "The business's own number connected straight to Meta: messages go out from it and replies reach the inbox and the bot",
+    "ownerOnly": "Only the owner connects the WhatsApp number.",
+    "officeConnected": "Connected: messages go out from {phone}.",
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "failed": "Not working"
+    },
+    "lastError": "The last send failed:",
+    "webhookUrl": "Webhook URL (paste into Meta)",
+    "verifyToken": "Verify token (paste into Meta)",
+    "phoneNumberId": "Phone number ID",
+    "phoneNumberIdHint": "Shown in WhatsApp Manager next to the number",
+    "businessAccountId": "WhatsApp Business Account ID",
+    "displayPhone": "The business's phone number",
+    "accessToken": "Access token (system user)",
+    "appSecret": "App secret",
+    "secretHint": "Stored encrypted and never shown again",
+    "lastInbound": "Last message in",
+    "noInboundYet": "No message yet",
+    "disconnect": "Disconnect the number",
+    "disconnectConfirm": "Disconnect? Messages go back through LeadYourWay, if connected, or wait.",
+    "emptyTitle": "No number connected yet",
+    "emptyHint": "Without your own number, messages go out through LeadYourWay (if connected).",
+    "connect": "Connect the number",
+    "replace": "Replace the details",
+    "save": "Save",
+    "connected": "Number connected. Now paste the webhook URL and verify token into Meta.",
+    "disconnected": "Number disconnected.",
+    "templateSaved": "Meta template saved.",
+    "howTitle": "How to connect",
+    "how1": "In Meta Business, open an app with WhatsApp and add the business's number.",
+    "how2": "In WhatsApp Manager, copy the phone number ID and the business account ID, and create a permanent system-user access token.",
+    "how3": "In the app's settings, copy the app secret, fill everything in here and save.",
+    "how4": "In Meta's WhatsApp webhook settings, paste the URL and verify token from here and subscribe to messages.",
+    "how5": "Outside the 24-hour window Meta allows only approved templates: on the templates screen, enter each message's template name in Meta.",
+    "errors": {
+      "phoneNumberId": "Digits only, as shown in WhatsApp Manager",
+      "businessAccountId": "Digits only, as shown in WhatsApp Manager",
+      "accessToken": "The access token is too short",
+      "appSecret": "The app secret is 32 characters (0-9, a-f)",
+      "templateName": "Template name: lowercase Latin letters, digits and underscores",
+      "noMasterKey": "Can't store secrets: the system's encryption key isn't set",
+      "ownerOnly": "Only the owner connects the number",
+      "numberTaken": "This number is already connected to another business",
+      "notConnected": "No number is connected",
+      "unknownVariable": "Details the message does not have: {names}"
     }
   }
 }

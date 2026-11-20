@@ -13,12 +13,20 @@ export interface ProviderContext {
 // ─── Messaging (Phase 5): WhatsApp via GHL now, Cloud API later ──────────────
 export interface OutboundMessage {
   toPhoneE164: string;
-  /** Approved template for messages outside the 24h window; free text inside it. */
-  template?: { id: string; variables: Record<string, string> };
+  /**
+   * Approved template for messages outside the 24h window; free text inside it. GHL names it by id; Meta's Cloud API
+   * by name, with the body's {{1}}, {{2}}… values in order.
+   */
+  template?: { id: string; variables: Record<string, string>; values?: string[] };
   text?: string;
   locale: 'he' | 'en';
 }
 export interface MessagingProvider {
+  /**
+   * True when the sender itself must respect WhatsApp's 24-hour window (Meta's Cloud API): outside it, only an
+   * approved template may go, and the dispatcher picks one or blocks the message. GHL decides by itself.
+   */
+  readonly window?: boolean;
   send(ctx: ProviderContext, message: OutboundMessage): Promise<{ providerMessageId: string }>;
 }
 

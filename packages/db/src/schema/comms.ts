@@ -28,10 +28,11 @@ import {
   MESSAGE_CHANNELS,
   MESSAGE_STATUSES,
   TEMPLATE_KEYS,
+  WHATSAPP_CONNECTION_STATUSES,
   TRIAGE_ACTION_KINDS,
   TRIAGE_ACTION_STATUSES,
 } from '@rswim/contracts';
-import { createdAt, id, inList, orgId, updatedAt } from './_helpers';
+import { bytea, createdAt, id, inList, orgId, updatedAt } from './_helpers';
 import { organizations } from './tenancy';
 
 /** The text of every message the school sends, per organization and language. Keys are fixed; the owner edits bodies. */
@@ -47,6 +48,12 @@ export const messageTemplates = pgTable(
     body: text('body').notNull(),
     /** The approved WhatsApp template in GHL, for messages outside the 24-hour window. */
     ghlTemplateId: text('ghl_template_id'),
+    /** The approved template on Meta's Cloud API (WhatsApp W5): its name, and our variables for its {{1}}, {{2}}… */
+    metaName: text('meta_name'),
+    metaParams: text('meta_params')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     active: boolean('active').notNull().default(true),
     updatedBy: uuid('updated_by'),
     createdAt: createdAt(),
@@ -142,7 +149,12 @@ export const messages = pgTable(
     inboundMessageId: uuid('inbound_message_id'),
     providerMessageId: text('provider_message_id'),
     idempotencyKey: text('idempotency_key').notNull(),
+    /** The template's variables as rendered, for an approved Meta template outside the 24-hour window (W5). */
+    vars: jsonb('vars'),
     sentAt: timestamp('sent_at', { withTimezone: true }),
+    /** Meta's delivery receipts (W5). */
+    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
+    readAt: timestamp('read_at', { withTimezone: true }),
     createdBy: uuid('created_by'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -327,5 +339,39 @@ export const botKnowledge = pgTable(
     check('bot_knowledge_source_check', sql.raw(`source in (${inList(BOT_KNOWLEDGE_SOURCES)})`)),
     check('bot_knowledge_question_check', sql`length(${t.question}) between 1 and 500`),
     check('bot_knowledge_answer_check', sql`length(${t.answer}) between 1 and 1000`),
+  ],
+);
+
+/**
+ * The business's own WhatsApp number on Meta's Cloud API (WhatsApp track W5), connected by the owner. The access token
+ * and the app secret are sealed with the organization's data key; only the tenant's system role opens them (the worker
+ * to send, the webhook to check Meta's signature). The verify token answers Meta's subscription check.
+ */
+export const whatsappConnections = pgTable(
+  'whatsapp_connections',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    status: text('status').notNull().default('connected'),
+    phoneNumberId: text('phone_number_id').notNull(),
+    businessAccountId: text('business_account_id').notNull(),
+    displayPhone: text('display_phone').notNull(),
+    verifyToken: text('verify_token').notNull(),
+    encAccessToken: bytea('enc_access_token').notNull(),
+    encAppSecret: bytea('enc_app_secret').notNull(),
+    lastInboundAt: timestamp('last_inbound_at', { withTimezone: true }),
+    lastError: text('last_error'),
+    connectedBy: uuid('connected_by'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('whatsapp_connections_org_id').on(t.organizationId, t.id),
+    unique('whatsapp_connections_org').on(t.organizationId),
+    unique('whatsapp_connections_phone').on(t.phoneNumberId),
+    check(
+      'whatsapp_connections_status_check',
+      sql.raw(`status in (${inList(WHATSAPP_CONNECTION_STATUSES)})`),
+    ),
   ],
 );

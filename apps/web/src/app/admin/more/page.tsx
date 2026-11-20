@@ -41,6 +41,7 @@ const LINKS = [
   'substitutes',
   'recruiting',
   'payments',
+  'whatsapp',
   'ghl',
 ] as const;
 const HREF: Record<(typeof LINKS)[number], string> = {
@@ -79,6 +80,7 @@ const HREF: Record<(typeof LINKS)[number], string> = {
   substitutes: '/admin/staff/substitutes',
   recruiting: '/admin/staff/recruiting',
   payments: '/admin/integrations/payments',
+  whatsapp: '/admin/integrations/whatsapp',
   ghl: '/admin/integrations/ghl',
 };
 
@@ -127,6 +129,7 @@ const ICON: Record<(typeof LINKS)[number], string> = {
   substitutes: '🙋',
   recruiting: '🌱',
   payments: '💳',
+  whatsapp: '💬',
   ghl: '📇',
 };
 
@@ -155,7 +158,16 @@ const SECTIONS: { key: string; links: (typeof LINKS)[number][] }[] = [
   { key: 'smart', links: ['brain', 'copilot', 'reports'] },
   {
     key: 'business',
-    links: ['onboarding', 'branding', 'templates', 'join', 'import', 'connections', 'ghl'],
+    links: [
+      'onboarding',
+      'branding',
+      'templates',
+      'join',
+      'import',
+      'connections',
+      'whatsapp',
+      'ghl',
+    ],
   },
 ];
 

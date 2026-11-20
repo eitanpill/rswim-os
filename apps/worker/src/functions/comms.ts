@@ -89,7 +89,15 @@ export const commsDispatch = inngest.createFunction(
         return [...new Set([...(await orgsWithDueMessages(tx, now)), ...broadcasting])];
       }),
     );
-    const totals = { sent: 0, held: 0, failed: 0, retrying: 0, broadcasts: 0, unconfigured: 0 };
+    const totals = {
+      sent: 0,
+      held: 0,
+      failed: 0,
+      retrying: 0,
+      blocked: 0,
+      broadcasts: 0,
+      unconfigured: 0,
+    };
     for (const orgId of orgIds) {
       const r = await step.run(`dispatch-${orgId}`, () =>
         withOrg(getDb(), orgId, async (tx) => {

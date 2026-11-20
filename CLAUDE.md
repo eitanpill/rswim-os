@@ -123,7 +123,11 @@ group seats and divers move it on through database triggers (`app.touch_lead`). 
 (`lead-bot.ts` in `@rswim/domain-copilot`): prices, programs and open places, collecting details one question at a time;
 an optional module (lodging) joins it with `registerLeadBotModule`. It books a swim school's trial (`book_trial`, a brain
 kind) and sends the sign-up link; the brain follows leads up at 10:00 (`lead_followup`: after the trial, or once when
-they go quiet), trials are reminded the day before at 17:00, and `/admin/leads` shows the month's sources.
+they go quiet), trials are reminded the day before at 17:00, and `/admin/leads` shows the month's sources. The owner can connect the business's own number on Meta's Cloud API
+(`/admin/integrations/whatsapp`, table `whatsapp_connections`, secrets sealed with the org's data key, webhook
+`/api/webhooks/whatsapp/<connectionId>` signed with the app secret); the worker then sends through it, free text inside
+WhatsApp's 24-hour window and the approved Meta template outside it (named per message on the templates screen), with
+`RSWIM_MESSAGING_FAKE=1` on a fake that keeps the window rules.
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a
