@@ -419,7 +419,7 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   `aiAllowance` counts the month (Asia/Jerusalem); from 80% the owner is warned, at the cap the copilot refuses
   (`platform.errors.aiCap`), the parents' bot hands the family to the office (handoff reason `ai_cap`), the worker
   skips Claude's triage and insight notes (the rules still run), and an import's columns are placed by the rules only.
-- Models per feature (decision 8): copilot and parents' bot on Opus, morning insight notes on Sonnet, message triage
+- Models per feature (decision 8; since 2026-11-20 the owner's AI level picks the first two): copilot and parents' bot on Opus, morning insight notes on Sonnet, message triage
   and import columns on Haiku.
 - The brain (`/admin/brain`) is on every plan now; the owner's chat copilot stays on pro; the parents' bot is a plan
   feature (`parent_bot`, growth and pro), per the approved price list.
@@ -523,3 +523,14 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   day to the lodging number; the lead bot answers free rooms and prices; instructors see nothing. Same screens on
   `/admin/lodging` and `/dive/lodging`, demo data in both demo businesses.
 - Not verified: the morning brief on real WhatsApp (messaging runs on the fake).
+
+## AI level per business (2026-11-20)
+
+- The owner picks how strong a model answers for the business on the connections screen (`/admin/connections`,
+  `/dive/connections`): frugal, balanced (default) or smart. It decides the model of the bot (families, leads, divers)
+  and of the owner's assistant; triage, morning notes and imports keep their own models.
+- Stored in `agent_settings.ai_level` (migration 0076, owner only). `aiModelFor(feature, level)` in `@rswim/contracts`.
+- The monthly allowance counts a balanced answer as half an action and a frugal one as a tenth (`aiActionTenths`,
+  the same rule in SQL in `aiAllowance`); the meter rounds part actions up.
+- Not verified: answers from the real models at each level (no `ANTHROPIC_API_KEY` in this environment; tests run on
+  the fake and on injected models).

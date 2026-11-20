@@ -115,7 +115,9 @@ sign a new standing order.
 Claude's allowance (SaaS stage 6): every Claude call reports its tokens (`trackUsage` in `@rswim/integrations`), each
 piece of AI work is one row of `ai_usage` with its cost, and `plans.ai_monthly_actions` caps the month (`aiAllowance`
 in `@rswim/domain-platform`); past the cap the copilot refuses, the parents' bot hands off and the worker skips Claude.
-The owner sees the meter and what is connected on `/admin/connections` (`/dive/connections`).
+The owner sees the meter and what is connected on `/admin/connections` (`/dive/connections`). There she also picks the AI level
+(`agent_settings.ai_level`: frugal, balanced, smart): it sets the model of the bot and of her assistant
+(`aiModelFor`), and a cheaper level takes less of the allowance per answer (`aiActionTenths`).
 WhatsApp track (`docs/whatsapp/PLAN.md`): a WhatsApp message from a number that is not a family, staff member or diver
 opens a lead (`leads`, `@rswim/domain-crm` `leads.ts`; one list for swim and dive). Join requests, families, trial and
 group seats and divers move it on through database triggers (`app.touch_lead`). The office works them on

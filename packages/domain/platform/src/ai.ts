@@ -5,6 +5,10 @@
  */
 import {
   AI_FEATURES,
+  AI_LEVELED_FEATURES,
+  AI_LEVELS,
+  AI_LEVEL_MODEL,
+  AI_LEVEL_TENTHS,
   AI_WARN_PERCENT,
   aiCostMicros,
   type AiFeature,
@@ -16,11 +20,21 @@ import { aiBudget, type AiBudget } from './policies';
 
 const MONTH_START = sql`(date_trunc('month', now() at time zone 'Asia/Jerusalem') at time zone 'Asia/Jerusalem')`;
 
-/** The school's plan cap (null: none) and how many AI actions it ran since the 1st. */
+/**
+ * One row's share of the allowance in tenths of an action, as SQL: the same rule as `aiActionTenths` in
+ * `@rswim/contracts` (leveled work on a cheaper model takes less; everything else is a whole action).
+ */
+const TENTHS = sql.raw(
+  `case when feature in (${AI_LEVELED_FEATURES.map((f) => `'${f}'`).join(', ')}) then case model ${AI_LEVELS.map(
+    (l) => `when '${AI_LEVEL_MODEL[l]}' then ${AI_LEVEL_TENTHS[l]}`,
+  ).join(' ')} else 10 end else 10 end`,
+);
+
+/** The school's plan cap (null: none) and how many AI actions it used since the 1st (part actions round up). */
 export async function aiAllowance(tx: Tx): Promise<AiBudget> {
   const r = await tx.execute<{ cap: number | null; used: string | number }>(
     sql`select (select p.ai_monthly_actions from org_subscriptions s join plans p on p.code = s.plan_code limit 1) cap,
-               (select count(*) from ai_usage where created_at >= ${MONTH_START}) used`,
+               (select ceil(coalesce(sum(${TENTHS}), 0) / 10.0) from ai_usage where created_at >= ${MONTH_START}) used`,
   );
   const row = r.rows[0] ?? { cap: null, used: 0 };
   return aiBudget(row.cap, Number(row.used), AI_WARN_PERCENT);
@@ -31,7 +45,7 @@ export async function aiUsageByFeature(
   tx: Tx,
 ): Promise<Record<AiFeature, { actions: number; micros: number }>> {
   const r = await tx.execute<{ feature: AiFeature; n: string | number; micros: string | number }>(
-    sql`select feature, count(*) n, sum(cost_micros) micros from ai_usage
+    sql`select feature, ceil(sum(${TENTHS}) / 10.0) n, sum(cost_micros) micros from ai_usage
         where created_at >= ${MONTH_START} group by feature`,
   );
   const out = Object.fromEntries(AI_FEATURES.map((f) => [f, { actions: 0, micros: 0 }])) as Record<

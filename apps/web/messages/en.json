@@ -928,7 +928,11 @@
       "heroTitle": "Let's open your business",
       "heroSubtitle": "Two minutes of details and you're in.",
       "popular": "Most popular",
-      "steps": ["Account", "Business", "Card and go"]
+      "steps": [
+        "Account",
+        "Business",
+        "Card and go"
+      ]
     },
     "console": {
       "title": "Schools",
@@ -6794,6 +6798,27 @@
       "unknown": "Link not found",
       "expired": "This link is no longer valid",
       "otherPhone": "This link was sent to another number. Sign in with the number it was sent to."
+    }
+  },
+  "aiLevel": {
+    "title": "How smart the bot and the assistant are",
+    "hint": "How strong a model answers for the business on WhatsApp and in your assistant. A smarter level answers better and uses the month's AI allowance faster.",
+    "current": "Current level",
+    "pick": "Choose",
+    "saved": "Level saved",
+    "stretch": "{times, plural, =1 {Each answer is one AI action} other {# times more answers from the same allowance}}",
+    "scope": "This applies to the bot (families, new leads and divers) and to the assistant. Message sorting, morning insights and imports stay as they are.",
+    "frugal": {
+      "label": "Frugal",
+      "hint": "Fast and cheap. Good for simple questions: prices, hours, open places."
+    },
+    "balanced": {
+      "label": "Balanced",
+      "hint": "Understands everyday conversations well and takes actions. Fits most businesses."
+    },
+    "smart": {
+      "label": "Smart",
+      "hint": "The strongest model. For complex conversations and the best answers."
     }
   }
 }

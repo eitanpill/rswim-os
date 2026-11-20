@@ -5,6 +5,7 @@ import { commsRules, whatsappConnection } from '@rswim/domain-comms';
 import { ghlSettings } from '@rswim/domain-crm';
 import { hasFeature } from '@rswim/domain-platform';
 import { Badge, Card, CardTitle } from '@rswim/ui';
+import { AiLevelCard } from '@/components/ai-level';
 import { AiMeter } from '@/components/ai-meter';
 import { withSession } from '@/lib/db';
 
@@ -95,6 +96,7 @@ export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' 
           </li>
         ))}
       </ul>
+      <AiLevelCard />
       <AiMeter />
     </div>
   );
