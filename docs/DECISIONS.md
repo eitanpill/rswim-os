@@ -209,4 +209,7 @@ Architecture decisions live in `docs/adr/`. This file holds product defaults and
 | 2026-11-20 | The bot for new customers is the family bot's second path (same worker function, model, knowledge and plan feature) with its own policy switch `comms.lead_bot_enabled` | One bot per business, as Pit asked; a school can let it answer families without answering strangers, or the other way round |
 | 2026-11-20 | The lead bot keeps out of a conversation the office wrote in during the last 3 hours | A person who took over should not be interrupted; W9 adds an explicit "I'm taking over" per chat |
 | 2026-11-20 | Modules join the lead bot by registering facts and tools (`LeadBotModule`), not by a second bot | Lodging and later modules answer in the same conversation; each module decides by itself whether the business has it on |
+| 2026-11-20 | The bot's trial booking is a brain action (`book_trial`), not a direct booking | It opens a family and holds a seat: the owner decides how far the bot may go, as for every other action, and the journal can undo it |
+| 2026-11-20 | Trial lessons offered to a new customer follow the group's age bounds or else the program's, and only mixed groups unless the child's gender is known | Placement refuses a gendered group without a gender; offering only what can be booked keeps the bot from promising a lesson |
+| 2026-11-20 | A freediving club's new customer gets the sign-up link; booking an intro dive from WhatsApp waits for W6 | A dive booking needs a diver record and paperwork, which registration creates |
 

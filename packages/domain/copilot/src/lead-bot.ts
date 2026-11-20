@@ -14,7 +14,7 @@ import type { ClaudeUsage, LeadStage, Vertical } from '@rswim/contracts';
 import { desc, eq, schema, sql, type Tx } from '@rswim/db';
 import { commsRules, enqueueMessage } from '@rswim/domain-comms';
 import { advanceLead, saveLeadDetails } from '@rswim/domain-crm';
-import { DomainError, type ServiceContext } from '@rswim/domain-core';
+import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
 import { aiAllowed, hasFeature, recordAiUsage } from '@rswim/domain-platform';
 import { todayIL } from '@rswim/domain-scheduling';
 import { resolvePolicyFor } from '@rswim/domain-settings';
@@ -27,16 +27,21 @@ import {
   type CopilotTraceStep,
 } from '@rswim/integrations';
 import { BotAnswer, BotHandoff, handoffNoteDue, matchKnowledge, policyFacts } from './bot-policies';
+import { proposalSummary, TrialProposal, type ProposalParams } from './policies';
+import { takeAction } from './services';
 import {
   agesInWords,
+  fakeClosingIntent,
   fakeLeadDetails,
   fakeLeadIntent,
+  knownFromSystem,
   leadBotRoute,
   leadBotSystem,
   LeadDetailsPatch,
   mergeLeadDetails,
   nextLeadQuestion,
   offerLines,
+  parseChildBirth,
   QUESTION_HE,
   type LeadDetailKey,
   type LeadKnown,
@@ -252,6 +257,12 @@ export const LEAD_BOT_TOOLS: CopilotTool[] = [
     ),
   },
   {
+    name: 'join_link',
+    description:
+      "The business's sign-up link (a family or a diver fills in their details and the office confirms). Put it in your answer as is.",
+    input_schema: obj({}, []),
+  },
+  {
     name: 'reply_to_lead',
     description: 'Sends the answer to the person on WhatsApp. Ends the turn.',
     input_schema: obj(
@@ -288,6 +299,92 @@ interface LeadState extends LeadKnown {
   id: string;
 }
 
+/** A swim school's closing tools (W3): the trial lessons a child may join, and booking one through the brain. */
+export const LEAD_TRIAL_TOOLS: CopilotTool[] = [
+  {
+    name: 'trial_options',
+    description:
+      'Lessons in the next two weeks with a free place for a trial, for a child born on childDob (YYYY-MM-DD), boy or girl (childGender; without it only mixed groups): sessionId, date, time, group, venue, fee in agorot.',
+    input_schema: obj(
+      { childDob: { type: 'string' }, childGender: { type: 'string', enum: ['female', 'male'] } },
+      ['childDob'],
+    ),
+  },
+  {
+    name: 'book_trial',
+    description:
+      "Books a trial lesson the person chose from trial_options: opens the family and the child. Needs the parent's first and last name, the child's first name and date of birth. Answers done, waiting (the office confirms soon), failed (the rules refused, with a code) or not_allowed.",
+    input_schema: obj(
+      {
+        sessionId: { type: 'string' },
+        parentFirstName: { type: 'string' },
+        parentLastName: { type: 'string' },
+        childFirstName: { type: 'string' },
+        childDob: { type: 'string' },
+        childGender: { type: 'string', enum: ['female', 'male'] },
+      },
+      ['sessionId', 'parentFirstName', 'parentLastName', 'childFirstName', 'childDob'],
+    ),
+  },
+];
+
+/** Where the bot's links point and which message it is answering. */
+export interface LeadBotContext {
+  slug: string;
+  publicUrl: string;
+  inboundMessageId: string | null;
+}
+
+/** Lessons in the next two weeks with a free place for a child of that age (seats counted per group). */
+export async function trialOptions(
+  tx: Tx,
+  childDob: string,
+  childGender: 'female' | 'male' | null = null,
+) {
+  const list = await rows<{
+    sessionId: string;
+    date: string;
+    weekday: number;
+    time: string;
+    group: string;
+    venue: string;
+    free: number;
+    venueId: string;
+    programId: string | null;
+  }>(
+    tx,
+    sql`select s.id "sessionId", s.date::text date, extract(dow from s.date)::int weekday,
+               to_char(s.starts_at at time zone 'Asia/Jerusalem', 'HH24:MI') time, t.name "group", v.name venue,
+               t.capacity - (select count(*)::int from enrollments e where e.class_template_id = t.id
+                             and e.status in ('trial_booked', 'active', 'frozen', 'cancel_requested')
+                             and e.starts_on <= s.date and (e.ends_on is null or e.ends_on >= s.date)) free,
+               v.id "venueId", t.program_id "programId"
+        from sessions s join class_templates t on t.id = s.class_template_id join venues v on v.id = t.venue_id
+        left join programs p on p.id = t.program_id
+        where s.status = 'scheduled' and s.starts_at > now() + interval '2 hours'
+          and (t.admitted_gender = 'mixed' or t.admitted_gender = ${childGender})
+          and s.date <= app.today() + 14
+          and (coalesce(t.age_min_months, p.min_age_months) is null
+               or (extract(year from age(s.date, ${childDob}::date)) * 12 + extract(month from age(s.date, ${childDob}::date))) >= coalesce(t.age_min_months, p.min_age_months))
+          and (coalesce(t.age_max_months, p.max_age_months) is null
+               or (extract(year from age(s.date, ${childDob}::date)) * 12 + extract(month from age(s.date, ${childDob}::date))) <= coalesce(t.age_max_months, p.max_age_months))
+        order by s.starts_at limit 40`,
+  );
+  const open = list.filter((x) => x.free > 0).slice(0, 8);
+  const fees = await rows<{ program: string; agorot: number }>(
+    tx,
+    sql`select i.program_id program, min(i.amount_agorot)::int agorot
+        from price_items i join price_lists l on l.id = i.price_list_id
+        where i.kind = 'trial' and l.status = 'published' and l.effective_from <= app.today()
+          and (l.effective_to is null or l.effective_to >= app.today())
+        group by i.program_id`,
+  );
+  return open.map(({ venueId: _v, programId, ...o }) => ({
+    ...o,
+    feeAgorot: fees.find((f) => f.program === programId)?.agorot ?? null,
+  }));
+}
+
 /** The tools bound to one lead. The answer or handoff is collected, not applied. */
 export function leadToolbox(
   tx: Tx,
@@ -297,11 +394,95 @@ export function leadToolbox(
   today: string,
   knowledge: Knowledge[],
   modules: readonly LeadBotModule[],
+  bot: LeadBotContext = { slug: '', publicUrl: '', inboundMessageId: null },
 ) {
   let decision: Decision | null = null;
+  const actions: { id: string; kind: 'book_trial' | 'payment_link'; status: string }[] = [];
+  /** One action through the brain's gate, as the family bot does (bot.ts). */
+  const act = async <K extends 'book_trial' | 'payment_link'>(
+    kind: K,
+    params: ProposalParams[K],
+    summary: ReturnType<typeof proposalSummary>,
+    amountAgorot: number | null,
+  ) => {
+    try {
+      const r = await takeAction(tx, ctx, {
+        source: 'parent_whatsapp',
+        requestId: null,
+        inboundMessageId: bot.inboundMessageId,
+        kind,
+        params,
+        summary,
+        amountAgorot,
+      });
+      actions.push({ id: r.id, kind, status: r.status });
+      if (r.status === 'failed') return { status: 'failed' as const, refusedBy: r.code };
+      return r.status === 'done'
+        ? { status: 'done' as const, result: r.result }
+        : { status: 'waiting' as const };
+    } catch (e) {
+      if (toDomainError(e)?.code === 'agent.errors.off') return { status: 'not_allowed' as const };
+      throw e;
+    }
+  };
   const call = async (name: string, input: unknown): Promise<unknown> => {
     if (decision) throw new DomainError('bot.errors.alreadyDecided');
     switch (name) {
+      case 'join_link':
+        return { url: `${bot.publicUrl.replace(/\/$/, '')}/join/${bot.slug}` };
+      case 'trial_options': {
+        if (vertical !== 'swim') throw new DomainError('bot.errors.unknownTool');
+        const { childDob, childGender } = z
+          .object({ childDob: z.iso.date(), childGender: z.enum(['female', 'male']).nullish() })
+          .parse(input);
+        return trialOptions(tx, childDob, childGender ?? null);
+      }
+      case 'book_trial': {
+        if (vertical !== 'swim') throw new DomainError('bot.errors.unknownTool');
+        const r = TrialProposal.safeParse({ ...(input as object), leadId: lead.id });
+        if (!r.success) throw new DomainError('bot.errors.badAction');
+        const p = r.data;
+        // Only a lesson trial_options offers: open, with a place, for the child's age.
+        const offered = (await trialOptions(tx, p.childDob, p.childGender ?? null)).find(
+          (o) => o.sessionId === p.sessionId,
+        );
+        if (!offered) throw new DomainError('bot.errors.notOffered');
+        const trial = await act(
+          'book_trial',
+          p,
+          proposalSummary({
+            kind: 'book_trial',
+            student: p.childFirstName,
+            family: `${p.parentFirstName} ${p.parentLastName}`,
+            group: offered.group,
+            date: offered.date,
+            time: offered.time,
+          }),
+          null,
+        );
+        await saveLeadDetails(tx, lead.id, {
+          name: lead.name ?? `${p.parentFirstName} ${p.parentLastName}`,
+          details: { child_name: p.childFirstName, child_dob: p.childDob },
+        });
+        // The trial fee, by the brain's level for payment links (the family exists once the trial is booked).
+        let payment: string | null = null;
+        if (trial.status === 'done' && offered.feeAgorot && offered.feeAgorot >= 100) {
+          const householdId = (trial.result as { householdId: string }).householdId;
+          const paid = await act(
+            'payment_link',
+            { householdId, amountAgorot: offered.feeAgorot, description: 'שיעור ניסיון' },
+            proposalSummary({
+              kind: 'payment_link',
+              family: `${p.parentFirstName} ${p.parentLastName}`,
+              amountAgorot: offered.feeAgorot,
+              description: 'שיעור ניסיון',
+            }),
+            offered.feeAgorot,
+          );
+          payment = paid.status;
+        }
+        return { ...trial, result: undefined, payment };
+      }
       case 'business_info':
         return businessInfo(tx, vertical, today);
       case 'search_knowledge': {
@@ -336,7 +517,7 @@ export function leadToolbox(
       }
     }
   };
-  return { call, decision: () => decision };
+  return { call, decision: () => decision, actions: () => actions };
 }
 
 // ─── Running the bot on one lead's message ──────────────────────────────────
@@ -357,6 +538,7 @@ export async function runLeadBot(
   ctx: ServiceContext,
   model: CopilotModel | null,
   row: typeof inboundMessages.$inferSelect,
+  opts: { publicUrl?: string } = {},
 ): Promise<LeadBotRunResult> {
   if (!row.leadId) return { outcome: 'skipped', reason: 'not_lead' };
   const [lead] = await tx.select().from(leads).where(eq(leads.id, row.leadId));
@@ -377,7 +559,11 @@ export async function runLeadBot(
   if (route.route === 'skip') return { outcome: 'skipped', reason: route.reason };
 
   const [org] = await tx
-    .select({ name: organizations.name, vertical: organizations.vertical })
+    .select({
+      name: organizations.name,
+      vertical: organizations.vertical,
+      slug: organizations.slug,
+    })
     .from(organizations)
     .where(eq(organizations.id, ctx.orgId));
   const vertical: Vertical = org?.vertical === 'freediving' ? 'freediving' : 'swim';
@@ -413,12 +599,17 @@ export async function runLeadBot(
       tx,
       sql`select city from venues where city is not null and status = 'active' limit 1`,
     );
-    const box = leadToolbox(tx, ctx, state, vertical, today, knowledge, modules);
+    const box = leadToolbox(tx, ctx, state, vertical, today, knowledge, modules, {
+      slug: org?.slug ?? '',
+      publicUrl: opts.publicUrl ?? 'http://localhost:3000',
+      inboundMessageId: row.id,
+    });
     const system = leadBotSystem({
       business: org?.name ?? '',
       vertical,
       today,
       city: city?.city ?? null,
+      canBookTrial: vertical === 'swim',
       lead: { ...state, phone: lead.phoneE164 },
       next: nextLeadQuestion(vertical, state),
       facts: policyFacts((await resolvePolicyFor(tx, { date: today })).rules),
@@ -432,7 +623,11 @@ export async function runLeadBot(
         model.run({
           system,
           prompt: row.body,
-          tools: [...LEAD_BOT_TOOLS, ...modules.flatMap((m) => m.tools)],
+          tools: [
+            ...LEAD_BOT_TOOLS,
+            ...(vertical === 'swim' ? LEAD_TRIAL_TOOLS : []),
+            ...modules.flatMap((m) => m.tools),
+          ],
           callTool: box.call,
         }),
       );
@@ -532,6 +727,74 @@ export class FakeLeadBotModel implements CopilotModel {
       const r = await traced(input, trace, tool, args);
       return r.error ? null : (JSON.parse(r.text) as T);
     };
+    const plain = async (text: string) => {
+      await use('reply_to_lead', { text });
+      return { answer: text, trace, incomplete: false };
+    };
+    // Closing (W3): a trial lesson, a pick from the list offered, or the sign-up link.
+    const known = knownFromSystem(input.system);
+    const closing = fakeClosingIntent(input.prompt);
+    const child = parseChildBirth(input.prompt);
+    const canTrial = input.tools.some((t) => t.name === 'trial_options');
+    if (closing === 'join' || (closing === 'trial' && !canTrial)) {
+      const link = await use<{ url: string }>('join_link', {});
+      if (link) return plain(`אפשר להירשם כאן: ${link.url}`);
+    }
+    if (
+      canTrial &&
+      (closing === 'trial' || child.dob || (closing === 'choice' && known.child_dob))
+    ) {
+      const dob = child.dob ?? known.child_dob;
+      const childName = child.name ?? known.child_name;
+      if (!dob || !childName)
+        return plain('בשמחה! מה השם ותאריך הלידה של הילד/ה? (למשל: נועה 12.3.2020)');
+      if (child.dob) await use('save_details', { child_name: childName, child_dob: dob });
+      type Option = {
+        sessionId: string;
+        date: string;
+        weekday: number;
+        time: string;
+        group: string;
+        venue: string;
+      };
+      const options = (await use<Option[]>('trial_options', { childDob: dob })) ?? [];
+      const line = (o: Option) =>
+        `יום ${HE_DAYS[o.weekday] ?? ''} ${Number(o.date.slice(8, 10))}.${Number(o.date.slice(5, 7))} ${o.time}, ${o.group}, ${o.venue}`;
+      if (closing !== 'choice') {
+        if (!options.length) {
+          await use('hand_off_to_office', {
+            summary: `מבקשים שיעור ניסיון ל${childName} ואין שיעור פנוי בשבועיים הקרובים`,
+            reason: 'needs_action',
+          });
+          return { answer: '', trace, incomplete: false };
+        }
+        const list = options.slice(0, 3).map((o, i) => `${i + 1}. ${line(o)}`);
+        return plain(
+          `אלה השיעורים הפנויים ל${childName}:\n${list.join('\n')}\nאיזה מתאים? כתבו את המספר`,
+        );
+      }
+      const chosen = options[Number(input.prompt.trim()) - 1];
+      if (!chosen) return plain('לא מצאתי את האפשרות הזו, אפשר לבחור מספר מהרשימה?');
+      const [first = 'הורה', ...rest] = (known.name ?? 'הורה').split(' ');
+      const booked = await use<{ status: string; payment: string | null }>('book_trial', {
+        sessionId: chosen.sessionId,
+        parentFirstName: first,
+        parentLastName: rest.join(' ') || first,
+        childFirstName: childName,
+        childDob: dob,
+      });
+      if (booked?.status === 'done')
+        return plain(
+          `קבענו ל${childName} שיעור ניסיון: ${line(chosen)} 🎉${booked.payment === 'done' ? '\nשלחנו גם קישור לתשלום על השיעור.' : ''}`,
+        );
+      if (booked?.status === 'waiting')
+        return plain(`קיבלנו 🙏 המשרד יאשר את שיעור הניסיון של ${childName} בקרוב.`);
+      await use('hand_off_to_office', {
+        summary: `לא הצלחתי לקבוע שיעור ניסיון ל${childName}: ${line(chosen)}`,
+        reason: 'needs_action',
+      });
+      return { answer: '', trace, incomplete: false };
+    }
     // The question the bot asked last is the one named in the instructions.
     const asked = /The next detail to ask for: (\w+)/.exec(input.system)?.[1] as
       LeadDetailKey | 'none' | undefined;

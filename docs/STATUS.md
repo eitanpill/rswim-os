@@ -27,6 +27,11 @@ questions or whoever asks, and modules (lodging) adding their facts and tools. P
 `packages/domain/copilot/test/lead-bot-policies.test.ts` (100%), `packages/seed/test/lead-bot.test.ts` (swim and
 dive demo tenants), `apps/web/e2e/leads.spec.ts`.
 
+W3 the bot closes: it offers a swim school's trial lessons that fit the child and books the one chosen through the
+brain (`book_trial`, by the owner's level), sends the trial fee link, and sends the sign-up link (swim and dive).
+Proof: `packages/seed/test/lead-bot.test.ts` (waiting for the owner, booking alone with the fee link, the sign-up
+link), `packages/domain/copilot/test/policies.test.ts`, `apps/web/e2e/leads.spec.ts`.
+
 ## Freediving clubs (vertical)
 
 A freediving club runs on the same platform with its own module and screens (`docs/FREEDIVING.md`): the owner's

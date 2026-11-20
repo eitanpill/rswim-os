@@ -9,8 +9,8 @@ until a business's Meta account is connected.
 | Stage | What it adds | Status |
 |---|---|---|
 | W1 Leads in one place | A new number on WhatsApp opens a lead; one list for swim and dive; triggers move it on | Done (PR #57) |
-| W2 The bot answers a new customer | Prices, programs, open seats, FAQ; collects details one question at a time; modules (lodging) plug in | **This PR** |
-| W3 The bot closes | Books a trial or an intro dive, sends a pre-filled join link, health form and payment link, by the brain's levels | |
+| W2 The bot answers a new customer | Prices, programs, open seats, FAQ; collects details one question at a time; modules (lodging) plug in | Done (PR #58) |
+| W3 The bot closes | Books a trial or an intro dive, sends a pre-filled join link, health form and payment link, by the brain's levels | **This PR** |
 | W4 Follow-up and lead report | After-trial offer and reminder, one nudge for silent leads, morning count, monthly sources report | |
 | W5 Meta Cloud API direct (on fakes) | Send/receive without GHL, the 24-hour window, approved templates with variables, SMS/app fallback | |
 | W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | |
@@ -65,3 +65,25 @@ Always a person: discounts and refunds, complaints, health and safety, leaving, 
 - The stand-in (`RSWIM_BOT_FAKE=1`, `FakeLeadBotModel` through `FakeParentBotModel`) saves stated names and ages and
   the short answer to the question it asked, answers prices, places and "where" from `business_info`, and asks the
   next question.
+
+## W3: the bot closes
+
+- A swim school's bot books a trial lesson. It asks for the child's first name, date of birth, boy or girl and the
+  parent's full name, offers up to three lessons from `trial_options` (the next two weeks, a free place, the child's
+  age by the group's or the program's bounds, mixed groups or the child's gender, with the trial fee), and books the
+  one chosen with `book_trial`.
+- `book_trial` is a new kind of the business brain (`AGENT_ACTION_KINDS`, ceiling auto, "approve" in the careful
+  profile): the owner decides on `/admin/brain` whether the bot books alone, waits for her ("כן N" on WhatsApp), or
+  never. Running it opens the family from the lead (or uses the family that already has the phone), adds the child
+  and books the trial with the usual placement rules (`bookLeadTrial`, `lead-trial.ts`). The lead links to the family
+  and moves to "trial booked" by itself (W1's triggers), and the school's trial confirmation goes out as for any
+  trial. Undo cancels the trial and keeps the family.
+- When the trial was booked and has a fee, the trial fee goes as a payment link through the brain's `payment_link`
+  level (the usual amount cap applies).
+- The sign-up link: `join_link` gives the business's `/join/<slug>` (from the worker's `RSWIM_PUBLIC_URL`), for a
+  family that wants to join for good, and for a freediving club's new diver, who registers there and books the first
+  dive in the app. Booking an intro dive from WhatsApp comes with W6 (the club's customers on WhatsApp).
+- Forms: the health declaration and the regulations stay in the family's app after the trial is booked; reminding a
+  family of missing forms on WhatsApp is W6.
+- The stand-in understands "שיעור ניסיון", a child's name with a date ("נועה 12.3.2020"), a number picked from its
+  list, and "קישור להרשמה".

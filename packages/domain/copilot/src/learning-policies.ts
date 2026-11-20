@@ -184,6 +184,7 @@ const KIND_TEXT: Record<Locale, Record<AgentActionKind, string>> = {
     substitute: 'חיפוש מחליפים',
     cancel_lessons: 'ביטול שיעורים',
     open_makeup_slots: 'פתיחת מקומות להשלמה',
+    book_trial: 'קביעת שיעורי ניסיון ללקוחות חדשים',
   },
   en: {
     report_absence: 'recording absences',
@@ -196,6 +197,7 @@ const KIND_TEXT: Record<Locale, Record<AgentActionKind, string>> = {
     substitute: 'substitute searches',
     cancel_lessons: 'cancelling lessons',
     open_makeup_slots: 'opening makeup slots',
+    book_trial: 'booking trials for new customers',
   },
 };
 

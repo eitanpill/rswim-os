@@ -470,6 +470,13 @@
       "when": 1795163665684,
       "tag": "0066_lead_bot",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1795165115042,
+      "tag": "0067_brain_book_trial",
+      "breakpoints": true
     }
   ]
 }

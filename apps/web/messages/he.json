@@ -4145,7 +4145,8 @@
       "cancelLessons": "לבטל את השיעורים ב{venue} מ-{date} עד {until} ({sessions} שיעורים, {reason})",
       "cancelLessonsAll": "לבטל את כל השיעורים מ-{date} עד {until} ({sessions} שיעורים, {reason})",
       "substitute": "למצוא מחליף ל{staff} בשיעור {group}, {date} {time}",
-      "substituteOpen": "למצוא מדריך/ה לשיעור {group}, {date} {time}"
+      "substituteOpen": "למצוא מדריך/ה לשיעור {group}, {date} {time}",
+      "trial": "לקבוע ל{student} (משפחת {family}) שיעור ניסיון ב{group}, {date} {time}"
     },
     "errors": {
       "ownerOnly": "העוזר זמין רק לבעלים",
@@ -5648,6 +5649,10 @@
       "open_makeup_slots": {
         "label": "פתיחת השלמות",
         "hint": "פתיחת משבצות השלמה עם מדריך"
+      },
+      "book_trial": {
+        "label": "קביעת שיעור ניסיון ללקוח חדש",
+        "hint": "הבוט פותח משפחה וקובע שיעור ניסיון שהלקוח בחר מהשיעורים הפנויים"
       }
     },
     "status": {
@@ -6512,7 +6517,9 @@
       "days": "ימים ושעות",
       "experience": "ניסיון",
       "dates": "תאריכים",
-      "note": "הערה"
+      "note": "הערה",
+      "child_name": "שם הילד/ה",
+      "child_dob": "תאריך לידה"
     }
   }
 }

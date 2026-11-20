@@ -10,9 +10,13 @@ import { DEMO_ORG, DIVE_ORG, PERSONAS } from '@rswim/db/personas';
 import { withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import { intakeInbound, replyToLead } from '@rswim/domain-comms';
+import { AGENT_DEFAULT_SETTINGS, AGENT_PROFILE_LEVELS } from '@rswim/contracts';
 import {
   businessInfo,
   clearLeadBotModules,
+  confirmCopilotAction,
+  saveAgentSettings,
+  trialOptions,
   FakeParentBotModel,
   registerLeadBotModule,
   runParentBot,
@@ -187,4 +191,77 @@ describe('the bot for new customers', () => {
     expect(calls).toEqual(['lodging_rooms']);
     clearLeadBotModules();
   });
+
+  it('books a trial a new customer chose, waiting for the owner at the careful level', async () => {
+    const phone = '+972585550011';
+    await write(DEMO_ORG.id, phone, 'קוראים לי רונית כהן');
+    const ask = await write(DEMO_ORG.id, phone, 'אפשר לקבוע שיעור ניסיון?');
+    expect(ask.sent.body).toContain('תאריך הלידה');
+    const dob = await childWithOptions();
+    const [y, m, d] = dob.split('-');
+    const list = await write(DEMO_ORG.id, phone, `נועה ${Number(d)}.${Number(m)}.${y}`);
+    expect(list.sent.body).toContain('1. ');
+    expect(list.lead.details).toMatchObject({ child_name: 'נועה', child_dob: dob });
+    const pick = await write(DEMO_ORG.id, phone, '1');
+    expect(pick.sent.body).toContain('המשרד יאשר');
+    const [action] = await q(
+      `select * from copilot_actions where kind = 'book_trial' and inbound_message_id = $1`,
+      [pick.reply.inbound_message_id],
+    );
+    expect(action).toMatchObject({ status: 'proposed', source: 'parent_whatsapp' });
+    // The owner confirms: the family opens, the trial is booked and the lead follows by itself.
+    const done = await asUser(t.db, { sub: PERSONAS.owner.userId, org_id: DEMO_ORG.id }, (tx) =>
+      confirmCopilotAction(tx, { orgId: DEMO_ORG.id, userId: PERSONAS.owner.userId }, action.id),
+    );
+    expect(done.status).toBe('confirmed');
+    const [lead] = await q(`select * from leads where phone_e164 = $1`, [phone]);
+    expect(lead.stage).toBe('trial_booked');
+    expect(lead.household_id).not.toBeNull();
+    const [trial] = await q(
+      `select t.* from trials t join students s on s.id = t.student_id
+       where s.household_id = $1 and s.first_name = 'נועה'`,
+      [lead.household_id],
+    );
+    expect(trial).toBeDefined();
+  });
+
+  it('books at once and sends the trial fee link when the owner lets it', async () => {
+    const office = { orgId: DEMO_ORG.id, userId: PERSONAS.owner.userId };
+    await asUser(t.db, { sub: PERSONAS.owner.userId, org_id: DEMO_ORG.id }, (tx) =>
+      saveAgentSettings(tx, office, {
+        ...AGENT_DEFAULT_SETTINGS,
+        levels: { ...AGENT_PROFILE_LEVELS.careful, book_trial: 'auto', payment_link: 'auto' },
+      }),
+    );
+    const phone = '+972585550012';
+    await write(DEMO_ORG.id, phone, 'קוראים לי אבי לוי');
+    const dob = await childWithOptions();
+    const [y, m, d] = dob.split('-');
+    await write(DEMO_ORG.id, phone, `שיעור ניסיון בבקשה, אורי ${Number(d)}.${Number(m)}.${y}`);
+    const pick = await write(DEMO_ORG.id, phone, '1');
+    expect(pick.sent.body).toContain('קבענו לאורי שיעור ניסיון');
+    const [lead] = await q(`select * from leads where phone_e164 = $1`, [phone]);
+    expect(lead.stage).toBe('trial_booked');
+    const links = await q(`select * from payment_links where household_id = $1`, [
+      lead.household_id,
+    ]);
+    expect(links.length).toBe(1);
+  });
+
+  it('sends the sign-up link', async () => {
+    const r = await write(DIVE_ORG.id, '+972585550013', 'אפשר קישור להרשמה?');
+    expect(r.sent.body).toContain(`/join/${DIVE_ORG.slug}`);
+  });
 });
+
+/** A date of birth that has a free trial lesson in the next two weeks in the demo school. */
+async function childWithOptions(): Promise<string> {
+  for (const years of [5, 6, 4, 7, 8, 3, 9, 10, 2]) {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - years);
+    const dob = d.toISOString().slice(0, 10);
+    const options = await withOrg(t.db, DEMO_ORG.id, (tx) => trialOptions(tx, dob));
+    if (options.length) return dob;
+  }
+  throw new Error('no trial lesson with a free place in the demo');
+}
