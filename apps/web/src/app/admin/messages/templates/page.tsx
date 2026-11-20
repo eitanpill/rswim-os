@@ -18,7 +18,7 @@ import {
 } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { enumLabel } from '@/lib/options';
-import { metaTemplateAction } from '../../integrations/whatsapp/actions';
+import { metaTemplateAction } from '@/components/whatsapp/actions';
 import { saveTemplateAction, setAutomationAction } from '../actions';
 import { MessagesTabs } from '../tabs';
 

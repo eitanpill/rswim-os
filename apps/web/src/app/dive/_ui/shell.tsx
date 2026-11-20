@@ -27,6 +27,7 @@ const PAGE_ICON: Record<DivePage, ReactNode> = {
   connections: di.anchor,
   lodging: di.bed,
   chats: di.phone,
+  whatsapp: di.phone,
 };
 
 /**

@@ -564,6 +564,7 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - A template we sent is used only after Meta approved it.
 - Four default messages were reworded so none starts or ends with a variable (Meta refuses those); businesses that
   already have the old wording see them listed on the page.
-- Not built: Embedded Signup, and the connection page for a freediving club.
+- A freediving club's owner has the same page on `/dive/whatsapp`, from the club's connections screen.
+- Not built: Embedded Signup.
 - Not verified: every call to Meta. They are written from Meta's documentation and run against a fake here; the
   first real check needs Pit's verified business, a number and a token.
