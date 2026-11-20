@@ -89,3 +89,15 @@ export function appLinkTarget(link: string, currentHost: string): string | null 
   if (!ours) return null;
   return url.host === currentHost ? `${url.pathname}${url.search}${url.hash}` : url.toString();
 }
+
+/**
+ * Runs a call into the store app's native side without ever breaking the page: a throw or a rejection becomes
+ * `undefined`, and a plain (non-promise) return value is accepted, since the injected plugin proxies differ by version.
+ */
+export function settle<T>(call: () => unknown): Promise<T | undefined> {
+  try {
+    return Promise.resolve(call() as T).catch(() => undefined);
+  } catch {
+    return Promise.resolve(undefined);
+  }
+}

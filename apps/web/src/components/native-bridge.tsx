@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { appLinkTarget } from '@/lib/native-app';
+import { appLinkTarget, settle } from '@/lib/native-app';
 
 /**
  * The few calls the page makes into the store app's native side. The Capacitor shell injects `window.Capacitor`
@@ -9,19 +9,21 @@ import { appLinkTarget } from '@/lib/native-app';
  * browser `window.Capacitor` is simply missing and everything here does nothing.
  */
 interface Listener {
-  remove: () => Promise<void>;
+  remove?: () => unknown;
 }
 interface CapacitorGlobal {
   isNativePlatform: () => boolean;
   Plugins: {
     App?: {
-      addListener: (event: 'appUrlOpen', cb: (e: { url: string }) => void) => Promise<Listener>;
-      getLaunchUrl: () => Promise<{ url?: string } | undefined>;
+      // The injected proxy's return values differ by Capacitor version (a promise, a handle or a callback id), so
+      // the bridge treats every result as unknown and never chains on it directly.
+      addListener: (event: 'appUrlOpen', cb: (e: { url: string }) => void) => unknown;
+      getLaunchUrl: () => unknown;
     };
     Share?: {
       share: (o: { title?: string; text?: string; url?: string }) => Promise<unknown>;
     };
-    SplashScreen?: { hide: () => Promise<void> };
+    SplashScreen?: { hide: () => unknown };
   };
 }
 
@@ -48,21 +50,30 @@ export function NativeBridge() {
   useEffect(() => {
     const cap = nativeApp();
     if (!cap) return;
-    void cap.Plugins.SplashScreen?.hide();
+    void settle(() => cap.Plugins.SplashScreen?.hide());
     const app = cap.Plugins.App;
     if (!app) return;
     let listener: Listener | undefined;
-    void app.addListener('appUrlOpen', (e) => go(e.url)).then((l) => (listener = l));
+    let gone = false;
+    void settle<Listener>(() => app.addListener('appUrlOpen', (e) => go(e.url))).then((l) => {
+      if (l && typeof l === 'object') listener = l;
+      if (gone) void settle(() => listener?.remove?.());
+    });
     // A cold start from a link: the shell opened its home page, so follow the link once.
     try {
       if (!sessionStorage.getItem(LAUNCH_HANDLED)) {
         sessionStorage.setItem(LAUNCH_HANDLED, '1');
-        void app.getLaunchUrl().then((r) => r?.url && go(r.url));
+        void settle<{ url?: string }>(() => app.getLaunchUrl()).then((r) => {
+          if (typeof r?.url === 'string') go(r.url);
+        });
       }
     } catch {
       // Storage blocked: skip the launch link rather than risk following it on every page.
     }
-    return () => void listener?.remove();
+    return () => {
+      gone = true;
+      void settle(() => listener?.remove?.());
+    };
   }, []);
   return null;
 }

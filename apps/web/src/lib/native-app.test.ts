@@ -7,6 +7,7 @@ import {
   appleAppSiteAssociation,
   assetLinks,
   isNativeApp,
+  settle,
 } from './native-app';
 
 describe('native app', () => {
@@ -55,5 +56,18 @@ describe('native app', () => {
     expect(appLinkTarget('https://evil.example/join/gal', here)).toBeNull();
     expect(appLinkTarget('http://app.aqua-swim.co.il/join/gal', here)).toBeNull();
     expect(appLinkTarget('not a url', here)).toBeNull();
+  });
+});
+
+describe('settle', () => {
+  it('accepts a promise, a plain value, a throw and a rejection', async () => {
+    expect(await settle(() => Promise.resolve(1))).toBe(1);
+    expect(await settle(() => 'callback-id')).toBe('callback-id');
+    expect(
+      await settle(() => {
+        throw new TypeError('x.then is not a function');
+      }),
+    ).toBeUndefined();
+    expect(await settle(() => Promise.reject(new Error('no')))).toBeUndefined();
   });
 });
