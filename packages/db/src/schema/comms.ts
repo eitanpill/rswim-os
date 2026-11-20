@@ -182,6 +182,8 @@ export const inboundMessages = pgTable(
     guardianId: uuid('guardian_id'),
     householdId: uuid('household_id'),
     staffMemberId: uuid('staff_member_id'),
+    /** A number the business does not know yet: the lead it opened (WhatsApp track, stage 1). */
+    leadId: uuid('lead_id'),
     body: text('body').notNull(),
     receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
     intent: text('intent').notNull(),
@@ -199,6 +201,7 @@ export const inboundMessages = pgTable(
     unique('inbound_messages_external').on(t.organizationId, t.provider, t.externalId),
     index('inbound_messages_org_status').on(t.organizationId, t.status, t.receivedAt),
     index('inbound_messages_household').on(t.householdId),
+    index('inbound_messages_lead').on(t.leadId),
     check('inbound_messages_intent_check', sql.raw(`intent in (${inList(INBOUND_INTENTS)})`)),
     check('inbound_messages_status_check', sql.raw(`status in (${inList(INBOUND_STATUSES)})`)),
     check('inbound_messages_confidence_check', sql`${t.confidence} between 0 and 100`),

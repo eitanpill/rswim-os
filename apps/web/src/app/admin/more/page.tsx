@@ -6,6 +6,7 @@ import { PageHeader } from '@rswim/ui';
 import { withSession } from '@/lib/db';
 
 const LINKS = [
+  'leads',
   'connections',
   'import',
   'join',
@@ -43,6 +44,7 @@ const LINKS = [
   'ghl',
 ] as const;
 const HREF: Record<(typeof LINKS)[number], string> = {
+  leads: '/admin/leads',
   connections: '/admin/connections',
   import: '/admin/import',
   join: '/admin/join',
@@ -90,6 +92,7 @@ const FEATURE: Partial<Record<(typeof LINKS)[number], PlanFeature>> = {
 };
 
 const ICON: Record<(typeof LINKS)[number], string> = {
+  leads: '🙋',
   connections: '🔌',
   import: '📥',
   join: '🔗',
@@ -132,6 +135,7 @@ const SECTIONS: { key: string; links: (typeof LINKS)[number][] }[] = [
   {
     key: 'daily',
     links: [
+      'leads',
       'messages',
       'attendance',
       'makeups',

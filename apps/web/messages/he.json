@@ -209,7 +209,8 @@
       "trials": "שיעורי ניסיון החודש",
       "openBoard": "ללוח הקבוצות",
       "heroLessons": "{lessons, plural, one {שיעור אחד היום} other {# שיעורים היום}}",
-      "heroChildren": "{children} ילדים צפויים במים"
+      "heroChildren": "{children} ילדים צפויים במים",
+      "leadsWaiting": "🙋 {n, plural, one {פנייה חדשה} other {# פניות חדשות}}"
     },
     "more": {
       "title": "עוד",
@@ -360,6 +361,10 @@
         "money": "כסף ומחירים",
         "smart": "עוזרים חכמים ודוחות",
         "business": "הגדרות העסק"
+      },
+      "leads": {
+        "title": "פניות חדשות",
+        "hint": "מי ששאל ועוד לא נרשם, משיחה ועד הרשמה"
       }
     }
   },
@@ -4634,8 +4639,9 @@
       "hoursAgo": "{count, plural, one {לפני שעה} other {לפני # שעות}}",
       "daysAgo": "{count, plural, one {לפני יום} other {לפני # ימים}}",
       "moveTo": {
-        "contacted": "דיברנו",
-        "booked": "נרשם/ה",
+        "talking": "דיברנו",
+        "trial_booked": "קבע/ה היכרות",
+        "joined": "נרשם/ה",
         "lost": "לא רלוונטי"
       },
       "unpaid": "לא שולם · {amount}",
@@ -4680,18 +4686,23 @@
     },
     "leadStage": {
       "new": "חדשים",
-      "contacted": "בשיחה",
-      "booked": "נרשמו",
+      "talking": "בשיחה",
+      "trial_booked": "קבעו היכרות",
+      "joined": "נרשמו",
       "lost": "ירדו"
     },
     "leadSource": {
+      "whatsapp": "וואטסאפ",
+      "join_link": "קישור הצטרפות",
       "instagram": "אינסטגרם",
+      "facebook": "פייסבוק",
       "google": "גוגל",
+      "website": "אתר",
       "referral": "חבר מביא חבר",
       "hotel": "מלון",
       "walk_in": "הגיע לחוף",
-      "whatsapp": "וואטסאפ",
-      "join_link": "קישור הצטרפות"
+      "phone": "טלפון",
+      "other": "אחר"
     },
     "instructor": {
       "kicker": "במים",
@@ -6388,6 +6399,107 @@
       "on": "Claude נותן דעה שנייה על כל הודעה נכנסת וממיין אותה.",
       "off": "כבוי. הכללים ממיינים לבד.",
       "link": "למדיניות"
+    }
+  },
+  "leads": {
+    "title": "פניות חדשות",
+    "subtitle": "כל מי ששאל על בית הספר ועוד לא נרשם. מספר חדש שכותב בוואטסאפ נכנס לכאן לבד.",
+    "waiting": "{n, plural, one {פנייה אחת מחכה לך} other {# פניות מחכות לך}}",
+    "search": "חיפוש",
+    "searchPlaceholder": "שם או טלפון",
+    "stage": {
+      "new": "חדשים",
+      "talking": "בשיחה",
+      "trial_booked": "נקבע ניסיון",
+      "joined": "נרשמו",
+      "lost": "ירדו"
+    },
+    "emptyStage": {
+      "new": "אין פניות חדשות",
+      "talking": "אין כרגע שיחות פתוחות",
+      "trial_booked": "אין שיעורי ניסיון קרובים"
+    },
+    "moveTo": {
+      "new": "החזר לחדשים",
+      "talking": "דיברנו",
+      "trial_booked": "נקבע ניסיון",
+      "joined": "נרשם/ה",
+      "lost": "לא רלוונטי"
+    },
+    "source": {
+      "whatsapp": "וואטסאפ",
+      "join_link": "קישור הצטרפות",
+      "instagram": "אינסטגרם",
+      "facebook": "פייסבוק",
+      "google": "גוגל",
+      "website": "אתר",
+      "referral": "חבר מביא חבר",
+      "hotel": "מלון",
+      "walk_in": "הגיע למקום",
+      "phone": "טלפון",
+      "other": "אחר"
+    },
+    "lostReason": {
+      "price": "המחיר",
+      "schedule": "השעות לא מתאימות",
+      "location": "המיקום",
+      "no_answer": "לא עונה",
+      "chose_other": "בחר/ה מקום אחר",
+      "not_relevant": "לא רלוונטי",
+      "other": "אחר"
+    },
+    "attention": {
+      "reply": "מחכה לתשובה",
+      "follow_up": "הגיע הזמן לחזור אליו/ה"
+    },
+    "ago": {
+      "minutes": "לפני {n} דק׳",
+      "hours": "לפני {n} שע׳",
+      "days": "לפני {n} ימים"
+    },
+    "messages": "{n} הודעות",
+    "answer": "לענות",
+    "open": "לפתוח",
+    "new": "פנייה חדשה",
+    "newHint": "מישהו התקשר או שאל בבריכה? רושמים כאן, כדי שלא ילך לאיבוד.",
+    "add": "הוספה",
+    "fields": {
+      "name": "שם",
+      "phone": "טלפון",
+      "source": "מאיפה הגיע/ה",
+      "interest": "מה מעניין אותו/ה",
+      "interestHint": "למשל: חוג לגיל 5, ימי שלישי",
+      "nextActionOn": "לחזור אליו/ה ב-",
+      "note": "הערות"
+    },
+    "closed": "נרשמו או ירדו ב-30 הימים האחרונים ({n})",
+    "empty": "עוד אין פניות",
+    "emptyHint": "כשמספר חדש יכתוב לבית הספר בוואטסאפ, או ימלא בקשת הצטרפות מהקישור, הפנייה תופיע כאן.",
+    "back": "לכל הפניות",
+    "conversation": "השיחה",
+    "noConversation": "עוד לא היו הודעות בוואטסאפ עם הפנייה הזו.",
+    "reply": "תשובה בוואטסאפ",
+    "replyHint": "התשובה יוצאת מהמספר של בית הספר",
+    "send": "שליחה",
+    "replySent": "התשובה בדרך",
+    "noPhone": "אין טלפון לפנייה הזו, אי אפשר לשלוח וואטסאפ.",
+    "sendStatus": {
+      "queued": "בדרך",
+      "held": "תצא אחרי שעות השקט",
+      "sent": "נשלחה",
+      "failed": "לא נשלחה",
+      "blocked": "נחסמה"
+    },
+    "where": "איפה זה עומד",
+    "openFamily": "לכרטיס המשפחה",
+    "lostWhy": "למה לא?",
+    "lostBecause": "ירד/ה: {reason}",
+    "details": "פרטים והערות",
+    "save": "שמירה",
+    "saved": "נשמר",
+    "errors": {
+      "nameOrPhone": "צריך שם או טלפון",
+      "noPhone": "אין טלפון לפנייה הזו"
     }
   }
 }

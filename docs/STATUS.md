@@ -14,6 +14,13 @@
 | 9 Reports, venue migration, copilot | **Done**, merged (PR #10) | The acceptance criterion passes (see below) |
 | 10 SaaS hardening | **Done** (PR #11) | The acceptance criterion passes (see below) |
 
+## WhatsApp track (docs/whatsapp/PLAN.md)
+
+W1 leads in one place: a new number on WhatsApp opens a lead by itself, one lead list for swim schools and
+freediving clubs (`/admin/leads`, the club's front desk), and join requests, families, trials and group seats move a
+lead on. Proof: `packages/domain/comms/test/leads.test.ts`, `packages/domain/crm/test/lead-policies.test.ts` (100%),
+`apps/web/e2e/leads.spec.ts`.
+
 ## Freediving clubs (vertical)
 
 A freediving club runs on the same platform with its own module and screens (`docs/FREEDIVING.md`): the owner's

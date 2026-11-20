@@ -148,17 +148,7 @@ export const DiverFilterSchema = z.object({
 });
 export type DiverFilter = z.infer<typeof DiverFilterSchema>;
 
-export const LEAD_STAGES = ['new', 'contacted', 'booked', 'lost'] as const;
-export type LeadStage = (typeof LEAD_STAGES)[number];
-export const LEAD_SOURCES = [
-  'instagram',
-  'google',
-  'referral',
-  'hotel',
-  'walk_in',
-  'whatsapp',
-] as const;
-export type LeadSource = (typeof LEAD_SOURCES)[number];
+// Leads live in leads.ts: one list for swim schools and freediving clubs (WhatsApp track, stage 1).
 
 export const DIVE_PASS_KINDS = ['punch5', 'punch10', 'monthly', 'annual'] as const;
 export type DivePassKind = (typeof DIVE_PASS_KINDS)[number];

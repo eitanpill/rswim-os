@@ -15,6 +15,7 @@ import type pg from 'pg';
 import { seedAttendanceData, type AttendanceDataSummary } from './attendance-data';
 import { seedBillingData, type BillingDataSummary } from './billing-data';
 import { seedCommsData, type CommsDataSummary } from './comms-data';
+import { seedLeadsData } from './leads-data';
 import { seedStaffOpsData, type StaffOpsDataSummary } from './staffops-data';
 import { seedCoursesData, type CoursesDataSummary } from './courses-data';
 import { seedTransportData, type TransportDataSummary } from './transport-data';
@@ -49,6 +50,7 @@ export interface SeedSummary {
   /** Phase 4 standing orders, September's approved run and payments, October's draft for review (demo org only). */
   billing?: BillingDataSummary;
   comms?: CommsDataSummary;
+  leads?: number;
   /** Phase 6 last month's payroll draft with a dispute, a substitute request and applicants (demo org only). */
   staffops?: StaffOpsDataSummary;
   transport?: TransportDataSummary;
@@ -403,6 +405,7 @@ export async function seedDemo(pool: pg.Pool, options: SeedOptions = {}): Promis
         summary.attendance = await seedAttendanceData(client, org.id);
         summary.billing = await seedBillingData(client, org.id, staffIds);
         summary.comms = await seedCommsData(client, org.id, PERSONAS.parent.phone);
+        summary.leads = await seedLeadsData(client, org.id, fakePhone);
         summary.staffops = await seedStaffOpsData(client, org.id, staffIds);
         summary.transport = await seedTransportData(client, org.id, staffIds);
         summary.courses = await seedCoursesData(client, org.id, staffIds);

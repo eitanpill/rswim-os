@@ -66,7 +66,7 @@ beforeAll(async () => {
     [A.orgId, d.mine, d.other],
   );
   await t.pool.query(
-    `insert into dive_leads (organization_id, name, source) values ($1, 'ליד', 'instagram')`,
+    `insert into leads (organization_id, name, source) values ($1, 'ליד', 'instagram')`,
     [A.orgId],
   );
   d.gear = await q(
@@ -85,7 +85,7 @@ describe('freediving club roles', () => {
     await as(A.users.admin, A.orgId, async (run) => {
       expect(ids(await run('select id from dive_divers'))).toEqual([d.mine, d.other].sort());
       expect((await run('select id from dive_sales')).length).toBe(2);
-      expect((await run('select id from dive_leads')).length).toBe(1);
+      expect((await run('select id from leads')).length).toBe(1);
     });
   });
 
@@ -101,7 +101,7 @@ describe('freediving club roles', () => {
       expect((await run('select id from dive_divers')).length).toBe(2);
       expect((await run('select id from dive_sessions')).length).toBe(2);
       expect(await run('select id from dive_sales')).toEqual([]);
-      expect(await run('select id from dive_leads')).toEqual([]);
+      expect(await run('select id from leads')).toEqual([]);
       const [log] = await run<{ recorded_by: string }>(
         `insert into dive_logs (organization_id, diver_id, session_id, dived_on, discipline, depth_m, recorded_by)
          values ($1, $2, $3, current_date, 'CWT', 18, null) returning recorded_by`,
@@ -117,7 +117,7 @@ describe('freediving club roles', () => {
       expect(ids(await run('select id from dive_divers'))).toEqual([d.mine]);
       expect(ids(await run('select id from dive_bookings'))).toEqual([d.bookingMine]);
       expect((await run('select id from dive_sales')).length).toBe(1);
-      expect(await run('select id from dive_leads')).toEqual([]);
+      expect(await run('select id from leads')).toEqual([]);
       expect((await run('select id from dive_sessions')).length).toBe(2);
     });
   });

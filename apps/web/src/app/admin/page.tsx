@@ -13,6 +13,7 @@ import {
 import { agorot } from '@rswim/money';
 import Link from 'next/link';
 import { openInboxCount } from '@rswim/domain-comms';
+import { leadCounts } from '@rswim/domain-crm';
 import { listAgentActions } from '@rswim/domain-copilot';
 import { homeSummary, listInsights, todayIL, type OwnerInsight } from '@rswim/domain-reports';
 import { ActionButton } from '@/components/form';
@@ -35,7 +36,7 @@ export default async function CommandCenter() {
   const t = await getTranslations('admin.home');
   const ti = await getTranslations('insights');
   const tb = await getTranslations('agent');
-  const [inbox, insights, home, waiting] = await withSession(async (tx) => {
+  const [inbox, insights, home, waiting, leads] = await withSession(async (tx) => {
     const today = await todayIL(tx);
     return [
       await openInboxCount(tx),
@@ -43,6 +44,7 @@ export default async function CommandCenter() {
       await homeSummary(tx, today),
       // The brain's proposals (owner only: other roles get none through RLS).
       await listAgentActions(tx, { statuses: ['proposed'], limit: 5 }),
+      await leadCounts(tx),
     ] as const;
   });
   const text = await insightText();
@@ -71,6 +73,15 @@ export default async function CommandCenter() {
                   💬 {t('inboxWaiting', { n: inbox })}
                 </Link>
               ) : null}
+              {leads.waiting > 0 ? (
+                <Link
+                  href="/admin/leads"
+                  className={buttonVariants({ variant: 'onWater', size: 'sm' })}
+                  data-testid="home-leads"
+                >
+                  {t('leadsWaiting', { n: leads.waiting })}
+                </Link>
+              ) : null}
               <Link
                 href="/admin/board"
                 className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-white ring-1 ring-white/50 hover:bg-white/10"
@@ -81,7 +92,9 @@ export default async function CommandCenter() {
           }
         >
           {home.lessons > 0 ? <p>{t('heroChildren', { children: home.children })}</p> : null}
-          {inbox > 0 ? null : <p className="text-sm text-white/80">{t('needsYouEmpty')}</p>}
+          {inbox > 0 || leads.waiting > 0 ? null : (
+            <p className="text-sm text-white/80">{t('needsYouEmpty')}</p>
+          )}
         </Hero>
         <div className="grid grid-cols-2 gap-3 md:col-span-2 md:grid-cols-4">
           <div data-testid="home-money" className="contents">

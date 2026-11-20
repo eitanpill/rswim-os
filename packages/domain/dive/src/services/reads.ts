@@ -261,7 +261,7 @@ export async function ownerBridge(tx: Tx): Promise<OwnerBridge> {
          and coalesce(last_service_on, purchased_on) + service_every_days < app.today()) as gear,
       (select count(*)::int from dive_rentals where returned_at is null
          and due_at < now() - make_interval(mins => ${rules.gear.rental_grace_min}::int)) as overdue,
-      (select count(*)::int from dive_leads where stage = 'new' and created_at < now() - interval '1 day') as leads,
+      (select count(*)::int from leads where stage = 'new' and created_at < now() - interval '1 day') as leads,
       (select count(*)::int from dive_enrollments e where e.status = 'completed' and e.completed_on > app.today() - 90
          and not exists (select 1 from dive_bookings b join dive_sessions x on x.id = b.session_id
                          where b.diver_id = e.diver_id and x.starts_at > (e.completed_on + 1)::timestamptz)) as idle,
@@ -505,10 +505,11 @@ export interface FrontDesk {
     name: string;
     phone: string | null;
     source: string;
-    origin: string;
+    origin: string | null;
     stage: string;
     note: string | null;
     interest: string | null;
+    lastMessage: string | null;
     ageHours: number;
     nextActionOn: string | null;
   }[];
@@ -626,9 +627,10 @@ export async function frontDesk(tx: Tx): Promise<FrontDesk> {
   );
   const leads = await rows<FrontDesk['leads'][number]>(
     tx,
-    sql`select l.id, l.name, l.phone_e164 as phone, l.source, l.origin, l.stage, l.note, p.name_he as interest,
+    sql`select l.id, coalesce(l.name, l.phone_e164) as name, l.phone_e164 as phone, l.source, l.origin, l.stage,
+               l.note, l.interest, l.last_message as "lastMessage",
                (extract(epoch from now() - l.created_at) / 3600)::int as "ageHours", l.next_action_on::text as "nextActionOn"
-        from dive_leads l left join dive_programs p on p.id = l.interest_program_id
+        from leads l
         where l.stage <> 'lost' or l.updated_at > now() - interval '14 days'
         order by l.created_at desc`,
   );

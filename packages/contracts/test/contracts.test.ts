@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  displayPhoneIL,
   AppClaims,
   canEnterSurface,
   DomainEventEnvelope,
@@ -147,5 +148,10 @@ describe('phones', () => {
     const r = PhoneE164.safeParse('abc');
     expect(r.success).toBe(false);
     expect(r.error?.issues[0]?.message).toBe('מספר טלפון לא תקין');
+  });
+  it('shows a number the way people write it', () => {
+    expect(displayPhoneIL('+972501234567')).toBe('050-123-4567');
+    expect(displayPhoneIL('+97226123456')).toBe('02-612-3456');
+    expect(displayPhoneIL('+14155550100')).toBe('+14155550100');
   });
 });

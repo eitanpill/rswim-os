@@ -43,8 +43,6 @@ import {
   DIVER_ORIGINS,
   GEAR_KINDS,
   GEAR_STATUSES,
-  LEAD_SOURCES,
-  LEAD_STAGES,
   PAY_METHODS,
   SEA_CALLS,
   STAFF_CERT_KINDS,
@@ -504,30 +502,6 @@ export const diveConditions = pgTable(
     check('dive_conditions_dir_check', oneOf('wind_dir', WIND_DIRS)),
     check('dive_conditions_current_check', oneOf('current', CURRENTS)),
     check('dive_conditions_call_check', oneOf('call', SEA_CALLS)),
-  ],
-);
-
-export const diveLeads = pgTable(
-  'dive_leads',
-  {
-    id: id(),
-    organizationId: orgRef(),
-    name: text('name').notNull(),
-    phoneE164: text('phone_e164'),
-    source: text('source').notNull(),
-    origin: text('origin').notNull().default('israel'),
-    interestProgramId: uuid('interest_program_id'),
-    stage: text('stage').notNull().default('new'),
-    note: text('note'),
-    nextActionOn: date('next_action_on'),
-    createdAt: createdAt(),
-    updatedAt: updatedAt(),
-  },
-  (t) => [
-    unique('dive_leads_org_id').on(t.organizationId, t.id),
-    check('dive_leads_stage_check', oneOf('stage', LEAD_STAGES)),
-    check('dive_leads_source_check', oneOf('source', LEAD_SOURCES)),
-    check('dive_leads_origin_check', oneOf('origin', DIVER_ORIGINS)),
   ],
 );
 
