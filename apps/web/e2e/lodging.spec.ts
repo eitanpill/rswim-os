@@ -4,10 +4,10 @@
  * runs the same screens under /dive.
  */
 import { randomUUID } from 'node:crypto';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const SHOTS = process.env.RSWIM_SHOTS_DIR;
-const shot = async (page: import('@playwright/test').Page, name: string) => {
+const shot = async (page: Page, name: string) => {
   if (!SHOTS) return;
   // A full-page shot repeats the sticky bar mid-page; let it scroll away.
   await page.addStyleTag({ content: 'header { position: static !important; }' });
