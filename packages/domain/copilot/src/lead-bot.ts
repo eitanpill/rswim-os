@@ -28,6 +28,7 @@ import {
 } from '@rswim/integrations';
 import { BotAnswer, BotHandoff, handoffNoteDue, matchKnowledge, policyFacts } from './bot-policies';
 import { proposalSummary, TrialProposal, type ProposalParams } from './policies';
+import { inviteUrl, leadInviteToken } from './lead-invite';
 import { takeAction } from './services';
 import {
   agesInWords,
@@ -259,7 +260,7 @@ export const LEAD_BOT_TOOLS: CopilotTool[] = [
   {
     name: 'join_link',
     description:
-      "The business's sign-up link (a family or a diver fills in their details and the office confirms). Put it in your answer as is.",
+      "This person's own invite link: it opens the business's app with their phone ready, and after the SMS code they are in (a diver then fills in their details). Put it in your answer as is.",
     input_schema: obj({}, []),
   },
   {
@@ -428,8 +429,15 @@ export function leadToolbox(
   const call = async (name: string, input: unknown): Promise<unknown> => {
     if (decision) throw new DomainError('bot.errors.alreadyDecided');
     switch (name) {
-      case 'join_link':
-        return { url: `${bot.publicUrl.replace(/\/$/, '')}/join/${bot.slug}` };
+      case 'join_link': {
+        // A personal invite for this person's phone (WhatsApp track); the business's general link only without one.
+        const token = await leadInviteToken(tx, lead.id);
+        return {
+          url: token
+            ? inviteUrl(bot.publicUrl, token)
+            : `${bot.publicUrl.replace(/\/$/, '')}/join/${bot.slug}`,
+        };
+      }
       case 'trial_options': {
         if (vertical !== 'swim') throw new DomainError('bot.errors.unknownTool');
         const { childDob, childGender } = z

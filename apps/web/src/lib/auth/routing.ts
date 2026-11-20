@@ -25,6 +25,8 @@ export const PUBLIC_PREFIXES = [
   '/pay',
   // A school's join link: anyone may read it; joining needs a sign-in (the page sends visitors to it).
   '/join',
+  // A personal invite a business's bot sent on WhatsApp: the page shows the business; joining needs the invited phone.
+  '/i',
   // The app's school search (store launch, stage 4): open before sign-in, like a store listing.
   '/schools',
   // Shown right after someone deleted their account (they are signed out by then).

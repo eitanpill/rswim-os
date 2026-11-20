@@ -48,6 +48,13 @@ export const leads = pgTable(
     /** The diver once the phone is on file (freediving clubs). */
     diverId: uuid('diver_id'),
     joinRequestId: uuid('join_request_id'),
+    /**
+     * The personal invite the bot sends (WhatsApp track): a link only this person's phone can use to sign in and land
+     * in the business, valid for a while; kept once used so the office sees they came in.
+     */
+    inviteToken: text('invite_token'),
+    inviteExpiresAt: timestamp('invite_expires_at', { withTimezone: true }),
+    inviteUsedAt: timestamp('invite_used_at', { withTimezone: true }),
     stageChangedAt: timestamp('stage_changed_at', { withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -57,6 +64,9 @@ export const leads = pgTable(
     uniqueIndex('leads_org_phone')
       .on(t.organizationId, t.phoneE164)
       .where(sql`phone_e164 is not null`),
+    uniqueIndex('leads_invite_token')
+      .on(t.inviteToken)
+      .where(sql`invite_token is not null`),
     index('leads_org_stage').on(t.organizationId, t.stage, t.createdAt),
     check('leads_stage_check', sql.raw(`stage in (${inList(LEAD_STAGES)})`)),
     check('leads_source_check', sql.raw(`source in (${inList(LEAD_SOURCES)})`)),

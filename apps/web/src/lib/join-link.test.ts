@@ -12,6 +12,7 @@ describe('joinPathFromLink', () => {
   it('reads a staff invite', () => {
     const token = 'AbCdEf0123456789_-xyz';
     expect(joinPathFromLink(`https://x.co/invite/${token}`)).toBe(`/invite/${token}`);
+    expect(joinPathFromLink(`https://x.co/i/${token}`)).toBe(`/i/${token}`);
   });
 
   it('refuses anything else', () => {

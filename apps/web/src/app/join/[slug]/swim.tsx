@@ -150,7 +150,7 @@ export async function SwimJoin({
   );
 }
 
-async function Frame({
+export async function Frame({
   school,
   title,
   sub,

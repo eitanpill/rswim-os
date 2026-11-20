@@ -127,7 +127,8 @@ they go quiet), trials are reminded the day before at 17:00, and `/admin/leads` 
 (`/admin/integrations/whatsapp`, table `whatsapp_connections`, secrets sealed with the org's data key, webhook
 `/api/webhooks/whatsapp/<connectionId>` signed with the app secret); the worker then sends through it, free text inside
 WhatsApp's 24-hour window and the approved Meta template outside it (named per message on the templates screen), with
-`RSWIM_MESSAGING_FAKE=1` on a fake that keeps the window rules.
+`RSWIM_MESSAGING_FAKE=1` on a fake that keeps the window rules. The bot's sign-up link is personal (`/i/<token>`, `lead-invite.ts`): the
+person signs in with the invited phone and enters the school at once (`openInviteFamily` + `claim_by_phone`).
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a

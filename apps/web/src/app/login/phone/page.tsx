@@ -1,16 +1,30 @@
 import { getTranslations } from 'next-intl/server';
+import { inviteByToken } from '@rswim/domain-copilot';
 import { Button } from '@rswim/ui';
+import { acrossSchools } from '@/lib/db';
 import { sendPhoneCode, verifyPhoneCode } from '../actions';
 import { inputClass, LoginFrame } from '../login-frame';
 
 export default async function PhoneLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ phone?: string; error?: string; join?: string }>;
+  searchParams: Promise<{ phone?: string; error?: string; join?: string; invite?: string }>;
 }) {
-  const { phone, error, join } = await searchParams;
-  // Came from a club's join link: the actions check the club and send the visitor back to it.
-  const joinField = join ? <input type="hidden" name="join" value={join} /> : null;
+  const { phone, error, join, invite } = await searchParams;
+  // Came from a club's join link: the actions check the club and send the visitor back to it. From a personal
+  // invite: the number it was sent to is ready, and the visitor goes back to the invite to enter.
+  const invited = invite
+    ? await acrossSchools(
+        (d) => inviteByToken(d, invite),
+        (r) => r === null,
+      )
+    : null;
+  const joinField = (
+    <>
+      {join ? <input type="hidden" name="join" value={join} /> : null}
+      {invited ? <input type="hidden" name="invite" value={invite} /> : null}
+    </>
+  );
   const t = await getTranslations('login');
   return (
     <LoginFrame title={t('phoneTitle')} error={error}>
@@ -47,6 +61,7 @@ export default async function PhoneLoginPage({
               inputMode="tel"
               autoComplete="tel"
               placeholder="050-0000000"
+              defaultValue={invited ? invited.phoneE164.replace(/^\+972/, '0') : undefined}
               dir="ltr"
               required
               className={inputClass}
