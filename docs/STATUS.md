@@ -534,3 +534,9 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   the same rule in SQL in `aiAllowance`); the meter rounds part actions up.
 - Not verified: answers from the real models at each level (no `ANTHROPIC_API_KEY` in this environment; tests run on
   the fake and on injected models).
+
+## WhatsApp W7: staff and owner (2026-11-20)
+
+- An instructor asks for their day or for attendance on WhatsApp and gets the lessons and the link (swim and dive).
+- The owner's free message from the approvals number is answered by her assistant, with "כן N" for what waits.
+- Not verified: the assistant's answers on the real model, and real WhatsApp delivery (both on fakes in tests).

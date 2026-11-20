@@ -14,7 +14,7 @@ until a business's Meta account is connected.
 | W4 Follow-up and lead report | After-trial offer and reminder, one nudge for silent leads, morning count, monthly sources report | Done (PR #60) |
 | W5 Meta Cloud API direct (on fakes) | Send/receive without GHL, the 24-hour window, approved templates with variables, SMS/app fallback | Done (PR #61, SMS/app fallback later) |
 | W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | Done |
-| W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | |
+| W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | Done |
 | W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | |
 | W9 One conversations screen | Every conversation in one place, "I'm taking over" per chat, bot performance | |
 | W10 Live at Reut's | Real number and templates, careful mode, two weeks of close watch, then one-click connect per business | Needs Pit |
@@ -173,4 +173,21 @@ Always a person: discounts and refunds, complaints, health and safety, leaving, 
 - `bot_replies.diver_id` (migration 0074) records whom the bot answered. Migration 0075 fixes
   `app.dive_seats_taken` for the worker: it counted no seats under the system role.
 - The stand-in understands "מה פנוי", "להזמין N", "מתי הצלילה הבאה", "כרטיסייה", "טפסים".
+
+## W7: the club on WhatsApp, staff and owner
+
+All in `brain-inbound.ts` (worker function `brain-inbound`), texts in `agent-policies.ts`.
+
+- An instructor writes "מה יש לי היום" / "הלו״ז שלי מחר": the lessons they lead that day, one line each (time, group,
+  place, how many take part), and the link to their screen. A club's instructor gets their sessions of today and
+  tomorrow the same way (`instructorDay`), with the link to `/dive/instructor`. Rules only.
+- "נוכחות": the link to the instructor's screen, naming the lesson that is on now or next. Attendance itself is marked
+  on the screen, not by text: a name typed wrong would mark the wrong child.
+- "אני חולה היום" opens substitute searches as before (brain stage 3): that is the shift swap on WhatsApp.
+- The owner writes anything from the approvals number that is not "כן N", "לא N" or "תזכור ש...": her assistant answers
+  it as in the app (`askCopilot` as the school's owner), at her AI level. An action it proposes runs or waits by the
+  brain's levels; one that waits comes back in the same answer with its "כן N". Needs `copilot.enabled` and a model
+  in the worker (`ANTHROPIC_API_KEY`, or the stand-in with `RSWIM_COPILOT_FAKE=1`); otherwise her message stays in the
+  inbox. Once the assistant is on, the parents' bot leaves every message from that number alone.
+- An owner who also teaches: the instructor's rules read her message first.
 
