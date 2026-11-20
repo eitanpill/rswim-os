@@ -57,6 +57,15 @@ export async function signUpAction(_: FormState, fd: FormData): Promise<FormStat
         message: taken ? t('forms.fixErrors') : t('account.signup.errors.failed'),
       };
     }
+    // Supabase answers a sign-up for an email that already has a confirmed account with a user that has no
+    // identities and sends nothing: say so, or the person waits for an email that never comes.
+    if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      return {
+        ok: false,
+        errors: { email: t('account.signup.errors.taken') },
+        message: t('forms.fixErrors'),
+      };
+    }
     // Email confirmation on (production): the account waits for the link. Off: signed in already.
     if (!data.session) redirect(`/signup?sent=${encodeURIComponent(input.email)}`);
     redirect('/onboarding');
@@ -84,4 +93,31 @@ export async function signUpAction(_: FormState, fd: FormData): Promise<FormStat
     sameSite: 'lax',
   });
   redirect('/onboarding');
+}
+
+/**
+ * "Send the link again" on the check-your-inbox screen: a new confirmation link for an account that is still waiting
+ * for one. Supabase limits how often it emails one address, so a refusal says to wait a minute.
+ */
+export async function resendSignupAction(_: FormState, fd: FormData): Promise<FormState> {
+  const t = await getTranslations();
+  const email = String(fd.get('email') ?? '').trim();
+  const supabase = await createSupabaseServerClient();
+  if (!email || !supabase) {
+    return { ok: false, errors: {}, message: t('account.signup.resend.failed') };
+  }
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: await confirmUrl() },
+  });
+  if (error) {
+    const tooSoon = error.status === 429 || /rate|seconds|security purposes/i.test(error.message);
+    return {
+      ok: false,
+      errors: {},
+      message: t(tooSoon ? 'account.signup.resend.tooSoon' : 'account.signup.resend.failed'),
+    };
+  }
+  return { ok: true, errors: {}, message: t('account.signup.resend.sent'), savedAt: Date.now() };
 }

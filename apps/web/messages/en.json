@@ -75,7 +75,7 @@
       "code": "The code is wrong or expired",
       "no_membership": "This user isn't linked to any swim school yet. Ask an admin.",
       "not_configured": "Sign-in isn't configured in this environment",
-      "confirm": "The confirmation link expired or was already used. Sign in, or sign up again."
+      "confirm": "This link was already used or has expired. If you clicked it once before, your email is confirmed: just sign in with your email and password."
     },
     "poweredBy": "Powered by Aqua Swim",
     "devAccount": {
@@ -6111,6 +6111,13 @@
         "taken": "An account with this email exists. Sign in instead",
         "failed": "Sign-up did not go through. Try again in a moment",
         "notConfigured": "Sign-up is not open in this environment yet"
+      },
+      "resend": {
+        "button": "Send me the link again",
+        "sent": "We sent a new link. The previous one no longer works.",
+        "tooSoon": "We just sent one. Try again in a minute.",
+        "failed": "We could not send it again. Try in a moment.",
+        "already": "Already clicked the link?"
       }
     },
     "signedIn": "Signed in to the app"
