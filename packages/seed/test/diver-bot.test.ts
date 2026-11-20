@@ -11,7 +11,12 @@ import { DIVE_ORG } from '@rswim/db/personas';
 import { withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import { intakeInbound } from '@rswim/domain-comms';
-import { diverToolbox, FakeParentBotModel, runParentBot } from '@rswim/domain-copilot';
+import {
+  diverToolbox,
+  FakeParentBotModel,
+  runBrainInbound,
+  runParentBot,
+} from '@rswim/domain-copilot';
 import type { ServiceContext } from '@rswim/domain-core';
 import { diverPaperwork } from '@rswim/domain-dive';
 import { seedDemo } from '../src/demo';
@@ -151,5 +156,39 @@ describe("the divers' bot (W6)", () => {
     expect(hurt.inbound.status).toBe('needs_human');
     const other = await write(d.phone, 'יש לכם חליפות להשכרה?');
     expect(other.run.outcome).toBe('handed_off');
+  });
+
+  it("tells a club's instructor their sessions of the day (W7)", async () => {
+    const [st] = await q(
+      `select m.id, m.phone_e164 phone,
+              (select count(*)::int from dive_sessions x
+               where (x.lead_staff_id = m.id or x.assist_staff_id = m.id) and x.status <> 'cancelled'
+                 and (x.starts_at at time zone 'Asia/Jerusalem')::date
+                     = (now() at time zone 'Asia/Jerusalem')::date) n
+       from staff_members m
+       where m.organization_id = $1 and m.phone_e164 is not null and m.status = 'active'
+         and (select count(*) from staff_members y where y.phone_e164 = m.phone_e164) = 1
+       order by 3 desc limit 1`,
+      [DIVE_ORG.id],
+    );
+    const intake = await system((tx) =>
+      intakeInbound(tx, worker, {
+        provider: 'ghl',
+        externalId: randomUUID(),
+        phoneE164: st.phone,
+        ghlContactId: null,
+        body: 'מה יש לי היום?',
+        receivedAt: new Date(),
+      }),
+    );
+    if (intake.outcome !== 'stored') throw new Error('not stored');
+    const run = await system((tx) =>
+      runBrainInbound(tx, worker, intake.inboundMessageId, { publicUrl: URL }),
+    );
+    expect(run).toMatchObject({ outcome: 'staff_day', lessons: st.n });
+    const [msg] = await q(`select body from messages where inbound_message_id = $1`, [
+      intake.inboundMessageId,
+    ]);
+    expect(msg.body).toContain(st.n > 0 ? `${URL}/dive/instructor` : 'אין לך שיעורים היום');
   });
 });

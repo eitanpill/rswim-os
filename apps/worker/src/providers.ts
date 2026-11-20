@@ -1,7 +1,7 @@
 import { loadGateway } from '@rswim/domain-billing';
 import { withOrg } from '@rswim/db/service';
 import { aiModelFor, type AiLevel } from '@rswim/contracts';
-import { FakeParentBotModel } from '@rswim/domain-copilot';
+import { FakeCopilotModel, FakeParentBotModel } from '@rswim/domain-copilot';
 import {
   createGateway,
   gatewaySandbox,
@@ -153,6 +153,16 @@ export function parentBotModel(level: AiLevel): CopilotModel | null {
     botModels.set(key, model);
   }
   return model;
+}
+
+/**
+ * The owner's assistant for her WhatsApp questions (brain-inbound, WhatsApp track W7), at her level: the rules-based
+ * stand-in with RSWIM_COPILOT_FAKE=1, Claude with ANTHROPIC_API_KEY, otherwise none (her message stays in the inbox).
+ */
+export function ownerCopilotModel(level: AiLevel, today: string): CopilotModel | null {
+  if (process.env.RSWIM_COPILOT_FAKE === '1') return new FakeCopilotModel(today);
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  return apiKey ? new ClaudeCopilotModel({ apiKey, model: aiModelFor('copilot', level) }) : null;
 }
 
 /**

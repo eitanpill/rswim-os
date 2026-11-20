@@ -18,10 +18,17 @@ import { syncPipelineStage, type PipelineStage } from '@rswim/domain-crm';
 import { consumeOnce } from '@rswim/domain-core/worker';
 import { aiAllowed, recordAiUsage } from '@rswim/domain-platform';
 import { trackUsage } from '@rswim/integrations';
+import { todayIL } from '@rswim/domain-scheduling';
 import { and, eq, lte, schema } from '@rswim/db';
 import { getDb, inngest, log } from '../client';
 import { ghlFor, messagingFor } from '../ghl';
-import { botConfigured, parentBotModel, publicUrl, triageClassifier } from '../providers';
+import {
+  botConfigured,
+  ownerCopilotModel,
+  parentBotModel,
+  publicUrl,
+  triageClassifier,
+} from '../providers';
 import { toEnvelope } from './core-ping';
 
 const sys = (envelope: DomainEventEnvelope) => ({ orgId: envelope.organizationId, userId: null });
@@ -221,7 +228,8 @@ export const commsParentBot = inngest.createFunction(
 
 /**
  * The business brain on WhatsApp beyond families (docs/AI-BRAIN.md, stage 3): the owner's "כן 12" / "לא 12" decides a
- * waiting action, and an instructor's "אני חולה היום" opens substitute searches. Rules only, no model needed.
+ * waiting action, an instructor's "אני חולה היום" opens substitute searches, an instructor gets their day, and the
+ * owner's free question is answered by her assistant (the only part that needs a model).
  */
 export const brainInbound = inngest.createFunction(
   { id: 'brain-inbound', triggers: [{ event: 'comms.inbound_received' }], retries: 3 },
@@ -231,7 +239,10 @@ export const brainInbound = inngest.createFunction(
     return step.run('read', async () => {
       let result: unknown = { skipped: 'already' };
       await consumeOnce(getDb(), 'brain-inbound', envelope, async (tx) => {
-        result = await runBrainInbound(tx, sys(envelope), inboundMessageId);
+        result = await runBrainInbound(tx, sys(envelope), inboundMessageId, {
+          model: ownerCopilotModel(await aiLevel(tx), await todayIL(tx)),
+          publicUrl: publicUrl(),
+        });
       });
       return result;
     });
