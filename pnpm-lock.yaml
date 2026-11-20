@@ -102,6 +102,9 @@ importers:
       '@rswim/domain-institutions':
         specifier: workspace:*
         version: link:../../packages/domain/institutions
+      '@rswim/domain-lodging':
+        specifier: workspace:*
+        version: link:../../packages/domain/lodging
       '@rswim/domain-payroll':
         specifier: workspace:*
         version: link:../../packages/domain/payroll
@@ -250,6 +253,9 @@ importers:
       '@rswim/domain-institutions':
         specifier: workspace:*
         version: link:../../packages/domain/institutions
+      '@rswim/domain-lodging':
+        specifier: workspace:*
+        version: link:../../packages/domain/lodging
       '@rswim/domain-platform':
         specifier: workspace:*
         version: link:../../packages/domain/platform
@@ -922,6 +928,55 @@ importers:
         specifier: ^3.2.7
         version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  packages/domain/lodging:
+    dependencies:
+      '@rswim/contracts':
+        specifier: workspace:*
+        version: link:../../contracts
+      '@rswim/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@rswim/domain-comms':
+        specifier: workspace:*
+        version: link:../comms
+      '@rswim/domain-copilot':
+        specifier: workspace:*
+        version: link:../copilot
+      '@rswim/domain-core':
+        specifier: workspace:*
+        version: link:../core
+      '@rswim/domain-scheduling':
+        specifier: workspace:*
+        version: link:../scheduling
+      '@rswim/integrations':
+        specifier: workspace:*
+        version: link:../../integrations
+      '@rswim/money':
+        specifier: workspace:*
+        version: link:../../money
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@rswim/config':
+        specifier: workspace:*
+        version: link:../../config
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@vitest/coverage-v8':
+        specifier: ^3.2.7
+        version: 3.2.7(vitest@3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      eslint:
+        specifier: ^9.39.5
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
   packages/domain/payroll:
     dependencies:
       '@rswim/calendar':
@@ -1405,6 +1460,9 @@ importers:
       '@rswim/domain-institutions':
         specifier: workspace:*
         version: link:../domain/institutions
+      '@rswim/domain-lodging':
+        specifier: workspace:*
+        version: link:../domain/lodging
       '@rswim/domain-payroll':
         specifier: workspace:*
         version: link:../domain/payroll

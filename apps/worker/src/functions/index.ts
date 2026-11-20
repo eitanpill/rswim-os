@@ -41,12 +41,14 @@ import {
   platformSchoolCreated,
 } from './platform';
 import { diveDailyReminders } from './dive';
+import { lodgingMorningBrief } from './lodging';
 import { brainLeadFollowUps, enrollmentTrialReminders } from './leads';
 import { platformProvisionDatabase, platformSyncSchool } from './tenancy';
 import { transportPlanRuns } from './transport';
 
 export const functions = [
   outboxRelay,
+  lodgingMorningBrief,
   brainLeadFollowUps,
   enrollmentTrialReminders,
   transportPlanRuns,

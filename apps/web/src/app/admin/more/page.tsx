@@ -7,6 +7,7 @@ import { withSession } from '@/lib/db';
 
 const LINKS = [
   'leads',
+  'lodging',
   'connections',
   'import',
   'join',
@@ -46,6 +47,7 @@ const LINKS = [
 ] as const;
 const HREF: Record<(typeof LINKS)[number], string> = {
   leads: '/admin/leads',
+  lodging: '/admin/lodging',
   connections: '/admin/connections',
   import: '/admin/import',
   join: '/admin/join',
@@ -95,6 +97,7 @@ const FEATURE: Partial<Record<(typeof LINKS)[number], PlanFeature>> = {
 
 const ICON: Record<(typeof LINKS)[number], string> = {
   leads: '🙋',
+  lodging: '🛏️',
   connections: '🔌',
   import: '📥',
   join: '🔗',
@@ -139,6 +142,7 @@ const SECTIONS: { key: string; links: (typeof LINKS)[number][] }[] = [
     key: 'daily',
     links: [
       'leads',
+      'lodging',
       'messages',
       'attendance',
       'makeups',

@@ -498,6 +498,20 @@
       "when": 1795180111512,
       "tag": "0070_lead_invite",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1795182239055,
+      "tag": "0071_lodging",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1795182240963,
+      "tag": "0072_lodging_security",
+      "breakpoints": true
     }
   ]
 }
