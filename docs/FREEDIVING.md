@@ -22,7 +22,7 @@ the Red Sea; everything in it is invented.
 |---|---|---|---|
 | Owner | owner | `/dive/owner` (the bridge) | How is the club doing, and what needs me? Sea, revenue, fill, safety streak, conversion, origins, the certification ladder, crew, what sells, insights |
 | Manager | admin + `settings.write` | `/dive/manager` (ops room) | The week against the sea forecast, holds and cancellations, the morning sea report, paperwork to chase, crew certificates, gear, rules, safety log |
-| Office | admin | `/dive/office` (front desk) | Who arrives and whether each is ready (waiver, medical, level, payment), check-in, quick booking, gear out and back, the till, leads |
+| Office | admin | `/dive/office` (front desk) | Who arrives and whether each is ready (waiver, medical, level, payment), check-in, quick booking, gear out and back, the till, leads (the shared `leads` list, docs/whatsapp/PLAN.md) |
 | Instructor | instructor | `/dive/instructor` (in the water) | My sessions, each diver's allowed depth and why, lines and buddies, dive log, course skills |
 | Customer | parent (a diver is their own guardian) | `/dive/me` | My best and today's allowed depth, next dives with the meeting point and line, my pass, booking, my paperwork (`/dive/me/forms`: sign, renew, update insurance), logbook |
 | Platform admin | `platform_admins` | `/platform` (network) | Every school and club side by side: customers, revenue, sessions, the coming week, safety |
@@ -51,7 +51,7 @@ stops under `prefers-reduced-motion`.
 `dive_rule_sets` (versioned rules) · `dive_sites` · `dive_programs` · `dive_divers` · `dive_sessions` ·
 `dive_bookings` (line, buddy, target depth, pass, rule version) · `dive_passes` · `dive_logs` · `dive_incidents` ·
 `dive_enrollments` (skills ticked) · `dive_gear` · `dive_rentals` · `dive_sales` (append-only) · `dive_conditions` ·
-`dive_leads` · `dive_staff_certs` · `dive_form_templates` · `dive_form_signatures` (forms, below).
+`dive_staff_certs` · `dive_form_templates` · `dive_form_signatures` (forms, below).
 
 The database guards what matters: capacity on booking (seats held for payment count), a customer may only book themself and cancel, a customer edits
 only their own contact details (paperwork dates come only from signed forms), gear can't go out twice, personal bests follow clean dives, sales never change.

@@ -1979,28 +1979,29 @@ async function seedClub(
     ];
     await insertMany(
       client,
-      'dive_leads',
+      'leads',
       [
         'organization_id',
         'name',
         'phone_e164',
         'source',
         'origin',
-        'interest_program_id',
+        'interest',
         'stage',
         'note',
         'next_action_on',
         'created_at',
         'updated_at',
       ],
+      // The club's first list said contacted/booked; the shared lead list says talking/joined.
       leads.map(([name, source, origin, prog, stage, hours, note]) => [
         orgId,
         name,
         fakePhone(),
         source,
         origin,
-        prog ? (programs[prog]?.id ?? null) : null,
-        stage,
+        prog ? (programs[prog]?.he ?? null) : null,
+        stage === 'contacted' ? 'talking' : stage === 'booked' ? 'joined' : stage,
         note,
         stage === 'contacted' ? addDays(today, between(0, 3)) : null,
         new Date(Date.now() - hours * 3_600_000),

@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { Classification, requiredText, type TriageActionKind } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, type Tx } from '@rswim/db';
 import { reportAbsence } from '@rswim/domain-attendance';
+import { advanceLead, getLead, touchLeadFromMessage } from '@rswim/domain-crm';
 import { DomainError, emit, isDomainError, type ServiceContext } from '@rswim/domain-core';
 import { getHousehold, guardiansOfHouseholds, senderOf, studentsByIds } from '@rswim/domain-people';
 import { lessonsOfStudents } from '@rswim/domain-scheduling';
@@ -83,6 +84,18 @@ export async function intakeInbound(
     .onConflictDoNothing()
     .returning();
   if (!row) return { outcome: 'duplicate' };
+  // A number nobody knows is someone asking about the business: it opens (or updates) its lead.
+  if (sender === null && input.phoneE164) {
+    const leadId = await touchLeadFromMessage(tx, ctx, {
+      phoneE164: input.phoneE164,
+      body: input.body,
+      receivedAt: input.receivedAt,
+    });
+    if (leadId) {
+      await tx.update(inboundMessages).set({ leadId }).where(eq(inboundMessages.id, row.id));
+      row.leadId = leadId;
+    }
+  }
   const triaged = await triage(tx, ctx, row, classification, await commsRules(tx));
   await emit(tx, {
     organizationId: ctx.orgId,
@@ -386,4 +399,41 @@ export async function conversationOf(tx: Tx, householdId: string, limit = 50) {
     .where(eq(inboundMessages.householdId, householdId))
     .orderBy(desc(inboundMessages.receivedAt))
     .limit(limit);
+}
+
+export const LeadReplyInput = z.object({ leadId: z.uuid(), text: requiredText(1000) });
+export type LeadReplyInput = z.input<typeof LeadReplyInput>;
+
+/**
+ * The office answers a lead on WhatsApp (free text: the lead wrote first, so WhatsApp's 24-hour window is open).
+ * The lead moves to "talking" and its open messages leave the inbox.
+ */
+export async function replyToLead(tx: Tx, ctx: ServiceContext, raw: LeadReplyInput) {
+  const input = LeadReplyInput.parse(raw);
+  const { lead } = await getLead(tx, input.leadId);
+  if (!lead.phone) throw new DomainError('leads.errors.noPhone');
+  const message = await enqueueMessage(tx, ctx, {
+    guardian: {
+      id: null,
+      householdId: null,
+      firstName: lead.name ?? '',
+      phoneE164: lead.phone,
+      whatsappOptIn: true,
+      locale: 'he',
+    },
+    templateKey: 'free_text',
+    vars: { text: input.text },
+    idempotencyKey: `lead-reply:${lead.id}:${randomUUID()}`,
+  });
+  await advanceLead(tx, lead.id, 'talking');
+  await tx
+    .update(inboundMessages)
+    .set({ status: 'actioned', handledBy: ctx.userId, handledAt: new Date() })
+    .where(
+      and(
+        eq(inboundMessages.leadId, lead.id),
+        inArray(inboundMessages.status, ['new', 'needs_human']),
+      ),
+    );
+  return message;
 }

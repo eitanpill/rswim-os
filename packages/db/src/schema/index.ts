@@ -16,3 +16,4 @@ export * from './insights';
 export * from './saas';
 export * from './dive';
 export * from './directory';
+export * from './leads';

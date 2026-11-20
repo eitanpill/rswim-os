@@ -116,6 +116,10 @@ Claude's allowance (SaaS stage 6): every Claude call reports its tokens (`trackU
 piece of AI work is one row of `ai_usage` with its cost, and `plans.ai_monthly_actions` caps the month (`aiAllowance`
 in `@rswim/domain-platform`); past the cap the copilot refuses, the parents' bot hands off and the worker skips Claude.
 The owner sees the meter and what is connected on `/admin/connections` (`/dive/connections`).
+WhatsApp track (`docs/whatsapp/PLAN.md`): a WhatsApp message from a number that is not a family, staff member or diver
+opens a lead (`leads`, `@rswim/domain-crm` `leads.ts`; one list for swim and dive). Join requests, families, trial and
+group seats and divers move it on through database triggers (`app.touch_lead`). The office works them on
+`/admin/leads` (the club's front desk shows the same list) and answers on WhatsApp from the lead's page.
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a

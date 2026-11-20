@@ -26,9 +26,10 @@ const small = 'min-h-8 px-2.5 text-xs';
 const span = (from: string, to: string) => `\u2066${hhmm(from)}–${hhmm(to)}\u2069`;
 const ORIGIN_TONE: Record<string, Tone> = { eilat: 'info', israel: 'muted', abroad: 'caution' };
 const NEXT_STAGE: Record<string, string | null> = {
-  new: 'contacted',
-  contacted: 'booked',
-  booked: null,
+  new: 'talking',
+  talking: 'trial_booked',
+  trial_booked: 'joined',
+  joined: null,
   lost: null,
 };
 
@@ -536,7 +537,7 @@ export default async function FrontDesk() {
       </div>
 
       <Panel title={t('office.leads')} icon={di.phone} testId="leads">
-        <div className="grid gap-3 md:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-5">
           {LEAD_STAGES.map((stage) => {
             const list = d.leads.filter((l) => l.stage === stage);
             return (
@@ -568,9 +569,15 @@ export default async function FrontDesk() {
                         </Chip>
                       </div>
                       <p className="mt-0.5 text-xs text-ink-muted">
-                        {t(`leadSource.${l.source}`)} · {t(`origin.${l.origin}`)}
+                        {t(`leadSource.${l.source}`)}
+                        {l.origin ? ` · ${t(`origin.${l.origin}`)}` : ''}
                         {l.interest ? ` · ${l.interest}` : ''}
                       </p>
+                      {l.lastMessage ? (
+                        <p className="mt-1 line-clamp-2 text-xs text-ink-muted">
+                          “{l.lastMessage}”
+                        </p>
+                      ) : null}
                       {l.note ? <p className="mt-1 text-xs">{l.note}</p> : null}
                       <div className="mt-2 flex flex-wrap gap-1">
                         {next ? (
@@ -583,7 +590,7 @@ export default async function FrontDesk() {
                             {t(`office.moveTo.${next}`)}
                           </ActionButton>
                         ) : null}
-                        {l.stage !== 'lost' && l.stage !== 'booked' ? (
+                        {l.stage !== 'lost' && l.stage !== 'joined' ? (
                           <ActionButton
                             action={moveLeadAction}
                             fields={{ leadId: l.id, stage: 'lost' }}

@@ -209,7 +209,8 @@
       "trials": "Trial lessons this month",
       "openBoard": "Open the board",
       "heroLessons": "{lessons, plural, one {One lesson today} other {# lessons today}}",
-      "heroChildren": "{children} children expected in the water"
+      "heroChildren": "{children} children expected in the water",
+      "leadsWaiting": "🙋 {n, plural, one {one new enquiry} other {# new enquiries}}"
     },
     "more": {
       "title": "More",
@@ -360,6 +361,10 @@
         "money": "Money and prices",
         "smart": "Smart helpers and reports",
         "business": "Business settings"
+      },
+      "leads": {
+        "title": "New enquiries",
+        "hint": "Who asked and hasn't joined yet, from chat to sign-up"
       }
     }
   },
@@ -4634,8 +4639,9 @@
       "hoursAgo": "{count, plural, one {an hour ago} other {# hours ago}}",
       "daysAgo": "{count, plural, one {a day ago} other {# days ago}}",
       "moveTo": {
-        "contacted": "Talked",
-        "booked": "Booked",
+        "talking": "Talked",
+        "trial_booked": "Intro booked",
+        "joined": "Joined",
         "lost": "Not relevant"
       },
       "unpaid": "Unpaid · {amount}",
@@ -4680,18 +4686,23 @@
     },
     "leadStage": {
       "new": "New",
-      "contacted": "Talking",
-      "booked": "Booked",
+      "talking": "Talking",
+      "trial_booked": "Intro booked",
+      "joined": "Joined",
       "lost": "Lost"
     },
     "leadSource": {
+      "whatsapp": "WhatsApp",
+      "join_link": "Join link",
       "instagram": "Instagram",
+      "facebook": "Facebook",
       "google": "Google",
+      "website": "Website",
       "referral": "Referral",
       "hotel": "Hotel",
       "walk_in": "Walked in",
-      "whatsapp": "WhatsApp",
-      "join_link": "Join link"
+      "phone": "Phone call",
+      "other": "Other"
     },
     "instructor": {
       "kicker": "In the water",
@@ -6388,6 +6399,107 @@
       "on": "Claude gives a second opinion on each inbound message and sorts it.",
       "off": "Off. The rules sort messages alone.",
       "link": "Policies"
+    }
+  },
+  "leads": {
+    "title": "New enquiries",
+    "subtitle": "Everyone who asked about the school and has not joined yet. A new number writing on WhatsApp lands here by itself.",
+    "waiting": "{n, plural, one {One enquiry is waiting for you} other {# enquiries are waiting for you}}",
+    "search": "Search",
+    "searchPlaceholder": "Name or phone",
+    "stage": {
+      "new": "New",
+      "talking": "Talking",
+      "trial_booked": "Trial booked",
+      "joined": "Joined",
+      "lost": "Dropped"
+    },
+    "emptyStage": {
+      "new": "No new enquiries",
+      "talking": "No open conversations",
+      "trial_booked": "No upcoming trials"
+    },
+    "moveTo": {
+      "new": "Back to new",
+      "talking": "We talked",
+      "trial_booked": "Trial booked",
+      "joined": "Joined",
+      "lost": "Not relevant"
+    },
+    "source": {
+      "whatsapp": "WhatsApp",
+      "join_link": "Join link",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "google": "Google",
+      "website": "Website",
+      "referral": "Referral",
+      "hotel": "Hotel",
+      "walk_in": "Walked in",
+      "phone": "Phone call",
+      "other": "Other"
+    },
+    "lostReason": {
+      "price": "Price",
+      "schedule": "Times don't fit",
+      "location": "Location",
+      "no_answer": "Not answering",
+      "chose_other": "Chose another place",
+      "not_relevant": "Not relevant",
+      "other": "Other"
+    },
+    "attention": {
+      "reply": "Waiting for an answer",
+      "follow_up": "Time to get back to them"
+    },
+    "ago": {
+      "minutes": "{n} min ago",
+      "hours": "{n} h ago",
+      "days": "{n} days ago"
+    },
+    "messages": "{n} messages",
+    "answer": "Answer",
+    "open": "Open",
+    "new": "New enquiry",
+    "newHint": "Someone called or asked at the pool? Write it down here so it doesn't get lost.",
+    "add": "Add",
+    "fields": {
+      "name": "Name",
+      "phone": "Phone",
+      "source": "Where they came from",
+      "interest": "What they want",
+      "interestHint": "e.g. a class for a 5-year-old, Tuesdays",
+      "nextActionOn": "Get back to them on",
+      "note": "Notes"
+    },
+    "closed": "Joined or dropped in the last 30 days ({n})",
+    "empty": "No enquiries yet",
+    "emptyHint": "When a new number writes to the school on WhatsApp, or fills in a join request from the link, it shows here.",
+    "back": "All enquiries",
+    "conversation": "Conversation",
+    "noConversation": "No WhatsApp messages with this enquiry yet.",
+    "reply": "Answer on WhatsApp",
+    "replyHint": "The answer goes out from the school's number",
+    "send": "Send",
+    "replySent": "The answer is on its way",
+    "noPhone": "No phone for this enquiry, so no WhatsApp.",
+    "sendStatus": {
+      "queued": "On its way",
+      "held": "Goes after quiet hours",
+      "sent": "Sent",
+      "failed": "Not sent",
+      "blocked": "Blocked"
+    },
+    "where": "Where it stands",
+    "openFamily": "Open the family",
+    "lostWhy": "Why not?",
+    "lostBecause": "Dropped: {reason}",
+    "details": "Details and notes",
+    "save": "Save",
+    "saved": "Saved",
+    "errors": {
+      "nameOrPhone": "A name or a phone is needed",
+      "noPhone": "No phone for this enquiry"
     }
   }
 }

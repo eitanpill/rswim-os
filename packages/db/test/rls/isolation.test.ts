@@ -155,7 +155,7 @@ const TENANT_TABLES = [
   'dive_rentals',
   'dive_sales',
   'dive_conditions',
-  'dive_leads',
+  'leads',
   'dive_staff_certs',
   'dive_form_templates',
   'dive_form_signatures',

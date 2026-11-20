@@ -430,7 +430,11 @@ export const LeadMove = z.object({ leadId: id, stage: z.enum(LEAD_STAGES) });
 export async function moveLead(tx: Tx, raw: z.input<typeof LeadMove>) {
   const input = LeadMove.parse(raw);
   await guarded(() =>
-    tx.execute(sql`update dive_leads set stage = ${input.stage} where id = ${input.leadId}`),
+    tx.execute(
+      sql`update leads set stage = ${input.stage}, stage_changed_at = now(),
+                          lost_reason = case when ${input.stage} = 'lost' then lost_reason end
+          where id = ${input.leadId}`,
+    ),
   );
 }
 
