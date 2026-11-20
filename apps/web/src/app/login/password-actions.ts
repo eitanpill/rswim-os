@@ -76,5 +76,7 @@ export async function setNewPasswordAction(_: FormState, fd: FormData): Promise<
       ? { ok: false, errors: { password: t('errors.same') }, message: null }
       : { ok: false, errors: {}, message: t('errors.failed') };
   }
+  // A new password ends every other sign-in (another phone, a forgotten computer); this device stays signed in.
+  await supabase.auth.signOut({ scope: 'others' }).catch(() => undefined);
   redirect('/');
 }
