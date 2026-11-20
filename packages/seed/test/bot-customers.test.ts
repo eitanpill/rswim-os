@@ -86,9 +86,11 @@ beforeAll(async () => {
     await q(
       `select distinct on (h.id) h.id "householdId", g.phone_e164 phone
        from households h join guardians g on g.household_id = h.id and g.phone_e164 is not null
-       where (select count(*) from guardians x where x.phone_e164 = g.phone_e164) = 1
+       where h.organization_id = $1
+         and (select count(*) from guardians x where x.phone_e164 = g.phone_e164) = 1
          and exists (select 1 from students s where s.household_id = h.id)
        order by h.id, g.created_at`,
+      [DEMO_ORG.id],
     )
   ).map((r) => ({ householdId: r.householdId, phone: r.phone }));
 }, 240_000);
@@ -191,10 +193,10 @@ describe("the parents' bot serves existing customers (W6)", () => {
        from route_riders rr join transport_routes r on r.id = rr.route_id and r.active
        join students st on st.id = rr.student_id join households h on h.id = st.household_id
        join guardians g on g.household_id = h.id and g.phone_e164 is not null
-       where rr.ends_on is null and rr.starts_on <= $1::date
+       where rr.ends_on is null and rr.starts_on <= $1::date and h.organization_id = $2
          and (select count(*) from guardians x where x.phone_e164 = g.phone_e164) = 1
        limit 1`,
-      [today],
+      [today, DEMO_ORG.id],
     );
     expect(rider).toBeDefined();
     const r = await write(rider.phone, 'מתי יוצאת ההסעה היום?');
@@ -207,9 +209,10 @@ describe("the parents' bot serves existing customers (W6)", () => {
     let day = '';
     for (const [d] of (
       await q(
-        `select distinct s.date::text d from sessions s where s.date > $1::date and s.status = 'scheduled'
+        `select distinct s.date::text d from sessions s
+         where s.date > $1::date and s.status = 'scheduled' and s.organization_id = $2
          order by 1 limit 10`,
-        [today],
+        [today, DEMO_ORG.id],
       )
     ).map((r) => [r.d as string])) {
       const n = await system((tx) => queueFormsReminders(tx, worker, `${URL}/`, d));
