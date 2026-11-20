@@ -11,6 +11,14 @@ const safeNext = (v: string | null) => (v && v.startsWith('/') && !v.startsWith(
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const next = safeNext(url.searchParams.get('next'));
+  // A password reset link (implicit flow) carries its session in the fragment, which the browser keeps across this
+  // redirect: the reset screen reads it, or says the link expired.
+  if (
+    next === '/login/reset' &&
+    !url.searchParams.get('token_hash') &&
+    !url.searchParams.get('code')
+  )
+    return NextResponse.redirect(new URL(next, url));
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.redirect(new URL('/login?error=not_configured', url));
 
@@ -23,5 +31,7 @@ export async function GET(request: NextRequest) {
       : code
         ? await supabase.auth.exchangeCodeForSession(code)
         : { error: new Error('missing token') };
+  if (error && next === '/login/reset')
+    return NextResponse.redirect(new URL('/login/reset#error=expired', url));
   return NextResponse.redirect(new URL(error ? '/login?error=confirm' : next, url));
 }

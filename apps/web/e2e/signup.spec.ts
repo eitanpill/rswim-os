@@ -146,3 +146,19 @@ test('the sign-in page links owners to sign-up', async ({ page }) => {
   await page.getByTestId('signup-link').click();
   await expect(page).toHaveURL(/\/signup$/);
 });
+
+test('an owner who forgot the password finds the way to a new one', async ({ page }) => {
+  await page.goto('/login');
+  await page.getByTestId('forgot-link').click();
+  await expect(page).toHaveURL(/\/login\/forgot$/);
+  const form = page.getByTestId('forgot-password');
+  await form.getByLabel('אימייל').fill('not-an-email');
+  await form.getByRole('button', { name: 'שליחת קישור' }).click();
+  await expect(form).toContainText('כתובת אימייל לא תקינה');
+
+  // A used or expired link says so and offers a new one; the screen never shows the form for it.
+  await page.goto('/login/reset#error=access_denied&error_code=otp_expired');
+  await expect(page.getByTestId('reset-expired')).toBeVisible();
+  await expect(page.getByTestId('reset-password')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/login\/reset$/);
+});
