@@ -17,7 +17,7 @@ until a business's Meta account is connected.
 | W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | Done |
 | W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | Done (first cut) |
 | W9 One conversations screen | Every conversation in one place, "I'm taking over" per chat, bot performance | Done |
-| W10 Live at Reut's | Real number and templates, careful mode, two weeks of close watch, then one-click connect per business | Needs Pit |
+| W10 Live at Reut's | Real number and templates, careful mode, two weeks of close watch, then one-click connect per business | First part built (check, templates' review, test message); the real number needs Pit |
 
 Always a person: discounts and refunds, complaints, health and safety, leaving, anyone who asks for a human.
 
@@ -227,3 +227,27 @@ All in `brain-inbound.ts` (worker function `brain-inbound`), texts in `agent-pol
 - Bot performance at the head (`botPerformance`, last 30 days): the share of messages the bot closed alone, how many
   it passed on and the most common reason, conversations waiting, conversations with a person.
 - A freediving club reaches the screen from the front desk's leads panel.
+
+## W10, first part: going live from the connection page
+
+Three steps on `/admin/integrations/whatsapp`, once the number's details are saved. The owner asks; the worker talks to
+Meta (`whatsapp-admin.ts`, worker functions in `functions/whatsapp.ts`).
+
+- **Check the connection** (`comms.whatsapp_check_requested`): the worker reads the number from Meta (verified name,
+  quality) and tells Meta to send this business account's messages to the connection's own webhook address
+  (`POST /<WABA>/subscribed_apps` with `override_callback_uri` and the verify token), so the owner pastes nothing
+  into Meta. Meta's refusal is kept on the connection in Meta's words.
+- **Send the messages to Meta's review** (`comms.whatsapp_templates_requested`): every active message becomes a
+  utility template (`metaTemplateDraft`): our variables numbered with an example each, the business's name written
+  into the text, and a name that changes when the text does (`<key>_<locale>_<mark>`). A message named by hand is left
+  alone; one that starts or ends with a variable, or is only a variable, is listed on the page instead of sent. A
+  template already at Meta under that name is adopted. Every 30 minutes the worker brings Meta's decisions home while
+  any template waits (`comms-whatsapp-template-sync`).
+- A template we sent is used only once Meta approved it (`metaTemplateUsable`); until then a message outside the
+  24-hour window is blocked as before. A template named by hand counts as approved.
+- **Test message**: free text from the business number to a phone the owner types.
+- With `RSWIM_MESSAGING_FAKE=1` Meta is a fake (`FakeWhatsAppAdmin`): the check passes, and templates are approved on
+  the next look.
+- Still Pit's: Meta business verification, a number, a system-user token, and taking `RSWIM_MESSAGING_FAKE` off the
+  worker. Not built: Embedded Signup (one-click connect needs Meta's Tech Provider approval), and the connection page
+  for a freediving club.

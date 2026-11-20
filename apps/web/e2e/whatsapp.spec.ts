@@ -2,7 +2,7 @@
  * WhatsApp track W5: the owner connects the business's own number on Meta's Cloud API and gets the webhook address
  * and verify token to paste into Meta; Meta's subscription check answers only with that token, and a webhook body
  * not signed with the business's app secret is refused. The office sees only whether it is connected. Every number,
- * token and secret is fake.
+ * token and secret is fake. W10 adds the going-live steps on the same page.
  */
 import { expect, test } from '@playwright/test';
 
@@ -38,6 +38,14 @@ test('the owner connects the business number and Meta can subscribe to it', asyn
     headers: { 'x-hub-signature-256': 'sha256=00' },
   });
   expect(forged.status()).toBe(401);
+
+  // Going live (W10): the check, the templates' review and a test message are asked here; the worker talks to Meta.
+  await expect(page.getByTestId('whatsapp-check')).toHaveAttribute('data-ok', 'no');
+  await page.getByTestId('whatsapp-check-run').click();
+  await expect(page.getByTestId('whatsapp-live')).toContainText('הבדיקה יצאה לדרך');
+  await page.getByTestId('whatsapp-templates-run').click();
+  await expect(page.getByTestId('whatsapp-templates')).toContainText('ההודעות נשלחות לאישור');
+  await expect(page.getByTestId('whatsapp-test-form')).toBeVisible();
 
   await page.goto('/admin/connections');
   await expect(page.getByTestId('connection-whatsapp')).toHaveAttribute('data-state', 'connected');

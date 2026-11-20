@@ -216,7 +216,9 @@ export async function dispatchDue(
         window: provider.window === true,
         open: windowOpen(lastIn.get(m.toPhoneE164 as string) ?? null, now),
         locale,
-        meta: template ? { name: template.metaName, params: template.metaParams } : null,
+        meta: template
+          ? { name: template.metaName, params: template.metaParams, status: template.metaStatus }
+          : null,
         vars: (m.vars as Record<string, unknown> | null) ?? null,
       });
       if (shape.kind === 'blocked') {
