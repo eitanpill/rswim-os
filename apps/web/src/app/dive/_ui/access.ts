@@ -17,7 +17,8 @@ export type DivePage =
   | 'setup'
   | 'import'
   | 'connections'
-  | 'lodging';
+  | 'lodging'
+  | 'chats';
 
 export type DiveRole = 'owner' | 'manager' | 'office' | 'instructor' | 'customer';
 
@@ -42,9 +43,20 @@ const PAGES: Record<DiveRole, DivePage[]> = {
     'import',
     'connections',
     'lodging',
+    'chats',
   ],
-  manager: ['manager', 'office', 'instructor', 'divers', 'forms', 'lodging', 'setup', 'import'],
-  office: ['office', 'divers', 'forms', 'lodging'],
+  manager: [
+    'manager',
+    'office',
+    'instructor',
+    'divers',
+    'forms',
+    'lodging',
+    'chats',
+    'setup',
+    'import',
+  ],
+  office: ['office', 'divers', 'forms', 'lodging', 'chats'],
   instructor: ['instructor', 'divers'],
   customer: ['me'],
 };
@@ -58,13 +70,18 @@ export const HOME: Record<DiveRole, DivePage> = {
 };
 
 /**
- * The role's tabs. Settings screens (the processor connection, the club's own subscription) open from their own
- * links, not a tab.
+ * The role's tabs. Settings screens (the processor connection, the club's own subscription) and the conversations
+ * screen open from their own links, not a tab.
  */
 export function pagesFor(role: DiveRole): DivePage[] {
   return PAGES[role].filter(
     (p) =>
-      p !== 'payments' && p !== 'plan' && p !== 'setup' && p !== 'import' && p !== 'connections',
+      p !== 'payments' &&
+      p !== 'plan' &&
+      p !== 'setup' &&
+      p !== 'import' &&
+      p !== 'connections' &&
+      p !== 'chats',
   );
 }
 

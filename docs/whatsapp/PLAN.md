@@ -16,7 +16,7 @@ until a business's Meta account is connected.
 | W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | Done |
 | W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | Done |
 | W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | Done (first cut) |
-| W9 One conversations screen | Every conversation in one place, "I'm taking over" per chat, bot performance | |
+| W9 One conversations screen | Every conversation in one place, "I'm taking over" per chat, bot performance | Done |
 | W10 Live at Reut's | Real number and templates, careful mode, two weeks of close watch, then one-click connect per business | Needs Pit |
 
 Always a person: discounts and refunds, complaints, health and safety, leaving, anyone who asks for a human.
@@ -207,3 +207,23 @@ All in `brain-inbound.ts` (worker function `brain-inbound`), texts in `agent-pol
 - Still open from brain stages 7 and 8: a three-month forecast with ranges, and tracking whether last week's advice
   worked.
 
+## W9: one conversations screen
+
+`services/chats.ts` in `@rswim/domain-comms`, table `chat_holds`, screens `/admin/messages/chats` and `/dive/chats`
+(one shared component, `apps/web/src/components/chats`).
+
+- One list by phone, the newest first, whoever the person is: a family, a new customer, a diver, staff. Each row
+  shows the last line either way, how many messages wait in the inbox, what the bot did, and whether a person holds
+  the conversation. Filters: all, waiting for an answer, with a person.
+- A conversation opens as one thread, both directions, each outgoing line marked as the bot's, the office's or an
+  automatic message, with its delivery status.
+- "I'm taking over" (`takeOverChat`): a row in `chat_holds` for that phone. `runParentBot` checks it before anything
+  else, so the parents' bot, the lead bot and the divers' bot all stay quiet for that number; the message waits in
+  the inbox. "Give back to the bot" (`releaseChat`) removes the row. A hold has no expiry: the screen counts the held
+  conversations at its head so none is forgotten.
+- The reply box answers whoever wrote (`replyToChat`): a family through the inbox's reply (so the bot still learns
+  from it), a new customer through the lead's reply (the lead moves to "talking"), anyone else as free text. The
+  person's waiting messages leave the inbox. Outside WhatsApp's 24-hour window the box says so.
+- Bot performance at the head (`botPerformance`, last 30 days): the share of messages the bot closed alone, how many
+  it passed on and the most common reason, conversations waiting, conversations with a person.
+- A freediving club reaches the screen from the front desk's leads panel.

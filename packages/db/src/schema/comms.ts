@@ -313,6 +313,27 @@ export const botReplies = pgTable(
 );
 
 /**
+ * "I'm taking over" (WhatsApp track W9): while a row holds a phone, no bot answers that number. A person at the
+ * office took the conversation and gives it back when done.
+ */
+export const chatHolds = pgTable(
+  'chat_holds',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    phoneE164: text('phone_e164').notNull(),
+    takenBy: uuid('taken_by'),
+    takenAt: timestamp('taken_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('chat_holds_org_id').on(t.organizationId, t.id),
+    unique('chat_holds_phone').on(t.organizationId, t.phoneE164),
+  ],
+);
+
+/**
  * The bot's questions and answers. The office writes them, and every answer the office gives to a question the bot
  * handed off becomes a suggestion here; only active entries reach the bot.
  */

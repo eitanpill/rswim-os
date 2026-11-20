@@ -26,6 +26,7 @@ const PAGE_ICON: Record<DivePage, ReactNode> = {
   import: di.doc,
   connections: di.anchor,
   lodging: di.bed,
+  chats: di.phone,
 };
 
 /**

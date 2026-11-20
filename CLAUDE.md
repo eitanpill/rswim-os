@@ -134,7 +134,9 @@ person signs in with the invited phone and enters the school at once (`openInvit
 bot to pay (a link for the open balance through the brain's `payment_link` level), for receipts, missing forms and
 transport, and a family with a lesson tomorrow who owes forms gets `forms_reminder` at 17:00, once a week. A club's
 registered diver gets the divers' bot (`diver-bot.ts`): coming dives, passes, missing forms, and booking a session
-(a pass covers it, or the place is held with the link `/dive/me/pay/<bookingId>`).
+(a pass covers it, or the place is held with the link `/dive/me/pay/<bookingId>`). Every conversation sits on one screen
+(`/admin/messages/chats`, `/dive/chats`; `chats.ts` in `@rswim/domain-comms`): the thread by phone, a reply, the bot's
+last 30 days, and "I'm taking over" (`chat_holds`), which keeps every bot quiet for that number until it is given back.
 
 Lodging (`docs/LODGING.md`, optional per business, `@rswim/domain-lodging`): rooms by kind with beds and private or shared
 facilities, stays (dorms by the bed, overlaps refused in the database), `/admin/lodging` and `/dive/lodging` (today,

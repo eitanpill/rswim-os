@@ -547,3 +547,11 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   holiday against last year (`brain-weekly-coach`, `coach.ts`).
 - Not built yet: the three-month forecast and tracking last week's advice.
 - Not verified: real WhatsApp delivery (messaging runs on the fake).
+
+## WhatsApp W9: one conversations screen (2026-11-20)
+
+- `/admin/messages/chats` (and `/dive/chats`): every WhatsApp conversation by phone, the whole thread, a reply box,
+  and "I'm taking over", which keeps every bot quiet for that number until it is given back (`chat_holds`).
+- Bot performance for the last 30 days at the head of the screen.
+- Not built: an automatic return to the bot after a quiet period, and search in the list.
+- Not verified: real WhatsApp delivery (messaging runs on the fake).

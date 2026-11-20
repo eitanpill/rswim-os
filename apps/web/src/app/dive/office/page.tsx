@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { LEAD_STAGES } from '@rswim/contracts';
 import { frontDesk } from '@rswim/domain-dive';
@@ -536,7 +537,16 @@ export default async function FrontDesk() {
         </div>
       </div>
 
-      <Panel title={t('office.leads')} icon={di.phone} testId="leads">
+      <Panel
+        title={t('office.leads')}
+        icon={di.phone}
+        testId="leads"
+        action={
+          <Link href="/dive/chats" className="text-sm underline" data-testid="all-chats">
+            {t('office.allChats')}
+          </Link>
+        }
+      >
         <div className="grid gap-3 md:grid-cols-5">
           {LEAD_STAGES.map((stage) => {
             const list = d.leads.filter((l) => l.stage === stage);

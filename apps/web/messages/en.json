@@ -3396,6 +3396,7 @@
     "tabs": {
       "label": "Messaging screens",
       "inbox": "Inbox",
+      "chats": "Conversations",
       "bot": "Bot",
       "log": "Log",
       "templates": "Templates & automations",
@@ -4271,7 +4272,8 @@
       "plan": "Subscription",
       "setup": "Setup",
       "connections": "Connections",
-      "lodging": "Lodging"
+      "lodging": "Lodging",
+      "chats": "Conversations"
     },
     "clubFallback": "Freediving club",
     "tagline": "Freediving · Gulf of Eilat",
@@ -4702,7 +4704,8 @@
         "ratio": "Instructor ratio",
         "arrived": "Arrivals",
         "expected": "Expected revenue"
-      }
+      },
+      "allChats": "All WhatsApp conversations"
     },
     "payMethod": {
       "card": "Card",
@@ -6816,6 +6819,80 @@
     "smart": {
       "label": "Smart",
       "hint": "The strongest model. For complex conversations and the best answers."
+    }
+  },
+  "chats": {
+    "title": "Conversations",
+    "subtitle": "Every WhatsApp conversation in one place: who wrote, what the bot answered and what waits for you",
+    "filters": "Filter conversations",
+    "filter": {
+      "all": "All",
+      "waiting": "Waiting for an answer",
+      "held": "With a person"
+    },
+    "empty": "No conversations yet. The first WhatsApp message will show up here.",
+    "emptyFilter": "No conversations like that right now",
+    "kind": {
+      "family": "Family",
+      "lead": "New customer",
+      "staff": "Staff",
+      "unknown": "Unknown"
+    },
+    "staff": "Staff member",
+    "us": "Us",
+    "heldBadge": "With a person",
+    "waitingBadge": "{n, plural, one {# message waiting} other {# messages waiting}}",
+    "botAnswered": "Bot answered",
+    "back": "All conversations",
+    "familyCard": "Family card",
+    "hold": {
+      "on": "You hold this conversation. The bot is quiet.",
+      "onHint": "Since {when}. Give it back to the bot when you are done.",
+      "off": "The bot answers this conversation",
+      "offHint": "Want to answer yourself? The bot stops answering this number until you give the conversation back.",
+      "take": "I'm taking over",
+      "release": "Give back to the bot"
+    },
+    "taken": "The conversation is yours. The bot will not answer this number.",
+    "released": "The conversation is back with the bot",
+    "sent": "Your answer is queued",
+    "reply": "Reply",
+    "replyHint": "Sent on WhatsApp, respecting quiet hours and Shabbat",
+    "windowClosed": "More than 24 hours since their last message. On a Meta business number free text will not go out until they write again.",
+    "send": "Send",
+    "by": {
+      "person": "Customer",
+      "bot": "Bot",
+      "office": "Staff",
+      "auto": "Automatic message"
+    },
+    "status": {
+      "queued": "On its way",
+      "held": "Goes out after quiet hours",
+      "sent": "Sent",
+      "failed": "Not sent",
+      "blocked": "Blocked"
+    },
+    "reason": {
+      "unknown": "did not know the answer",
+      "sensitive": "sensitive topic",
+      "needs_action": "needed the staff to act",
+      "model_failed": "model error",
+      "ai_cap": "AI allowance used up"
+    },
+    "perf": {
+      "title": "Bot performance",
+      "alone": "Closed by the bot alone",
+      "aloneHint": "{answered} of {total} messages",
+      "handedOff": "Passed to staff",
+      "topReason": "Mostly: {reason}",
+      "noHandoffs": "Nothing passed on",
+      "waiting": "Conversations waiting",
+      "waitingHint": "With a message not handled yet",
+      "held": "Conversations with a person",
+      "heldHint": "The bot is quiet in them",
+      "period": "Last 30 days",
+      "bad": "{n} answers marked as not good"
     }
   }
 }
