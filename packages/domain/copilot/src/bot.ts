@@ -22,6 +22,7 @@ import {
 } from '@rswim/contracts';
 import { and, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
 import { ledgerOfHousehold } from '@rswim/domain-billing';
+import { formsDueFor } from '@rswim/domain-enrollment';
 import { makeupOffers } from '@rswim/domain-attendance';
 import { commsRules, enqueueMessage, israelLocalDateTime, schoolName } from '@rswim/domain-comms';
 import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
@@ -90,6 +91,30 @@ export const BOT_TOOLS: CopilotTool[] = [
     name: 'family_makeups',
     description:
       "The children's makeup credits that are open or booked (creditId), with their expiry and the booked lesson.",
+    input_schema: obj({}, []),
+  },
+  {
+    name: 'pay_balance',
+    description:
+      'Send the family a payment link for their whole open balance. Answers already_sent (with the open link), nothing_to_pay, or the action status.',
+    input_schema: obj({}, []),
+  },
+  {
+    name: 'family_receipts',
+    description:
+      "The family's latest receipts (invoice-receipts and credit notes): date, number, total in agorot, and a link to open it.",
+    input_schema: obj({}, []),
+  },
+  {
+    name: 'missing_forms',
+    description:
+      'Forms the family still has to sign (registration, health declaration per child, regulations, photo consent) and the link where they sign them.',
+    input_schema: obj({}, []),
+  },
+  {
+    name: 'family_transport',
+    description:
+      "The children's school-to-pool transport: route, weekdays (0=Sunday), when it leaves school, the ride in minutes, where the child gets off, and today's ride status.",
     input_schema: obj({}, []),
   },
   {
@@ -200,7 +225,7 @@ const parse = <T>(schema: z.ZodType<T>, input: unknown): T => {
 /** An action the bot took through the brain's gate for this message. */
 export interface BotAction {
   id: string;
-  kind: 'report_absence' | 'book_makeup' | 'freeze';
+  kind: 'report_absence' | 'book_makeup' | 'freeze' | 'payment_link';
   status: 'done' | 'waiting' | 'failed';
 }
 
@@ -222,7 +247,10 @@ export function botToolbox(
   today: string,
   knowledge: Knowledge[],
   inbound: BotInbound,
+  /** Where links the bot sends point (the worker's RSWIM_PUBLIC_URL). */
+  publicUrl = '',
 ) {
+  const base = publicUrl.replace(/\/+$/, '');
   let decision: Decision | null = null;
   const actions: BotAction[] = [];
 
@@ -266,6 +294,7 @@ export function botToolbox(
     kind: K,
     params: ProposalParams[K],
     summary: ReturnType<typeof proposalSummary>,
+    amountAgorot: number | null = null,
   ) => {
     try {
       const r = await takeAction(tx, ctx, {
@@ -275,7 +304,7 @@ export function botToolbox(
         kind,
         params,
         summary,
-        amountAgorot: null,
+        amountAgorot,
       });
       actions.push({ id: r.id, kind, status: r.status });
       if (r.status === 'failed') return { status: 'failed', refusedBy: r.code };
@@ -315,6 +344,77 @@ export function botToolbox(
           unpaid: l.outstanding.slice(0, 10).map((o) => ({ date: o.occurredOn, agorot: o.amount })),
         };
       }
+      case 'pay_balance': {
+        const [open] = await rows<{ url: string | null }>(
+          tx,
+          sql`select url from payment_links where household_id = ${householdId} and status = 'open'
+              order by created_at desc limit 1`,
+        );
+        if (open) return { status: 'already_sent', url: open.url };
+        const l = await ledgerOfHousehold(tx, householdId);
+        if (l.balance <= 0) return { status: 'nothing_to_pay', balanceAgorot: l.balance };
+        const [h] = await rows<{ name: string }>(
+          tx,
+          sql`select display_name name from households where id = ${householdId}`,
+        );
+        const description = 'יתרה פתוחה בבית הספר';
+        return act(
+          'payment_link',
+          { householdId, amountAgorot: l.balance, description },
+          proposalSummary({
+            kind: 'payment_link',
+            family: h?.name ?? '',
+            amountAgorot: l.balance,
+            description,
+          }),
+          l.balance,
+        );
+      }
+      case 'family_receipts':
+        return (
+          await rows<{
+            id: string;
+            date: string;
+            number: string | null;
+            agorot: number;
+            kind: string;
+          }>(
+            tx,
+            sql`select id, to_char(coalesce(issued_at, created_at) at time zone 'Asia/Jerusalem', 'YYYY-MM-DD') date,
+                       number, total_agorot agorot, kind
+                from fiscal_documents where household_id = ${householdId} and status = 'issued'
+                order by coalesce(issued_at, created_at) desc limit 5`,
+          )
+        ).map((d) => ({ ...d, link: `${base}/parent/receipts/${d.id}` }));
+      case 'missing_forms': {
+        const { due, current } = await formsDueFor(tx, householdId);
+        const kids = await rows<{ id: string; name: string }>(
+          tx,
+          sql`select id, first_name name from students where household_id = ${householdId}`,
+        );
+        return {
+          missing: due.map((d) => ({
+            form: current.find((f) => f.id === d.formTemplateId)?.title ?? d.kind,
+            child: kids.find((k) => k.id === d.studentId)?.name ?? null,
+          })),
+          link: `${base}/parent/documents`,
+        };
+      }
+      case 'family_transport':
+        return rows(
+          tx,
+          sql`select st.first_name child, r.name route, r.weekdays,
+                     to_char(r.leaves_school_at, 'HH24:MI') "leavesSchoolAt", r.ride_minutes "rideMinutes",
+                     rr.dropoff_point "dropoffPoint", sc.name school,
+                     (select run.status from route_runs run
+                      where run.route_id = r.id and run.date = ${today}::date) "todayRun"
+              from route_riders rr
+              join students st on st.id = rr.student_id and st.household_id = ${householdId}
+              join transport_routes r on r.id = rr.route_id and r.active
+              join schools sc on sc.id = r.school_id
+              where rr.starts_on <= ${today}::date and (rr.ends_on is null or rr.ends_on > ${today}::date)
+              order by st.first_name, r.leaves_school_at limit 20`,
+        );
       case 'family_makeups':
         return rows(
           tx,
@@ -523,7 +623,7 @@ export async function runParentBot(
       tx,
       sql`select first_name n from students where household_id = ${householdId} order by dob`,
     );
-    const box = botToolbox(tx, ctx, householdId, today, knowledge, row);
+    const box = botToolbox(tx, ctx, householdId, today, knowledge, row, opts.publicUrl);
     const system = botSystem({
       school: await schoolName(tx, ctx.orgId),
       today,
@@ -753,6 +853,80 @@ export class FakeParentBotModel implements CopilotModel {
             .map(
               (x) =>
                 `השיעור הבא של ${x.child}: יום ${HE_DAYS[x.weekday]} ${dm(x.date)} בשעה ${x.startsAt}, ${x.group} ב${x.pool}.`,
+            )
+            .join('\n'),
+        );
+      }
+      case 'pay': {
+        const out = await use<
+          ActOut | { status: 'already_sent'; url: string | null } | { status: 'nothing_to_pay' }
+        >('pay_balance', {});
+        if (out?.status === 'nothing_to_pay') return reply('אין יתרה פתוחה, אין מה לשלם כרגע 🙂');
+        if (out?.status === 'already_sent')
+          return reply(
+            'url' in out && out.url
+              ? `הנה הקישור לתשלום: ${out.url}`
+              : 'קישור לתשלום כבר בדרך אליכם בהודעה נפרדת 🙏',
+          );
+        return afterAct(
+          out as ActOut | null,
+          'שלחנו לכם קישור לתשלום בהודעה נפרדת 🙏',
+          'לשלוח קישור לתשלום',
+        );
+      }
+      case 'receipts': {
+        const d =
+          (await use<{ date: string; number: string | null; agorot: number; link: string }[]>(
+            'family_receipts',
+            {},
+          )) ?? [];
+        if (!d.length) return reply('עוד לא הופקו לכם קבלות.');
+        return reply(
+          d
+            .slice(0, 3)
+            .map(
+              (x) =>
+                `קבלה${x.number ? ` ${x.number}` : ''} מ-${dm(x.date)} על ${Math.round(x.agorot / 100)} ₪: ${x.link}`,
+            )
+            .join('\n'),
+        );
+      }
+      case 'forms': {
+        const f = await use<{ missing: { form: string; child: string | null }[]; link: string }>(
+          'missing_forms',
+          {},
+        );
+        if (!f) return handoff(`שאלה על טפסים: "${input.prompt}"`);
+        if (!f.missing.length) return reply('כל הטפסים חתומים, הכול מסודר 👍');
+        return reply(
+          `נשאר לחתום על: ${f.missing.map((m) => (m.child ? `${m.form} (${m.child})` : m.form)).join(', ')}.\nאפשר לחתום כאן: ${f.link}`,
+        );
+      }
+      case 'transport': {
+        const t =
+          (await use<
+            {
+              child: string;
+              route: string;
+              weekdays: number[];
+              leavesSchoolAt: string;
+              school: string;
+              dropoffPoint: string | null;
+              todayRun: string | null;
+            }[]
+          >('family_transport', {})) ?? [];
+        if (!t.length) return handoff(`שאלה על הסעה, ואין לילדים הסעה רשומה: "${input.prompt}"`);
+        const RUN: Record<string, string> = {
+          planned: 'ההסעה של היום מתוכננת כרגיל',
+          underway: 'ההסעה של היום כבר בדרך',
+          done: 'ההסעה של היום הגיעה',
+          cancelled: 'ההסעה של היום בוטלה',
+        };
+        return reply(
+          t
+            .map(
+              (x) =>
+                `${x.child}: ${x.route}, בימי ${x.weekdays.map((w) => HE_DAYS[w]).join(', ')}, יוצאת מ${x.school} ב-${x.leavesSchoolAt}${x.dropoffPoint ? `, ירידה ב${x.dropoffPoint}` : ''}.${x.todayRun ? ` ${RUN[x.todayRun] ?? ''}.` : ''}`,
             )
             .join('\n'),
         );

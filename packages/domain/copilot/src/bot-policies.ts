@@ -164,14 +164,19 @@ ${c.today} (Asia/Jerusalem). The parent writing is ${c.guardian}; their children
 How to work:
 - Answer only from the family tools and from the school's rules and knowledge below. Never guess dates, times,
   prices, balances or rules. If they don't give you the answer, hand off.
-- You can do three things for the family: record that a child will miss a lesson (report_absence), book an open
-  makeup credit into a lesson from makeup_options (book_makeup), and ask to freeze a child's place between two dates
-  (request_freeze). Take the ids from the family tools; never guess them. Act only when the parent clearly asked for
+- You can do four things for the family: record that a child will miss a lesson (report_absence), book an open
+  makeup credit into a lesson from makeup_options (book_makeup), ask to freeze a child's place between two dates
+  (request_freeze), and send a payment link for the open balance (pay_balance) when the parent asks to pay. Take the ids from the family tools; never guess them. Act only when the parent clearly asked for
   it and the child and the lesson or dates are clear; if not, ask the parent in reply_to_parent instead of guessing.
 - Each action tool answers with a status. "done": it happened; tell the parent in one short line (the school also
   sends its usual confirmation). "waiting": the office confirms it soon; tell the parent exactly that. "failed": the
   school's rules refused it; tell the parent why in plain words. "not_allowed": you may not do this; hand off with
   reason needs_action.
+- Links you may send as they come from the tools, never made up: a receipt's link (family_receipts), the page with
+  the forms still to sign (missing_forms) and an open payment link (pay_balance "already_sent"). The school sends a new
+  payment link on its own WhatsApp message; tell the parent it is on its way. "nothing_to_pay": say there is nothing
+  open.
+- Transport questions (which bus, when it leaves, where the child gets off, today's ride) come from family_transport.
 - Anything else the parent wants done (cancel, leave the school, refund, move a child, change details) is not yours:
   hand off with reason needs_action.
 - Hand off with reason sensitive for health, injuries, complaints, refunds, billing disputes, safety, or a parent who
@@ -229,7 +234,17 @@ export function matchKnowledge<T extends { question: string }>(
 // ─── The rules-based stand-in (RSWIM_BOT_FAKE=1) ─────────────────────────────
 
 export type FakeBotIntent =
-  'absence' | 'book_makeup' | 'freeze' | 'makeups' | 'balance' | 'lessons' | 'other';
+  | 'absence'
+  | 'book_makeup'
+  | 'freeze'
+  | 'makeups'
+  | 'pay'
+  | 'receipts'
+  | 'forms'
+  | 'transport'
+  | 'balance'
+  | 'lessons'
+  | 'other';
 
 /** What the stand-in thinks a family asks about, from a few fixed Hebrew words. */
 export function fakeBotIntent(text: string): FakeBotIntent {
@@ -238,6 +253,15 @@ export function fakeBotIntent(text: string): FakeBotIntent {
   if (/להקפיא|הקפאה|תקפיא/.test(text)) return 'freeze';
   if (/(?:לקבוע|תקבע|תקבעי|לתאם|להזמין|לשבץ).*השלמ/.test(text)) return 'book_makeup';
   if (/השלמ/.test(text)) return 'makeups';
+  if (/קבלה|קבלות|חשבונית/.test(text)) return 'receipts';
+  if (
+    /קישור.*(?:תשלום|לשלם)|רוצה לשלם|איך (?:אפשר )?(?:לשלם|משלמים)|לשלם (?:עכשיו|באשראי|בביט)/.test(
+      text,
+    )
+  )
+    return 'pay';
+  if (/טופס|טפסים|הצהרת בריאות|תקנון|לחתום/.test(text)) return 'forms';
+  if (/הסעה|הסעות|אוטובוס|הסיעה/.test(text)) return 'transport';
   if (/חייב|חוב|יתרה|לשלם|תשלום/.test(text)) return 'balance';
   if (/מתי|באיזו שעה|באיזה יום|שיעור הבא|יש שיעור|מחר|השבוע/.test(text)) return 'lessons';
   return 'other';

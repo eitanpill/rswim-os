@@ -256,3 +256,45 @@ export async function submissionsOfHousehold(tx: Tx, householdId: string) {
     .where(eq(formSubmissions.householdId, householdId))
     .orderBy(desc(formSubmissions.acceptedAt));
 }
+
+/**
+ * WhatsApp track W6: families with a lesson tomorrow who still owe forms get a reminder with the signing page, at
+ * most once a week (the event's key carries the week). Returns how many families were reminded.
+ */
+export async function queueFormsReminders(
+  tx: Tx,
+  ctx: ServiceContext,
+  publicUrl: string,
+  /** The lesson day the reminder is for; tomorrow by default. */
+  lessonDay?: string,
+): Promise<number> {
+  const day = lessonDay ? sql`${lessonDay}::date` : sql`app.today() + 1`;
+  const due = (
+    await tx.execute<{ id: string; week: string }>(
+      sql`select distinct st.household_id id,
+                 (${day} - 1 - extract(dow from ${day} - 1)::int)::text week
+          from enrollments e
+          join students st on st.id = e.student_id
+          join sessions s on s.class_template_id = e.class_template_id and s.date = ${day}
+            and s.status = 'scheduled' and e.starts_on <= s.date and (e.ends_on is null or e.ends_on > s.date)
+          where e.status in ('trial_booked', 'active')`,
+    )
+  ).rows;
+  const url = `${publicUrl.replace(/\/+$/, '')}/parent/documents`;
+  let reminded = 0;
+  for (const h of due) {
+    const { due: owed, current } = await formsDueFor(tx, h.id);
+    if (owed.length === 0) continue;
+    const titles = [
+      ...new Set(owed.map((d) => current.find((f) => f.id === d.formTemplateId)?.title ?? d.kind)),
+    ];
+    await emit(tx, {
+      organizationId: ctx.orgId,
+      type: 'enrollment.forms_reminder',
+      payload: { householdId: h.id, forms: titles.join(', '), url },
+      idempotencyKey: `enrollment.forms_reminder:${h.id}:${h.week}`,
+    });
+    reminded += 1;
+  }
+  return reminded;
+}

@@ -196,6 +196,14 @@ describe('fakeBotIntent', () => {
     expect(fakeBotIntent('מתי השיעור הבא?')).toBe('lessons');
     expect(fakeBotIntent('איפה חונים?')).toBe('other');
   });
+  it('reads what an existing customer wants (W6): pay, receipts, forms, transport', () => {
+    expect(fakeBotIntent('אפשר לקבל קישור לתשלום?')).toBe('pay');
+    expect(fakeBotIntent('איך אפשר לשלם?')).toBe('pay');
+    expect(fakeBotIntent('כמה צריך לשלם?')).toBe('balance');
+    expect(fakeBotIntent('אפשר את הקבלה של החודש?')).toBe('receipts');
+    expect(fakeBotIntent('אילו טפסים חסרים?')).toBe('forms');
+    expect(fakeBotIntent('מתי יוצאת ההסעה?')).toBe('transport');
+  });
   it('reads requests to act: an absence, a makeup booking, a freeze', () => {
     expect(fakeBotIntent('דניאל לא יגיע מחר')).toBe('absence');
     expect(fakeBotIntent('נועה לא תוכל להגיע לשיעור')).toBe('absence');
