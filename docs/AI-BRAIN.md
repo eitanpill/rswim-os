@@ -72,6 +72,7 @@ looked-up names, and goes through `takeAction` with source `parent_whatsapp`:
 | `makeup_options` + `book_makeup` | `book_makeup` | `makeupOffers` / `bookMakeup` | Only clean fits: never a lesson the office would need to override a rule for |
 | `request_freeze` | `freeze` | `requestFreeze` | From today on; still waits for the office when `billing.freeze_requires_approval` is on |
 | `trial_options` + `book_trial` (new customers, `lead-bot.ts`) | `book_trial` | `bookLeadTrial` (family from the lead, child, `bookTrial`) | Only a lesson `trial_options` offered (open, a place, the child's age and gender); undo cancels the trial. When it ran, the trial fee goes as a `payment_link` at that kind's level |
+| Daily 10:00 (`runLeadFollowUps`, `lead-followup.ts`) | `lead_followup` | `sendLeadFollowUp` (one WhatsApp to the lead's number) | Only where the bot for new customers is on; once per lead and reason (after the trial, a missed trial, quiet 2-14 days after the bot answered); never while the office wrote in the last 3 days. Not undoable (sent) |
 
 The tool answers `done`, `waiting` (the family is told the office confirms soon), `failed` (the rules refused; the
 family is told why) or `not_allowed` (the kind is off; the bot hands the message to the office). The school's usual

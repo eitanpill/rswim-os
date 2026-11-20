@@ -289,5 +289,13 @@ describe('the evening summary', () => {
     expect(eveningText(day, 'en')).toContain('reply "yes <number>"');
     expect(eveningText(quiet, 'en')).toContain('Tomorrow: 12 lessons.');
     expect(eveningText(quiet, 'en')).toContain('Waiting for you: 0\n');
+    const leads = { ...day, leads: { new: 3, trials: 1, joined: 0 } };
+    expect(eveningText(leads, 'he')).toContain(
+      'לקוחות חדשים: 3 פניות, 1 קבעו שיעור ניסיון, 0 הצטרפו\nמחר',
+    );
+    expect(eveningText(leads, 'en')).toContain('New customers: 3 new, 1 booked a trial, 0 joined');
+    expect(eveningText({ ...day, leads: { new: 0, trials: 0, joined: 0 } }, 'he')).not.toContain(
+      'לקוחות חדשים',
+    );
   });
 });

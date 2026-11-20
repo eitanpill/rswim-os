@@ -131,6 +131,16 @@ export async function sendEveningSummary(
         from ${schema.copilotActions}`,
   );
   const facts = d ?? { alone: 0, approved: 0, waiting: 0, failed: 0, lessons: 0, uncovered: 0 };
+  const [leadsToday] = await rows<{ new: number; trials: number; joined: number }>(
+    tx,
+    sql`select
+          count(*) filter (where (created_at at time zone 'Asia/Jerusalem')::date = ${today}::date)::int new,
+          count(*) filter (where stage = 'trial_booked'
+                           and (stage_changed_at at time zone 'Asia/Jerusalem')::date = ${today}::date)::int trials,
+          count(*) filter (where stage = 'joined'
+                           and (stage_changed_at at time zone 'Asia/Jerusalem')::date = ${today}::date)::int joined
+        from ${schema.leads}`,
+  );
   const out = await enqueueMessage(tx, ctx, {
     guardian: {
       id: null,
@@ -151,6 +161,7 @@ export async function sendEveningSummary(
           failed: facts.failed,
           tomorrowLessons: facts.lessons,
           tomorrowUncovered: facts.uncovered,
+          leads: leadsToday,
         },
         locale,
       ),

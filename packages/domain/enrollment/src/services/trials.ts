@@ -293,3 +293,27 @@ export async function trialsInSessions(tx: Tx, sessionIds: readonly string[]) {
     .from(trials)
     .where(and(inArray(trials.sessionId, [...sessionIds]), ne(trials.status, 'cancelled')));
 }
+
+/**
+ * The day-before reminder (WhatsApp track W4): every trial still booked for tomorrow (Israel date) emits one
+ * `enrollment.trial_reminder` event, idempotent per trial, and the school's messaging automation sends it within the
+ * send window. A trial booked in the last 12 hours already had its confirmation, so it is not reminded again.
+ */
+export async function queueTrialReminders(tx: Tx, ctx: ServiceContext): Promise<number> {
+  const due = (
+    await tx.execute<{ id: string; student_id: string; session_id: string }>(
+      sql`select t.id, t.student_id, t.session_id from trials t
+          where t.date = app.today() + 1 and t.status = 'booked'
+            and t.created_at < now() - interval '12 hours'`,
+    )
+  ).rows;
+  for (const t of due) {
+    await emit(tx, {
+      organizationId: ctx.orgId,
+      type: 'enrollment.trial_reminder',
+      payload: { trialId: t.id, studentId: t.student_id, sessionId: t.session_id },
+      idempotencyKey: `enrollment.trial_reminder:${t.id}`,
+    });
+  }
+  return due.length;
+}

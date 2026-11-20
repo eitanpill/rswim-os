@@ -1601,7 +1601,8 @@
       "venue_migration_reverted": "Venue move cancelled",
       "bot_handoff": "Bot passed it to the team",
       "dive_reminder": "Dive reminder for tomorrow",
-      "mandate_request": "Standing order sign-up request"
+      "mandate_request": "Standing order sign-up request",
+      "trial_reminder": "Trial lesson reminder for tomorrow"
     },
     "messageStatus": {
       "queued": "Queued",
@@ -3518,7 +3519,8 @@
       "transport_rider_dropped": "A child got off at their point",
       "scheduling_venue_migrated": "Venue move done",
       "scheduling_venue_migration_reverted": "Venue move reverted",
-      "dive_session_reminder": "Daily diver reminder (day before)"
+      "dive_session_reminder": "Daily diver reminder (day before)",
+      "enrollment_trial_reminder": "Trial lesson tomorrow (day before)"
     },
     "decision": {
       "send": "Sent now",
@@ -4146,7 +4148,8 @@
       "cancelLessonsAll": "Cancel all lessons from {date} to {until} ({sessions} lessons, {reason})",
       "substitute": "Find a substitute for {staff} in {group}, {date} {time}",
       "substituteOpen": "Find an instructor for {group}, {date} {time}",
-      "trial": "Book a trial for {student} ({family} family) in {group}, {date} {time}"
+      "trial": "Book a trial for {student} ({family} family) in {group}, {date} {time}",
+      "followUp": "Send {who} a follow-up: \"{text}\""
     },
     "errors": {
       "ownerOnly": "The copilot is for the owner only",
@@ -5653,6 +5656,10 @@
       "book_trial": {
         "label": "Booking a trial for a new customer",
         "hint": "The bot opens the family and books the trial lesson the customer chose from the open lessons"
+      },
+      "lead_followup": {
+        "label": "Follow-ups to new customers",
+        "hint": "After the trial an offer to continue (or a new date), and one nudge to whoever stopped answering"
       }
     },
     "status": {
@@ -6520,6 +6527,19 @@
       "note": "Note",
       "child_name": "Child's name",
       "child_dob": "Date of birth"
+    },
+    "sources": {
+      "title": "Where new customers came from",
+      "hint": "Leads opened in the month, by source, and what happened to them since.",
+      "source": "Source",
+      "leads": "Leads",
+      "trials": "Booked a trial",
+      "joined": "Joined",
+      "rate": "Joined %",
+      "total": "Total",
+      "empty": "No leads this month.",
+      "prev": "Previous month",
+      "next": "Next month"
     }
   }
 }

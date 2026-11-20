@@ -170,6 +170,16 @@ export const RESOLVERS: Record<string, Resolver> = {
     const l = await slotText(tx, p.slotId);
     return l ? forStudents(tx, [p.studentId], (_, loc) => lessonVars(l)(loc)) : [];
   },
+  // The day before a trial lesson that is still booked (WhatsApp track W4).
+  'enrollment.trial_reminder': async (tx, raw) => {
+    const p = z.looseObject({ trialId: uuid, studentId: uuid, sessionId: uuid }).parse(raw);
+    const live = await tx.execute(
+      sql`select 1 from trials where id = ${p.trialId} and status = 'booked' and date > app.today()`,
+    );
+    if (!live.rows.length) return [];
+    const l = await lessonOf(tx, p.sessionId);
+    return l ? forStudents(tx, [p.studentId], (_, loc) => lessonVars(l)(loc)) : [];
+  },
   'enrollment.trial_converted': async (tx, raw) => {
     const p = z
       .looseObject({ studentId: uuid, enrollmentId: uuid, startsOn: z.iso.date() })

@@ -386,6 +386,10 @@ describe('stage 3: cancelling lessons and substitutes', () => {
       code: 'copilot.summary.trial',
       params: trial,
     });
+    expect(proposalSummary({ kind: 'lead_followup', who: 'רונית', text: 'היי' })).toEqual({
+      code: 'copilot.summary.followUp',
+      params: { who: 'רונית', text: 'היי' },
+    });
   });
 
   it('understands cancelling a day and finding a substitute in the fake', () => {

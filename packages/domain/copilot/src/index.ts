@@ -12,3 +12,5 @@ export * from './learning-policies';
 export * from './learning';
 export * from './lead-bot-policies';
 export * from './lead-bot';
+export * from './lead-followup';
+export * from './lead-trial';

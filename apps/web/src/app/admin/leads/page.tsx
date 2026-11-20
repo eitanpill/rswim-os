@@ -1,7 +1,13 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { displayPhoneIL, LEAD_SOURCES, OPEN_LEAD_STAGES, type LeadStage } from '@rswim/contracts';
-import { listLeads, type LeadRow } from '@rswim/domain-crm';
+import {
+  displayPhoneIL,
+  LEAD_SOURCES,
+  OPEN_LEAD_STAGES,
+  type LeadSource,
+  type LeadStage,
+} from '@rswim/contracts';
+import { leadSources, listLeads, monthSteps, type LeadRow } from '@rswim/domain-crm';
 import { Badge, buttonVariants, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import {
   ActionButton,
@@ -31,11 +37,18 @@ const NEXT: Partial<Record<LeadStage, LeadStage>> = {
 export default async function LeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; month?: string }>;
 }) {
-  const { q = '' } = await searchParams;
+  const { q = '', month: asked } = await searchParams;
   const t = await getTranslations('leads');
-  const list = await withSession((tx) => listLeads(tx, { q }));
+  const thisMonth = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' })
+    .format(new Date())
+    .slice(0, 7);
+  const month =
+    asked && /^\d{4}-(0[1-9]|1[0-2])$/.test(asked) && asked <= thisMonth ? asked : thisMonth;
+  const [list, sources] = await withSession((tx) =>
+    Promise.all([listLeads(tx, { q }), leadSources(tx, month)]),
+  );
   const open = (stage: LeadStage) => list.filter((l) => l.stage === stage);
   const closed = list.filter((l) => l.stage === 'joined' || l.stage === 'lost');
   const waiting = list.filter((l) => l.stage === 'new' || l.attention !== null).length;
@@ -139,6 +152,8 @@ export default async function LeadsPage({
           </details>
         </Card>
 
+        <SourcesCard month={month} thisMonth={thisMonth} report={sources} t={t} />
+
         {closed.length ? (
           <Card>
             <details>
@@ -173,6 +188,90 @@ export default async function LeadsPage({
         ) : null}
       </div>
     </>
+  );
+}
+
+/** Where the month's leads came from (WhatsApp track W4), with the months before it a tap away. */
+function SourcesCard({
+  month,
+  thisMonth,
+  report,
+  t,
+}: {
+  month: string;
+  thisMonth: string;
+  report: Awaited<ReturnType<typeof leadSources>>;
+  t: Awaited<ReturnType<typeof getTranslations<'leads'>>>;
+}) {
+  const { prev, next } = monthSteps(month);
+  const [y, m] = month.split('-');
+  const rate = (r: number | null) => (r === null ? '—' : `${r}%`);
+  return (
+    <Card data-testid="lead-sources">
+      <CardTitle
+        aside={
+          <span className="flex items-center gap-2 text-sm">
+            <Link
+              href={`?month=${prev}`}
+              aria-label={t('sources.prev')}
+              data-testid="lead-sources-prev"
+            >
+              →
+            </Link>
+            <span className="tabular-nums" dir="ltr">
+              {m}/{y}
+            </span>
+            {month < thisMonth ? (
+              <Link href={`?month=${next}`} aria-label={t('sources.next')}>
+                ←
+              </Link>
+            ) : null}
+          </span>
+        }
+      >
+        {t('sources.title')}
+      </CardTitle>
+      {report.rows.length === 0 ? (
+        <p className="text-sm text-ink-muted">{t('sources.empty')}</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-start text-ink-muted">
+                <th className="py-1 text-start font-medium">{t('sources.source')}</th>
+                <th className="py-1 text-end font-medium">{t('sources.leads')}</th>
+                <th className="py-1 text-end font-medium">{t('sources.trials')}</th>
+                <th className="py-1 text-end font-medium">{t('sources.joined')}</th>
+                <th className="py-1 text-end font-medium">{t('sources.rate')}</th>
+              </tr>
+            </thead>
+            <tbody className="tabular-nums">
+              {report.rows.map((r) => (
+                <tr
+                  key={r.source}
+                  className="border-t border-line/60"
+                  data-testid={`lead-source-${r.source}`}
+                >
+                  <td className="py-1">{t(`source.${r.source as LeadSource}`)}</td>
+                  <td className="py-1 text-end">{r.leads}</td>
+                  <td className="py-1 text-end">{r.trials}</td>
+                  <td className="py-1 text-end">{r.joined}</td>
+                  <td className="py-1 text-end">{rate(r.rate)}</td>
+                </tr>
+              ))}
+              <tr className="border-t border-line font-semibold">
+                <td className="py-1">{t('sources.total')}</td>
+                <td className="py-1 text-end">{report.total.leads}</td>
+                <td className="py-1 text-end">{report.total.trials}</td>
+                <td className="py-1 text-end">{report.total.joined}</td>
+                <td className="py-1 text-end">{rate(report.total.rate)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="mt-2 text-xs text-ink-muted">{t('sources.hint')}</p>
+    </Card>
   );
 }
 

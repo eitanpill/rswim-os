@@ -185,6 +185,7 @@ const KIND_TEXT: Record<Locale, Record<AgentActionKind, string>> = {
     cancel_lessons: 'ביטול שיעורים',
     open_makeup_slots: 'פתיחת מקומות להשלמה',
     book_trial: 'קביעת שיעורי ניסיון ללקוחות חדשים',
+    lead_followup: 'הודעות מעקב ללקוחות חדשים',
   },
   en: {
     report_absence: 'recording absences',
@@ -198,6 +199,7 @@ const KIND_TEXT: Record<Locale, Record<AgentActionKind, string>> = {
     cancel_lessons: 'cancelling lessons',
     open_makeup_slots: 'opening makeup slots',
     book_trial: 'booking trials for new customers',
+    lead_followup: 'follow-ups to new customers',
   },
 };
 

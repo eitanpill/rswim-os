@@ -10,8 +10,8 @@ until a business's Meta account is connected.
 |---|---|---|
 | W1 Leads in one place | A new number on WhatsApp opens a lead; one list for swim and dive; triggers move it on | Done (PR #57) |
 | W2 The bot answers a new customer | Prices, programs, open seats, FAQ; collects details one question at a time; modules (lodging) plug in | Done (PR #58) |
-| W3 The bot closes | Books a trial or an intro dive, sends a pre-filled join link, health form and payment link, by the brain's levels | **This PR** |
-| W4 Follow-up and lead report | After-trial offer and reminder, one nudge for silent leads, morning count, monthly sources report | |
+| W3 The bot closes | Books a trial or an intro dive, sends a pre-filled join link, health form and payment link, by the brain's levels | Done (PR #59) |
+| W4 Follow-up and lead report | After-trial offer and reminder, one nudge for silent leads, morning count, monthly sources report | **This PR** |
 | W5 Meta Cloud API direct (on fakes) | Send/receive without GHL, the 24-hour window, approved templates with variables, SMS/app fallback | |
 | W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | |
 | W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | |
@@ -87,3 +87,23 @@ Always a person: discounts and refunds, complaints, health and safety, leaving, 
   family of missing forms on WhatsApp is W6.
 - The stand-in understands "שיעור ניסיון", a child's name with a date ("נועה 12.3.2020"), a number picked from its
   list, and "קישור להרשמה".
+
+## W4: follow-up and lead report
+
+- The day before a trial lesson (17:00, worker `enrollment-trial-reminders`, swim schools) every trial still booked
+  for tomorrow emits `enrollment.trial_reminder`, and the new `trial_reminder` template goes to the family like any
+  messaging automation (switchable in the messages settings). A trial booked in the last 12 hours is not reminded on
+  top of its confirmation.
+- Every day at 10:00 (worker `brain-lead-followups`) the brain follows up new customers through its gate as a new kind,
+  `lead_followup` (ceiling auto, "approve" in the careful profile): the day after a trial (for a week) an offer to
+  continue, with the trial-fee offset date when there is one; a new date when the child did not come; and one nudge to
+  a lead that went quiet two to fourteen days after the bot answered. Each reason goes once per lead, never while the
+  office wrote to the number in the last three days, and only where the bot for new customers is on
+  (`followUpFor`, `lead-bot-policies.ts`; `runLeadFollowUps`, `lead-followup.ts`). The message goes as the brain, so
+  the bot answers the reply.
+- The owner's evening summary adds a line for the day's new customers (new leads, trials booked, joined) when there
+  were any.
+- `/admin/leads` shows where the month's leads came from: leads, trials booked, joined and the joining rate per
+  source, with the months before it a tap away (`leadSources`, `sourcesReport`).
+- Real WhatsApp only lets a business start a conversation after 24 hours with an approved template; the follow-ups and
+  reminders move onto templates with W5 (Meta Cloud API).
