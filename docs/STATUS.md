@@ -21,6 +21,12 @@ freediving clubs (`/admin/leads`, the club's front desk), and join requests, fam
 lead on. Proof: `packages/domain/comms/test/leads.test.ts`, `packages/domain/crm/test/lead-policies.test.ts` (100%),
 `apps/web/e2e/leads.spec.ts`.
 
+W2 the bot answers a new customer (`comms.lead_bot_enabled`): prices, programs and open places from the business's
+own data, its approved answers, the details it collects one question at a time on the lead, a person for sensitive
+questions or whoever asks, and modules (lodging) adding their facts and tools. Proof:
+`packages/domain/copilot/test/lead-bot-policies.test.ts` (100%), `packages/seed/test/lead-bot.test.ts` (swim and
+dive demo tenants), `apps/web/e2e/leads.spec.ts`.
+
 ## Freediving clubs (vertical)
 
 A freediving club runs on the same platform with its own module and screens (`docs/FREEDIVING.md`): the owner's

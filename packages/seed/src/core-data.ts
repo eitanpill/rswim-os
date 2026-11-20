@@ -262,7 +262,7 @@ export async function seedCoreData(
       JSON.stringify({
         ...DEFAULT_ORG_RULES,
         copilot: { enabled: true },
-        comms: { ...DEFAULT_ORG_RULES.comms, bot_enabled: true },
+        comms: { ...DEFAULT_ORG_RULES.comms, bot_enabled: true, lead_bot_enabled: true },
       }),
     ],
   );

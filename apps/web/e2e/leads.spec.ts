@@ -7,6 +7,7 @@
 import { randomInt, randomUUID, sign } from 'node:crypto';
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { e2eGhlKey } from './ghl-key';
+import { runBotOnLatest } from './worker';
 
 /** A signed GHL webhook, as WhatsApp delivers it. */
 async function whatsapp(request: APIRequestContext, phone: string, body: string) {
@@ -81,4 +82,33 @@ test('the freediving club front desk shows the same lead list', async ({ page })
   await expect(leads).toContainText('בשיחה');
   await expect(leads).toContainText('נרשמו');
   await expect(leads.getByTestId('lead').first()).toBeVisible();
+});
+
+test('the bot answers a new customer and collects their details one question at a time', async ({
+  page,
+  request,
+}) => {
+  const digits = String(randomInt(1_000_000, 9_999_999));
+  const phone = `+97258${digits}`;
+  await whatsapp(request, phone, 'היי');
+  expect(await runBotOnLatest(phone)).toMatchObject({ outcome: 'answered' });
+  await whatsapp(request, phone, 'קוראים לי שירה');
+  await runBotOnLatest(phone);
+  await whatsapp(request, phone, 'כמה עולה? הבן שלי בן 6');
+  await runBotOnLatest(phone);
+
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin/leads');
+  const card = page
+    .getByTestId('lead-column-talking')
+    .getByTestId('lead')
+    .filter({ hasText: 'שירה' });
+  await card.getByTestId('lead-open').click();
+  await expect(page.getByTestId('lead-message-out').first()).toContainText('איך קוראים לך');
+  await expect(page.getByTestId('lead-message-out').last()).toContainText('₪');
+  await expect(page.getByTestId('lead-bot-details')).toContainText('6');
+
+  await page.goto('/admin/messages/bot');
+  await expect(page.getByTestId('bot-leads')).toContainText('עונה גם ללקוחות חדשים');
+  await expect(page.getByText('לקוח/ה חדש/ה: שירה').first()).toBeVisible();
 });

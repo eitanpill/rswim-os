@@ -1,0 +1,173 @@
+import { describe, expect, it } from 'vitest';
+import {
+  agesInWords,
+  fakeLeadDetails,
+  fakeLeadIntent,
+  leadBotRoute,
+  leadBotSystem,
+  LeadDetailsPatch,
+  mergeLeadDetails,
+  nextLeadQuestion,
+  offerLines,
+  shekels,
+  wantsHuman,
+} from '../src/lead-bot-policies';
+
+const facts = {
+  enabled: true,
+  open: true,
+  stage: 'new' as const,
+  officeTalking: false,
+  text: 'כמה עולה?',
+};
+
+describe('leadBotRoute', () => {
+  it('skips when off, closed, joined or the office is talking', () => {
+    expect(leadBotRoute({ ...facts, enabled: false })).toEqual({ route: 'skip', reason: 'off' });
+    expect(leadBotRoute({ ...facts, open: false })).toEqual({ route: 'skip', reason: 'closed' });
+    expect(leadBotRoute({ ...facts, stage: 'joined' })).toEqual({
+      route: 'skip',
+      reason: 'joined',
+    });
+    expect(leadBotRoute({ ...facts, officeTalking: true })).toEqual({
+      route: 'skip',
+      reason: 'office_talking',
+    });
+  });
+  it('hands sensitive messages and requests for a person to the office', () => {
+    expect(leadBotRoute({ ...facts, text: 'יש לו אסתמה' })).toEqual({
+      route: 'handoff',
+      reason: 'sensitive',
+    });
+    expect(leadBotRoute({ ...facts, text: 'אפשר נציג?' })).toEqual({
+      route: 'handoff',
+      reason: 'needs_action',
+    });
+    expect(leadBotRoute({ ...facts, stage: 'lost' })).toEqual({ route: 'ask' });
+    expect(wantsHuman('call me please')).toBe(true);
+  });
+});
+
+describe('details', () => {
+  it('asks the next missing detail by kind of business', () => {
+    expect(nextLeadQuestion('swim', { name: null, details: {} })).toBe('name');
+    expect(nextLeadQuestion('swim', { name: 'מיכל', details: { child_age: '5' } })).toBe('area');
+    expect(nextLeadQuestion('swim', { name: ' ', details: {} })).toBe('name');
+    expect(
+      nextLeadQuestion('swim', {
+        name: 'מיכל',
+        details: { child_age: '5', area: 'גילה', days: 'ב׳' },
+      }),
+    ).toBeNull();
+    expect(nextLeadQuestion('freediving', { name: 'דן', details: { experience: 3 } })).toBe(
+      'experience',
+    );
+  });
+  it('validates and merges a patch', () => {
+    expect(LeadDetailsPatch.safeParse({}).success).toBe(false);
+    expect(LeadDetailsPatch.safeParse({ area: 'גילה' }).success).toBe(true);
+    expect(
+      mergeLeadDetails(
+        { name: 'א', details: { area: 'x' } },
+        { area: 'גילה', interest: 'תינוקות' },
+      ),
+    ).toEqual({ name: 'א', interest: 'תינוקות', details: { area: 'גילה' } });
+    expect(mergeLeadDetails({ name: null, details: {} }, { name: 'דנה' })).toEqual({
+      name: 'דנה',
+      interest: null,
+      details: {},
+    });
+  });
+});
+
+describe('offers', () => {
+  it('words prices and ages', () => {
+    expect(shekels(32000)).toBe('320 ₪');
+    expect(shekels(32050)).toBe('320.50 ₪');
+    expect(agesInWords(null, null)).toBeNull();
+    expect(agesInWords(6, 36)).toBe('גילאי 0.5-3');
+    expect(agesInWords(48, null)).toBe('מגיל 4');
+    expect(agesInWords(null, 72)).toBe('עד גיל 6');
+  });
+  it('lines with and without open places', () => {
+    expect(
+      offerLines([
+        {
+          name: 'פעוטות',
+          who: 'גילאי 2-4',
+          prices: [{ label: 'חודשי', agorot: 30000 }],
+          openings: ['יום ב׳ 17:00'],
+        },
+        { name: 'פרטי', who: null, prices: [], openings: [] },
+      ]),
+    ).toEqual([
+      'פעוטות · גילאי 2-4 · חודשי 300 ₪ — פנוי: יום ב׳ 17:00',
+      'פרטי — אין כרגע מקום פנוי',
+    ]);
+  });
+});
+
+describe('leadBotSystem', () => {
+  const base = {
+    business: 'בית ספר',
+    vertical: 'swim' as const,
+    today: '2026-11-20',
+    city: 'ירושלים',
+    lead: { name: 'מיכל', details: { child_age: '5', area: '' }, phone: '+972500000000' },
+    next: 'area' as const,
+    facts: ['rule'],
+    moduleFacts: ['rooms'],
+    knowledge: [{ id: 'k1', question: 'q', answer: 'a' }],
+  };
+  it('tells the model what it knows, what to ask and what the business offers', () => {
+    const s = leadBotSystem(base);
+    expect(s).toContain("children's swim school in Israel (ירושלים)");
+    expect(s).toContain('name: מיכל; child_age: 5.');
+    expect(s).toContain('The next detail to ask for: area');
+    expect(s).toContain('- rooms');
+    expect(s).toContain('[k1]');
+  });
+  it('without facts, knowledge, modules or anything known', () => {
+    const s = leadBotSystem({
+      ...base,
+      vertical: 'freediving',
+      city: null,
+      lead: { name: null, details: {}, phone: '' },
+      next: null,
+      facts: [],
+      moduleFacts: [],
+      knowledge: [],
+    });
+    expect(s).toContain('a freediving club in Israel.');
+    expect(s).toContain('nothing yet');
+    expect(s).toContain('none, you have what you need');
+    expect(s).toContain('- (none)');
+    expect(s).toContain('- (empty)');
+    expect(s).not.toContain('More the business offers');
+  });
+});
+
+describe('the stand-in', () => {
+  it('reads the intent', () => {
+    expect(fakeLeadIntent('כמה זה עולה לחודש בבקשה?')).toBe('price');
+    expect(fakeLeadIntent('באילו ימים יש קבוצות לגיל שלוש?')).toBe('schedule');
+    expect(fakeLeadIntent('איפה אתם נמצאים בדיוק בעיר?')).toBe('where');
+    expect(fakeLeadIntent('שלום, רציתי לשאול משהו ארוך על החוגים')).toBe('greeting');
+    expect(fakeLeadIntent('אני')).toBe('greeting');
+    expect(fakeLeadIntent('רציתי לשאול אם הילד צריך להביא משקפת')).toBe('other');
+  });
+  it('takes stated details and the short answer to the question asked', () => {
+    expect(fakeLeadDetails('קוראים לי מיכל לוי, הבת שלי בת 4', null)).toEqual({
+      name: 'מיכל לוי',
+      child_age: '4',
+    });
+    expect(fakeLeadDetails('ארבע וחצי', 'child_age')).toEqual({});
+    expect(fakeLeadDetails('כמעט 5', 'child_age')).toEqual({ child_age: '5' });
+    expect(fakeLeadDetails('דנה', 'name')).toEqual({ name: 'דנה' });
+    expect(fakeLeadDetails('היי', 'name')).toEqual({});
+    expect(fakeLeadDetails('גילה', 'area')).toEqual({ area: 'גילה' });
+    expect(fakeLeadDetails('איפה זה?', 'area')).toEqual({});
+    expect(fakeLeadDetails('שמי דן, בן 30', 'name')).toEqual({ name: 'דן', child_age: '30' });
+    expect(fakeLeadDetails('שלום', null)).toEqual({});
+  });
+});

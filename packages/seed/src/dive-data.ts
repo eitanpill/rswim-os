@@ -2240,6 +2240,12 @@ export async function seedDiveData(client: pg.PoolClient): Promise<DiveDataSumma
   await m(DIVE_PERSONAS.diveInstructor.userId, 'instructor', { staff: hero.staff.yoav });
   await m(DIVE_PERSONAS.diveCustomer.userId, 'parent', { guardian });
 
+  // The hero club's WhatsApp bot answers new customers (WhatsApp track W2); still needs a fake flag or a key to run.
+  await client.query(
+    `insert into policy_sets (organization_id, scope_type, effective_from, rules, notes)
+     values ($1, 'org', current_date - 365, $2, 'הבוט עונה ללקוחות חדשים (דמו)')`,
+    [DIVE_ORG.id, JSON.stringify({ comms: { lead_bot_enabled: true } })],
+  );
   await client.query(
     `insert into org_subscriptions (organization_id, plan_code, status, mandate_id, trial_ends_on)
      values ($1, 'pro', 'active', 'fake-mandate-dive', null), ($2, 'growth', 'trialing', null, current_date + 9)

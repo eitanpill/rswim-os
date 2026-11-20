@@ -42,6 +42,7 @@ export interface CommsRules {
   aiTriage: boolean;
   minConfidence: number;
   botEnabled: boolean;
+  leadBotEnabled: boolean;
 }
 
 /** The comms part of resolved PolicyRules, with the documented defaults (docs/POLICIES.md §12). */
@@ -56,6 +57,7 @@ export function commsRulesFrom(rules: PolicyRules): CommsRules {
     aiTriage: c.ai_triage ?? false,
     minConfidence: c.triage_min_confidence_pct ?? 80,
     botEnabled: c.bot_enabled ?? false,
+    leadBotEnabled: c.lead_bot_enabled ?? false,
   };
 }
 
