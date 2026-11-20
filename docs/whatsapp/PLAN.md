@@ -13,7 +13,7 @@ until a business's Meta account is connected.
 | W3 The bot closes | Books a trial or an intro dive, sends a pre-filled join link, health form and payment link, by the brain's levels | Done (PR #59) |
 | W4 Follow-up and lead report | After-trial offer and reminder, one nudge for silent leads, morning count, monthly sources report | Done (PR #60) |
 | W5 Meta Cloud API direct (on fakes) | Send/receive without GHL, the 24-hour window, approved templates with variables, SMS/app fallback | Done (PR #61, SMS/app fallback later) |
-| W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | Families done; divers next |
+| W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | Done |
 | W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | |
 | W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | |
 | W9 One conversations screen | Every conversation in one place, "I'm taking over" per chat, bot performance | |
@@ -155,6 +155,22 @@ Always a person: discounts and refunds, complaints, health and safety, leaving, 
   gets the new `forms_reminder` template with the forms' names and the signing page, once a week at most (the event's
   key carries the week). The owner can switch it off with the other automations.
 - The stand-in understands "קישור לתשלום" / "איך משלמים", "קבלה", "טפסים", "הסעה".
-- Divers (the club's customers) on WhatsApp come in the second part of W6: their bookings, passes and missing forms,
-  and booking a dive from the chat.
+
+## W6: the club on WhatsApp, divers (second part)
+
+- A message from a freediving club's registered diver (the phone on `dive_divers`) goes to the divers' bot
+  (`diver-bot.ts`, through `runParentBot`), under the same switch as the parents' bot (`comms.bot_enabled`, plan
+  feature `parent_bot`). It never opens a lead.
+- Tools, each bound to the writing diver: `my_dives` (coming bookings, with the payment link of one still unpaid),
+  `my_passes` (their passes and the ones the club sells), `open_sessions` (what their own app would let them book in
+  the next 10 days), `my_forms` (forms still to sign, with `/dive/me/forms`), and `book_dive`.
+- `book_dive` books exactly as the front desk would for a diver who asked: a usable pass covers a training session,
+  a free session is confirmed, and anything else holds the place as `pending_payment` with the link
+  `/dive/me/pay/<bookingId>` (the diver can also pay at the club). It does not go through the brain's gate: the diver
+  can do the same alone in the app, and nothing is charged.
+- Cancelling, moving a booking, gear, depth limits and medical clearance go to the desk; health, incidents and
+  complaints never reach the model.
+- `bot_replies.diver_id` (migration 0074) records whom the bot answered. Migration 0075 fixes
+  `app.dive_seats_taken` for the worker: it counted no seats under the system role.
+- The stand-in understands "מה פנוי", "להזמין N", "מתי הצלילה הבאה", "כרטיסייה", "טפסים".
 

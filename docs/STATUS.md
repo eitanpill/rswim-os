@@ -51,6 +51,11 @@ brain (once), the family's receipts with their links, the forms still to sign wi
 transport; at 17:00 a family with a lesson tomorrow who owes forms gets a reminder, once a week at most. Proof:
 `packages/seed/test/bot-customers.test.ts`, `packages/domain/copilot/test/bot-policies.test.ts`.
 
+W6 (divers) a club's registered diver on WhatsApp: the bot lists what they can book, books the session they pick (a
+pass covers it, or the place is held with a payment link), and answers about their coming dives, passes and missing
+forms; the rest goes to the desk. Proof: `packages/seed/test/diver-bot.test.ts`,
+`packages/domain/copilot/test/diver-bot-policies.test.ts` (100%).
+
 ## Freediving clubs (vertical)
 
 A freediving club runs on the same platform with its own module and screens (`docs/FREEDIVING.md`): the owner's

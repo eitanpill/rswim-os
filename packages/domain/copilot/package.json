@@ -20,6 +20,7 @@
     "@rswim/domain-billing": "workspace:*",
     "@rswim/domain-comms": "workspace:*",
     "@rswim/domain-crm": "workspace:*",
+    "@rswim/domain-dive": "workspace:*",
     "@rswim/domain-enrollment": "workspace:*",
     "@rswim/domain-core": "workspace:*",
     "@rswim/domain-people": "workspace:*",
