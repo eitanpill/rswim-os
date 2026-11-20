@@ -21,7 +21,7 @@ import { and, asc, desc, eq, schema, sql, type Tx } from '@rswim/db';
 import { enqueueMessage } from '@rswim/domain-comms';
 import type { ServiceContext } from '@rswim/domain-core';
 import { instructorDay } from '@rswim/domain-dive';
-import { aiAllowed } from '@rswim/domain-platform';
+import { aiAllowed, hasFeature } from '@rswim/domain-platform';
 import { todayIL } from '@rswim/domain-scheduling';
 import { resolvePolicyFor } from '@rswim/domain-settings';
 import type { CopilotModel } from '@rswim/integrations';
@@ -179,6 +179,8 @@ async function ownerQuestion(
   // With the assistant off, or no model in the worker, her message stays in the inbox.
   if (!(await copilotAvailable(tx, model)).ok)
     return { outcome: 'skipped', reason: 'not_for_brain' };
+  // The assistant belongs to plans that include it, on WhatsApp as on its screen.
+  if (!(await hasFeature(tx, 'copilot'))) return { outcome: 'skipped', reason: 'not_for_brain' };
   if (!(await aiAllowed(tx))) return { outcome: 'skipped', reason: 'ai_cap' };
   const userId = await schoolOwner(tx);
   if (!userId) return { outcome: 'skipped', reason: 'no_owner' };

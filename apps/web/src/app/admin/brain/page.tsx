@@ -14,6 +14,7 @@ import {
   listAgentActions,
   ranAloneToday,
 } from '@rswim/domain-copilot';
+import { hasFeature } from '@rswim/domain-platform';
 import { Badge, Card, CardTitle, PageHeader } from '@rswim/ui';
 import {
   ActionButton,
@@ -48,6 +49,8 @@ export default async function BrainPage() {
           waiting: await listAgentActions(tx, { statuses: ['proposed'], limit: 20 }),
           aloneToday: await ranAloneToday(tx),
           learning: await learningState(tx),
+          // The assistant's screen exists only on plans that include it.
+          chat: await hasFeature(tx, 'copilot'),
         }
       : null,
   );
@@ -83,13 +86,15 @@ export default async function BrainPage() {
             >
               {t('memory.link')}
             </Link>
-            <Link
-              href="/admin/copilot"
-              className="text-sm font-semibold text-brand-700 underline"
-              data-testid="brain-chat-link"
-            >
-              {t('chatLink')}
-            </Link>
+            {data.chat ? (
+              <Link
+                href="/admin/copilot"
+                className="text-sm font-semibold text-brand-700 underline"
+                data-testid="brain-chat-link"
+              >
+                {t('chatLink')}
+              </Link>
+            ) : null}
             <Link href="/admin/brain/journal" className="text-sm text-brand-700 underline">
               {t('journal.link')}
             </Link>
