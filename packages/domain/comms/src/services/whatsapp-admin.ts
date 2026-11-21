@@ -59,8 +59,11 @@ export async function runWhatsAppCheck(
   publicUrl: string,
 ): Promise<'ok' | 'failed'> {
   const now = new Date();
+  // What Meta says about the number is kept even when the subscription fails, and cleared when Meta does not answer,
+  // so the page never shows an earlier check's name next to today's error.
+  let info: Awaited<ReturnType<WhatsAppAdmin['number']>> | null = null;
   try {
-    const info = await admin.number();
+    info = await admin.number();
     await admin.subscribe(
       `${publicUrl.replace(/\/$/, '')}/api/webhooks/whatsapp/${conn.connectionId}`,
       conn.verifyToken,
@@ -80,7 +83,14 @@ export async function runWhatsAppCheck(
   } catch (e) {
     await tx
       .update(whatsappConnections)
-      .set({ checkedAt: now, subscribedAt: null, checkError: errorText(e) })
+      .set({
+        verifiedName: info?.verifiedName ?? null,
+        quality: info?.quality ?? null,
+        ...(info?.displayPhone ? { displayPhone: info.displayPhone } : {}),
+        checkedAt: now,
+        subscribedAt: null,
+        checkError: errorText(e),
+      })
       .where(eq(whatsappConnections.id, conn.connectionId));
     return 'failed';
   }

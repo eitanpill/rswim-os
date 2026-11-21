@@ -129,6 +129,9 @@ describe('checking the connection', () => {
     const view = await asOwner((tx) => whatsappConnection(tx));
     expect(view?.checkError).toContain('Invalid parameter');
     expect(view?.subscribedAt).toBeNull();
+    // An earlier check's name is not left next to today's error.
+    expect(view?.verifiedName).toBeNull();
+    expect(view?.quality).toBeNull();
     await asOwner((tx) => requestWhatsAppCheck(tx, ctx));
     expect((await asOwner((tx) => whatsappConnection(tx)))?.checkError).toBeNull();
   });

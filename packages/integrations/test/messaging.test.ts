@@ -255,11 +255,23 @@ describe('MetaWhatsAppAdmin', () => {
     expect(await a.number()).toEqual({ displayPhone: null, verifiedName: null, quality: null });
   });
 
-  it('subscribes the business account to our webhook address', async () => {
-    const { requests, fetchImpl } = capture([{ success: true }, { success: false }]);
+  it('subscribes the app to the business account, then points it at our webhook address', async () => {
+    const { requests, fetchImpl } = capture([
+      { success: true },
+      { success: true },
+      { success: false },
+      { success: true },
+      { success: false },
+    ]);
     const a = admin(fetchImpl);
     await a.subscribe('https://app.test/api/webhooks/whatsapp/c1', 'verify');
     expect(requests[0]).toMatchObject({
+      url: 'https://graph.facebook.com/v23.0/2000001/subscribed_apps',
+      method: 'POST',
+      body: null,
+      type: null,
+    });
+    expect(requests[1]).toMatchObject({
       url: 'https://graph.facebook.com/v23.0/2000001/subscribed_apps',
       method: 'POST',
       type: 'application/json',
@@ -268,6 +280,7 @@ describe('MetaWhatsAppAdmin', () => {
         verify_token: 'verify',
       },
     });
+    await expect(a.subscribe('https://app.test/x', 'verify')).rejects.toBeInstanceOf(MetaApiError);
     await expect(a.subscribe('https://app.test/x', 'verify')).rejects.toBeInstanceOf(MetaApiError);
   });
 
