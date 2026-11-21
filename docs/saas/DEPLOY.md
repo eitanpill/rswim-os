@@ -64,7 +64,9 @@ Railway (project `aqua`, environments `staging` and `production`, service `worke
 - Variables: the worker column below.
 
 Inngest (apps `aqua-staging`, `aqua-production`)
-- Sync the app URL `https://<railway worker domain>/api/inngest`; copy the event key and signing key into the worker.
+- Sync the app URL `https://<railway worker domain>/api/inngest` once; copy the event key and signing key into the worker.
+  After that every worker deploy syncs itself on start (a PUT to its own `/api/inngest`, reporting
+  `https://$RAILWAY_PUBLIC_DOMAIN`, or `INNGEST_SERVE_ORIGIN` when set), so new functions run without pressing Resync.
 - Turn on failure notifications to Pit's email.
 
 Cloudflare
@@ -106,6 +108,8 @@ rotation: it unlocks every school's encrypted data.
 | `RSWIM_PLATFORM_HOSTS` | ✓ | ✓ | `app.aqua-swim.co.il,staging.aqua-swim.co.il,aqua-swim.co.il` |
 | `INNGEST_EVENT_KEY` | | ✓ | secret |
 | `INNGEST_SIGNING_KEY` | | ✓ | secret |
+| `RSWIM_WORKER_TICK_MINUTES` | | optional | how often the outbox relay and message dispatch run (default 3; `1` on a paid Inngest plan) |
+| `INNGEST_SERVE_ORIGIN` | | optional | public worker origin for Inngest; defaults to `https://$RAILWAY_PUBLIC_DOMAIN` |
 | `ANTHROPIC_API_KEY` | ✓ | ✓ | secret; with a monthly spend limit set in the Anthropic console |
 | `SENTRY_DSN` | ✓ | ✓ | per project |
 | `NEXT_PUBLIC_SENTRY_DSN` | ✓ (build) | | the web project's DSN, for browser errors |

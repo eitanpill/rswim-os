@@ -18,6 +18,7 @@ import { syncPipelineStage, type PipelineStage } from '@rswim/domain-crm';
 import { consumeOnce } from '@rswim/domain-core/worker';
 import { aiAllowed, recordAiUsage } from '@rswim/domain-platform';
 import { trackUsage } from '@rswim/integrations';
+import { TICK_CRON } from '../ticks';
 import { todayIL } from '@rswim/domain-scheduling';
 import { and, eq, lte, schema } from '@rswim/db';
 import { getDb, inngest, log } from '../client';
@@ -72,30 +73,30 @@ export const commsAutomations = Array.from(
 );
 
 /**
- * Every minute: expand scheduled broadcasts whose time came, then send due messages through the provider. The send
+ * Every few minutes (`TICK_CRON`): expand scheduled broadcasts whose time came, then send due messages through the provider. The send
  * window (quiet hours, Shabbat and Yom Tov) is decided again at send time. Finding the tenants is cross-tenant
  * plumbing; the work runs per tenant under RLS.
  */
 export const commsDispatch = inngest.createFunction(
-  { id: 'comms-dispatch', triggers: [{ cron: '* * * * *' }], concurrency: { limit: 1 } },
+  { id: 'comms-dispatch', triggers: [{ cron: TICK_CRON }], concurrency: { limit: 1 } },
   async ({ step }) => {
     const now = new Date();
-    const orgIds = await step.run('find-orgs', () =>
-      asPlatform(getDb(), async (tx) => {
-        const broadcasting = (
-          await tx
-            .selectDistinct({ id: schema.broadcasts.organizationId })
-            .from(schema.broadcasts)
-            .where(
-              and(
-                eq(schema.broadcasts.status, 'scheduled'),
-                lte(schema.broadcasts.scheduledFor, now),
-              ),
-            )
-        ).map((r) => r.id);
-        return [...new Set([...(await orgsWithDueMessages(tx, now)), ...broadcasting])];
-      }),
-    );
+    // A read, outside a step: an idle run (nothing due) costs one Inngest execution, not two.
+    const orgIds = await asPlatform(getDb(), async (tx) => {
+      const broadcasting = (
+        await tx
+          .selectDistinct({ id: schema.broadcasts.organizationId })
+          .from(schema.broadcasts)
+          .where(
+            and(
+              eq(schema.broadcasts.status, 'scheduled'),
+              lte(schema.broadcasts.scheduledFor, now),
+            ),
+          )
+      ).map((r) => r.id);
+      return [...new Set([...(await orgsWithDueMessages(tx, now)), ...broadcasting])];
+    });
+    if (orgIds.length === 0) return { idle: true };
     const totals = {
       sent: 0,
       held: 0,

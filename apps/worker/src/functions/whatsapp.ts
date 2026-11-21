@@ -71,24 +71,19 @@ export const commsWhatsAppTemplateSync = inngest.createFunction(
     concurrency: { limit: 1 },
   },
   async ({ step }) => {
-    const orgIds = await step.run('find-orgs', () =>
-      asPlatform(getDb(), async (tx) =>
-        (
-          await tx
-            .selectDistinct({ id: schema.messageTemplates.organizationId })
-            .from(schema.messageTemplates)
-            .where(
-              and(
-                isNotNull(schema.messageTemplates.metaStatus),
-                notInArray(schema.messageTemplates.metaStatus, [
-                  'APPROVED',
-                  'REJECTED',
-                  'DISABLED',
-                ]),
-              ),
-            )
-        ).map((r) => r.id),
-      ),
+    // A read, outside a step: a run with nothing waiting costs one Inngest execution.
+    const orgIds = await asPlatform(getDb(), async (tx) =>
+      (
+        await tx
+          .selectDistinct({ id: schema.messageTemplates.organizationId })
+          .from(schema.messageTemplates)
+          .where(
+            and(
+              isNotNull(schema.messageTemplates.metaStatus),
+              notInArray(schema.messageTemplates.metaStatus, ['APPROVED', 'REJECTED', 'DISABLED']),
+            ),
+          )
+      ).map((r) => r.id),
     );
     let changed = 0;
     for (const orgId of orgIds) {
