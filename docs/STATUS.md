@@ -555,3 +555,16 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - Bot performance for the last 30 days at the head of the screen.
 - Not built: an automatic return to the bot after a quiet period, and search in the list.
 - Not verified: real WhatsApp delivery (messaging runs on the fake).
+
+## WhatsApp W10, first part: going live from the connection page (2026-11-20)
+
+- `/admin/integrations/whatsapp` has three steps for a connected number: check the connection (Meta's view of the
+  number, and our webhook subscribed for the business by the worker), send every message to Meta's review as a
+  template and follow the decisions, and send a test message.
+- A template we sent is used only after Meta approved it.
+- Four default messages were reworded so none starts or ends with a variable (Meta refuses those); businesses that
+  already have the old wording see them listed on the page.
+- A freediving club's owner has the same page on `/dive/whatsapp`, from the club's connections screen.
+- Not built: Embedded Signup.
+- Not verified: every call to Meta. They are written from Meta's documentation and run against a fake here; the
+  first real check needs Pit's verified business, a number and a token.

@@ -54,6 +54,11 @@ export const messageTemplates = pgTable(
       .array()
       .notNull()
       .default(sql`'{}'::text[]`),
+    /** Meta's review of that template (W10): its id there, its status (PENDING, APPROVED, REJECTED…) and a refusal. */
+    metaTemplateId: text('meta_template_id'),
+    metaStatus: text('meta_status'),
+    metaError: text('meta_error'),
+    metaSubmittedAt: timestamp('meta_submitted_at', { withTimezone: true }),
     active: boolean('active').notNull().default(true),
     updatedBy: uuid('updated_by'),
     createdAt: createdAt(),
@@ -385,6 +390,12 @@ export const whatsappConnections = pgTable(
     encAppSecret: bytea('enc_app_secret').notNull(),
     lastInboundAt: timestamp('last_inbound_at', { withTimezone: true }),
     lastError: text('last_error'),
+    /** The connection check (W10): what Meta says about the number, and whether its messages are sent to us. */
+    verifiedName: text('verified_name'),
+    quality: text('quality'),
+    checkedAt: timestamp('checked_at', { withTimezone: true }),
+    subscribedAt: timestamp('subscribed_at', { withTimezone: true }),
+    checkError: text('check_error'),
     connectedBy: uuid('connected_by'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

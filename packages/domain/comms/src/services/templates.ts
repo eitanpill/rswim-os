@@ -40,7 +40,7 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
   },
   makeup_confirmed: {
     he: 'שיעור ההשלמה של {{student_name}} נקבע ל{{date}} בשעה {{time}} ב{{venue}} ({{group}}). נתראה! {{school_name}}',
-    en: "{{student_name}}'s makeup lesson is booked for {{date}} at {{time}}, {{venue}} ({{group}}). See you! {{school_name}}",
+    en: 'The makeup lesson of {{student_name}} is booked for {{date}} at {{time}}, {{venue}} ({{group}}). See you! {{school_name}}',
   },
   instructor_change: {
     he: 'עדכון לגבי {{group}}: בשיעור ב{{date}} ילמד/תלמד {{instructor}}. אם יש שאלות, אנחנו כאן. {{school_name}}',
@@ -56,7 +56,7 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
   },
   last_call_makeups: {
     he: 'תזכורת: ל{{student_name}} יש שיעור השלמה שעוד לא נוצל. אפשר לקבוע אותו עד {{date}}. {{school_name}}',
-    en: '{{student_name}} has an unused makeup lesson. Book it by {{date}}. {{school_name}}',
+    en: 'Reminder: {{student_name}} has an unused makeup lesson. Book it by {{date}}. {{school_name}}',
   },
   payment_link: {
     he: 'היי {{guardian_name}}, זה הקישור לתשלום על סך {{amount}}: {{url}} תודה! {{school_name}}',
@@ -71,8 +71,8 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
     en: 'Your receipt for {{amount}} is ready: {{url}} {{school_name}}',
   },
   progress_card: {
-    he: '{{student_name}} התקדם/ה ב{{group}}! כל הכבוד 💪 {{school_name}}',
-    en: '{{student_name}} made progress in {{group}}! Well done 💪 {{school_name}}',
+    he: 'כל הכבוד 💪 {{student_name}} התקדם/ה ב{{group}}! {{school_name}}',
+    en: 'Well done 💪 {{student_name}} made progress in {{group}}! {{school_name}}',
   },
   freeze_approved: {
     he: 'היי {{guardian_name}}, ההקפאה של {{student_name}} ב{{group}} אושרה. על ימי ההקפאה אין חיוב. {{school_name}}',
@@ -123,8 +123,8 @@ export const DEFAULT_TEMPLATES: Record<Key, Bodies> = {
     en: "Hi {{diver_name}} 🌊 A reminder: tomorrow ({{date}}) at {{time}}, {{session}} at {{site}}. {{pay_note}}Please come 15 minutes early. Can't make it? Reply here and we'll give the spot to someone else. {{school_name}}",
   },
   mandate_request: {
-    he: 'היי {{guardian_name}}, {{school_name}} עברו למערכת חדשה 💙 כדי שהתשלום החודשי ימשיך כרגיל, צריך לחתום מחדש על הוראת הקבע. זה לוקח דקה, בקישור האישי שלך: {{url}}',
-    en: 'Hi {{guardian_name}}, {{school_name}} moved to a new system 💙 To keep the monthly payment going, please sign the standing order again. It takes a minute, on your personal link: {{url}}',
+    he: 'היי {{guardian_name}}, {{school_name}} עברו למערכת חדשה 💙 כדי שהתשלום החודשי ימשיך כרגיל, צריך לחתום מחדש על הוראת הקבע. זה לוקח דקה, בקישור האישי שלך: {{url}} תודה!',
+    en: 'Hi {{guardian_name}}, {{school_name}} moved to a new system 💙 To keep the monthly payment going, please sign the standing order again. It takes a minute, on your personal link: {{url}} Thank you!',
   },
   forms_reminder: {
     he: 'היי {{guardian_name}} 😊 לפני השיעור מחר נשאר לחתום על: {{forms}}. זה לוקח דקה, כאן: {{url}} {{school_name}}',

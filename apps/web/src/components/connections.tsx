@@ -47,7 +47,7 @@ export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' 
       key: 'whatsapp',
       state:
         own?.status === 'connected' || ghl ? 'connected' : own?.lastError ? 'failing' : 'missing',
-      href: swim ? '/admin/integrations/whatsapp' : null,
+      href: swim ? '/admin/integrations/whatsapp' : '/dive/whatsapp',
     },
     {
       key: 'payments',
