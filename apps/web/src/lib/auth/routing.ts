@@ -31,6 +31,8 @@ export const PUBLIC_PREFIXES = [
   '/schools',
   // Shown right after someone deleted their account (they are signed out by then).
   '/goodbye',
+  // The privacy policy: Meta (WhatsApp) and the app stores link to it, so it opens without a sign-in.
+  '/privacy',
   // The files that let links open the store app (lib/native-app.ts).
   '/.well-known',
 ];
