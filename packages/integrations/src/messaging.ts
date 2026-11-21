@@ -224,7 +224,8 @@ export interface MetaAdminOptions {
 
 /**
  * Meta's Graph API for a WhatsApp Business Account, as published in 2026-11: GET /<phone-number-id>,
- * POST /<waba-id>/subscribed_apps with `override_callback_uri` and `verify_token` in the body, and
+ * POST /<waba-id>/subscribed_apps (first plain, then with `override_callback_uri` and `verify_token`: Meta refuses an
+ * override before the app is subscribed to the account, error #100, seen on staging 2026-11-21), and
  * POST / GET /<waba-id>/message_templates. Not yet exercised against a live account.
  */
 export class MetaWhatsAppAdmin implements WhatsAppAdmin {
@@ -269,7 +270,10 @@ export class MetaWhatsAppAdmin implements WhatsAppAdmin {
   }
 
   async subscribe(callbackUrl: string, verifyToken: string): Promise<void> {
-    const r = await this.call(`${this.opts.businessAccountId}/subscribed_apps`, {
+    const path = `${this.opts.businessAccountId}/subscribed_apps`;
+    const plain = await this.call(path, { method: 'POST' });
+    if (plain.success !== true) throw new MetaApiError(200, JSON.stringify(plain));
+    const r = await this.call(path, {
       method: 'POST',
       body: { override_callback_uri: callbackUrl, verify_token: verifyToken },
     });
