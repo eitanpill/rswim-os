@@ -108,6 +108,7 @@ rotation: it unlocks every school's encrypted data.
 | `RSWIM_PLATFORM_HOSTS` | ✓ | ✓ | `app.aqua-swim.co.il,staging.aqua-swim.co.il,aqua-swim.co.il` |
 | `INNGEST_EVENT_KEY` | | ✓ | secret |
 | `INNGEST_SIGNING_KEY` | | ✓ | secret |
+| `RSWIM_WORKER_TICK_MINUTES` | | optional | how often the outbox relay and message dispatch run (default 3; `1` on a paid Inngest plan) |
 | `INNGEST_SERVE_ORIGIN` | | optional | public worker origin for Inngest; defaults to `https://$RAILWAY_PUBLIC_DOMAIN` |
 | `ANTHROPIC_API_KEY` | ✓ | ✓ | secret; with a monthly spend limit set in the Anthropic console |
 | `SENTRY_DSN` | ✓ | ✓ | per project |
