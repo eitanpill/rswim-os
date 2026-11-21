@@ -6237,7 +6237,8 @@
     "perMonth": "per month",
     "unlimited": "unlimited",
     "trial": "{days}-day free trial",
-    "footer": "Questions? Write to us: {email}"
+    "footer": "Questions? Write to us: {email}",
+    "privacy": "Privacy policy"
   },
   "imports": {
     "title": "Import from your previous system",
