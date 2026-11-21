@@ -12,7 +12,7 @@ GoHighLevel (white-labeled "LeadYourWay") stays the marketing and lead engine. R
 - `apps/web`: Next.js 15 (App Router), TypeScript strict, Server Actions (tRPC joins in Phase 1 when client-side queries appear). Surfaces: `/admin`, `/instructor`, `/parent`, `/transport`, `/accountant`, `/platform`
 - `apps/worker`: Inngest functions (outbox relay, scheduled jobs)
 - PostgreSQL on Supabase, Drizzle ORM, SQL migrations + RLS policies in repo
-- Supabase Auth: email/password for staff, phone OTP for parents
+- Supabase Auth: email/password for staff, phone OTP for parents. People stay signed in until they sign out (`lib/supabase/session-policy.ts`: 400-day httpOnly cookies renewed on each refresh in the middleware, one-year ceiling); sign-out is this device only, a password change signs out the others
 - Tailwind 4 + shadcn-style components in `packages/ui`, logical CSS properties only (`ms-`, `pe-`, `start-`, never `ml-`/`right-`; ESLint blocks them)
 - `@hebcal/core` for the Hebrew calendar
 - Vitest (domain, 100% branch coverage on policies), Playwright (E2E + RTL screenshots)
