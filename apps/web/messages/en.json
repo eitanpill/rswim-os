@@ -6625,6 +6625,7 @@
       "checkRun": "Check the connection",
       "checkAsked": "The check is on its way. Refresh the page in a moment.",
       "checkOk": "Connected: {name}. Number quality: {quality}. Incoming messages reach the system.",
+      "checkPending": "No result yet. After pressing the check, refresh the page in a few minutes.",
       "checkFailed": "The check failed. Meta answered:",
       "quality": {
         "GREEN": "good",

@@ -148,7 +148,11 @@ export async function WhatsAppConnection({
                       })}
                     </p>
                   )
-                ) : null}
+                ) : (
+                  <p className="mb-2 text-sm text-ink-muted" data-testid="whatsapp-check-pending">
+                    {t('live.checkPending')}
+                  </p>
+                )}
                 <ActionButton
                   action={checkWhatsAppAction}
                   variant="secondary"
