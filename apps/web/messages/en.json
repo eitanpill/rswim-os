@@ -6626,6 +6626,7 @@
       "checkRun": "Check the connection",
       "checkAsked": "The check is on its way. Refresh the page in a moment.",
       "checkOk": "Connected: {name}. Number quality: {quality}. Incoming messages reach the system.",
+      "checkPending": "No result yet. After pressing the check, refresh the page in a few minutes.",
       "checkFailed": "The check failed. Meta answered:",
       "register": "WhatsApp Manager shows the number \"not connected\"? Register the number",
       "registerHint": "A number not registered on the Cloud API receives no messages. Registering moves the number to receive messages here. If it is active in the WhatsApp Business app on a phone, it stops working there.",

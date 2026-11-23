@@ -41,7 +41,14 @@ async function ownConnection(tx: Tx, set: Partial<typeof whatsappConnections.$in
 
 /** "Check the connection": the worker asks Meta about the number and subscribes our webhook. */
 export async function requestWhatsAppCheck(tx: Tx, ctx: ServiceContext) {
-  const connectionId = await ownConnection(tx, { checkError: null });
+  // Until the worker answers, the page shows the check as on its way, not the previous check's result.
+  const connectionId = await ownConnection(tx, {
+    checkError: null,
+    checkedAt: null,
+    subscribedAt: null,
+    verifiedName: null,
+    quality: null,
+  });
   await emit(tx, {
     organizationId: ctx.orgId,
     type: WHATSAPP_CHECK_REQUESTED,
