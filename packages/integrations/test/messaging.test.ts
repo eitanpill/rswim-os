@@ -396,6 +396,13 @@ describe('FakeWhatsAppAdmin', () => {
     ]);
   });
 
+  it('registers the number, and refuses a PIN of zeros like a wrong one', async () => {
+    const a = new FakeWhatsAppAdmin({ phoneNumberId: '1', businessAccountId: '2000001' });
+    await a.register('123456');
+    await expect(a.register('000000')).rejects.toBeInstanceOf(MetaApiError);
+    expect(a.registrations).toEqual(['123456']);
+  });
+
   it('refuses everything for a business account marked to fail', async () => {
     const a = new FakeWhatsAppAdmin({ phoneNumberId: '1', businessAccountId: '20000000' });
     await expect(a.number()).rejects.toBeInstanceOf(MetaApiError);
