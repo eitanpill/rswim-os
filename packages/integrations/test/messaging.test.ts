@@ -284,6 +284,19 @@ describe('MetaWhatsAppAdmin', () => {
     await expect(a.subscribe('https://app.test/x', 'verify')).rejects.toBeInstanceOf(MetaApiError);
   });
 
+  it('registers the number on the Cloud API with its PIN', async () => {
+    const { requests, fetchImpl } = capture([{ success: true }, { success: false }]);
+    const a = admin(fetchImpl);
+    await a.register('123456');
+    expect(requests[0]).toMatchObject({
+      url: 'https://graph.facebook.com/v23.0/1000001/register',
+      method: 'POST',
+      type: 'application/json',
+      body: { messaging_product: 'whatsapp', pin: '123456' },
+    });
+    await expect(a.register('123456')).rejects.toBeInstanceOf(MetaApiError);
+  });
+
   it('creates a utility template with its examples, and one without placeholders', async () => {
     const { requests, fetchImpl } = capture([{ id: '900', status: 'PENDING' }, {}]);
     const a = admin(fetchImpl);
@@ -383,10 +396,18 @@ describe('FakeWhatsAppAdmin', () => {
     ]);
   });
 
+  it('registers the number, and refuses a PIN of zeros like a wrong one', async () => {
+    const a = new FakeWhatsAppAdmin({ phoneNumberId: '1', businessAccountId: '2000001' });
+    await a.register('123456');
+    await expect(a.register('000000')).rejects.toBeInstanceOf(MetaApiError);
+    expect(a.registrations).toEqual(['123456']);
+  });
+
   it('refuses everything for a business account marked to fail', async () => {
     const a = new FakeWhatsAppAdmin({ phoneNumberId: '1', businessAccountId: '20000000' });
     await expect(a.number()).rejects.toBeInstanceOf(MetaApiError);
     await expect(a.subscribe('u', 'v')).rejects.toBeInstanceOf(MetaApiError);
+    await expect(a.register('123456')).rejects.toBeInstanceOf(MetaApiError);
     await expect(
       a.createTemplate({ name: 'n', language: 'he', text: 't', examples: [] }),
     ).rejects.toBeInstanceOf(MetaApiError);

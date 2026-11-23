@@ -51,11 +51,17 @@ import { lodgingMorningBrief } from './lodging';
 import { brainLeadFollowUps, enrollmentTrialReminders } from './leads';
 import { platformProvisionDatabase, platformSyncSchool } from './tenancy';
 import { transportPlanRuns } from './transport';
-import { commsWhatsAppCheck, commsWhatsAppTemplates, commsWhatsAppTemplateSync } from './whatsapp';
+import {
+  commsWhatsAppCheck,
+  commsWhatsAppRegister,
+  commsWhatsAppTemplates,
+  commsWhatsAppTemplateSync,
+} from './whatsapp';
 
 export const functions = [
   outboxRelay,
   commsWhatsAppCheck,
+  commsWhatsAppRegister,
   commsWhatsAppTemplates,
   commsWhatsAppTemplateSync,
   lodgingMorningBrief,

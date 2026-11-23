@@ -209,6 +209,11 @@ export interface WhatsAppAdmin {
   number(): Promise<WhatsAppNumberInfo>;
   /** Has Meta send this business account's messages to `callbackUrl` (checked by Meta with `verifyToken`). */
   subscribe(callbackUrl: string, verifyToken: string): Promise<void>;
+  /**
+   * Registers the number on the Cloud API (WhatsApp Manager shows it "not connected" until then) with the six-digit
+   * PIN of its two-step verification; a number still on the WhatsApp Business app leaves it.
+   */
+  register(pin: string): Promise<void>;
   createTemplate(draft: MetaTemplateDraft): Promise<MetaTemplateState>;
   templates(): Promise<MetaTemplateState[]>;
 }
@@ -225,8 +230,9 @@ export interface MetaAdminOptions {
 /**
  * Meta's Graph API for a WhatsApp Business Account, as published in 2026-11: GET /<phone-number-id>,
  * POST /<waba-id>/subscribed_apps (first plain, then with `override_callback_uri` and `verify_token`: Meta refuses an
- * override before the app is subscribed to the account, error #100, seen on staging 2026-11-21), and
- * POST / GET /<waba-id>/message_templates. Not yet exercised against a live account.
+ * override before the app is subscribed to the account, error #100, seen on staging 2026-11-21),
+ * POST /<phone-number-id>/register (a number Meta shows "not connected" receives nothing until it is registered, seen
+ * on staging 2026-11-23), and POST / GET /<waba-id>/message_templates. Not yet exercised against a live account.
  */
 export class MetaWhatsAppAdmin implements WhatsAppAdmin {
   private readonly fetchImpl: typeof fetch;
@@ -276,6 +282,14 @@ export class MetaWhatsAppAdmin implements WhatsAppAdmin {
     const r = await this.call(path, {
       method: 'POST',
       body: { override_callback_uri: callbackUrl, verify_token: verifyToken },
+    });
+    if (r.success !== true) throw new MetaApiError(200, JSON.stringify(r));
+  }
+
+  async register(pin: string): Promise<void> {
+    const r = await this.call(`${this.opts.phoneNumberId}/register`, {
+      method: 'POST',
+      body: { messaging_product: 'whatsapp', pin },
     });
     if (r.success !== true) throw new MetaApiError(200, JSON.stringify(r));
   }
@@ -332,6 +346,8 @@ export class MetaWhatsAppAdmin implements WhatsAppAdmin {
  */
 export class FakeWhatsAppAdmin implements WhatsAppAdmin {
   readonly subscriptions: { callbackUrl: string; verifyToken: string }[] = [];
+  /** PINs the number was registered with; a PIN of zeros is refused like a wrong one. */
+  readonly registrations: string[] = [];
   readonly created = new Map<string, MetaTemplateState & { text: string; examples: string[] }>();
 
   constructor(private readonly opts: { phoneNumberId: string; businessAccountId: string }) {}
@@ -349,6 +365,16 @@ export class FakeWhatsAppAdmin implements WhatsAppAdmin {
   async subscribe(callbackUrl: string, verifyToken: string): Promise<void> {
     this.guard();
     this.subscriptions.push({ callbackUrl, verifyToken });
+  }
+
+  async register(pin: string): Promise<void> {
+    this.guard();
+    if (pin === '000000')
+      throw new MetaApiError(
+        400,
+        '{"error":{"message":"(#133005) Two step verification PIN Mismatch"}}',
+      );
+    this.registrations.push(pin);
   }
 
   async createTemplate(draft: MetaTemplateDraft): Promise<MetaTemplateState> {

@@ -5,9 +5,16 @@
  */
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { PhoneE164, requiredText } from '@rswim/contracts';
+import { PhoneE164, requiredText, WhatsAppRegisterInput } from '@rswim/contracts';
 import { and, asc, eq, isNotNull, schema, type Tx } from '@rswim/db';
-import { DomainError, emit, type ServiceContext } from '@rswim/domain-core';
+import {
+  decryptField,
+  DomainError,
+  emit,
+  encryptField,
+  orgDataKey,
+  type ServiceContext,
+} from '@rswim/domain-core';
 import type { WhatsAppAdmin } from '@rswim/integrations';
 import { metaReviewOpen, metaTemplateDraft, type MetaDraftProblem } from '../policies';
 import { enqueueMessage, schoolName } from './outbound';
@@ -17,6 +24,7 @@ const { whatsappConnections, messageTemplates } = schema;
 
 export const WHATSAPP_CHECK_REQUESTED = 'comms.whatsapp_check_requested';
 export const WHATSAPP_TEMPLATES_REQUESTED = 'comms.whatsapp_templates_requested';
+export const WHATSAPP_REGISTER_REQUESTED = 'comms.whatsapp_register_requested';
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 500);
 
@@ -94,6 +102,74 @@ export async function runWhatsAppCheck(
       .where(eq(whatsappConnections.id, conn.connectionId));
     return 'failed';
   }
+}
+
+/** The PIN travels to the worker sealed with the organization's data key, bound to this request. */
+const pinAad = (connectionId: string, requestId: string) => ({
+  table: 'outbox',
+  column: 'whatsapp_register_pin',
+  rowId: `${connectionId}:${requestId}`,
+});
+
+/**
+ * "Register the number": the owner types the PIN of the number's two-step verification, and the worker registers the
+ * number on Meta's Cloud API and checks the connection again. The PIN is sealed in the event, never stored in the clear.
+ */
+export async function requestWhatsAppRegister(
+  tx: Tx,
+  ctx: ServiceContext,
+  raw: WhatsAppRegisterInput,
+) {
+  const { pin } = WhatsAppRegisterInput.parse(raw);
+  const dek = await orgDataKey(tx, ctx.orgId);
+  if (!dek) throw new DomainError('whatsapp.errors.noMasterKey');
+  const connectionId = await ownConnection(tx, {
+    checkError: null,
+    checkedAt: null,
+    subscribedAt: null,
+  });
+  const requestId = randomUUID();
+  await emit(tx, {
+    organizationId: ctx.orgId,
+    type: WHATSAPP_REGISTER_REQUESTED,
+    payload: {
+      connectionId,
+      requestId,
+      sealedPin: encryptField(dek, pin, pinAad(connectionId, requestId)).toString('base64'),
+    },
+    idempotencyKey: `${WHATSAPP_REGISTER_REQUESTED}:${connectionId}:${requestId}`,
+  });
+}
+
+/**
+ * The registration, in the worker: the number is registered with the PIN, then the connection is checked as usual. A
+ * refusal (a wrong PIN, most often) is kept on the connection in Meta's words, like a failed check.
+ */
+export async function runWhatsAppRegister(
+  tx: Tx,
+  orgId: string,
+  conn: ConnectionFacts,
+  request: { requestId: string; sealedPin: string },
+  admin: WhatsAppAdmin,
+  publicUrl: string,
+): Promise<'ok' | 'failed'> {
+  const dek = await orgDataKey(tx, orgId);
+  if (!dek) throw new DomainError('whatsapp.errors.noMasterKey');
+  const pin = decryptField(
+    dek,
+    Buffer.from(request.sealedPin, 'base64'),
+    pinAad(conn.connectionId, request.requestId),
+  );
+  try {
+    await admin.register(pin);
+  } catch (e) {
+    await tx
+      .update(whatsappConnections)
+      .set({ checkedAt: new Date(), subscribedAt: null, checkError: errorText(e) })
+      .where(eq(whatsappConnections.id, conn.connectionId));
+    return 'failed';
+  }
+  return runWhatsAppCheck(tx, conn, admin, publicUrl);
 }
 
 /** "Send the messages to Meta's review": the worker submits every message that is not there yet. */

@@ -21,12 +21,15 @@ import {
   metaTemplateOverview,
   requestMetaTemplates,
   requestWhatsAppCheck,
+  requestWhatsAppRegister,
   runWhatsAppCheck,
+  runWhatsAppRegister,
   sendWhatsAppTest,
   setMetaTemplate,
   submitMetaTemplates,
   syncMetaTemplates,
   WHATSAPP_CHECK_REQUESTED,
+  WHATSAPP_REGISTER_REQUESTED,
   WHATSAPP_TEMPLATES_REQUESTED,
   whatsappConnection,
 } from '../src';
@@ -141,6 +144,62 @@ describe('checking the connection', () => {
     await expect(asOffice((tx) => requestMetaTemplates(tx, ctx))).rejects.toSatisfy(notConnected);
     await expect(
       asOffice((tx) => sendWhatsAppTest(tx, ctx, { phone: '+972501234567', text: 'בדיקה' })),
+    ).rejects.toSatisfy(notConnected);
+  });
+});
+
+describe('registering the number on the Cloud API', () => {
+  const lastRequest = async () => {
+    const [row] = await q(
+      `select payload from outbox where event_type = $1 order by created_at desc limit 1`,
+      [WHATSAPP_REGISTER_REQUESTED],
+    );
+    return row.payload as { connectionId: string; requestId: string; sealedPin: string };
+  };
+
+  it('seals the PIN for the worker, which registers the number and checks the connection again', async () => {
+    await asOwner((tx) => requestWhatsAppRegister(tx, ctx, { pin: ' 123456 ' }));
+    const conn = await facts();
+    const payload = await lastRequest();
+    expect(payload.connectionId).toBe(conn.connectionId);
+    expect(JSON.stringify(payload)).not.toContain('123456');
+    expect((await asOwner((tx) => whatsappConnection(tx)))?.checkedAt).toBeNull();
+
+    const meta = admin();
+    expect(
+      await system((tx) =>
+        runWhatsAppRegister(tx, ctx.orgId, conn, payload, meta, 'https://app.example.test'),
+      ),
+    ).toBe('ok');
+    expect(meta.registrations).toEqual(['123456']);
+    expect(meta.subscriptions).toHaveLength(1);
+    const view = await asOwner((tx) => whatsappConnection(tx));
+    expect(view?.subscribedAt).toBeInstanceOf(Date);
+    expect(view?.checkError).toBeNull();
+  });
+
+  it("keeps Meta's refusal of a wrong PIN, and does not subscribe", async () => {
+    await asOwner((tx) => requestWhatsAppRegister(tx, ctx, { pin: '000000' }));
+    const conn = await facts();
+    const meta = admin();
+    const payload = await lastRequest();
+    expect(
+      await system((tx) =>
+        runWhatsAppRegister(tx, ctx.orgId, conn, payload, meta, 'https://x.test'),
+      ),
+    ).toBe('failed');
+    expect(meta.subscriptions).toEqual([]);
+    const view = await asOwner((tx) => whatsappConnection(tx));
+    expect(view?.checkError).toContain('PIN Mismatch');
+    expect(view?.subscribedAt).toBeNull();
+  });
+
+  it('takes six digits from the owner only', async () => {
+    await expect(
+      asOwner((tx) => requestWhatsAppRegister(tx, ctx, { pin: '12345' })),
+    ).rejects.toThrow();
+    await expect(
+      asOffice((tx) => requestWhatsAppRegister(tx, ctx, { pin: '123456' })),
     ).rejects.toSatisfy(notConnected);
   });
 });

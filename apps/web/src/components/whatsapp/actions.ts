@@ -1,12 +1,13 @@
 'use server';
 
 import { z } from 'zod';
-import { MetaTemplateInput, WhatsAppConnectInput } from '@rswim/contracts';
+import { MetaTemplateInput, WhatsAppConnectInput, WhatsAppRegisterInput } from '@rswim/contracts';
 import {
   connectWhatsApp,
   disconnectWhatsApp,
   requestMetaTemplates,
   requestWhatsAppCheck,
+  requestWhatsAppRegister,
   sendWhatsAppTest,
   setMetaTemplate,
 } from '@rswim/domain-comms';
@@ -47,6 +48,19 @@ export async function checkWhatsAppAction(_: FormState, fd: FormData) {
     revalidate: PAGE,
     success: 'whatsapp.live.checkAsked',
   });
+}
+
+/** "Register the number" on the Cloud API with the PIN of its two-step verification; the PIN is never echoed back. */
+export async function registerWhatsAppAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    WhatsAppRegisterInput,
+    (tx, ctx, input) => requestWhatsAppRegister(tx, ctx, input),
+    {
+      revalidate: PAGE,
+      success: 'whatsapp.live.registerAsked',
+    },
+  );
 }
 
 /** Every message not yet at Meta goes to its review as a template. */
