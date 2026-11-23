@@ -9,6 +9,7 @@ import {
   checkWhatsAppAction,
   connectWhatsAppAction,
   disconnectWhatsAppAction,
+  registerWhatsAppAction,
   submitMetaTemplatesAction,
   testWhatsAppAction,
 } from './actions';
@@ -157,6 +158,30 @@ export async function WhatsAppConnection({
                 >
                   {t('live.checkRun')}
                 </ActionButton>
+                <details className="mt-3 text-sm" data-testid="whatsapp-register">
+                  <summary className="cursor-pointer font-semibold">{t('live.register')}</summary>
+                  <p className="my-2 text-ink-muted">{t('live.registerHint')}</p>
+                  <ActionForm
+                    action={registerWhatsAppAction}
+                    resetOnSuccess
+                    testId="whatsapp-register-form"
+                  >
+                    <Field
+                      name="pin"
+                      label={t('live.registerPin')}
+                      hint={t('live.registerPinHint')}
+                      type="password"
+                      dir="ltr"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={6}
+                      required
+                    />
+                    <div>
+                      <SubmitButton variant="secondary">{t('live.registerRun')}</SubmitButton>
+                    </div>
+                  </ActionForm>
+                </details>
               </li>
               <li data-testid="whatsapp-templates">
                 <p className="font-semibold">{t('live.templates')}</p>

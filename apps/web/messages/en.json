@@ -6616,7 +6616,8 @@
       "ownerOnly": "Only the owner connects the number",
       "numberTaken": "This number is already connected to another business",
       "notConnected": "No number is connected",
-      "unknownVariable": "Details the message does not have: {names}"
+      "unknownVariable": "Details the message does not have: {names}",
+      "pin": "The PIN is 6 digits"
     },
     "live": {
       "title": "Going live, three steps",
@@ -6626,6 +6627,12 @@
       "checkAsked": "The check is on its way. Refresh the page in a moment.",
       "checkOk": "Connected: {name}. Number quality: {quality}. Incoming messages reach the system.",
       "checkFailed": "The check failed. Meta answered:",
+      "register": "WhatsApp Manager shows the number \"not connected\"? Register the number",
+      "registerHint": "A number not registered on the Cloud API receives no messages. Registering moves the number to receive messages here. If it is active in the WhatsApp Business app on a phone, it stops working there.",
+      "registerPin": "6-digit PIN",
+      "registerPinHint": "If the number has no two-step verification yet, choose a new PIN here and keep it. If it has one, enter the same PIN. Forgot it? Change it in WhatsApp Manager, in the number's settings.",
+      "registerRun": "Register the number",
+      "registerAsked": "Registration is on its way. Refresh the page in a moment: the result shows under the connection check.",
       "quality": {
         "GREEN": "good",
         "YELLOW": "medium",

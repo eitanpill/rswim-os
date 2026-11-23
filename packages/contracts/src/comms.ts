@@ -150,6 +150,18 @@ export const WhatsAppConnectInput = z.object({
 });
 export type WhatsAppConnectInput = z.input<typeof WhatsAppConnectInput>;
 
+/**
+ * Registering the number on Meta's Cloud API: the six-digit PIN of the number's two-step verification. A number
+ * without one gets this PIN; a number that has one needs the same PIN.
+ */
+export const WhatsAppRegisterInput = z.object({
+  pin: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'whatsapp.errors.pin'),
+});
+export type WhatsAppRegisterInput = z.input<typeof WhatsAppRegisterInput>;
+
 /** An approved Meta template for a message key: its name in WhatsApp Manager and its {{1}}, {{2}}… in order. */
 export const MetaTemplateInput = z.object({
   key: TemplateKey,

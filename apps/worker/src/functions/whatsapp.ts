@@ -4,9 +4,11 @@ import { asPlatform, withOrg } from '@rswim/db/service';
 import { and, isNotNull, notInArray, schema } from '@rswim/db';
 import {
   runWhatsAppCheck,
+  runWhatsAppRegister,
   submitMetaTemplates,
   syncMetaTemplates,
   WHATSAPP_CHECK_REQUESTED,
+  WHATSAPP_REGISTER_REQUESTED,
   WHATSAPP_TEMPLATES_REQUESTED,
 } from '@rswim/domain-comms';
 import { consumeOnce } from '@rswim/domain-core/worker';
@@ -33,6 +35,40 @@ export const commsWhatsAppCheck = inngest.createFunction(
         const own = await whatsappAdminFor(tx, envelope.organizationId);
         result = own
           ? { outcome: await runWhatsAppCheck(tx, own, own.admin, publicUrl()) }
+          : { skipped: 'not_connected' };
+      });
+      return result;
+    });
+  },
+);
+
+const RegisterPayload = Payload.extend({ requestId: z.uuid(), sealedPin: z.string().min(1) });
+
+/**
+ * "Register the number": a number WhatsApp Manager shows "not connected" receives nothing until it is registered on
+ * the Cloud API. The worker registers it with the owner's PIN (sealed in the event), then checks the connection.
+ * No retries: a second registration with a wrong PIN would only lock the number for longer.
+ */
+export const commsWhatsAppRegister = inngest.createFunction(
+  { id: 'comms-whatsapp-register', triggers: [{ event: WHATSAPP_REGISTER_REQUESTED }], retries: 0 },
+  async ({ event, step }) => {
+    const envelope = toEnvelope(event);
+    const payload = RegisterPayload.parse(envelope.payload);
+    return step.run('register', async () => {
+      let result: unknown = { skipped: 'already' };
+      await consumeOnce(getDb(), 'comms-whatsapp-register', envelope, async (tx) => {
+        const own = await whatsappAdminFor(tx, envelope.organizationId);
+        result = own
+          ? {
+              outcome: await runWhatsAppRegister(
+                tx,
+                envelope.organizationId,
+                own,
+                payload,
+                own.admin,
+                publicUrl(),
+              ),
+            }
           : { skipped: 'not_connected' };
       });
       return result;
