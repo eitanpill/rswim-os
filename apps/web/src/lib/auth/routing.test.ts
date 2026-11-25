@@ -27,6 +27,7 @@ describe('decideRoute', () => {
 
   it('lets anyone reach public pages', () => {
     expect(decideRoute('/login', null)).toEqual({ action: 'next' });
+    expect(decideRoute('/privacy', null)).toEqual({ action: 'next' });
     expect(decideRoute('/login/phone', null)).toEqual({ action: 'next' });
     expect(decideRoute('/api/health', null)).toEqual({ action: 'next' });
     expect(decideRoute('/api/webhooks/ghl', null)).toEqual({ action: 'next' });

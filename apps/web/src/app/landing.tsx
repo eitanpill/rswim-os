@@ -102,7 +102,10 @@ export async function Landing() {
       ) : null}
 
       <footer className="border-t border-line pt-4 text-sm text-ink-muted">
-        {t('footer', { email: PRODUCT.supportEmail })}
+        {t('footer', { email: PRODUCT.supportEmail })} ·{' '}
+        <a href="/privacy" className="hover:underline">
+          {t('privacy')}
+        </a>
       </footer>
     </main>
   );
