@@ -33,7 +33,10 @@ export const STAY_HOLDING: readonly StayStatus[] = [
   'checked_out',
 ];
 
-export const STAY_SOURCES = ['office', 'bot', 'online'] as const;
+/** Where a booking came from. */
+export const STAY_BOOKING_SOURCES = ['office', 'bot', 'online'] as const;
+/** A stay is a guest's booking, or a block: the room (or a bed) closed for repair on those nights. */
+export const STAY_SOURCES = [...STAY_BOOKING_SOURCES, 'block'] as const;
 export type StaySource = (typeof STAY_SOURCES)[number];
 
 /** How many nights ahead the board shows. */

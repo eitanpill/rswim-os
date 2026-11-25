@@ -9,6 +9,8 @@ import {
   freeOptions,
   isFree,
   nightsBetween,
+  reminderPayFor,
+  reminderText,
   roomNames,
   soldByFor,
   stayProblem,
@@ -315,6 +317,96 @@ describe('the day', () => {
     );
     const oddBed = dayPlan([], [stay({ roomId: 'gone', bedId: 'x', checkIn: today })], today);
     expect(briefText(oddBed, [], { checkIn: '14:00', checkOut: '10:00' }, 'he')).toContain('— \n');
+  });
+
+  it('leaves rooms and beds closed for repair out of the day and its count, and lists them', () => {
+    const fixRoom = stay({
+      roomId: 'single',
+      guestName: 'צביעה',
+      guests: 1,
+      checkIn: today,
+      checkOut: '2026-12-08',
+      blocked: true,
+    });
+    const fixBed = stay({
+      roomId: 'dorm',
+      bedId: 'd2',
+      guestName: 'מזרן חדש',
+      guests: 1,
+      checkIn: '2026-12-04',
+      checkOut: '2026-12-06',
+      blocked: true,
+    });
+    // A block that ended yesterday, and one that starts tomorrow: neither is tonight.
+    const old = stay({ roomId: 'fam', checkIn: '2026-12-01', checkOut: today, blocked: true });
+    const later = stay({
+      roomId: 'fam2',
+      checkIn: '2026-12-06',
+      checkOut: '2026-12-09',
+      blocked: true,
+    });
+    const dirtySingle = { ...single, housekeeping: 'dirty' as const };
+    const rooms = [fam, fam2, dirtySingle, dorm];
+    const plan = dayPlan(rooms, [fixRoom, fixBed, old, later, dormBed], today);
+    expect(plan.arrivals.map((s) => s.guestName)).toEqual(['נועם']);
+    expect(plan.departures).toEqual([]);
+    expect(plan.inHouse.map((s) => s.guestName)).toEqual(['נועם']);
+    expect(plan.blocked.map((s) => s.guestName)).toEqual(['מזרן חדש', 'צביעה']);
+    // The single is closed (not prepared, not counted); the dorm has two open beds, one taken.
+    expect(plan.toPrepare).toEqual([]);
+    expect([plan.occupiedTonight, plan.unitsTonight]).toEqual([1, 4]);
+    const he = briefText(plan, rooms, { checkIn: '15:00', checkOut: '11:00' }, 'he');
+    expect(he).toContain(
+      'חסומים לתיקון (2):\n• דורמס, מיטה 2 — מזרן חדש, נפתח שוב ב־06.12.2026\n• יחיד — צביעה, נפתח שוב ב־08.12.2026',
+    );
+    const en = briefText(plan, rooms, { checkIn: '15:00', checkOut: '11:00' }, 'en');
+    expect(en).toContain('Closed for repair (2):');
+    expect(en).toContain('open again 08.12.2026');
+  });
+});
+
+describe("the guest's reminder", () => {
+  const base = {
+    guestName: 'משפחת לוי',
+    business: 'בריכת הדגמה',
+    checkIn: '2026-12-05',
+    checkOut: '2026-12-08',
+    checkInTime: '15:00',
+    checkOutTime: '11:00',
+    where: 'משפחתי 1',
+    arrivalNote: 'חונים ליד השער. קוד: 1234',
+    dueAgorot: 84_000,
+    payUrl: 'https://example.test/pay/abc',
+  };
+
+  it('tells the guest when to come, which room, how to get here and what is owed, with the link', () => {
+    const he = reminderText(base, 'he');
+    expect(he).toContain('שלום משפחת לוי 👋');
+    expect(he).toContain('מחכים לך מחר (05.12.2026) בבריכת הדגמה.');
+    expect(he).toContain('צ׳ק־אין מ־15:00, צ׳ק־אאוט עד 11:00 ביום 08.12.2026.');
+    expect(he).toContain('החדר שלך: משפחתי 1');
+    expect(he).toContain('איך מגיעים:\nחונים ליד השער. קוד: 1234');
+    expect(he).toMatch(/נשאר לשלם: .*840/);
+    expect(he).toContain('אפשר לשלם כאן: https://example.test/pay/abc');
+    const en = reminderText({ ...base, payUrl: null }, 'en');
+    expect(en).toContain("We're expecting you tomorrow (05.12.2026) at בריכת הדגמה.");
+    expect(en).toContain('Getting here:');
+    expect(en).toContain('You can pay on arrival.');
+  });
+
+  it('says nothing of money when all is paid or there is no price, nor of directions without a note', () => {
+    for (const dueAgorot of [0, null]) {
+      const text = reminderText({ ...base, dueAgorot, arrivalNote: '  ' }, 'he');
+      expect(text).not.toContain('לשלם');
+      expect(text).not.toContain('איך מגיעים');
+    }
+    expect(reminderText({ ...base, arrivalNote: null }, 'en')).not.toContain('Getting here');
+  });
+
+  it("names what the reminder's link pays for", () => {
+    const s = { guestName: 'לוי', checkIn: '2026-12-05', checkOut: '2026-12-08' };
+    expect(reminderPayFor(s, 'he')).toBe('לינה: לוי, 05.12.2026 עד 08.12.2026');
+    expect(reminderPayFor(s, 'en')).toBe('Lodging: לוי, 05.12.2026 to 08.12.2026');
   });
 });
 

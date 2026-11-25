@@ -40,6 +40,7 @@ import {
   Field,
   SelectField,
   SubmitButton,
+  TextareaField,
 } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { dmy } from '@/lib/options';
@@ -47,6 +48,7 @@ import { requestOrigin } from '@/lib/payments';
 import {
   addRateAction,
   addRoomsAction,
+  blockRoomAction,
   bookStayAction,
   housekeepingAction,
   moveStayAction,
@@ -252,6 +254,24 @@ export async function TodayView({ base }: { base: LodgingBase }) {
         </Card>
       </div>
 
+      {plan.blocked.length ? (
+        <Card data-testid="lodging-blocked">
+          <CardTitle icon="🔧">{t('today.blocked')}</CardTitle>
+          <ul className="flex flex-col gap-2">
+            {plan.blocked.map((s) => (
+              <li key={s.id} className="rounded-xl border border-dashed border-line px-3 py-2">
+                <Link href={`${base}/stays/${s.id}`} className="flex flex-col">
+                  <span className="font-medium">{whereOf(t, rooms, s)}</span>
+                  <span className="text-sm text-ink-muted">
+                    {s.guestName} · {t('block.openFrom', { date: dmy(s.checkOut) })}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
       <p className="text-sm text-ink-muted" data-testid="lodging-brief">
         📲{' '}
         {!settings.morningBrief
@@ -259,6 +279,9 @@ export async function TodayView({ base }: { base: LodgingBase }) {
           : settings.briefPhoneE164
             ? t('today.briefTo', { phone: displayPhoneIL(settings.briefPhoneE164) })
             : t('today.briefOwner')}
+      </p>
+      <p className="text-sm text-ink-muted" data-testid="lodging-reminder-note">
+        💬 {settings.guestReminder ? t('today.reminderOn') : t('today.reminderOff')}
       </p>
     </div>
   );
@@ -286,7 +309,7 @@ export async function BoardView({
     checkOut: params.out ?? '',
     guests: params.guests ?? '',
   });
-  const [{ rows }, settings, options] = await withSession((tx) =>
+  const [{ rows, rooms }, settings, options] = await withSession((tx) =>
     Promise.all([
       lodgingBoard(tx, from, nights),
       getLodgingSettings(tx),
@@ -305,6 +328,18 @@ export async function BoardView({
     checked_out: 'bg-line/40 border-line text-ink-muted',
     cancelled: '',
   } as const;
+  const BLOCK_TONE = 'border-dashed border-ink-muted bg-line/60 text-ink-muted';
+  const targets = rooms
+    .filter((r) => r.active)
+    .flatMap((r) => [
+      { value: r.id, label: r.soldBy === 'bed' ? t('block.wholeDorm', { room: r.name }) : r.name },
+      ...(r.soldBy === 'bed'
+        ? r.beds.map((b) => ({
+            value: `${r.id}:${b.id}`,
+            label: `${r.name} · ${t('bed', { label: b.label })}`,
+          }))
+        : []),
+    ]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -519,14 +554,14 @@ export async function BoardView({
                             href={`${base}/stays/${seg.stay.id}`}
                             className={cn(
                               'block truncate rounded-lg border px-2 py-1 font-medium',
-                              TONE[seg.stay.status],
+                              seg.stay.blocked ? BLOCK_TONE : TONE[seg.stay.status],
                               seg.before && 'rounded-s-none',
                               seg.after && 'rounded-e-none',
                             )}
                             title={`${seg.stay.guestName} · ${dmy(seg.stay.checkIn)}–${dmy(seg.stay.checkOut)}`}
-                            data-testid="board-stay"
+                            data-testid={seg.stay.blocked ? 'board-block' : 'board-stay'}
                           >
-                            {seg.stay.guestName}
+                            {seg.stay.blocked ? `🔧 ${seg.stay.guestName}` : seg.stay.guestName}
                           </Link>
                         </td>
                       ) : (
@@ -552,8 +587,58 @@ export async function BoardView({
               {t(`status.${s}`)}
             </span>
           ))}
+          <span className="flex items-center gap-1">
+            <span className={cn('inline-block size-3 rounded border', BLOCK_TONE)} aria-hidden />
+            {t('block.legend')}
+          </span>
         </p>
       </Card>
+
+      {targets.length ? (
+        <Card data-testid="lodging-block">
+          <details>
+            <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2">
+              <CardTitle icon="🔧">{t('block.title')}</CardTitle>
+              <span className={buttonVariants({ variant: 'secondary', size: 'sm' })}>
+                {t('block.open')}
+              </span>
+            </summary>
+            <p className="mt-2 text-sm text-ink-muted">{t('block.body')}</p>
+            <ActionForm
+              action={blockRoomAction}
+              className="mt-3 grid gap-3 md:grid-cols-2"
+              testId="block-form"
+            >
+              <SelectField name="target" label={t('block.target')} options={targets} />
+              <Field
+                name="reason"
+                label={t('block.reason')}
+                placeholder={t('block.reasonExample')}
+                autoComplete="off"
+                required
+              />
+              <Field
+                name="from"
+                label={t('block.from')}
+                type="date"
+                defaultValue={today}
+                required
+              />
+              <Field
+                name="to"
+                label={t('block.to')}
+                hint={t('block.toHint')}
+                type="date"
+                defaultValue={addDays(today, 1)}
+                required
+              />
+              <div className="md:col-span-2">
+                <SubmitButton>{t('block.save')}</SubmitButton>
+              </div>
+            </ActionForm>
+          </details>
+        </Card>
+      ) : null}
     </div>
   );
 }
@@ -751,6 +836,22 @@ export async function RoomsView() {
             max={168}
             defaultValue={settings.holdHours}
           />
+          <div className="md:col-span-2">
+            <CheckboxField
+              name="guestReminder"
+              label={t('rooms.guestReminder')}
+              defaultChecked={settings.guestReminder}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <TextareaField
+              name="arrivalNote"
+              label={t('rooms.arrivalNote')}
+              hint={t('rooms.arrivalNoteHint')}
+              rows={3}
+              defaultValue={settings.arrivalNote ?? ''}
+            />
+          </div>
           <div className="flex items-end">
             <SubmitButton>{t('rooms.settings')}</SubmitButton>
           </div>
@@ -877,6 +978,43 @@ export async function StayView({ base, id }: { base: LodgingBase; id: string }) 
     return <EmptyState icon="🛏️" title={t('stay.title')} />;
   }
   const { stay, booking } = found;
+  if (stay.blocked) {
+    return (
+      <Card data-testid="lodging-stay-block">
+        <CardTitle icon="🔧" aside={<Badge tone="warn">{t('block.badge')}</Badge>}>
+          {stay.roomName}
+          {stay.bedLabel ? ` · ${t('bed', { label: stay.bedLabel })}` : ''}
+        </CardTitle>
+        <dl className="grid gap-2 text-sm md:grid-cols-2">
+          <div>
+            <dt className="text-ink-muted">{t('block.reason')}</dt>
+            <dd className="font-medium">{stay.guestName}</dd>
+          </div>
+          <div>
+            <dt className="text-ink-muted">{t('stay.dates')}</dt>
+            <dd className="font-medium">
+              {t('block.dates', { from: dmy(stay.checkIn), to: dmy(stay.checkOut) })}
+            </dd>
+          </div>
+        </dl>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {stay.status === 'confirmed' ? (
+            <ActionButton
+              action={moveStayAction}
+              fields={{ id: stay.id, move: 'cancel' }}
+              variant="secondary"
+              data-testid="block-remove"
+            >
+              {t('block.remove')}
+            </ActionButton>
+          ) : null}
+          <Link href={`${base}/board`} className={buttonVariants({ variant: 'ghost' })}>
+            {t('stay.back')}
+          </Link>
+        </div>
+      </Card>
+    );
+  }
   return (
     <div className="flex flex-col gap-4">
       <Card data-testid="lodging-stay">
