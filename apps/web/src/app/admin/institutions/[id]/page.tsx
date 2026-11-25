@@ -125,7 +125,7 @@ export default async function InstitutionPage({ params }: { params: Promise<{ id
                 <SubmitButton>{t('invoices.draft')}</SubmitButton>
                 <Link
                   href={`/admin/institutions/report/${c.id}/${thisMonth}`}
-                  className="min-h-tap inline-flex items-center px-2 text-sm text-brand-700 underline"
+                  className="min-h-tap inline-flex items-center px-2 text-sm text-brand-ink underline"
                   data-testid="attendance-report"
                 >
                   {t('invoices.report')}
@@ -133,7 +133,7 @@ export default async function InstitutionPage({ params }: { params: Promise<{ id
               </div>
             </ActionForm>
             <details className="mt-2">
-              <summary className="min-h-tap cursor-pointer py-3 text-sm text-brand-700">
+              <summary className="min-h-tap cursor-pointer py-3 text-sm text-brand-ink">
                 {t('contract.edit')}
               </summary>
               <ActionForm action={updateContractAction}>
@@ -258,7 +258,7 @@ export default async function InstitutionPage({ params }: { params: Promise<{ id
 
         <Card>
           <details>
-            <summary className="min-h-tap cursor-pointer py-3 text-sm text-brand-700">
+            <summary className="min-h-tap cursor-pointer py-3 text-sm text-brand-ink">
               {t('edit')}
             </summary>
             <ActionForm action={updateInstitutionAction}>

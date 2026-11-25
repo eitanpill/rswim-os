@@ -129,7 +129,7 @@ export default async function MigrationPage({ params }: { params: Promise<{ id: 
             )}
             <Link
               href="/admin/messages"
-              className="mt-3 inline-block text-sm text-brand-700 underline"
+              className="mt-3 inline-block text-sm text-brand-ink underline"
             >
               {t('done.messages')}
             </Link>
@@ -174,7 +174,7 @@ export default async function MigrationPage({ params }: { params: Promise<{ id: 
               {data.messages.map((x) => (
                 <li
                   key={x.studentId}
-                  className="rounded-xl bg-brand-50 p-3 text-sm dark:bg-surface"
+                  className="rounded-xl bg-brand-50 p-3 text-sm"
                   data-testid="migration-message"
                 >
                   <p className="mb-1 text-xs text-ink-muted">
@@ -208,7 +208,7 @@ export default async function MigrationPage({ params }: { params: Promise<{ id: 
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-warn" data-testid="migration-blockers">
+              <p className="text-sm text-warn-ink" data-testid="migration-blockers">
                 {p.groups.length === 0
                   ? t('execute.noGroups')
                   : t('execute.blocked', { n: p.blockers })}
@@ -277,12 +277,12 @@ export default async function MigrationPage({ params }: { params: Promise<{ id: 
         {g.issues.length || g.warnings.length ? (
           <ul className="mt-2 flex flex-col gap-1 text-sm" data-testid="migration-issues">
             {g.issues.map((x, i) => (
-              <li key={`i${i}`} className="text-danger">
+              <li key={`i${i}`} className="text-danger-ink">
                 {why(x)}
               </li>
             ))}
             {g.warnings.map((x, i) => (
-              <li key={`w${i}`} className="text-warn">
+              <li key={`w${i}`} className="text-warn-ink">
                 {why(x)}
               </li>
             ))}
@@ -293,7 +293,7 @@ export default async function MigrationPage({ params }: { params: Promise<{ id: 
             {g.children
               .filter((c) => c.issues.length)
               .map((c) => (
-                <li key={c.studentId} className="text-danger">
+                <li key={c.studentId} className="text-danger-ink">
                   {c.firstName} {c.lastName}: {c.issues.map(why).join(' · ')}
                 </li>
               ))}

@@ -55,7 +55,7 @@ export default async function VenuesReport({
                     fmt(r.revenue),
                     r.rent === null ? t('venues.rentUnknown') : fmt(r.rent),
                     fmt(r.staffCost),
-                    <span key="m" className={r.margin < 0 ? 'text-danger' : undefined}>
+                    <span key="m" className={r.margin < 0 ? 'text-danger-ink' : undefined}>
                       {fmt(r.margin)} ({pct(r.marginPct)})
                     </span>,
                     t('venues.seats', {

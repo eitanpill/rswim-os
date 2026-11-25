@@ -41,16 +41,14 @@ export function BottomNav({
               aria-current={item.active ? 'page' : undefined}
               className={cn(
                 'group flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs transition-colors active:scale-95',
-                item.active ? 'font-semibold text-brand-700' : 'text-ink-muted hover:text-ink',
+                item.active ? 'font-semibold text-brand-ink' : 'text-ink-muted hover:text-ink',
               )}
             >
               <span
                 aria-hidden
                 className={cn(
                   'grid h-7 w-12 place-items-center rounded-full text-xl leading-none transition-all duration-200',
-                  item.active
-                    ? 'bg-brand-100 text-brand-700 dark:bg-surface'
-                    : 'group-hover:bg-brand-50 dark:group-hover:bg-surface',
+                  item.active ? 'bg-brand-100 text-brand-ink' : 'group-hover:bg-brand-50',
                 )}
               >
                 {item.icon}
@@ -89,14 +87,14 @@ export function SideNav({
                 'flex min-h-tap items-center gap-3 rounded-xl px-3 transition-colors',
                 item.active
                   ? 'bg-brand-600 font-semibold text-white shadow-[0_6px_16px_-8px_var(--color-brand-600)]'
-                  : 'text-ink hover:bg-brand-50 dark:hover:bg-surface',
+                  : 'text-ink hover:bg-brand-50',
               )}
             >
               <span
                 aria-hidden
                 className={cn(
                   'grid size-7 place-items-center rounded-lg',
-                  item.active ? 'bg-white/20' : 'bg-brand-50 text-brand-700 dark:bg-surface',
+                  item.active ? 'bg-white/20' : 'bg-brand-50 text-brand-700',
                 )}
               >
                 {item.icon}

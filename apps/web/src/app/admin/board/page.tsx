@@ -35,7 +35,7 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
         title={t('title')}
         subtitle={t('subtitle')}
         actions={
-          <Link href="/admin/groups" className="text-brand-700 underline">
+          <Link href="/admin/groups" className="text-brand-ink underline">
             {t('allGroups')}
           </Link>
         }
@@ -49,8 +49,7 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
               aria-current={v.id === data.venue?.id ? 'page' : undefined}
               className={cn(
                 'inline-flex min-h-tap items-center rounded-xl border border-line px-3',
-                v.id === data.venue?.id &&
-                  'border-brand-500 bg-brand-50 font-semibold dark:bg-surface',
+                v.id === data.venue?.id && 'border-brand-500 bg-brand-50 font-semibold',
               )}
             >
               {v.name}
@@ -77,7 +76,7 @@ export default async function BoardPage({ searchParams }: { searchParams: Promis
       {data.groups.length === 0 ? (
         <Card>
           <EmptyState title={t('noGroups')}>
-            <Link href="/admin/groups" className="text-brand-700 underline">
+            <Link href="/admin/groups" className="text-brand-ink underline">
               {t('allGroups')}
             </Link>
           </EmptyState>

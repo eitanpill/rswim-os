@@ -71,7 +71,7 @@ export default async function InstructorDay({
           )}
         </Hero>
         {answered ? (
-          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok">
+          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok-ink">
             {t('answered')}
           </p>
         ) : null}
@@ -117,7 +117,7 @@ export default async function InstructorDay({
                       </div>
                     </ActionForm>
                     <details>
-                      <summary className="min-h-tap cursor-pointer text-sm text-brand-700">
+                      <summary className="min-h-tap cursor-pointer text-sm text-brand-ink">
                         {t('decline')}
                       </summary>
                       <ActionForm action={answerShiftChangeAction} className="mt-2">
@@ -147,7 +147,7 @@ export default async function InstructorDay({
                 <li key={s.id}>
                   <Link
                     href={`/instructor/session/${s.id}`}
-                    className={`lift flex items-center justify-between gap-2 rounded-2xl border p-3 hover:border-brand-500 ${s.date === today ? 'border-brand-500/60 bg-brand-50/60 dark:bg-surface' : 'border-line'}`}
+                    className={`lift flex items-center justify-between gap-2 rounded-2xl border p-3 hover:border-brand-500 ${s.date === today ? 'border-brand-500/60 bg-brand-50/60' : 'border-line'}`}
                     data-testid="my-session"
                   >
                     <span className="flex min-w-0 items-center gap-3">

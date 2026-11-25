@@ -15,7 +15,7 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center gap-2 py-6 text-center text-ink-muted">
       <div
-        className="pop-in grid size-14 place-items-center rounded-full bg-brand-50 text-2xl ring-4 ring-brand-50/50 dark:bg-surface dark:ring-surface/50"
+        className="pop-in grid size-14 place-items-center rounded-full bg-brand-50 text-2xl ring-4 ring-brand-50/50"
         aria-hidden
       >
         <span className="bob">{icon ?? '🫧'}</span>

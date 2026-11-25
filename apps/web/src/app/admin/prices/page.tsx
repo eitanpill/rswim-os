@@ -132,7 +132,7 @@ export default async function PricesPage({ searchParams }: { searchParams: Promi
           {answer !== undefined ? (
             <div
               role="status"
-              className="mt-3 rounded-xl bg-brand-50 p-3 dark:bg-surface"
+              className="mt-3 rounded-xl bg-brand-50 p-3"
               data-testid="price-answer"
             >
               {answer ? (

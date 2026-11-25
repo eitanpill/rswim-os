@@ -70,7 +70,7 @@ export default async function ReimbursementPage() {
                     {!p.active ? <Badge>{t('inactive')}</Badge> : null}
                   </div>
                   <details className="mt-2">
-                    <summary className="cursor-pointer text-sm text-brand-700">
+                    <summary className="cursor-pointer text-sm text-brand-ink">
                       {tc('edit')}
                     </summary>
                     <ActionForm action={saveProfileAction.bind(null, p.id)} className="mt-2">

@@ -219,7 +219,7 @@ export default async function InstructorProfile() {
             ))}
           </ul>
           <details>
-            <summary className="min-h-tap cursor-pointer text-brand-700">
+            <summary className="min-h-tap cursor-pointer text-brand-ink">
               {ts('availability.add')}
             </summary>
             <ActionForm action={addMyAvailabilityAction} resetOnSuccess className="mt-2">
@@ -295,7 +295,7 @@ export default async function InstructorProfile() {
             ))}
           </ul>
           <details>
-            <summary className="min-h-tap cursor-pointer text-brand-700">{t('addTimeOff')}</summary>
+            <summary className="min-h-tap cursor-pointer text-brand-ink">{t('addTimeOff')}</summary>
             <ActionForm action={addMyExceptionAction} resetOnSuccess className="mt-2">
               <div className="grid gap-3 sm:grid-cols-3">
                 <SelectField

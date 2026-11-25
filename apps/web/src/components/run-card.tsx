@@ -190,7 +190,7 @@ export async function RunCard({ view, actions }: { view: RunView; actions: RunAc
         })}
       </ol>
       <p
-        className={summary.short ? 'mt-2 text-sm text-warn' : 'mt-2 text-sm text-ink-muted'}
+        className={summary.short ? 'mt-2 text-sm text-warn-ink' : 'mt-2 text-sm text-ink-muted'}
         data-testid="run-water"
         role={summary.short ? 'note' : undefined}
       >

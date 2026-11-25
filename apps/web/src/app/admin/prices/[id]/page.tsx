@@ -170,7 +170,7 @@ export default async function PriceListPage({ params }: { params: Promise<{ id: 
             ) : null}
           </div>
           <details className="mt-4">
-            <summary className="min-h-tap cursor-pointer font-medium text-brand-700">
+            <summary className="min-h-tap cursor-pointer font-medium text-brand-ink">
               {t('newVersion')}
             </summary>
             <p className="mb-2 text-sm text-ink-muted">{t('newVersionHint')}</p>

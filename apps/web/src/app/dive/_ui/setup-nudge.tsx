@@ -17,7 +17,7 @@ export async function SetupNudge() {
     return (
       <Link
         href="/dive/setup"
-        className="self-start text-sm font-medium text-[var(--dive-sea)] hover:underline"
+        className="self-start text-sm font-medium text-[var(--dive-sea-ink)] hover:underline"
         data-testid="to-setup"
       >
         {t('open')}
@@ -31,13 +31,13 @@ export async function SetupNudge() {
       data-testid="setup-nudge"
     >
       <span className="flex items-center gap-2">
-        <span className="text-[var(--dive-sea)] [&_svg]:size-5">{di.anchor}</span>
+        <span className="text-[var(--dive-sea-ink)] [&_svg]:size-5">{di.anchor}</span>
         <span>
           <span className="block font-semibold">{t('open')}</span>
           <span className="block text-sm text-ink-muted">{t('openHint', { done, total })}</span>
         </span>
       </span>
-      <span className="text-[var(--dive-sea)] [&_svg]:size-4">{di.arrow}</span>
+      <span className="text-[var(--dive-sea-ink)] [&_svg]:size-4">{di.arrow}</span>
     </Link>
   );
 }

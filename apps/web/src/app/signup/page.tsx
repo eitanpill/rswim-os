@@ -37,7 +37,7 @@ export default async function SignupPage({
           {t('resend.already')}{' '}
           <Link
             href="/login"
-            className="font-medium text-brand-600 underline-offset-4 hover:underline"
+            className="font-medium text-brand-ink underline-offset-4 hover:underline"
           >
             {t('signIn')}
           </Link>
@@ -49,7 +49,7 @@ export default async function SignupPage({
     <LoginFrame title={t('title')}>
       {trialDays ? (
         <p className="mb-2 flex flex-wrap items-center gap-2" data-testid="signup-trial">
-          <span className="aqua-shine rounded-full px-3 py-1 text-sm font-bold text-ink">
+          <span className="aqua-shine rounded-full px-3 py-1 text-sm font-bold text-on-bright">
             🎁 {tTrial('free', { days: trialDays })}
           </span>
         </p>
@@ -81,7 +81,7 @@ export default async function SignupPage({
         {t('haveAccount')}{' '}
         <Link
           href="/login"
-          className="font-medium text-brand-600 underline-offset-4 hover:underline"
+          className="font-medium text-brand-ink underline-offset-4 hover:underline"
         >
           {t('signIn')}
         </Link>

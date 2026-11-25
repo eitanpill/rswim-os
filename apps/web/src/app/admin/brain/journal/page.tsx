@@ -35,7 +35,7 @@ export default async function BrainJournalPage({
         title={t('journal.title')}
         subtitle={t('journal.subtitle')}
         actions={
-          <Link href="/admin/brain" className="text-sm text-brand-700 underline">
+          <Link href="/admin/brain" className="text-sm text-brand-ink underline">
             {t('journal.back')}
           </Link>
         }
@@ -46,7 +46,7 @@ export default async function BrainJournalPage({
             key={f}
             href={f === 'all' ? '/admin/brain/journal' : `/admin/brain/journal?status=${f}`}
             aria-current={f === filter ? 'page' : undefined}
-            className="flex min-h-tap items-center rounded-full border border-line px-3 text-sm aria-[current=page]:border-brand-500 aria-[current=page]:bg-brand-50 dark:aria-[current=page]:bg-surface"
+            className="flex min-h-tap items-center rounded-full border border-line px-3 text-sm aria-[current=page]:border-brand-500 aria-[current=page]:bg-brand-50"
             data-testid={`journal-filter-${f}`}
           >
             {f === 'all' ? t('journal.all') : t(`status.${f}`)}

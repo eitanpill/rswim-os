@@ -115,7 +115,7 @@ export default async function Divers({
             </button>
           </div>
           <details className="group" open={active.length > 0} data-testid="more-filters">
-            <summary className="flex min-h-tap cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-[var(--dive-sea)]">
+            <summary className="flex min-h-tap cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-[var(--dive-sea-ink)]">
               <span className="transition-transform group-open:rotate-90 rtl:group-open:-rotate-90">
                 ‹
               </span>
@@ -176,7 +176,7 @@ export default async function Divers({
                 className={
                   on
                     ? 'rounded-full ring-2 ring-[var(--dive-sea)]'
-                    : 'rounded-full opacity-80 hover:opacity-100'
+                    : 'rounded-full ring-1 ring-transparent hover:ring-line'
                 }
               >
                 <Chip tone={x.tone} icon={false}>
@@ -220,7 +220,7 @@ export default async function Divers({
             })}
             <a
               href="/dive/divers"
-              className="font-medium text-[var(--dive-sea)] hover:underline"
+              className="font-medium text-[var(--dive-sea-ink)] hover:underline"
               data-testid="clear-filters"
             >
               {t('divers.clear')}

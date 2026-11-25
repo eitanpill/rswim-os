@@ -126,7 +126,7 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
           )}
           <Link
             href="/parent/schedule"
-            className="mt-2 inline-block min-h-tap py-3 text-brand-700 underline"
+            className="mt-2 inline-block min-h-tap py-3 text-brand-ink underline"
           >
             {tAll('parent.home.reportAbsence')}
           </Link>
@@ -179,7 +179,7 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
                       </p>
                     ) : null}
                     {r.status === 'refused' ? (
-                      <p className="text-sm text-danger">
+                      <p className="text-sm text-danger-ink">
                         {t('refused', { reason: reasonText(r.error) })}
                       </p>
                     ) : null}
@@ -209,7 +209,7 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
                 {p.groupName}
               </CardTitle>
               <details>
-                <summary className="min-h-tap cursor-pointer py-3 text-brand-700">
+                <summary className="min-h-tap cursor-pointer py-3 text-brand-ink">
                   {t('freeze')}
                 </summary>
                 <ActionForm action={parentAskFreezeAction} className="mt-2" testId="ask-freeze">
@@ -239,7 +239,7 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
               </details>
               {!leaving ? (
                 <details>
-                  <summary className="min-h-tap cursor-pointer py-3 text-brand-700">
+                  <summary className="min-h-tap cursor-pointer py-3 text-brand-ink">
                     {t('leave')}
                   </summary>
                   <ActionForm action={parentAskLeaveAction} className="mt-2" testId="ask-leave">

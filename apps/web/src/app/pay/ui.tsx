@@ -17,7 +17,7 @@ export function PayFrame({
         <p className="text-lg font-bold" data-testid="pay-business">
           {business ?? ''}
         </p>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-ok/10 px-3 py-1 text-xs font-semibold text-ok">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-ok/10 px-3 py-1 text-xs font-semibold text-ok-ink">
           <svg
             viewBox="0 0 24 24"
             className="size-4"

@@ -125,7 +125,7 @@ export async function NetworkOverview() {
                     <span
                       className={cn(
                         'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs',
-                        r.incidents90d > 0 ? 'bg-warn/15' : 'bg-ok/10 text-ok',
+                        r.incidents90d > 0 ? 'bg-warn/15' : 'bg-ok/10 text-ok-ink',
                       )}
                     >
                       {r.incidents90d > 0 ? '!' : '✓'} {t('incidents', { count: r.incidents90d })}

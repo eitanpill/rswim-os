@@ -42,7 +42,7 @@ export default async function SchoolsPage() {
             <Card key={s.id} data-testid="school">
               <CardTitle>{s.name}</CardTitle>
               <details>
-                <summary className="min-h-tap cursor-pointer py-3 text-sm text-brand-700">
+                <summary className="min-h-tap cursor-pointer py-3 text-sm text-brand-ink">
                   {t('edit')}
                 </summary>
                 <ActionForm action={updateSchoolAction}>

@@ -42,7 +42,7 @@ export default async function MakeupsPage({
       <AttendanceTabs active="makeups" />
       <div className="flex flex-col gap-4">
         {booked ? (
-          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok">
+          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok-ink">
             {t('booked')}
           </p>
         ) : null}
@@ -100,7 +100,7 @@ export default async function MakeupsPage({
                       <div className="mt-2 flex flex-wrap items-start gap-3">
                         <Link
                           href={`/admin/makeups/${c.id}`}
-                          className="min-h-tap py-3 font-medium text-brand-700 underline"
+                          className="min-h-tap py-3 font-medium text-brand-ink underline"
                         >
                           {t('findLesson')}
                         </Link>

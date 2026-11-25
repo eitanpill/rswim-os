@@ -186,7 +186,7 @@ export default async function OpsRoom() {
                           fields={{ sessionId: s.id, status: 'cancelled' }}
                           confirm={t('manager.cancelConfirm', { title: s.title })}
                           variant="ghost"
-                          className={cn(small, 'text-[var(--dive-nogo)]')}
+                          className={cn(small, 'text-[var(--dive-nogo-ink)]')}
                         >
                           {t('manager.cancel')}
                         </ActionButton>
@@ -381,7 +381,7 @@ export default async function OpsRoom() {
           action={
             <Link
               href="/dive/rules"
-              className="text-sm font-medium text-[var(--dive-sea)] hover:underline"
+              className="text-sm font-medium text-[var(--dive-sea-ink)] hover:underline"
               data-testid="edit-rules"
             >
               {t('manager.editRules')}

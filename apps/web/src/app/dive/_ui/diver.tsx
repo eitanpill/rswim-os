@@ -64,7 +64,7 @@ export async function DiverBanner({
               {!greeting ? <Avatar name={name} size={36} /> : null}
               {name}
             </h1>
-            <p className="mt-1 text-sm text-white/80">
+            <p className="mt-1 text-sm text-white/90">
               {t(`level.${d.certLevel}`)}
               {d.certName ? ` · ${d.certName}` : ''}
               {d.city ? ` · ${d.city}` : ''}

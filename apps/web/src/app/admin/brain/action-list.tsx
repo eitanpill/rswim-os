@@ -61,7 +61,7 @@ export async function AgentActionList({ actions }: { actions: AgentActionRow[] }
               </p>
             ) : null}
             {a.errorCode ? (
-              <p className="mt-1 text-sm text-danger">
+              <p className="mt-1 text-sm text-danger-ink">
                 {explain({
                   code: a.errorCode,
                   params: (a.result as { params?: object } | null)?.params ?? {},

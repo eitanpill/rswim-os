@@ -10,11 +10,11 @@ import { CountUp } from './motion';
 export type Tone = 'go' | 'caution' | 'nogo' | 'info' | 'muted' | 'sea';
 
 const TONE: Record<Tone, string> = {
-  go: 'bg-[color-mix(in_oklch,var(--dive-go)_14%,transparent)] text-[var(--dive-go)] ring-[color-mix(in_oklch,var(--dive-go)_35%,transparent)]',
+  go: 'bg-[color-mix(in_oklch,var(--dive-go)_14%,transparent)] text-[var(--dive-go-ink)] ring-[color-mix(in_oklch,var(--dive-go)_35%,transparent)]',
   caution:
-    'bg-[color-mix(in_oklch,var(--dive-caution)_16%,transparent)] text-[color-mix(in_oklch,var(--dive-caution)_70%,var(--ink))] ring-[color-mix(in_oklch,var(--dive-caution)_40%,transparent)]',
-  nogo: 'bg-[color-mix(in_oklch,var(--dive-nogo)_13%,transparent)] text-[var(--dive-nogo)] ring-[color-mix(in_oklch,var(--dive-nogo)_35%,transparent)]',
-  info: 'bg-[color-mix(in_oklch,var(--dive-sea)_13%,transparent)] text-[color-mix(in_oklch,var(--dive-sea)_70%,var(--ink))] ring-[color-mix(in_oklch,var(--dive-sea)_35%,transparent)]',
+    'bg-[color-mix(in_oklch,var(--dive-caution)_16%,transparent)] text-[var(--dive-caution-ink)] ring-[color-mix(in_oklch,var(--dive-caution)_40%,transparent)]',
+  nogo: 'bg-[color-mix(in_oklch,var(--dive-nogo)_13%,transparent)] text-[var(--dive-nogo-ink)] ring-[color-mix(in_oklch,var(--dive-nogo)_35%,transparent)]',
+  info: 'bg-[color-mix(in_oklch,var(--dive-sea)_13%,transparent)] text-[var(--dive-sea-ink)] ring-[color-mix(in_oklch,var(--dive-sea)_35%,transparent)]',
   sea: 'bg-[var(--dive-deep)] text-white ring-transparent',
   muted: 'bg-[color-mix(in_oklch,var(--ink)_6%,transparent)] text-ink-muted ring-line',
 };
@@ -87,7 +87,7 @@ export function Panel({
         <header className="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
           <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-ink">
             {icon ? (
-              <span className="text-[var(--dive-sea)] [&_svg]:size-[18px]">{icon}</span>
+              <span className="text-[var(--dive-sea-ink)] [&_svg]:size-[18px]">{icon}</span>
             ) : null}
             {title}
           </h2>
@@ -156,8 +156,8 @@ export function Kpi({
             className={cn(
               'inline-flex items-center gap-0.5 rounded-full px-1.5 py-px font-semibold',
               delta.pct >= 0
-                ? 'bg-[color-mix(in_oklch,var(--dive-go)_14%,transparent)] text-[var(--dive-go)]'
-                : 'bg-[color-mix(in_oklch,var(--dive-nogo)_12%,transparent)] text-[var(--dive-nogo)]',
+                ? 'bg-[color-mix(in_oklch,var(--dive-go)_14%,transparent)] text-[var(--dive-go-ink)]'
+                : 'bg-[color-mix(in_oklch,var(--dive-nogo)_12%,transparent)] text-[var(--dive-nogo-ink)]',
             )}
           >
             <span aria-hidden="true">{delta.pct >= 0 ? '▲' : '▼'}</span>
@@ -349,7 +349,7 @@ export function Hero({
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
         {kicker ? (
-          <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-sea)] uppercase">
+          <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-sea-ink)] uppercase">
             {kicker}
           </p>
         ) : null}

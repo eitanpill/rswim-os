@@ -248,7 +248,7 @@ export default async function WaterDay() {
                         </div>
                         {d.status !== 'no_show' ? (
                           <details className="mt-2">
-                            <summary className="cursor-pointer text-sm font-medium text-[var(--dive-sea)]">
+                            <summary className="cursor-pointer text-sm font-medium text-[var(--dive-sea-ink)]">
                               {t('instructor.log')}
                             </summary>
                             <ActionForm action={logDiveAction} resetOnSuccess className="mt-2">
@@ -344,7 +344,7 @@ export default async function WaterDay() {
                             variant={done ? 'primary' : 'secondary'}
                             className={cn(
                               'min-h-7 rounded-full px-2.5 text-xs',
-                              done && 'bg-[var(--dive-go)] hover:bg-[var(--dive-go)]',
+                              done && 'bg-[var(--dive-go-strong)] hover:bg-[var(--dive-go-strong)]',
                             )}
                             aria-pressed={done}
                           >
@@ -458,7 +458,7 @@ function IncidentList({
               {t('instructor.incidentClosedOn', { date: dateShort(i.closedAt) })}
             </p>
           ) : i.status === 'open' ? (
-            <p className="mt-2 text-xs text-[var(--dive-nogo)]">
+            <p className="mt-2 text-xs text-[var(--dive-nogo-ink)]">
               {t('instructor.incidentStillOpen')}
             </p>
           ) : null}
@@ -466,7 +466,7 @@ function IncidentList({
       ))}
       <a
         href={`/dive/divers/${diverId}`}
-        className="text-sm font-medium text-[var(--dive-sea)] hover:underline"
+        className="text-sm font-medium text-[var(--dive-sea-ink)] hover:underline"
       >
         {t('instructor.incidentDiverFile')}
       </a>

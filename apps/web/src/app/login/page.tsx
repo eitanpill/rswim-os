@@ -56,7 +56,7 @@ export default async function LoginPage({
       </Link>
       <Link
         href="/login/phone"
-        className="mt-4 block text-center font-medium text-brand-600 underline-offset-4 hover:underline"
+        className="mt-4 block text-center font-medium text-brand-ink underline-offset-4 hover:underline"
       >
         {t('parentsLink')}
       </Link>
@@ -79,7 +79,7 @@ export default async function LoginPage({
               <a
                 key={key}
                 href={`/dev/login?as=${key}`}
-                className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-surface"
+                className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50"
               >
                 <span className="block font-medium">{tRole(p.role)}</span>
                 <span className="text-ink-muted">{personaName(key as DevKey)}</span>
@@ -91,7 +91,7 @@ export default async function LoginPage({
                 <a
                   key={key}
                   href={`/dev/login?as=${key}`}
-                  className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-surface"
+                  className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50"
                 >
                   <span className="block font-medium">{t(`devAccount.${key}`)}</span>
                   <span className="text-ink-muted">{p.name}</span>
@@ -101,7 +101,7 @@ export default async function LoginPage({
               <a
                 key={key}
                 href={`/dev/login?as=${key}`}
-                className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-surface"
+                className="rounded-xl border border-line px-3 py-2 text-sm hover:bg-brand-50"
               >
                 <span className="block font-medium">🤿 {t(`devDive.${key}`)}</span>
                 <span className="text-ink-muted">{p.name}</span>
@@ -176,7 +176,7 @@ async function DemoLogin({ resetting }: { resetting: boolean }) {
               <a
                 key={key}
                 href={`/dev/login?as=${key}`}
-                className="rounded-xl border border-line px-3 py-2 hover:bg-brand-50 dark:hover:bg-surface"
+                className="rounded-xl border border-line px-3 py-2 hover:bg-brand-50"
               >
                 <span className="block font-medium">
                   {role}

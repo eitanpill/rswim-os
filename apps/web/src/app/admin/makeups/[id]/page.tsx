@@ -40,7 +40,7 @@ export default async function MakeupOffersPage({ params }: { params: Promise<{ i
         subtitle={t('subtitle', { until: dmy(credit.expiresOn) })}
       />
       <div className="flex flex-col gap-4">
-        <Link href="/admin/makeups" className="text-brand-700">
+        <Link href="/admin/makeups" className="text-brand-ink">
           {t('back')}
         </Link>
         <Card>
@@ -68,7 +68,7 @@ export default async function MakeupOffersPage({ params }: { params: Promise<{ i
                     <span className="text-sm text-ink-muted">{t('seats', { n: o.freeSeats })}</span>
                   </div>
                   {o.fit.soft.length ? (
-                    <ul className="mt-1 text-sm text-warn">
+                    <ul className="mt-1 text-sm text-warn-ink">
                       {o.fit.soft.map((s) => (
                         <li key={s.code} data-testid="offer-soft">
                           {why(s)}

@@ -62,7 +62,7 @@ export default async function ParentHome() {
           {next ? (
             <p className="text-lg">
               <span className="font-semibold">{await whenFriendly(next.s)}</span>
-              <span className="text-white/80"> · {next.s.groupName}</span>
+              <span className="text-white/90"> · {next.s.groupName}</span>
               <span className="sr-only"> ({sessionWhen(next.s)})</span>
             </p>
           ) : (

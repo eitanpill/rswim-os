@@ -31,10 +31,10 @@ export function ResetForm({
   if (link === 'failed')
     return (
       <div className="flex flex-col gap-3" data-testid="reset-expired">
-        <p role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">
+        <p role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger-ink">
           {labels.expired}
         </p>
-        <Link href="/login/forgot" className="text-center font-medium text-brand-600">
+        <Link href="/login/forgot" className="text-center font-medium text-brand-ink">
           {labels.again}
         </Link>
       </div>

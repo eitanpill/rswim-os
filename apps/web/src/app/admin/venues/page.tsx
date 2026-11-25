@@ -25,7 +25,7 @@ export default async function VenuesPage() {
         subtitle={t('subtitle')}
         actions={
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/admin/venues/migrations" className="text-brand-700 underline">
+            <Link href="/admin/venues/migrations" className="text-brand-ink underline">
               {t('migrations')}
             </Link>
             <Link href="/admin/venues/new" className={buttonVariants()}>

@@ -18,7 +18,7 @@ export function TermsField({ label }: { label: string }) {
         <span>{label}</span>
       </label>
       {error ? (
-        <p role="alert" className="mt-1 text-sm text-danger" data-testid="signup-terms-error">
+        <p role="alert" className="mt-1 text-sm text-danger-ink" data-testid="signup-terms-error">
           {error}
         </p>
       ) : null}

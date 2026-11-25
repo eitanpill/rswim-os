@@ -69,11 +69,11 @@ export default async function ClosurePage({
         subtitle={`${dmy(event.startsOn)}–${dmy(event.endsOn)} · ${label('closureSource', event.source)}`}
       />
       <div className="flex flex-col gap-4">
-        <Link href="/admin/closures" className="text-brand-700">
+        <Link href="/admin/closures" className="text-brand-ink">
           {t('back')}
         </Link>
         {opened !== undefined ? (
-          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok">
+          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok-ink">
             {t('opened', { sessions: sessionsCancelled, credits: Number(opened) })}
           </p>
         ) : null}

@@ -76,7 +76,7 @@ export function Board({
           role={notice.ok ? 'status' : 'alert'}
           className={cn(
             'rounded-xl px-3 py-2 text-sm',
-            notice.ok ? 'bg-ok/10 text-ok' : 'bg-danger/10 text-danger',
+            notice.ok ? 'bg-ok/10 text-ok-ink' : 'bg-danger/10 text-danger-ink',
           )}
         >
           {notice.text}
@@ -118,7 +118,11 @@ export function Board({
                         })}
                       </p>
                       <p className="text-sm text-ink-muted">
-                        {g.lead ? g.lead.name : <span className="text-danger">{t('noLead')}</span>}
+                        {g.lead ? (
+                          g.lead.name
+                        ) : (
+                          <span className="text-danger-ink">{t('noLead')}</span>
+                        )}
                         {g.levelMin || g.levelMax
                           ? ` · ${[g.levelMin, g.levelMax]
                               .filter(Boolean)
@@ -266,7 +270,7 @@ function PreviewSheet({
         {p.error ? t('cannotCheck') : t('moveTitle', { name: p.student, to: p.to })}
       </h2>
       {p.error ? (
-        <p role="alert" className="text-danger">
+        <p role="alert" className="text-danger-ink">
           {p.error}
         </p>
       ) : null}
@@ -275,7 +279,7 @@ function PreviewSheet({
       ) : null}
 
       {p.violations.length ? (
-        <div role="alert" className="mb-3 rounded-xl bg-danger/10 p-3 text-danger">
+        <div role="alert" className="mb-3 rounded-xl bg-danger/10 p-3 text-danger-ink">
           <p className="font-semibold">{t('blocked')}</p>
           <ul className="list-disc ps-5">
             {p.violations.map((v) => (

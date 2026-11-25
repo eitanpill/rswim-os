@@ -184,6 +184,11 @@ has RLS disabled. Admin screens follow one pattern: a server action calls `runFo
 9. **Hebrew/RTL first**: all user-facing strings via i18n (`he` default, `en` secondary). No hard-coded UI text.
 10. TypeScript strict, no `any`, Zod at every boundary. Conventional commits.
 11. **Never use real client data.** Seeds and fixtures are fake.
+12. **Readable in light and dark mode.** `dark:` follows the device's dark mode. Tints (`bg-brand-50/100`) switch by
+    themselves; text in the brand or a status colour uses `text-brand-ink`, `text-ok-ink`, `text-danger-ink`,
+    `text-warn-ink` (freediving: `var(--dive-*-ink)`); white text sits on `brand-600/700`, `ok-strong`, `danger` or
+    `--dive-*-strong`; text on a bright fill uses `text-on-bright`. `packages/ui/test/contrast.test.ts` checks the token
+    pairs for every brand hue in both modes and blocks the old classes.
 
 ## Domain glossary
 See `docs/DOMAIN_GLOSSARY.md`. Quick ones: makeup = השלמה, freeze = הקפאה, standing order = הוראת קבע, after-school = צהרון, camp = קייטנה, trial = שיעור ניסיון, regulations = תקנון, household = billing unit.

@@ -77,7 +77,7 @@ export async function AppShell({
           {switcher ? (
             <Link
               href="/me/schools"
-              className="rounded-xl px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50 dark:hover:bg-surface"
+              className="rounded-xl px-3 py-2 text-sm font-medium text-brand-ink hover:bg-brand-50"
               data-testid="switch-school"
             >
               {t('switchOrg')}
@@ -111,7 +111,7 @@ export async function AppShell({
             <Button
               variant="ghost"
               type="submit"
-              className="px-2.5 text-ink-muted hover:text-danger"
+              className="px-2.5 text-ink-muted hover:text-danger-ink"
               aria-label={t('signOut')}
               title={t('signOut')}
             >

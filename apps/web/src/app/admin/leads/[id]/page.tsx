@@ -93,7 +93,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
                   className={
                     m.direction === 'in'
                       ? 'me-8 rounded-2xl rounded-ss-sm bg-surface p-3 text-sm ring-1 ring-line/60'
-                      : 'ms-8 rounded-2xl rounded-se-sm bg-brand-50 p-3 text-sm dark:bg-surface-raised'
+                      : 'ms-8 rounded-2xl rounded-se-sm bg-brand-50 p-3 text-sm'
                   }
                   data-testid={`lead-message-${m.direction}`}
                 >

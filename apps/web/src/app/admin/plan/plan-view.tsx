@@ -54,7 +54,7 @@ export async function PlanView({
         <p
           role="alert"
           data-testid="locked"
-          className="mb-4 rounded-xl bg-danger/10 px-3 py-2 text-danger"
+          className="mb-4 rounded-xl bg-danger/10 px-3 py-2 text-danger-ink"
         >
           {t('locked')}
         </p>
@@ -74,8 +74,8 @@ export async function PlanView({
           data-testid="card-result"
           className={
             card === 'saved'
-              ? 'mb-4 rounded-xl bg-ok/10 px-3 py-2 text-ok'
-              : 'mb-4 rounded-xl bg-danger/10 px-3 py-2 text-danger'
+              ? 'mb-4 rounded-xl bg-ok/10 px-3 py-2 text-ok-ink'
+              : 'mb-4 rounded-xl bg-danger/10 px-3 py-2 text-danger-ink'
           }
         >
           {card === 'saved' ? tb('card.savedToast') : tb('card.failedToast')}
@@ -104,10 +104,14 @@ export async function PlanView({
                 <p>{t('trialEnds', { date: dmy(sub.trialEndsOn) })}</p>
               ) : null}
               {sub.pastDueSince ? (
-                <p className="text-danger">{t('pastDueSince', { date: dmy(sub.pastDueSince) })}</p>
+                <p className="text-danger-ink">
+                  {t('pastDueSince', { date: dmy(sub.pastDueSince) })}
+                </p>
               ) : null}
               {sub.cancelsOn && sub.status !== 'cancelled' ? (
-                <p className="text-warn">{tb('cancel.scheduled', { date: dmy(sub.cancelsOn) })}</p>
+                <p className="text-warn-ink">
+                  {tb('cancel.scheduled', { date: dmy(sub.cancelsOn) })}
+                </p>
               ) : null}
               <p className="text-sm text-ink-muted">
                 {sub.mandateId ? t('mandateOk') : t('mandateMissing')}
@@ -181,7 +185,7 @@ export async function PlanView({
               </ul>
               {owner && sub && page.plan ? (
                 p.code === page.plan.code ? (
-                  <p className="mt-3 text-sm font-medium text-brand-700">{tb('change.current')}</p>
+                  <p className="mt-3 text-sm font-medium text-brand-ink">{tb('change.current')}</p>
                 ) : sub.status !== 'cancelled' && sub.status !== 'suspended' ? (
                   <ActionForm action={changePlanAction} className="mt-3">
                     <input type="hidden" name="planCode" value={p.code} />

@@ -23,7 +23,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
         </ActionForm>
         <form action="/auth/signout" method="post" className="mt-4">
           <p className="mb-2 text-sm text-ink-muted">{t('afterAccept')}</p>
-          <button type="submit" className="text-brand-700 underline">
+          <button type="submit" className="text-brand-ink underline">
             {t('signInAgain')}
           </button>
         </form>

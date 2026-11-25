@@ -79,7 +79,7 @@ export default async function BotPage() {
             </Badge>
             <Link
               href="/admin/policies"
-              className="min-h-tap py-2 text-sm text-brand-700 underline"
+              className="min-h-tap py-2 text-sm text-brand-ink underline"
             >
               {t('turnOn')}
             </Link>
@@ -174,7 +174,7 @@ export default async function BotPage() {
                     <div className="mt-2" data-testid="bot-actions">
                       <p className="text-xs text-ink-muted">
                         {t('actions')}{' '}
-                        <Link href="/admin/brain/journal" className="text-brand-700 underline">
+                        <Link href="/admin/brain/journal" className="text-brand-ink underline">
                           {t('actionsJournal')}
                         </Link>
                       </p>
@@ -224,7 +224,7 @@ export default async function BotPage() {
           <CardTitle>{t('knowledge', { n: knowledge.length })}</CardTitle>
           <p className="mt-1 text-sm text-ink-muted">{t('knowledgeHint')}</p>
           <details className="mt-3">
-            <summary className="min-h-tap cursor-pointer py-2 text-sm font-medium text-brand-700">
+            <summary className="min-h-tap cursor-pointer py-2 text-sm font-medium text-brand-ink">
               {t('add')}
             </summary>
             <KnowledgeForm testId="bot-knowledge-form" />
@@ -249,7 +249,7 @@ export default async function BotPage() {
                     <p className="mt-1 text-xs text-ink-muted">{t('learned')}</p>
                   ) : null}
                   <details className="mt-2">
-                    <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-700">
+                    <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-ink">
                       {t('edit')}
                     </summary>
                     <KnowledgeForm entry={k} />

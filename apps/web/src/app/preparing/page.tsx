@@ -30,7 +30,7 @@ export default async function PreparingPage() {
         className={
           failed
             ? 'size-12 rounded-full bg-danger/10'
-            : 'size-12 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600'
+            : 'size-12 animate-spin rounded-full border-4 border-brand-100 border-t-brand-600'
         }
       />
       <h1 className="text-2xl font-semibold" data-testid="preparing-title">

@@ -33,7 +33,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
         <p className="text-ink-muted" data-testid="invite-unknown">
           {t('unknown')}
         </p>
-        <Link href="/schools" className="text-brand-600 underline">
+        <Link href="/schools" className="text-brand-ink underline">
           {t('findSchool')}
         </Link>
       </main>
@@ -50,7 +50,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
         <p className="text-ink-muted" data-testid="invite-member">
           {t('in', { school: school.name })}
         </p>
-        <Link href="/" className="font-medium text-brand-600 hover:underline">
+        <Link href="/" className="font-medium text-brand-ink hover:underline">
           {t('toApp')}
         </Link>
       </Frame>
@@ -78,7 +78,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           {[t('how.phone', { phone: masked(invite.phoneE164) }), t('how.code'), t('how.in')].map(
             (s, i) => (
               <li key={s} className="flex items-center gap-3">
-                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-50 text-sm font-bold text-brand-700 dark:bg-surface">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-50 text-sm font-bold text-brand-ink">
                   {i + 1}
                 </span>
                 <span dir="auto">{s}</span>

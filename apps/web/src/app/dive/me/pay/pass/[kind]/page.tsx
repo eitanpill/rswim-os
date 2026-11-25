@@ -45,19 +45,19 @@ export default async function BuyPass({ params }: { params: Promise<{ kind: stri
     <div className="mx-auto flex w-full max-w-lg flex-col gap-4" data-testid="pass-checkout">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-sea)]">
+          <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-sea-ink)]">
             {t('pay.kicker')}
           </p>
           <h1 className="mt-0.5 text-2xl font-bold tracking-tight">{t('pay.passTitle')}</h1>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-3 py-1 text-xs font-semibold text-[color-mix(in_oklch,var(--dive-go)_70%,var(--ink))] [&_svg]:size-4">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-3 py-1 text-xs font-semibold text-[var(--dive-go-ink)] [&_svg]:size-4">
           {di.shield}
           {t('pay.secure')}
         </span>
       </div>
       <section className="bg-ocean relative overflow-hidden rounded-3xl p-5 text-white">
         <p className="text-xl font-bold">{t(`passKind.${offer.kind}`)}</p>
-        <p className="mt-1 text-sm text-white/80">
+        <p className="mt-1 text-sm text-white/90">
           {offer.sessions !== null
             ? t('pay.passHolds', { count: offer.sessions, days: offer.validDays })
             : t('pay.passUnlimited', { days: offer.validDays })}

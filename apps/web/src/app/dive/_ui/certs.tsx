@@ -91,7 +91,7 @@ export async function CertList({ certs }: { certs: CertCard[] }) {
                 href={`/api/dive/files/${c.fileId}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-[var(--dive-sea)] [&_svg]:size-4"
+                className="text-[var(--dive-sea-ink)] [&_svg]:size-4"
                 title={t('viewPhoto')}
                 aria-label={t('viewPhoto')}
               >

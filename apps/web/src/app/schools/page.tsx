@@ -26,7 +26,7 @@ export default async function SchoolsPage({
   return (
     <main className="mx-auto flex min-h-dvh max-w-xl flex-col gap-5 px-4 py-8">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-2xl font-bold text-brand-600">{tApp('name')}</p>
+        <p className="text-2xl font-bold text-brand-ink">{tApp('name')}</p>
         <Link
           href={session ? '/start' : '/login'}
           className="text-sm text-ink-muted hover:underline"
@@ -55,7 +55,7 @@ export default async function SchoolsPage({
           {KINDS.map((k) => (
             <label
               key={k}
-              className="flex min-h-tap cursor-pointer items-center gap-2 rounded-xl border border-line px-3 has-checked:border-brand-500 has-checked:bg-brand-50 dark:has-checked:bg-surface"
+              className="flex min-h-tap cursor-pointer items-center gap-2 rounded-xl border border-line px-3 has-checked:border-brand-500 has-checked:bg-brand-50"
             >
               <input type="radio" name="kind" value={k} defaultChecked={(only ?? 'all') === k} />
               {t(`kinds.${k}`)}

@@ -32,7 +32,7 @@ export async function SwimJoin({
     return (
       <Frame school={school} title={t('memberTitle')}>
         <p className="text-ink-muted">{t('member')}</p>
-        <Link href="/" className="font-medium text-brand-600 hover:underline">
+        <Link href="/" className="font-medium text-brand-ink hover:underline">
           {t('toApp')}
         </Link>
       </Frame>
@@ -44,7 +44,7 @@ export async function SwimJoin({
         <ol className="flex flex-col gap-2" data-testid="join-how">
           {[t('how.signIn'), t('how.details'), t('how.office')].map((s, i) => (
             <li key={s} className="flex items-center gap-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-50 text-sm font-bold text-brand-700 dark:bg-surface">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-50 text-sm font-bold text-brand-ink">
                 {i + 1}
               </span>
               {s}
@@ -170,14 +170,14 @@ export async function Frame({
             <p className="font-bold" data-testid="join-school">
               {school.name}
             </p>
-            <Link href="/schools" className="text-sm text-white/80 hover:underline">
+            <Link href="/schools" className="text-sm text-white/90 hover:underline">
               {t('otherSchools')}
             </Link>
           </div>
-          {school.city ? <p className="text-sm text-white/80">{school.city}</p> : null}
+          {school.city ? <p className="text-sm text-white/90">{school.city}</p> : null}
           <h1 className="text-3xl leading-tight font-bold tracking-tight">{title}</h1>
-          {sub ? <p className="text-white/85">{sub}</p> : null}
-          {school.about ? <p className="text-sm text-white/80">{school.about}</p> : null}
+          {sub ? <p className="text-white/90">{sub}</p> : null}
+          {school.about ? <p className="text-sm text-white/90">{school.about}</p> : null}
         </div>
       </section>
       <div className="relative mx-auto -mt-12 max-w-xl px-4 pb-12">

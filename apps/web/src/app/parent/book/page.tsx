@@ -53,7 +53,7 @@ export default async function ParentBook({
       <PageHeader icon="🧑‍🏫" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4" data-testid="parent-book">
         {booked ? (
-          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok">
+          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok-ink">
             {t('booked')}
           </p>
         ) : null}
