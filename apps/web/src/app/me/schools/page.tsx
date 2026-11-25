@@ -43,7 +43,7 @@ export default async function MySchoolsPage() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-lg font-semibold">{s.name}</p>
                     {here ? (
-                      <span className="mb-0.5 inline-block rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-surface">
+                      <span className="mb-0.5 inline-block rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-ink">
                         {t('current')}
                       </span>
                     ) : null}

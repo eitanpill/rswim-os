@@ -33,17 +33,17 @@ export default async function AttendancePage({
       <AttendanceTabs active="day" />
       <div className="flex flex-col gap-4">
         <form className="flex flex-wrap items-end gap-2" method="get">
-          <Link href={`?date=${addDays(date, -1)}`} className="min-h-tap px-2 py-3 text-brand-700">
+          <Link href={`?date=${addDays(date, -1)}`} className="min-h-tap px-2 py-3 text-brand-ink">
             {t('prev')}
           </Link>
           <label className="flex flex-col gap-1 text-sm font-medium">
             {t('date')}
             <input type="date" name="date" defaultValue={date} className={inputClass} />
           </label>
-          <button type="submit" className="min-h-tap px-2 text-brand-700 underline">
+          <button type="submit" className="min-h-tap px-2 text-brand-ink underline">
             {t('show')}
           </button>
-          <Link href={`?date=${addDays(date, 1)}`} className="min-h-tap px-2 py-3 text-brand-700">
+          <Link href={`?date=${addDays(date, 1)}`} className="min-h-tap px-2 py-3 text-brand-ink">
             {t('next')}
           </Link>
         </form>

@@ -13,7 +13,7 @@ import { asUser, sql, type Tx } from '@rswim/db';
 import { withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import { toDomainError, type ServiceContext } from '@rswim/domain-core';
-import { FakeMessagingProvider } from '@rswim/integrations';
+import { FakeMessagingProvider, FakePushProvider } from '@rswim/integrations';
 import {
   applyAiClassification,
   approveTriageAction,
@@ -581,6 +581,60 @@ describe('AC3: every outbound message is logged', () => {
     expect(
       await codeOf(owner((tx) => tx.execute(sql`delete from messages where id = ${sent.id}`))),
     ).toBe('comms.errors.logLocked');
+  });
+});
+
+describe('push first (store stage 6)', () => {
+  it("sends a family's message to the app on their phone, forgets a dead phone, and falls back to WhatsApp", async () => {
+    const whatsapp = new FakeMessagingProvider();
+    const push = new FakePushProvider();
+    const enqueue = (key: string) =>
+      system((tx) =>
+        enqueueMessage(tx, sys(), {
+          guardian: guardianOf('cohen'),
+          templateKey: 'free_text',
+          vars: { text: `בדיקת פוש ${key}` },
+          idempotencyKey: `test:push:${key}`,
+          notBefore: israelInstant('2026-10-14', '10:00'),
+        }),
+      );
+    const now = israelInstant('2026-10-14', '10:00');
+    await as('parent', (tx) =>
+      tx.execute(
+        sql`select public.register_push_device('android', 'fake-dead-token-of-an-old-phone')`,
+      ),
+    );
+    await as('parent', (tx) =>
+      tx.execute(
+        sql`select public.register_push_device('ios', 'fake-live-token-of-the-family-phone')`,
+      ),
+    );
+    const first = await enqueue('a');
+    const r = await system((tx) => dispatchDue(tx, sys(), whatsapp, now, push));
+    expect(r).toMatchObject({ pushed: 1, sent: 0 });
+    expect(push.sent.map((p) => p.message)).toEqual([
+      { title: 'שחייה דמו', body: expect.stringContaining('בדיקת פוש a') },
+    ]);
+    expect(whatsapp.sent).toEqual([]);
+    const [row] = await q(
+      `select status, channel, provider_message_id from messages where id = $1`,
+      [first.id],
+    );
+    expect(row).toMatchObject({ status: 'sent', channel: 'push' });
+    expect(row.provider_message_id).toMatch(/^fake_push_/);
+    expect(await q(`select token from push_devices order by token`)).toEqual([
+      { token: 'fake-live-token-of-the-family-phone' },
+    ]);
+
+    // Without a phone that takes it, WhatsApp as before.
+    await q(`delete from push_devices`);
+    const second = await enqueue('b');
+    expect(await system((tx) => dispatchDue(tx, sys(), whatsapp, now, push))).toMatchObject({
+      pushed: 0,
+      sent: 1,
+    });
+    const [row2] = await q(`select status, channel from messages where id = $1`, [second.id]);
+    expect(row2).toEqual({ status: 'sent', channel: 'whatsapp' });
   });
 });
 

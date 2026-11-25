@@ -10,7 +10,7 @@ import { pct, ReportTable, ReportTabs } from '../shared';
 const LEVEL: Record<HeatLevel, string> = {
   none: 'bg-surface text-ink-muted',
   low: 'bg-warn/20',
-  mid: 'bg-brand-50 dark:bg-surface',
+  mid: 'bg-brand-50',
   high: 'bg-ok/20',
   full: 'bg-ok/40 font-semibold',
 };
@@ -40,12 +40,12 @@ export default async function OccupancyReport({
           {t('occupancy.date')}
           <input type="date" name="date" defaultValue={date} className={inputClass} />
         </label>
-        <button type="submit" className="min-h-tap px-2 text-brand-700 underline">
+        <button type="submit" className="min-h-tap px-2 text-brand-ink underline">
           {t('show')}
         </button>
         <a
           href={`/api/reports/occupancy?date=${date}`}
-          className="min-h-tap px-2 py-3 text-sm text-brand-700 underline"
+          className="min-h-tap px-2 py-3 text-sm text-brand-ink underline"
           data-testid="report-csv"
           download
         >
@@ -118,7 +118,7 @@ export default async function OccupancyReport({
                 </table>
               </div>
               <details className="mt-2">
-                <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-700">
+                <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-ink">
                   {t('occupancy.groups')}
                 </summary>
                 <ReportTable

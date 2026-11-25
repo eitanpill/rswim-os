@@ -23,3 +23,4 @@ export * from './starter-kits';
 export * from './imports';
 export * from './ai';
 export * from './lodging';
+export * from './deployment';

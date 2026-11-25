@@ -66,7 +66,7 @@ export function AquaHero({
         ) : null}
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-2xl font-bold">{title}</h1>
-          {subtitle ? <p className="text-white/90">{subtitle}</p> : null}
+          {subtitle ? <p className="text-white">{subtitle}</p> : null}
           {children}
         </div>
       </div>
@@ -92,13 +92,13 @@ export function SignupSteps({
             <span
               className={
                 state === 'next'
-                  ? 'grid size-6 place-items-center rounded-full border border-white/60 text-white/80'
+                  ? 'grid size-6 place-items-center rounded-full border border-white/60 text-white/90'
                   : 'grid size-6 place-items-center rounded-full bg-white font-bold text-brand-700'
               }
             >
               {state === 'done' ? '✓' : n}
             </span>
-            <span className={state === 'now' ? 'font-semibold' : 'text-white/85'}>{label}</span>
+            <span className={state === 'now' ? 'font-semibold' : 'text-white/90'}>{label}</span>
             {n < 3 ? (
               <span className="text-white/60" aria-hidden="true">
                 ·

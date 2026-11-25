@@ -309,7 +309,7 @@ function LeadCard({
       </p>
       {l.lastMessage ? <p className="line-clamp-2 text-sm">“{l.lastMessage}”</p> : null}
       {l.attention ? (
-        <p className="text-xs font-medium text-warn">{t(`attention.${l.attention}`)}</p>
+        <p className="text-xs font-medium text-warn-ink">{t(`attention.${l.attention}`)}</p>
       ) : null}
       <div className="flex flex-wrap gap-1.5">
         <Link

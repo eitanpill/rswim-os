@@ -69,8 +69,8 @@ export default async function Welcome() {
                 className={cn(
                   'grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold [&_svg]:size-4',
                   s.state === 'done'
-                    ? 'bg-[var(--dive-go)] text-white'
-                    : 'bg-[color-mix(in_oklch,var(--dive-sea)_14%,transparent)] text-[var(--dive-sea)]',
+                    ? 'bg-[var(--dive-go-strong)] text-white'
+                    : 'bg-[color-mix(in_oklch,var(--dive-sea)_14%,transparent)] text-[var(--dive-sea-ink)]',
                 )}
               >
                 {s.state === 'done' ? di.check : i + 1}

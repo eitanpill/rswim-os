@@ -31,7 +31,7 @@ export default async function GroupsPage() {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={
-          <Link href="/admin/board" className="text-brand-700 underline">
+          <Link href="/admin/board" className="text-brand-ink underline">
             {t('toBoard')}
           </Link>
         }

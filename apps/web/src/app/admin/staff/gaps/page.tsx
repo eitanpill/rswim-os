@@ -42,7 +42,7 @@ export default async function GapsPage() {
                   </span>
                   <Link
                     href={`/admin/staff/recruiting?venue=${g.venueId}&day=${g.weekday}`}
-                    className="text-sm text-brand-700 underline"
+                    className="text-sm text-brand-ink underline"
                   >
                     {t('recruit')}
                   </Link>

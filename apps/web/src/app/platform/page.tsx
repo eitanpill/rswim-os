@@ -123,7 +123,7 @@ export default async function PlatformHome() {
                 </p>
                 {s.status ? (
                   <details className="mt-3">
-                    <summary className="cursor-pointer font-medium text-brand-700">
+                    <summary className="cursor-pointer font-medium text-brand-ink">
                       {t('manage')}
                     </summary>
                     <div className="mt-3 flex flex-col gap-3">

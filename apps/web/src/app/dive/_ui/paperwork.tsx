@@ -45,7 +45,7 @@ export async function PaperworkCards({
           >
             <div className="flex items-start justify-between gap-2">
               <p className="flex items-center gap-2 font-semibold">
-                <span className="text-[var(--dive-sea)] [&_svg]:size-5">{di.doc}</span>
+                <span className="text-[var(--dive-sea-ink)] [&_svg]:size-5">{di.doc}</span>
                 {t(`kind.${i.kind}`)}
               </p>
               <Chip tone={PAPER_TONE[i.state]}>{t(`state.${i.state}`)}</Chip>
@@ -83,7 +83,7 @@ export async function PaperworkCards({
               {i.signatureId ? (
                 <a
                   href={`/dive/signed/${i.signatureId}`}
-                  className="text-sm text-[var(--dive-sea)] hover:underline"
+                  className="text-sm text-[var(--dive-sea-ink)] hover:underline"
                 >
                   {t('viewSigned')}
                 </a>

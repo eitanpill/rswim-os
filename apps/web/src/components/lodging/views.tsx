@@ -294,7 +294,7 @@ export async function BoardView({
   });
   const TONE = {
     held: 'bg-warn/25 border-warn',
-    confirmed: 'bg-brand-100 border-brand-300 dark:bg-brand-900/40',
+    confirmed: 'bg-brand-100 border-brand-500',
     checked_in: 'bg-ok/20 border-ok',
     checked_out: 'bg-line/40 border-line text-ink-muted',
     cancelled: '',
@@ -350,7 +350,7 @@ export async function BoardView({
           </div>
         </form>
         {params.in && !ask.success ? (
-          <p role="alert" className="mt-2 text-sm text-danger">
+          <p role="alert" className="mt-2 text-sm text-danger-ink">
             {t('errors.dates')}
           </p>
         ) : null}
@@ -476,7 +476,7 @@ export async function BoardView({
                       key={d}
                       className={cn(
                         'px-1 text-center font-normal',
-                        d === today && 'font-semibold text-brand-700',
+                        d === today && 'font-semibold text-brand-ink',
                       )}
                     >
                       <span className="block text-xs text-ink-muted">

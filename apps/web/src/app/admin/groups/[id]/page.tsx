@@ -79,7 +79,7 @@ export default async function GroupPage({
         title={group.name}
         subtitle={`${tw(String(group.weekday))} ${hhmm(group.startsAt)} · ${choices.place.label}`}
         actions={
-          <Link href={`/admin/board?venue=${group.venueId}`} className="text-brand-700 underline">
+          <Link href={`/admin/board?venue=${group.venueId}`} className="text-brand-ink underline">
             {t('toBoard')}
           </Link>
         }
@@ -109,7 +109,7 @@ export default async function GroupPage({
             </div>
           </dl>
           <details className="mt-3">
-            <summary className="min-h-tap cursor-pointer font-medium text-brand-700">
+            <summary className="min-h-tap cursor-pointer font-medium text-brand-ink">
               {t('edit')}
             </summary>
             <div className="mt-2">
@@ -232,7 +232,7 @@ export default async function GroupPage({
           <CardTitle>{t('upcoming')}</CardTitle>
           {detail.upcoming.length === 0 ? (
             <EmptyState title={t('noSessions')}>
-              <Link href="/admin/terms" className="text-brand-700 underline">
+              <Link href="/admin/terms" className="text-brand-ink underline">
                 {t('toTerms')}
               </Link>
             </EmptyState>
@@ -257,7 +257,7 @@ export default async function GroupPage({
                     </span>
                   </div>
                   <details className="mt-2">
-                    <summary className="cursor-pointer text-sm text-brand-700">
+                    <summary className="cursor-pointer text-sm text-brand-ink">
                       {t('changeSession')}
                     </summary>
                     <div className="mt-2 grid gap-3 sm:grid-cols-2">

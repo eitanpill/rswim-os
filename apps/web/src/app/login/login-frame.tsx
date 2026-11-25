@@ -34,7 +34,7 @@ export async function LoginFrame({
     >
       {brand ? (
         <div className="text-center" data-testid="login-brand">
-          <p className="text-3xl font-bold text-brand-600">{brand.displayName ?? brand.name}</p>
+          <p className="text-3xl font-bold text-brand-ink">{brand.displayName ?? brand.name}</p>
           <p className="text-ink-muted">{t('login.poweredBy')}</p>
         </div>
       ) : (
@@ -55,7 +55,10 @@ export async function LoginFrame({
       <section className="aqua-in rounded-card border border-line bg-surface-raised p-5 shadow-sm">
         <h1 className="mb-4 text-xl font-semibold">{title}</h1>
         {error && known.includes(error) ? (
-          <p role="alert" className="mb-4 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">
+          <p
+            role="alert"
+            className="mb-4 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger-ink"
+          >
             {t(`login.errors.${error}`)}
           </p>
         ) : null}

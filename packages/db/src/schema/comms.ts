@@ -27,6 +27,7 @@ import {
   INBOUND_STATUSES,
   MESSAGE_CHANNELS,
   MESSAGE_STATUSES,
+  PUSH_PLATFORMS,
   TEMPLATE_KEYS,
   WHATSAPP_CONNECTION_STATUSES,
   TRIAGE_ACTION_KINDS,
@@ -408,5 +409,31 @@ export const whatsappConnections = pgTable(
       'whatsapp_connections_status_check',
       sql.raw(`status in (${inList(WHATSAPP_CONNECTION_STATUSES)})`),
     ),
+  ],
+);
+
+/**
+ * A phone with the store app that may get push notifications (store stage 6), per person and school. The app
+ * registers its token on each signed-in page (`/api/push`), so a person who switches schools registers there too.
+ * The dispatcher sends a family's message here first and falls back to WhatsApp; a token the platform calls dead is
+ * removed.
+ */
+export const pushDevices = pgTable(
+  'push_devices',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').notNull(),
+    platform: text('platform').notNull(),
+    token: text('token').notNull(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('push_devices_org_id').on(t.organizationId, t.id),
+    unique('push_devices_token').on(t.organizationId, t.token),
+    index('push_devices_user').on(t.organizationId, t.userId),
+    check('push_devices_platform_check', sql.raw(`platform in (${inList(PUSH_PLATFORMS)})`)),
   ],
 );

@@ -542,12 +542,17 @@ export function DepthLadder({
         const shade = rows.length > 1 ? i / (rows.length - 1) : 0;
         const prev = rows[i - 1];
         const carried = prev && prev.divers > 0 ? Math.round((r.divers / prev.divers) * 100) : null;
+        // Shallow water is light with dark numbers, deep water dark with white ones: no mid-tone row where
+        // neither reads (both stay at 4.5:1 or better).
+        const shallow = shade < 0.5;
+        const top = shallow ? 84 - shade * 34 : 48 - (shade - 0.5) * 44;
+        const chroma = 0.09 - shade * 0.02;
         return (
           <li key={r.label} className="grid grid-cols-[4.25rem_1fr] gap-3">
             <span
-              className={`flex flex-col items-center justify-center py-2 text-[11px] font-semibold text-white ${i === 0 ? 'rounded-t-xl' : ''} ${i === rows.length - 1 ? 'rounded-b-xl' : ''}`}
+              className={`flex flex-col items-center justify-center py-2 text-[11px] font-semibold ${shallow ? 'text-[var(--dive-abyss)]' : 'text-white'} ${i === 0 ? 'rounded-t-xl' : ''} ${i === rows.length - 1 ? 'rounded-b-xl' : ''}`}
               style={{
-                background: `linear-gradient(180deg, oklch(${78 - shade * 52}% ${0.09 - shade * 0.02} ${200 + shade * 45}), oklch(${72 - shade * 52}% ${0.09 - shade * 0.02} ${205 + shade * 45}))`,
+                background: `linear-gradient(180deg, oklch(${top}% ${chroma} ${200 + shade * 45}), oklch(${top - 6}% ${chroma} ${205 + shade * 45}))`,
               }}
             >
               <span className="text-sm tabular-nums">{depthLabel(r.depthM)}</span>

@@ -160,7 +160,7 @@ export async function ChatView({ base, digits }: { base: ChatsBase; digits: stri
         {chat.householdId ? (
           <Link
             href={`/admin/families/${chat.householdId}`}
-            className="text-sm text-brand-700 underline"
+            className="text-sm text-brand-ink underline"
           >
             {t('familyCard')}
           </Link>
@@ -207,7 +207,7 @@ export async function ChatView({ base, digits }: { base: ChatsBase; digits: stri
               className={
                 m.direction === 'in'
                   ? 'me-8 rounded-2xl rounded-ss-sm bg-surface p-3 text-sm ring-1 ring-line/60'
-                  : 'ms-8 rounded-2xl rounded-se-sm bg-brand-50 p-3 text-sm dark:bg-surface-raised'
+                  : 'ms-8 rounded-2xl rounded-se-sm bg-brand-50 p-3 text-sm'
               }
             >
               <p className="whitespace-pre-wrap" dir="auto">

@@ -43,7 +43,7 @@ export async function FormsDue({
             </p>
             <p className="text-sm text-ink-muted">{why(d.why)}</p>
             <details className="mt-1">
-              <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-700">
+              <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-ink">
                 {t('text')}
               </summary>
               <p className="whitespace-pre-line text-sm">{form.body}</p>

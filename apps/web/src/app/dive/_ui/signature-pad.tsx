@@ -78,7 +78,7 @@ export function SignaturePad({
         <span className="text-sm font-medium">{label}</span>
         <button
           type="button"
-          className="min-h-9 rounded-lg px-2.5 text-sm text-[var(--dive-sea)] hover:underline"
+          className="min-h-9 rounded-lg px-2.5 text-sm text-[var(--dive-sea-ink)] hover:underline"
           onClick={() => {
             strokes.current = [];
             redraw();
@@ -124,7 +124,7 @@ export function SignaturePad({
       />
       <input type="hidden" name="signature" value={value} />
       {error ? (
-        <p className="text-xs text-danger">{error}</p>
+        <p className="text-xs text-danger-ink">{error}</p>
       ) : (
         <p className="text-xs text-ink-muted">{hint}</p>
       )}
@@ -147,7 +147,7 @@ export function AgreeBox({ label }: { label: string }) {
         />
         <span>{label}</span>
       </label>
-      {error ? <p className="text-xs text-danger">{error}</p> : null}
+      {error ? <p className="text-xs text-danger-ink">{error}</p> : null}
     </div>
   );
 }

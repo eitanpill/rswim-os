@@ -77,13 +77,13 @@ export default async function OwnerBridge() {
             />
           </svg>
           <div className="relative">
-            <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-shallow)]">
+            <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-shallow-ink)]">
               {t('owner.kicker')} · {dayLabel(b.today, locale)}
             </p>
             <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-4xl">
               {t(`owner.greet.${greet}`, { name: first })}
             </h1>
-            <p className="mt-2 max-w-xl text-white/80">
+            <p className="mt-2 max-w-xl text-white/90">
               {t('owner.summary', {
                 sessions: b.todaySessions.length,
                 divers: inWater,
@@ -93,7 +93,7 @@ export default async function OwnerBridge() {
           </div>
           <div className="relative mt-5 flex flex-wrap items-center gap-2">
             {b.sea.today ? (
-              <span className="rounded-full bg-white/95 p-0.5">
+              <span className="rounded-full bg-white/95 p-0.5 scheme-light">
                 <CallBadge
                   call={b.sea.today.call}
                   label={t(`call.${b.sea.today.call}`)}
@@ -104,7 +104,7 @@ export default async function OwnerBridge() {
             {urgent > 0 ? (
               <a
                 href="#needs-you"
-                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--dive-coral)] px-3 py-1 text-sm font-semibold text-white shadow-lg shadow-black/20 hover:brightness-110 [&_svg]:size-4"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--dive-coral-strong)] px-3 py-1 text-sm font-semibold text-white shadow-lg shadow-black/20 hover:brightness-110 [&_svg]:size-4"
               >
                 {di.alert}
                 {t('owner.urgentCount', { count: urgent })}
@@ -125,7 +125,7 @@ export default async function OwnerBridge() {
           data-testid="owner-welcome"
         >
           <div className="relative">
-            <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-sea)]">
+            <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-sea-ink)]">
               {t('owner.welcome.kicker')}
             </p>
             <h2 className="mt-1 text-xl font-bold md:text-2xl">
@@ -139,7 +139,7 @@ export default async function OwnerBridge() {
                     href={s.href}
                     className="lift flex h-full items-start gap-3 rounded-2xl border border-line bg-surface-raised p-3"
                   >
-                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--dive-deep)] text-[var(--dive-shallow)] [&_svg]:size-5">
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--dive-deep)] text-[var(--dive-shallow-ink)] [&_svg]:size-5">
                       {s.icon}
                     </span>
                     <span className="min-w-0">
@@ -218,7 +218,7 @@ export default async function OwnerBridge() {
           title={t('owner.today')}
           icon={di.calendar}
           action={
-            <a href="/dive/manager" className="text-sm text-[var(--dive-sea)] hover:underline">
+            <a href="/dive/manager" className="text-sm text-[var(--dive-sea-ink)] hover:underline">
               {t('owner.toOps')}
             </a>
           }
@@ -244,21 +244,21 @@ export default async function OwnerBridge() {
             <span className="flex flex-wrap gap-3">
               <a
                 href="/dive/payments"
-                className="text-sm text-[var(--dive-sea)] hover:underline"
+                className="text-sm text-[var(--dive-sea-ink)] hover:underline"
                 data-testid="to-payments"
               >
                 {t('owner.toPayments')}
               </a>
               <a
                 href="/dive/plan"
-                className="text-sm text-[var(--dive-sea)] hover:underline"
+                className="text-sm text-[var(--dive-sea-ink)] hover:underline"
                 data-testid="to-plan"
               >
                 {t('owner.toPlan')}
               </a>
               <a
                 href="/dive/connections"
-                className="text-sm text-[var(--dive-sea)] hover:underline"
+                className="text-sm text-[var(--dive-sea-ink)] hover:underline"
                 data-testid="to-connections"
               >
                 {t('owner.toConnections')}

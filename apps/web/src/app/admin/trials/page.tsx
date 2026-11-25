@@ -99,7 +99,7 @@ export default async function TrialsPage() {
                     <p className="text-sm text-ink-muted">{tr.verdictNote}</p>
                   ) : null}
                   {tr.convertedEnrollmentId ? (
-                    <p className="text-sm text-ok">{t('isConverted')}</p>
+                    <p className="text-sm text-ok-ink">{t('isConverted')}</p>
                   ) : null}
 
                   {tr.status === 'booked' ? (

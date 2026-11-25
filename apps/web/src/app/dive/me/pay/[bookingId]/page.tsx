@@ -49,12 +49,12 @@ export default async function PayBooking({ params }: { params: Promise<{ booking
     <div className="mx-auto flex w-full max-w-lg flex-col gap-4" data-testid="checkout">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-sea)]">
+          <p className="text-xs font-semibold tracking-[0.18em] text-[var(--dive-sea-ink)]">
             {t('pay.kicker')}
           </p>
           <h1 className="mt-0.5 text-2xl font-bold tracking-tight">{t('pay.title')}</h1>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-3 py-1 text-xs font-semibold text-[color-mix(in_oklch,var(--dive-go)_70%,var(--ink))] [&_svg]:size-4">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-3 py-1 text-xs font-semibold text-[var(--dive-go-ink)] [&_svg]:size-4">
           {di.shield}
           {t('pay.secure')}
         </span>
@@ -65,7 +65,7 @@ export default async function PayBooking({ params }: { params: Promise<{ booking
           {dayLabel(localDay(v.startsAt), locale)} · {hhmm(v.startsAt)} · {v.siteName}
         </p>
         <p className="mt-1 text-xl font-bold">{v.title}</p>
-        <p className="text-sm text-white/80">{v.diverName}</p>
+        <p className="text-sm text-white/90">{v.diverName}</p>
         <div className="mt-5 flex items-end justify-between gap-3">
           <div>
             <p className="text-xs text-white/70">{t('pay.total')}</p>

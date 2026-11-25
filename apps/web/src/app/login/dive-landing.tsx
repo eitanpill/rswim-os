@@ -62,14 +62,14 @@ export async function DiveLanding({
           </div>
 
           <div className="mt-12 max-w-3xl md:mt-16">
-            <p className="text-xs font-semibold tracking-[0.2em] text-[var(--dive-shallow)]">
+            <p className="text-xs font-semibold tracking-[0.2em] text-[var(--dive-shallow-ink)]">
               {t('landing.kicker')}
             </p>
             <h1 className="mt-3 text-4xl leading-[1.1] font-bold tracking-tight md:text-6xl">
               {t('landing.title')}
             </h1>
             <p
-              className="mt-4 max-w-2xl text-base text-white/80 md:text-lg"
+              className="mt-4 max-w-2xl text-base text-white/90 md:text-lg"
               data-testid="demo-intro"
             >
               {t('landing.sub')}
@@ -93,7 +93,7 @@ export async function DiveLanding({
                 </a>
                 <a
                   href="#roles"
-                  className="px-2 text-sm text-white/80 underline-offset-4 hover:underline"
+                  className="px-2 text-sm text-white/90 underline-offset-4 hover:underline"
                 >
                   {t('landing.otherRoles')}
                 </a>
@@ -124,7 +124,7 @@ export async function DiveLanding({
                   href={`/dev/login?as=${key}`}
                   className="lift flex h-full flex-col gap-3 rounded-2xl border border-line bg-surface-raised p-4"
                 >
-                  <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-[var(--dive-deep)] text-[var(--dive-shallow)] [&_svg]:size-6">
+                  <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-[var(--dive-deep)] text-[var(--dive-shallow-ink)] [&_svg]:size-6">
                     {ROLE_ICON[key]}
                   </span>
                   <span>
@@ -132,7 +132,7 @@ export async function DiveLanding({
                     <span className="block text-xs text-ink-muted">{personaName(key)}</span>
                   </span>
                   <span className="text-sm text-ink-muted">{sees}</span>
-                  <span className="mt-auto text-sm font-semibold text-[var(--dive-sea)]">
+                  <span className="mt-auto text-sm font-semibold text-[var(--dive-sea-ink)]">
                     {t('landing.enter')}
                   </span>
                 </a>

@@ -10,7 +10,7 @@ export default async function GoodbyePage() {
       <p className="mb-4 text-ink-muted" data-testid="goodbye">
         {t('body')}
       </p>
-      <Link href="/login" className="font-medium text-brand-600 hover:underline">
+      <Link href="/login" className="font-medium text-brand-ink hover:underline">
         {t('back')}
       </Link>
     </LoginFrame>

@@ -123,7 +123,7 @@ export async function ImportRunView({ base, id }: { base: Base; id: string }) {
 
 async function IssueList({ issues, kind }: { issues: Issue[]; kind: ImportKind }) {
   const t = await getTranslations('imports');
-  if (issues.length === 0) return <p className="text-sm text-ok">{t('noIssues')}</p>;
+  if (issues.length === 0) return <p className="text-sm text-ok-ink">{t('noIssues')}</p>;
   const errors = issues.filter((i) => i.severity === 'error');
   const warnings = issues.filter((i) => i.severity === 'warning');
   const shown = [...errors, ...warnings].slice(0, 200);
@@ -131,11 +131,11 @@ async function IssueList({ issues, kind }: { issues: Issue[]; kind: ImportKind }
     <div className="flex flex-col gap-2" data-testid="import-issues">
       <p className="text-sm">
         {errors.length ? (
-          <span className="text-danger">{t('errorsCount', { count: errors.length })}</span>
+          <span className="text-danger-ink">{t('errorsCount', { count: errors.length })}</span>
         ) : null}
         {errors.length && warnings.length ? ' · ' : null}
         {warnings.length ? (
-          <span className="text-warn">{t('warningsCount', { count: warnings.length })}</span>
+          <span className="text-warn-ink">{t('warningsCount', { count: warnings.length })}</span>
         ) : null}
       </p>
       <ul className="max-h-96 overflow-y-auto rounded-xl border border-line text-sm">
@@ -146,7 +146,7 @@ async function IssueList({ issues, kind }: { issues: Issue[]; kind: ImportKind }
             data-severity={i.severity}
           >
             <span className="shrink-0 font-medium">{t('row', { row: i.row })}</span>
-            <span className={i.severity === 'error' ? 'text-danger' : 'text-ink-muted'}>
+            <span className={i.severity === 'error' ? 'text-danger-ink' : 'text-ink-muted'}>
               {t(`issues.${i.code}`, { kind: t(`kinds.${kind}`) })}
               {i.value ? (
                 <>
@@ -230,7 +230,10 @@ async function Draft({ base, id }: { base: Base; id: string }) {
         <Card>
           <CardTitle>{t('preview.title')}</CardTitle>
           {missing.length ? (
-            <p className="mb-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
+            <p
+              className="mb-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger-ink"
+              role="alert"
+            >
               {t('preview.missing', {
                 fields: missing.map((f) => t(`fields.${f}`)).join(', '),
               })}
@@ -253,7 +256,7 @@ async function Draft({ base, id }: { base: Base; id: string }) {
           </dl>
           {run.kind === 'families' && plan.families.length ? (
             <details className="mb-4">
-              <summary className="cursor-pointer text-sm text-brand-700">
+              <summary className="cursor-pointer text-sm text-brand-ink">
                 {t('preview.sample')}
               </summary>
               <ul className="mt-2 flex flex-col gap-1 text-sm">
@@ -277,7 +280,7 @@ async function Draft({ base, id }: { base: Base; id: string }) {
           ) : null}
           {plan.people.length ? (
             <details className="mb-4">
-              <summary className="cursor-pointer text-sm text-brand-700">
+              <summary className="cursor-pointer text-sm text-brand-ink">
                 {t('preview.sample')}
               </summary>
               <ul className="mt-2 flex flex-col gap-1 text-sm">
@@ -375,7 +378,7 @@ async function Done({ base, run }: { base: Base; run: ImportRun }) {
               </li>
             ) : null}
             {s.skipped ? (
-              <li className="text-danger">{t('result.skipped', { count: s.skipped })}</li>
+              <li className="text-danger-ink">{t('result.skipped', { count: s.skipped })}</li>
             ) : null}
             {typeof s.ms === 'number' ? (
               <li className="text-ink-muted">
@@ -457,7 +460,7 @@ async function Done({ base, run }: { base: Base; run: ImportRun }) {
         ) : null}
 
         <div>
-          <Link href={base} className="text-sm font-medium text-brand-700">
+          <Link href={base} className="text-sm font-medium text-brand-ink">
             {t('back')}
           </Link>
         </div>

@@ -1,14 +1,14 @@
 # Deploying Aqua Swim (SaaS stage 1)
 
-Two environments, same code: **staging** follows `main`, **production** follows the `production` branch. Nothing
-fake runs in either: no demo data, no persona sign-in (`RSWIM_ENV` turns it off), and real providers only where
-their account exists (until then the matching `RSWIM_*_FAKE` switch stays on in staging and the feature stays off
-in production).
+Two environments, same code: **staging** follows `main`, **production** follows the `production` branch. Neither
+has demo data or persona sign-in (`RSWIM_ENV` turns it off). Real providers run only where their account exists:
+until then the matching `RSWIM_*_FAKE` switch stays on in staging, and the feature stays off in production, where
+the worker refuses to start with any fake or dev switch on.
 
 | Piece | Host | Built from | Health |
 |---|---|---|---|
 | Web app (`apps/web`) | Vercel (Pro) | the repository, root `apps/web` | `GET /api/health` |
-| Worker (`apps/worker`) | Railway | `deploy/production/worker.Dockerfile` | `GET /health` |
+| Worker (`apps/worker`) | Railway | root `railway.json` → `deploy/demo/Dockerfile` with `RSWIM_IMAGE=worker` (the same image as `deploy/production/worker.Dockerfile`) | `GET /health` |
 | Database + sign-in | Supabase (Pro), region Frankfurt | migrations in `packages/db/migrations` | |
 | Background jobs | Inngest Cloud | the worker registers at `https://<worker>/api/inngest` | |
 | DNS | Cloudflare | `aqua-swim.co.il` | |
@@ -30,51 +30,85 @@ in production).
    of the previous deployment in Railway. Migrations are forward-only: a rollback that crosses a migration needs a
    follow-up migration, never a manual edit.
 
-## One-time setup (after Pit opens the accounts)
+## Staging as it is set up (since 2026-11-18)
 
-GitHub
-- Settings → Environments → `production`: required reviewer Pit.
-- Settings → Branches: protect `production` (only GitHub Actions may push).
+Staging was set up by hand before production existed, and differs from the original plan in a few names. Production
+gets its own copy of every piece, so nothing below changes when production is added.
 
-Supabase (two projects: `aqua-staging`, `aqua-production`)
-- Authentication → Hooks: *Custom access token* → Postgres function `public.custom_access_token_hook`.
-- Authentication → Providers: email (password) on, *Allow new users to sign up* on and *Confirm email* on (business
-  owners open their own account on `/signup`); phone on, provider Twilio Verify (below)
-  (phone sign-ups stay on: a diver joining a club from its link signs up by phone).
-- Authentication → URL configuration → Redirect URLs: add `https://app.aqua-swim.co.il/auth/confirm` (staging: the
-  staging host), where the confirmation email brings the new owner back.
-- Authentication → SMTP: custom SMTP through Resend (below), sender `no-reply@mail.aqua-swim.co.il` (Resend domain `mail.aqua-swim.co.il`).
-- Authentication → URL configuration: site URL `https://app.aqua-swim.co.il` (staging: `https://staging.aqua-swim.co.il`).
-- Storage: bucket `dive-documents`, private.
-- Database → Backups: daily backups are included in Pro; turn on Point-in-Time Recovery for production before the
-  pilot (BACKUPS below).
+| Piece | Staging |
+|---|---|
+| Web | Vercel team `eitan-pelles-projects`, project `aqua-web`. `main` deploys to Vercel's **Production** environment of that project, so staging's variables are set on *Production* there. Domain `staging.aqua-swim.co.il` |
+| Worker | Railway project `considerate-bravery`, service `rswim-demo` (the name is misleading: it is the staging worker, not the sales demo), branch `main`, `RSWIM_IMAGE=worker` |
+| Database + sign-in | Supabase project `aqua-staging` (ref `vcibkalclwvrkubcqkei`, Frankfurt, free organization) |
+| Background jobs | Inngest Cloud org "LesdYourWay", environment *Production*, app `rswim-os` |
+| Errors | Sentry org `eitan-pelles` (EU), projects `aqua-web` and `aqua-worker`, environment tag `staging` |
+| Email / SMS | Resend (`mail.aqua-swim.co.il`) / Twilio trial (Verify service "Aqua Swim") |
 
-Vercel (project `aqua-web`, root directory `apps/web`, framework Next.js, install `pnpm install --frozen-lockfile`)
-- Settings → Git: production branch `production`. Every push to `main` is a preview deployment; assign the domain
-  `staging.aqua-swim.co.il` to the `main` branch.
-- Environment variables per environment (Preview = staging, Production = production): the web column below.
+Staging keeps `RSWIM_ENV=staging` and its fakes (`RSWIM_MESSAGING_FAKE`, `RSWIM_GROW_FAKE`, `RSWIM_INVOICING_FAKE`)
+until each provider is live.
 
-Railway (project `aqua`, environments `staging` and `production`, service `worker`)
-- Source: this repository; staging branch `main`, production branch `production`.
-- Variable `RSWIM_IMAGE=worker`. Railway builds every service of this repository from the root `railway.json`
-  (`deploy/demo/Dockerfile`, and it no longer lets a new service pick another config file); with this variable that
-  Dockerfile builds the worker stage (the same as `deploy/production/worker.Dockerfile`) instead of the demo. The
-  health check path `/api/health` comes from `railway.json`; the worker answers it as well as `/health`. One replica.
-- Settings → Source → Repository: `eitanpill/rswim-os` (the Railway GitHub app needs access to it).
-- Variables: the worker column below.
+## Production: one-time setup
 
-Inngest (apps `aqua-staging`, `aqua-production`)
-- Sync the app URL `https://<railway worker domain>/api/inngest` once; copy the event key and signing key into the worker.
-  After that every worker deploy syncs itself on start (a PUT to its own `/api/inngest`, reporting
-  `https://$RAILWAY_PUBLIC_DOMAIN`, or `INNGEST_SERVE_ORIGIN` when set), so new functions run without pressing Resync.
-- Turn on failure notifications to Pit's email.
+Everything for production is separate from staging: its own database, its own master key, its own Vercel project,
+Railway project and Inngest account. A mistake on staging can then never reach a real school, and staging needs no
+change. Do the steps in this order; nothing is public until step 8.
+
+1. **Supabase**: an organization on the Pro plan (daily backups, no pausing), project `aqua-production`, region
+   Frankfurt (eu-central-1), a strong database password kept in Pit's password manager.
+   - Authentication → URL configuration: site URL `https://app.aqua-swim.co.il`, redirect URL
+     `https://app.aqua-swim.co.il/auth/confirm`.
+   - Authentication → Providers: email on, *Allow new users to sign up* on, *Confirm email* on; phone on, Twilio Verify
+     (a paid Twilio account: the trial sends only to verified numbers and adds a prefix).
+   - Authentication → SMTP: Resend, host `smtp.resend.com`, port 465, user `resend`, a **new** Resend API key for
+     production, sender `no-reply@mail.aqua-swim.co.il`.
+   - Storage: bucket `dive-documents`, private.
+   - The tables come from the worker's first start (step 5), never from the dashboard or the Supabase MCP: the
+     migrations must go through Drizzle's journal. **After** the first start: Authentication → Hooks → *Custom access
+     token* → `public.custom_access_token_hook` (the function exists only after the migrations).
+2. **Master key**: `openssl rand -base64 32` on Pit's computer, straight into the password manager. A new value, not
+   staging's. It goes into both Vercel and Railway (steps 3 and 4) and nowhere else.
+3. **Vercel**: a second project in the same team, `aqua-production`, from `eitanpill/rswim-os`, root directory
+   `apps/web`, framework Next.js, install command `pnpm install --frozen-lockfile`.
+   - Settings → Git → Production branch: `production`.
+   - Settings → Git → Ignored build step, so this project builds only the production branch:
+     `if [ "$VERCEL_GIT_COMMIT_REF" = "production" ]; then exit 1; else exit 0; fi`
+   - Environment variables (Production): the web column below, with `RSWIM_ENV=production` and
+     `NEXT_PUBLIC_RSWIM_ENV=production`.
+   - Domain `app.aqua-swim.co.il` is added in step 8, not before.
+4. **Railway**: a new project `aqua-production`, one service `worker` from `eitanpill/rswim-os`, branch `production`,
+   one replica, a generated public domain (the Inngest URL). Variables: the worker column below, with
+   `RSWIM_IMAGE=worker`, `RSWIM_ENV=production`, `RSWIM_PUBLIC_URL=https://app.aqua-swim.co.il`.
+   `DATABASE_URL` is the session pooler (port 5432) of `aqua-production`: the worker migrates.
+5. **First release** (no one can reach it yet): Actions → *Promote to production* → Run. The first run creates the
+   `production` branch. Railway builds the worker, which migrates the empty database and seeds the three plans;
+   Vercel builds the web app on its `.vercel.app` address. Then the Supabase auth hook (step 1).
+6. **Inngest**: a separate Inngest account (or organization) for production, so staging's runs never count against it
+   and a staging event can never reach production. Sync `https://<railway domain>/api/inngest` once, copy the event
+   key and the signing key into Railway, redeploy. From then on each deploy syncs itself. The free plan allows 50,000
+   runs a month; staging used about 27,000 in its first three weeks with no real customers, so plan a paid Inngest
+   plan before the pilot grows.
+7. **Checks before anyone sees it**: `/api/health` on the `.vercel.app` address and the worker's `/health` both answer
+   200 (in production they answer 503 and name the variable when a key is missing or a fake or dev switch is on, and
+   the worker refuses to start); sign up a test owner through to the card page; the Inngest dashboard lists the
+   functions; a test error reaches Sentry under environment `production`. Then delete the test owner.
+8. **Going public** (needs Pit's go-ahead): add `app.aqua-swim.co.il` to the Vercel project, CNAME it in Cloudflare
+   to Vercel, wait for the certificate, run the checks of step 7 again on the real address, and turn on the uptime
+   monitor (below).
+
+GitHub, once: Settings → Environments → `production` with Pit as required reviewer, and protect the `production`
+branch so only GitHub Actions moves it. *Promote to production* then waits for Pit's approval every time.
+
+What stays off in production until its own account and test exist (each is a feature that stays off, never a fake):
+WhatsApp per business (Meta), card payments per business (a processor's adapter tested on its sandbox), the platform's
+subscription charging (Grow) and its invoices (Morning), a database per school (`SUPABASE_ACCESS_TOKEN`).
 
 Cloudflare
-- `app.aqua-swim.co.il` and `staging.aqua-swim.co.il` → Vercel (CNAME). Schools get `<slug>.aqua-swim.co.il`
-  (wildcard CNAME to Vercel, stage 2).
+- `app.aqua-swim.co.il` → Vercel project `aqua-production`; `staging.aqua-swim.co.il` → `aqua-web`. Schools get
+  `<slug>.aqua-swim.co.il` later (wildcard CNAME to the production project).
 - SPF, DKIM and DMARC records from Resend.
 
-Sentry: two projects (`aqua-web`, `aqua-worker`), alerts to Pit's email on new issues.
+Sentry: the same two projects (`aqua-web`, `aqua-worker`); events carry the environment (`staging` or `production`),
+and alerts on new issues in `production` go to Pit's email.
 
 Uptime: a monitor (Better Stack or UptimeRobot, free) on `https://app.aqua-swim.co.il/api/health` and the worker's
 `/health`, every minute, alerting Pit by email and SMS. Both return 503 when the database does not answer.
@@ -97,7 +131,8 @@ rotation: it unlocks every school's encrypted data.
 
 | Variable | Web | Worker | Notes |
 |---|---|---|---|
-| `RSWIM_ENV` | ✓ | ✓ | `staging` or `production`; turns off persona sign-in, tags Sentry events |
+| `RSWIM_ENV` | ✓ | ✓ | `staging` or `production`; turns off persona sign-in, tags Sentry events; `production` also refuses fakes and dev switches and checks the required keys |
+| `NEXT_PUBLIC_RSWIM_ENV` | ✓ (build) | | the same value, for browser errors in Sentry |
 | `DATABASE_URL` | ✓ | ✓ | Supabase connection string. Web: the transaction pooler (port 6543). Worker: the session pooler or direct connection (it migrates) |
 | `NEXT_PUBLIC_SUPABASE_URL` | ✓ (build) | | project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✓ (build) | | public anon key |

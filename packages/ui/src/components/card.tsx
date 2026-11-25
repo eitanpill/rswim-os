@@ -29,7 +29,7 @@ export function CardTitle({
         {icon ? (
           <span
             aria-hidden
-            className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-50 text-base dark:bg-surface"
+            className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-50 text-base"
           >
             {icon}
           </span>

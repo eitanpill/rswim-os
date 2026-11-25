@@ -50,7 +50,7 @@ export default async function TermsPage() {
             </ul>
           )}
           <details className="mt-3">
-            <summary className="min-h-tap cursor-pointer font-medium text-brand-700">
+            <summary className="min-h-tap cursor-pointer font-medium text-brand-ink">
               {t('new')}
             </summary>
             <div className="mt-2">
@@ -90,7 +90,7 @@ export default async function TermsPage() {
             </ul>
           )}
           <details>
-            <summary className="min-h-tap cursor-pointer font-medium text-brand-700">
+            <summary className="min-h-tap cursor-pointer font-medium text-brand-ink">
               {t('addOverride')}
             </summary>
             <ActionForm action={addOverrideAction} resetOnSuccess className="mt-2">

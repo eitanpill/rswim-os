@@ -39,7 +39,7 @@ export default async function JoinPage({ params }: { params: Promise<{ slug: str
     return (
       <Frame club={club.name} title={t('staffTitle')}>
         <p className="text-ink-muted">{t('staff')}</p>
-        <a href="/" className="font-medium text-[var(--dive-sea)] hover:underline">
+        <a href="/" className="font-medium text-[var(--dive-sea-ink)] hover:underline">
           {t('toApp')}
         </a>
       </Frame>
@@ -60,7 +60,7 @@ export default async function JoinPage({ params }: { params: Promise<{ slug: str
         <ol className="flex flex-col gap-2" data-testid="join-how">
           {steps.map((s, i) => (
             <li key={s} className="flex items-center gap-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[color-mix(in_oklch,var(--dive-sea)_15%,transparent)] text-sm font-bold text-[var(--dive-sea)]">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[color-mix(in_oklch,var(--dive-sea)_15%,transparent)] text-sm font-bold text-[var(--dive-sea-ink)]">
                 {i + 1}
               </span>
               {s}
@@ -69,7 +69,7 @@ export default async function JoinPage({ params }: { params: Promise<{ slug: str
         </ol>
         <a
           href={`/login/phone?join=${slug}`}
-          className="inline-flex min-h-tap items-center justify-center rounded-xl bg-[var(--dive-sea)] px-4 font-semibold text-white"
+          className="inline-flex min-h-tap items-center justify-center rounded-xl bg-[var(--dive-sea-strong)] px-4 font-semibold text-white"
           data-testid="join-sign-in"
         >
           {t('signIn')}
@@ -149,11 +149,11 @@ async function Frame({
               {club ?? t('kicker')}
             </p>
           </div>
-          <p className="text-xs font-semibold tracking-[0.2em] text-[var(--dive-shallow)]">
+          <p className="text-xs font-semibold tracking-[0.2em] text-[var(--dive-shallow-ink)]">
             {t('kicker')}
           </p>
           <h1 className="text-3xl leading-tight font-bold tracking-tight">{title}</h1>
-          {sub ? <p className="text-white/80">{sub}</p> : null}
+          {sub ? <p className="text-white/90">{sub}</p> : null}
         </div>
       </section>
       <div className="relative mx-auto -mt-12 max-w-xl px-4 pb-12">

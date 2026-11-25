@@ -21,7 +21,7 @@ export function OfflineBanner() {
   );
   if (online) return null;
   return (
-    <div role="status" className="bg-warn px-4 py-2 text-center text-sm font-medium text-ink">
+    <div role="status" className="bg-warn px-4 py-2 text-center text-sm font-medium text-on-bright">
       {t('offline')}
     </div>
   );

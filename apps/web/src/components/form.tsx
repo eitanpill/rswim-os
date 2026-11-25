@@ -79,7 +79,7 @@ export function ActionForm({
               role={state.ok ? 'status' : 'alert'}
               className={cn(
                 'rounded-xl px-3 py-2 text-sm',
-                state.ok ? 'bg-ok/10 text-ok' : 'bg-danger/10 text-danger',
+                state.ok ? 'bg-ok/10 text-ok-ink' : 'bg-danger/10 text-danger-ink',
               )}
             >
               {state.message}
@@ -117,7 +117,7 @@ function Label({
       {children}
       {hint && !error ? <p className="text-xs text-ink-muted">{hint}</p> : null}
       {error ? (
-        <p id={`${htmlFor}-error`} className="text-xs text-danger">
+        <p id={`${htmlFor}-error`} className="text-xs text-danger-ink">
           {error}
         </p>
       ) : null}
@@ -244,7 +244,7 @@ export function CheckboxGroup({
         {options.map((o) => (
           <label
             key={o.value}
-            className="flex min-h-tap items-center gap-2 rounded-xl border border-line px-3 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 dark:has-[:checked]:bg-surface"
+            className="flex min-h-tap items-center gap-2 rounded-xl border border-line px-3 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50"
           >
             <input
               type="checkbox"
@@ -257,7 +257,7 @@ export function CheckboxGroup({
           </label>
         ))}
       </div>
-      {error ? <p className="text-xs text-danger">{error}</p> : null}
+      {error ? <p className="text-xs text-danger-ink">{error}</p> : null}
     </fieldset>
   );
 }
@@ -302,7 +302,7 @@ export function ActionButton({
       ))}
       <SubmitButton {...props}>{children}</SubmitButton>
       {state.message && !state.ok ? (
-        <span role="alert" className="text-xs text-danger">
+        <span role="alert" className="text-xs text-danger-ink">
           {state.message}
         </span>
       ) : null}
@@ -328,10 +328,7 @@ export function ResultValue({
   const value = useFormResult().data?.[field];
   if (!value) return null;
   return (
-    <div
-      className="flex flex-col gap-1 rounded-xl bg-brand-50 p-3 dark:bg-surface"
-      data-testid={`result-${field}`}
-    >
+    <div className="flex flex-col gap-1 rounded-xl bg-brand-50 p-3" data-testid={`result-${field}`}>
       <span className="text-sm font-medium">{label}</span>
       <code dir="ltr" className="break-all text-sm">
         {value}

@@ -40,8 +40,13 @@ export const TEMPLATE_KEYS = [
 export const TemplateKey = z.enum(TEMPLATE_KEYS);
 export type TemplateKey = z.infer<typeof TemplateKey>;
 
-export const MESSAGE_CHANNELS = ['whatsapp', 'sms'] as const;
+/** `push`: a message that reached the person's phone through the store app instead of WhatsApp (store stage 6). */
+export const MESSAGE_CHANNELS = ['whatsapp', 'sms', 'push'] as const;
 export type MessageChannel = (typeof MESSAGE_CHANNELS)[number];
+
+/** The store app's platforms that take push notifications (APNs on the iPhone, FCM on Android). */
+export const PUSH_PLATFORMS = ['ios', 'android'] as const;
+export type PushPlatform = (typeof PUSH_PLATFORMS)[number];
 
 /** queued → sent | failed; held waits for a send window; blocked never goes out (the reason is kept). */
 export const MESSAGE_STATUSES = ['queued', 'held', 'sent', 'failed', 'blocked'] as const;

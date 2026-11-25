@@ -43,11 +43,11 @@ export async function TrialPromise({
   ];
   return (
     <section
-      className="aqua-in rounded-card border border-brand-100 bg-brand-50 p-4 dark:bg-surface"
+      className="aqua-in rounded-card border border-brand-100 bg-brand-50 p-4"
       data-testid="trial-promise"
     >
       <p className="flex flex-wrap items-center gap-2">
-        <span className="aqua-shine rounded-full px-3 py-1 text-base font-bold text-ink">
+        <span className="aqua-shine rounded-full px-3 py-1 text-base font-bold text-on-bright">
           {t('free', { days })}
         </span>
         <span className="font-semibold">
@@ -65,9 +65,7 @@ export async function TrialPromise({
               {s.icon}
             </span>
             <span className="flex flex-col">
-              <span className="text-sm font-semibold text-brand-700 dark:text-brand-500">
-                {s.when}
-              </span>
+              <span className="text-sm font-semibold text-brand-ink">{s.when}</span>
               <span className="text-sm">{s.what}</span>
             </span>
           </li>

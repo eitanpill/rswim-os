@@ -28,7 +28,7 @@ export default async function SignedForm({ params }: { params: Promise<{ id: str
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4" data-testid="signed-form">
       <div className="flex items-center justify-between gap-2 print:hidden">
-        <a href={back} className="text-sm text-[var(--dive-sea)] hover:underline">
+        <a href={back} className="text-sm text-[var(--dive-sea-ink)] hover:underline">
           {role === 'customer' ? t('backForms') : t('backDiver')}
         </a>
         <PrintButton label={t('print')} />
@@ -107,7 +107,7 @@ export default async function SignedForm({ params }: { params: Promise<{ id: str
             href={`/api/dive/files/${s.fileId}`}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 text-sm text-[var(--dive-sea)] hover:underline print:hidden"
+            className="mt-3 inline-flex items-center gap-1.5 text-sm text-[var(--dive-sea-ink)] hover:underline print:hidden"
             data-testid="attached-file"
           >
             {di.doc}

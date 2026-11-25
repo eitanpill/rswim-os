@@ -54,7 +54,7 @@ export default async function SessionAttendancePage({
         }
       />
       <div className="flex flex-col gap-4">
-        <Link href={`/admin/attendance?date=${lineup.session.date}`} className="text-brand-700">
+        <Link href={`/admin/attendance?date=${lineup.session.date}`} className="text-brand-ink">
           {t('day.back')}
         </Link>
         <Card>

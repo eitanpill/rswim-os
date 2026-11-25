@@ -214,7 +214,7 @@ export function LineupMarker({
       </div>
       {allMarked ? (
         <p
-          className="pop-in rounded-2xl bg-ok/10 px-3 py-2 text-center font-semibold text-ok"
+          className="pop-in rounded-2xl bg-ok/10 px-3 py-2 text-center font-semibold text-ok-ink"
           data-testid="all-marked"
         >
           <span aria-hidden>🎉 </span>
@@ -222,7 +222,7 @@ export function LineupMarker({
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">
+        <p role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger-ink">
           {error}
         </p>
       ) : null}
@@ -275,7 +275,10 @@ export function LineupMarker({
                   <Button
                     type="button"
                     variant="secondary"
-                    className={pick(m?.status === 'present', 'bg-ok text-white hover:bg-ok')}
+                    className={pick(
+                      m?.status === 'present',
+                      'bg-ok-strong text-white hover:bg-ok-strong',
+                    )}
                     aria-pressed={m?.status === 'present'}
                     onClick={() => tap(r.studentId, 'present')}
                   >
@@ -285,7 +288,7 @@ export function LineupMarker({
                   <Button
                     type="button"
                     variant="secondary"
-                    className={pick(m?.status === 'late', 'bg-warn hover:bg-warn text-ink')}
+                    className={pick(m?.status === 'late', 'bg-warn hover:bg-warn text-on-bright')}
                     onClick={() => setLateFor(lateFor === r.studentId ? null : r.studentId)}
                     aria-expanded={lateFor === r.studentId}
                   >
@@ -322,7 +325,7 @@ export function LineupMarker({
                 <div className="mt-2">
                   <button
                     type="button"
-                    className="min-h-tap text-sm text-brand-700"
+                    className="min-h-tap text-sm text-brand-ink"
                     aria-expanded={openSkills === r.studentId}
                     onClick={() => setOpenSkills(openSkills === r.studentId ? null : r.studentId)}
                   >

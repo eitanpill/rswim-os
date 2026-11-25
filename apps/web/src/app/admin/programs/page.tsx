@@ -48,7 +48,7 @@ export default async function ProgramsPage() {
             </p>
             <Levels program={p} />
             <details className="mt-3">
-              <summary className="min-h-tap cursor-pointer text-brand-700">{t('edit')}</summary>
+              <summary className="min-h-tap cursor-pointer text-brand-ink">{t('edit')}</summary>
               <div className="mt-2">
                 <ProgramForm action={updateProgramAction.bind(null, p.id)} program={p} />
               </div>
@@ -121,7 +121,7 @@ async function Levels({ program }: { program: Program }) {
         ))}
       </ol>
       <details className="mt-2">
-        <summary className="min-h-tap cursor-pointer text-brand-700">{t('add')}</summary>
+        <summary className="min-h-tap cursor-pointer text-brand-ink">{t('add')}</summary>
         <ActionForm action={addLevelAction.bind(null, program.id)} resetOnSuccess className="mt-2">
           <div className="grid grid-cols-2 gap-3">
             <Field name="nameHe" label={t('nameHe')} />

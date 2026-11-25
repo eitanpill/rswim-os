@@ -93,7 +93,7 @@ export default async function CommandCenter() {
         >
           {home.lessons > 0 ? <p>{t('heroChildren', { children: home.children })}</p> : null}
           {inbox > 0 || leads.waiting > 0 ? null : (
-            <p className="text-sm text-white/80">{t('needsYouEmpty')}</p>
+            <p className="text-sm text-white/90">{t('needsYouEmpty')}</p>
           )}
         </Hero>
         <div className="grid grid-cols-2 gap-3 md:col-span-2 md:grid-cols-4">
@@ -125,7 +125,7 @@ export default async function CommandCenter() {
           <Card className="md:col-span-2" data-testid="home-brain-waiting">
             <CardTitle
               aside={
-                <Link href="/admin/brain" className="text-sm text-brand-700 underline">
+                <Link href="/admin/brain" className="text-sm text-brand-ink underline">
                   {tb('waiting.all')}
                 </Link>
               }

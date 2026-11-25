@@ -169,6 +169,7 @@ const TENANT_TABLES = [
   'payment_connections',
   'checkouts',
   'whatsapp_connections',
+  'push_devices',
 ] as const;
 
 describe('schema guardrails', () => {

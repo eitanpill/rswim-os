@@ -81,7 +81,9 @@ export async function FamilyMoney({
         <CardTitle
           aside={
             <span
-              className={data.balance > 0 ? 'font-semibold text-danger' : 'font-semibold text-ok'}
+              className={
+                data.balance > 0 ? 'font-semibold text-danger-ink' : 'font-semibold text-ok-ink'
+              }
               data-testid="family-balance"
             >
               {data.balance > 0
@@ -123,7 +125,7 @@ export async function FamilyMoney({
                           {e.note ? ` · ${e.note}` : ''}
                         </span>
                       </span>
-                      <span className={e.amountAgorot < 0 ? 'text-ok' : undefined}>
+                      <span className={e.amountAgorot < 0 ? 'text-ok-ink' : undefined}>
                         {fmt(e.amountAgorot)}
                         {undone ? <Badge className="ms-1">{t('reversed')}</Badge> : null}
                       </span>
@@ -150,7 +152,7 @@ export async function FamilyMoney({
         </details>
 
         <details className="mt-2">
-          <summary className="min-h-tap cursor-pointer py-2 text-brand-700">{t('payment')}</summary>
+          <summary className="min-h-tap cursor-pointer py-2 text-brand-ink">{t('payment')}</summary>
           <ActionForm action={bind(recordPaymentAction)} resetOnSuccess testId="manual-payment">
             <input type="hidden" name="householdId" value={householdId} />
             <input type="hidden" name="requestId" value={randomUUID()} />
@@ -173,7 +175,7 @@ export async function FamilyMoney({
         </details>
 
         <details className="mt-2">
-          <summary className="min-h-tap cursor-pointer py-2 text-brand-700">{t('adjust')}</summary>
+          <summary className="min-h-tap cursor-pointer py-2 text-brand-ink">{t('adjust')}</summary>
           <ActionForm action={bind(adjustmentAction)} resetOnSuccess>
             <input type="hidden" name="householdId" value={householdId} />
             <input type="hidden" name="requestId" value={randomUUID()} />
@@ -311,7 +313,7 @@ export async function FamilyMoney({
           </ul>
         )}
         <details className="mt-2">
-          <summary className="min-h-tap cursor-pointer py-2 text-brand-700">
+          <summary className="min-h-tap cursor-pointer py-2 text-brand-ink">
             {t('addMandate')}
           </summary>
           <ActionForm action={bind(addMandateAction)} resetOnSuccess>
@@ -341,7 +343,7 @@ export async function FamilyMoney({
                 <span>
                   {l.description} · {fmt(l.amountAgorot)}
                   {l.url ? (
-                    <a href={l.url} className="ms-2 text-brand-700 underline" dir="ltr">
+                    <a href={l.url} className="ms-2 text-brand-ink underline" dir="ltr">
                       {l.url}
                     </a>
                   ) : l.status === 'open' ? (
@@ -367,7 +369,7 @@ export async function FamilyMoney({
           </ul>
         )}
         <details className="mt-2">
-          <summary className="min-h-tap cursor-pointer py-2 text-brand-700">
+          <summary className="min-h-tap cursor-pointer py-2 text-brand-ink">
             {t('requestLink')}
           </summary>
           <ActionForm action={bind(requestLinkAction)} resetOnSuccess>
@@ -412,7 +414,7 @@ export async function FamilyMoney({
                 <span className="flex items-center gap-2">
                   {fmt(d.totalAgorot)}
                   {d.pdfUrl ? (
-                    <a href={d.pdfUrl} className="text-brand-700 underline">
+                    <a href={d.pdfUrl} className="text-brand-ink underline">
                       PDF
                     </a>
                   ) : null}
@@ -422,7 +424,7 @@ export async function FamilyMoney({
           </ul>
         )}
         <details className="mt-2">
-          <summary className="min-h-tap cursor-pointer py-2 text-brand-700">{t('details')}</summary>
+          <summary className="min-h-tap cursor-pointer py-2 text-brand-ink">{t('details')}</summary>
           <ActionForm action={bind(saveBillingDetailsAction)} testId="billing-details">
             <input type="hidden" name="householdId" value={householdId} />
             <div className="grid gap-3 sm:grid-cols-2">
@@ -537,7 +539,7 @@ export async function FamilyMoney({
                   ) : null}
                   <div className="mt-2 flex flex-wrap gap-4">
                     <details>
-                      <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-700">
+                      <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-ink">
                         {t('freeze')}
                       </summary>
                       <ActionForm action={bind(requestFreezeAction)} resetOnSuccess>
@@ -555,7 +557,7 @@ export async function FamilyMoney({
                     </details>
                     {!cancellation ? (
                       <details>
-                        <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-700">
+                        <summary className="min-h-tap cursor-pointer py-2 text-sm text-brand-ink">
                           {t('cancel')}
                         </summary>
                         <ActionForm action={bind(requestCancellationAction)}>

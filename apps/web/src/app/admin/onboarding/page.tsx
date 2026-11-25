@@ -42,7 +42,7 @@ export default async function OnboardingPage() {
                   aria-hidden
                   className={
                     s.done
-                      ? 'flex size-8 shrink-0 items-center justify-center rounded-full bg-ok text-white'
+                      ? 'flex size-8 shrink-0 items-center justify-center rounded-full bg-ok-strong text-white'
                       : 'flex size-8 shrink-0 items-center justify-center rounded-full border border-line'
                   }
                 >

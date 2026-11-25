@@ -32,7 +32,7 @@ export default async function ParentSchedule({
       <PageHeader icon="📅" title={t('title')} subtitle={t('subtitle')} />
       <div className="flex flex-col gap-4">
         {booked ? (
-          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok">
+          <p role="status" className="rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok-ink">
             {t('booked')}
           </p>
         ) : null}
@@ -46,7 +46,7 @@ export default async function ParentSchedule({
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-semibold">{tb('cta')}</span>
-            <span className="text-sm text-white/85">{tb('ctaHint', { n: openSlots.length })}</span>
+            <span className="text-sm text-white/90">{tb('ctaHint', { n: openSlots.length })}</span>
           </span>
           <span
             aria-hidden

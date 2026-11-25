@@ -23,7 +23,7 @@ export async function MessagesTabs({ active }: { active: keyof typeof TABS }) {
           aria-current={k === active ? 'page' : undefined}
           className={cn(
             'min-h-tap shrink-0 rounded-full border border-line px-4 py-2.5 text-sm',
-            k === active && 'border-brand-500 bg-brand-50 font-semibold dark:bg-surface',
+            k === active && 'border-brand-500 bg-brand-50 font-semibold',
           )}
         >
           {t(k)}

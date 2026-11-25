@@ -59,7 +59,7 @@ export default async function CohortsPage() {
               </p>
               {c.facts.isCamp ? (
                 <p
-                  className={c.ratio.short ? 'text-sm text-warn' : 'text-sm text-ink-muted'}
+                  className={c.ratio.short ? 'text-sm text-warn-ink' : 'text-sm text-ink-muted'}
                   data-testid="cohort-ratio"
                 >
                   {explain(c.ratio.explanation)}

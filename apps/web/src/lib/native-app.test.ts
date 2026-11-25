@@ -71,3 +71,20 @@ describe('settle', () => {
     expect(await settle(() => Promise.reject(new Error('no')))).toBeUndefined();
   });
 });
+
+describe('asksForPush', () => {
+  it("asks on a signed-in person's own screens only", async () => {
+    const { asksForPush } = await import('./native-app');
+    for (const p of [
+      '/parent',
+      '/parent/payments',
+      '/admin',
+      '/dive/me',
+      '/instructor',
+      '/me/account',
+    ])
+      expect(asksForPush(p)).toBe(true);
+    for (const p of ['/', '/login', '/schools', '/join/x', '/start', '/parentsx', '/api/push'])
+      expect(asksForPush(p)).toBe(false);
+  });
+});

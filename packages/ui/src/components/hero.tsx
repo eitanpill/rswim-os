@@ -44,7 +44,7 @@ export function Hero({
       />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          {eyebrow ? <p className="text-sm font-medium text-white/85">{eyebrow}</p> : null}
+          {eyebrow ? <p className="text-sm font-medium text-white/90">{eyebrow}</p> : null}
           <h2 className="mt-0.5 text-2xl leading-tight font-bold">{title}</h2>
         </div>
         {emoji ? (

@@ -110,7 +110,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
             })}
           </ul>
           <details>
-            <summary className="min-h-tap cursor-pointer text-brand-700">{t('cert.add')}</summary>
+            <summary className="min-h-tap cursor-pointer text-brand-ink">{t('cert.add')}</summary>
             <ActionForm
               action={addCertificationAction.bind(null, staff.id)}
               resetOnSuccess
@@ -162,7 +162,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
             ))}
           </ul>
           <details>
-            <summary className="min-h-tap cursor-pointer text-brand-700">
+            <summary className="min-h-tap cursor-pointer text-brand-ink">
               {t('availability.add')}
             </summary>
             <ActionForm
@@ -235,7 +235,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
             ))}
           </ul>
           <details>
-            <summary className="min-h-tap cursor-pointer text-brand-700">
+            <summary className="min-h-tap cursor-pointer text-brand-ink">
               {t('exception.add')}
             </summary>
             <ActionForm
@@ -288,7 +288,7 @@ export default async function StaffMemberPage({ params }: { params: Promise<{ id
             </ul>
             {canPay ? (
               <details>
-                <summary className="min-h-tap cursor-pointer text-brand-700">
+                <summary className="min-h-tap cursor-pointer text-brand-ink">
                   {t('pay.add')}
                 </summary>
                 <p className="my-2 text-sm text-ink-muted">{t('pay.hint')}</p>

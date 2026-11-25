@@ -81,7 +81,7 @@ export default async function BrainPage() {
           <span className="flex flex-wrap gap-3">
             <Link
               href="/admin/brain/memory"
-              className="text-sm text-brand-700 underline"
+              className="text-sm text-brand-ink underline"
               data-testid="brain-memory-link"
             >
               {t('memory.link')}
@@ -89,13 +89,13 @@ export default async function BrainPage() {
             {data.chat ? (
               <Link
                 href="/admin/copilot"
-                className="text-sm font-semibold text-brand-700 underline"
+                className="text-sm font-semibold text-brand-ink underline"
                 data-testid="brain-chat-link"
               >
                 {t('chatLink')}
               </Link>
             ) : null}
-            <Link href="/admin/brain/journal" className="text-sm text-brand-700 underline">
+            <Link href="/admin/brain/journal" className="text-sm text-brand-ink underline">
               {t('journal.link')}
             </Link>
           </span>

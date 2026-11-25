@@ -60,7 +60,7 @@ export default async function SetupPage() {
         aside={
           <Link
             href={role === 'owner' ? '/dive/owner' : '/dive/manager'}
-            className="text-sm font-medium text-[var(--dive-sea)]"
+            className="text-sm font-medium text-[var(--dive-sea-ink)]"
           >
             {t('back')}
           </Link>
@@ -79,7 +79,7 @@ export default async function SetupPage() {
               <span
                 className={
                   s.done
-                    ? 'flex size-6 shrink-0 items-center justify-center rounded-full bg-[var(--dive-sea)] text-white [&_svg]:size-4'
+                    ? 'flex size-6 shrink-0 items-center justify-center rounded-full bg-[var(--dive-sea-strong)] text-white [&_svg]:size-4'
                     : 'flex size-6 shrink-0 items-center justify-center rounded-full border border-line text-xs text-ink-muted'
                 }
               >
@@ -95,7 +95,7 @@ export default async function SetupPage() {
         {!setup.steps.find((s) => s.key === 'forms')?.done ? (
           <Link
             href="/dive/forms"
-            className="mt-3 inline-block text-sm font-medium text-[var(--dive-sea)] hover:underline"
+            className="mt-3 inline-block text-sm font-medium text-[var(--dive-sea-ink)] hover:underline"
             data-testid="setup-to-forms"
           >
             {t('steps.forms.link')}
@@ -103,7 +103,7 @@ export default async function SetupPage() {
         ) : null}
         <Link
           href="/dive/import"
-          className="mt-3 block text-sm font-medium text-[var(--dive-sea)] hover:underline"
+          className="mt-3 block text-sm font-medium text-[var(--dive-sea-ink)] hover:underline"
           data-testid="setup-to-import"
         >
           {t('importLink')}

@@ -39,7 +39,7 @@ export default async function PayPage({
   return (
     <PayFrame business={business} secure={t('secure')}>
       <section className="rounded-3xl bg-brand-600 p-5 text-white" data-testid="pay-summary">
-        <p className="text-sm text-white/80">
+        <p className="text-sm text-white/90">
           {v.payer ? t('for', { name: v.payer }) : t('title')}
         </p>
         <p className="mt-1 text-lg font-semibold">{v.description}</p>
@@ -86,7 +86,7 @@ async function Body({
         ) : null}
         {v.method ? <p className="text-sm text-ink-muted">{t(`paidBy.${v.method}`)}</p> : null}
         <p className="text-sm text-ink-muted">{t('receipt')}</p>
-        <a href={home} className="text-sm font-medium text-brand-700 underline">
+        <a href={home} className="text-sm font-medium text-brand-ink underline">
           {t('backHome')}
         </a>
       </Notice>

@@ -170,7 +170,7 @@ export default async function FrontDesk() {
           <>
             {t('office.sub', { arrivals: arrivals.length, checked, notReady })}
             {unpaid.length > 0 ? (
-              <span className="font-semibold text-[var(--dive-coral)]">
+              <span className="font-semibold text-[var(--dive-coral-ink)]">
                 {' · '}
                 {t('office.unpaidSub', {
                   count: unpaid.length,
@@ -266,7 +266,7 @@ export default async function FrontDesk() {
                               <span
                                 className={cn(
                                   'block text-lg font-bold tabular-nums',
-                                  full && 'text-[var(--dive-coral)]',
+                                  full && 'text-[var(--dive-coral-ink)]',
                                 )}
                               >
                                 {s.checkedIn}/{s.booked}
@@ -474,7 +474,7 @@ export default async function FrontDesk() {
               </ul>
             )}
             <details className="border-t border-line px-4 py-3">
-              <summary className="cursor-pointer text-sm font-medium text-[var(--dive-sea)]">
+              <summary className="cursor-pointer text-sm font-medium text-[var(--dive-sea-ink)]">
                 {t('office.rentOut')}
               </summary>
               <ActionForm action={rentAction} resetOnSuccess className="mt-3">

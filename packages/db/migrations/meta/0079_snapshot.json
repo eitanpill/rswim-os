@@ -1,5 +1,5 @@
 {
-  "id": "4f720594-ebea-467a-ba9a-68806da1b055",
+  "id": "2a73e847-b613-4255-a0d2-8b8a15f5f306",
   "prevId": "d963f83c-6f9a-487b-9631-8e13e51e5512",
   "version": "7",
   "dialect": "postgresql",
@@ -12464,7 +12464,7 @@
         },
         "message_templates_channel_check": {
           "name": "message_templates_channel_check",
-          "value": "channel in ('whatsapp', 'sms')"
+          "value": "channel in ('whatsapp', 'sms', 'push')"
         }
       },
       "isRLSEnabled": false
@@ -12752,7 +12752,7 @@
       "checkConstraints": {
         "messages_channel_check": {
           "name": "messages_channel_check",
-          "value": "channel in ('whatsapp', 'sms')"
+          "value": "channel in ('whatsapp', 'sms', 'push')"
         },
         "messages_template_check": {
           "name": "messages_template_check",
@@ -12773,6 +12773,129 @@
         "messages_sent_check": {
           "name": "messages_sent_check",
           "value": "(\"messages\".\"status\" = 'sent') = (\"messages\".\"sent_at\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.push_devices": {
+      "name": "push_devices",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "platform": {
+          "name": "platform",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "push_devices_user": {
+          "name": "push_devices_user",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "push_devices_organization_id_organizations_id_fk": {
+          "name": "push_devices_organization_id_organizations_id_fk",
+          "tableFrom": "push_devices",
+          "tableTo": "organizations",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "push_devices_org_id": {
+          "name": "push_devices_org_id",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "id"
+          ]
+        },
+        "push_devices_token": {
+          "name": "push_devices_token",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "token"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "push_devices_platform_check": {
+          "name": "push_devices_platform_check",
+          "value": "platform in ('ios', 'android')"
         }
       },
       "isRLSEnabled": false
@@ -21874,184 +21997,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.lodging_rates": {
-      "name": "lodging_rates",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "starts_on": {
-          "name": "starts_on",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "ends_on": {
-          "name": "ends_on",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "yearly": {
-          "name": "yearly",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "nights_of_week": {
-          "name": "nights_of_week",
-          "type": "smallint[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "room_kind": {
-          "name": "room_kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "mode": {
-          "name": "mode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "price_night_agorot": {
-          "name": "price_night_agorot",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "percent": {
-          "name": "percent",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "min_nights": {
-          "name": "min_nights",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "active": {
-          "name": "active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "lodging_rates_org": {
-          "name": "lodging_rates_org",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "lodging_rates_organization_id_organizations_id_fk": {
-          "name": "lodging_rates_organization_id_organizations_id_fk",
-          "tableFrom": "lodging_rates",
-          "tableTo": "organizations",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "lodging_rates_org_id": {
-          "name": "lodging_rates_org_id",
-          "nullsNotDistinct": false,
-          "columns": [
-            "organization_id",
-            "id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "lodging_rates_kind_check": {
-          "name": "lodging_rates_kind_check",
-          "value": "kind in ('season', 'weekend', 'holiday')"
-        },
-        "lodging_rates_mode_check": {
-          "name": "lodging_rates_mode_check",
-          "value": "mode in ('fixed', 'percent')"
-        },
-        "lodging_rates_room_kind_check": {
-          "name": "lodging_rates_room_kind_check",
-          "value": "room_kind is null or room_kind in ('single', 'double', 'family', 'dorm', 'suite', 'other')"
-        },
-        "lodging_rates_season_check": {
-          "name": "lodging_rates_season_check",
-          "value": "kind <> 'season' or (starts_on is not null and ends_on is not null and ends_on >= starts_on)"
-        },
-        "lodging_rates_value_check": {
-          "name": "lodging_rates_value_check",
-          "value": "(mode = 'fixed' and price_night_agorot is not null and price_night_agorot >= 0) or (mode = 'percent' and percent is not null and percent between -90 and 500)"
-        },
-        "lodging_rates_min_nights_check": {
-          "name": "lodging_rates_min_nights_check",
-          "value": "min_nights is null or min_nights between 1 and 30"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.lodging_rooms": {
       "name": "lodging_rooms",
       "schema": "",
@@ -22119,13 +22064,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
-        },
-        "price_per": {
-          "name": "price_per",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'room'"
         },
         "note": {
           "name": "note",
@@ -22237,10 +22175,6 @@
         "lodging_rooms_price_check": {
           "name": "lodging_rooms_price_check",
           "value": "price_night_agorot is null or price_night_agorot >= 0"
-        },
-        "lodging_rooms_price_per_check": {
-          "name": "lodging_rooms_price_per_check",
-          "value": "price_per in ('room', 'guest')"
         }
       },
       "isRLSEnabled": false
@@ -22289,13 +22223,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "min_nights": {
-          "name": "min_nights",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 1
-        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
@@ -22324,10 +22251,6 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
-        "lodging_settings_min_nights": {
-          "name": "lodging_settings_min_nights",
-          "value": "min_nights between 1 and 30"
-        },
         "lodging_settings_check_in": {
           "name": "lodging_settings_check_in",
           "value": "check_in_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'"
@@ -22422,12 +22345,6 @@
         "lead_id": {
           "name": "lead_id",
           "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "total_agorot": {
-          "name": "total_agorot",
-          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -22593,10 +22510,6 @@
         "lodging_stays_guests_check": {
           "name": "lodging_stays_guests_check",
           "value": "guests between 1 and 60"
-        },
-        "lodging_stays_total_check": {
-          "name": "lodging_stays_total_check",
-          "value": "total_agorot is null or total_agorot >= 0"
         }
       },
       "isRLSEnabled": false

@@ -33,7 +33,7 @@ export default async function ParentMakeup({ params }: { params: Promise<{ id: s
         subtitle={t('subtitle', { until: dmy(data.credit.expiresOn) })}
       />
       <div className="flex flex-col gap-4">
-        <Link href="/parent" className="text-brand-700">
+        <Link href="/parent" className="text-brand-ink">
           {t('back')}
         </Link>
         <Card>

@@ -59,10 +59,10 @@ export default async function MyDiving({
           data-testid="welcome-link"
         >
           <span className="flex items-center gap-2 font-semibold [&_svg]:size-5">
-            <span className="text-[var(--dive-sea)]">{di.spark}</span>
+            <span className="text-[var(--dive-sea-ink)]">{di.spark}</span>
             {t('welcome.homeLink', { done: welcome.done, total: welcome.steps.length })}
           </span>
-          <span className="text-sm text-[var(--dive-sea)]">
+          <span className="text-sm text-[var(--dive-sea-ink)]">
             {t(`welcome.step.${welcome.next}.title`)}
           </span>
         </a>
@@ -71,7 +71,7 @@ export default async function MyDiving({
       {sp.paid || sp.booked || sp.pass ? (
         <p
           role="status"
-          className="flex items-center gap-2 rounded-2xl bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-4 py-3 font-semibold text-[color-mix(in_oklch,var(--dive-go)_70%,var(--ink))] [&_svg]:size-5"
+          className="flex items-center gap-2 rounded-2xl bg-[color-mix(in_oklch,var(--dive-go)_12%,transparent)] px-4 py-3 font-semibold text-[var(--dive-go-ink)] [&_svg]:size-5"
           data-testid="paid-banner"
         >
           {di.check}
@@ -85,7 +85,7 @@ export default async function MyDiving({
           data-testid="unpaid"
         >
           <p className="flex items-center gap-2 font-semibold">
-            <span className="text-[var(--dive-coral)] [&_svg]:size-5">{di.coin}</span>
+            <span className="text-[var(--dive-coral-ink)] [&_svg]:size-5">{di.coin}</span>
             {t('me.unpaidTitle', { count: unpaid.length })}
           </p>
           <p className="text-sm text-ink-muted">{t('me.unpaidSub')}</p>
@@ -98,9 +98,7 @@ export default async function MyDiving({
           data-testid="paperwork-todo"
         >
           <p className="flex items-center gap-2 font-semibold">
-            <span className="text-[color-mix(in_oklch,var(--dive-caution)_75%,var(--ink))] [&_svg]:size-5">
-              {di.alert}
-            </span>
+            <span className="text-[var(--dive-caution-ink)] [&_svg]:size-5">{di.alert}</span>
             {t('me.todoTitle')}
           </p>
           {todos.map((i) => (
@@ -149,7 +147,7 @@ export default async function MyDiving({
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <p className="text-xs font-semibold text-[var(--dive-sea)]">
+                      <p className="text-xs font-semibold text-[var(--dive-sea-ink)]">
                         {localDay(n.startsAt) === home.today
                           ? t('common.today')
                           : dayLabel(localDay(n.startsAt), locale)}{' '}
@@ -218,7 +216,7 @@ export default async function MyDiving({
                       fields={{ bookingId: n.bookingId }}
                       variant="ghost"
                       confirm={t('me.cancelConfirm')}
-                      className="min-h-8 px-2.5 text-xs text-[var(--dive-nogo)]"
+                      className="min-h-8 px-2.5 text-xs text-[var(--dive-nogo-ink)]"
                     >
                       {t('me.cancel')}
                     </ActionButton>
@@ -277,7 +275,7 @@ export default async function MyDiving({
               </ul>
             )}
             <details className="mt-3 border-t border-line pt-3" data-testid="buy-pass">
-              <summary className="cursor-pointer text-sm font-semibold text-[var(--dive-sea)]">
+              <summary className="cursor-pointer text-sm font-semibold text-[var(--dive-sea-ink)]">
                 {t('me.buyPass')}
               </summary>
               <ul className="mt-2 flex flex-col gap-2">
@@ -321,7 +319,7 @@ export default async function MyDiving({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs font-semibold text-[var(--dive-sea)]">
+                    <p className="text-xs font-semibold text-[var(--dive-sea-ink)]">
                       {dayLabel(localDay(b.startsAt), locale)} · {hhmm(b.startsAt)}
                     </p>
                     <p className="font-semibold">{b.title}</p>
@@ -334,7 +332,7 @@ export default async function MyDiving({
                     <span
                       className={cn(
                         'block text-xs',
-                        b.left <= 2 ? 'text-[var(--dive-coral)]' : 'text-ink-muted',
+                        b.left <= 2 ? 'text-[var(--dive-coral-ink)]' : 'text-ink-muted',
                       )}
                     >
                       {t('me.spots', { count: b.left })}

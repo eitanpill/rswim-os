@@ -53,7 +53,7 @@ export default async function WaitlistPage() {
               {data.clusters.map((c) => (
                 <li
                   key={c.entryIds.join()}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-brand-50 p-3 dark:bg-surface"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-brand-50 p-3"
                 >
                   <p>
                     {t('suggestion', {
@@ -69,7 +69,7 @@ export default async function WaitlistPage() {
                   </p>
                   <Link
                     href={`/admin/groups/new?pool=${firstPool(c.venueId)}&program=${c.programId}&weekday=${c.weekday}${c.hour ? `&startsAt=${c.hour}` : ''}`}
-                    className="text-brand-700 underline"
+                    className="text-brand-ink underline"
                   >
                     {t('openGroup')}
                   </Link>

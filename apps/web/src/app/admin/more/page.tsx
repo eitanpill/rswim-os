@@ -209,7 +209,7 @@ export default async function MorePage() {
                     >
                       <span
                         aria-hidden
-                        className="grid size-10 place-items-center rounded-xl bg-brand-50 text-xl dark:bg-surface"
+                        className="grid size-10 place-items-center rounded-xl bg-brand-50 text-xl"
                       >
                         {ICON[k]}
                       </span>

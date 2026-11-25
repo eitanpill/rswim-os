@@ -69,12 +69,12 @@ export default async function CohortPage({ params }: { params: Promise<{ id: str
             {c.ownPolicyFrom
               ? t('detail.ownPolicy', { from: dmy(c.ownPolicyFrom) })
               : t('detail.orgPolicy')}{' '}
-            <Link href="/admin/policies" className="text-brand-700 underline">
+            <Link href="/admin/policies" className="text-brand-ink underline">
               {t('detail.policyLink')}
             </Link>
           </p>
           <p
-            className={c.ratio.short ? 'text-sm text-warn' : 'text-sm text-ink-muted'}
+            className={c.ratio.short ? 'text-sm text-warn-ink' : 'text-sm text-ink-muted'}
             data-testid="cohort-ratio"
           >
             {explain(c.ratio.explanation)}
@@ -98,7 +98,7 @@ export default async function CohortPage({ params }: { params: Promise<{ id: str
           </ActionForm>
           <Link
             href={`/admin/cohorts/${c.id}/roster`}
-            className="mt-3 inline-block text-sm text-brand-700 underline"
+            className="mt-3 inline-block text-sm text-brand-ink underline"
             data-testid="roster-link"
           >
             {t('detail.print')}
@@ -242,7 +242,7 @@ export default async function CohortPage({ params }: { params: Promise<{ id: str
 
         <Card>
           <details>
-            <summary className="min-h-tap cursor-pointer py-3 text-sm text-brand-700">
+            <summary className="min-h-tap cursor-pointer py-3 text-sm text-brand-ink">
               {t('detail.edit')}
             </summary>
             <ActionForm action={updateCohortAction}>

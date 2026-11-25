@@ -54,7 +54,7 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
         title={venue.name}
         subtitle={`${label('venueKind', venue.kind)} · ${label('venueStatus', venue.status)}`}
         actions={
-          <Link href={`/admin/policies?venue=${venue.id}`} className="text-brand-700 underline">
+          <Link href={`/admin/policies?venue=${venue.id}`} className="text-brand-ink underline">
             {t('policies')}
           </Link>
         }
@@ -204,7 +204,7 @@ async function PoolCard({
                   {w.notes ? ` · ${w.notes}` : ''}
                 </p>
                 <details className="mt-2">
-                  <summary className="cursor-pointer text-sm text-brand-700">{tc('edit')}</summary>
+                  <summary className="cursor-pointer text-sm text-brand-ink">{tc('edit')}</summary>
                   <div className="mt-2">
                     <WindowForm venueId={venueId} pool={pool} window={w} />
                   </div>
@@ -215,7 +215,7 @@ async function PoolCard({
         </ol>
       )}
       <details>
-        <summary className="min-h-tap cursor-pointer font-medium text-brand-700">
+        <summary className="min-h-tap cursor-pointer font-medium text-brand-ink">
           {t('window.add')}
         </summary>
         <div className="mt-2">
@@ -343,7 +343,7 @@ async function ClosuresCard({
         </ul>
       )}
       <details>
-        <summary className="min-h-tap cursor-pointer font-medium text-brand-700">
+        <summary className="min-h-tap cursor-pointer font-medium text-brand-ink">
           {t('add')}
         </summary>
         <ActionForm action={addClosureAction.bind(null, venueId)} resetOnSuccess className="mt-2">
@@ -411,7 +411,7 @@ async function ContractsCard({
         </ul>
       )}
       <details>
-        <summary className="min-h-tap cursor-pointer font-medium text-brand-700">
+        <summary className="min-h-tap cursor-pointer font-medium text-brand-ink">
           {t('add')}
         </summary>
         <ActionForm action={addContractAction.bind(null, venueId)} resetOnSuccess className="mt-2">
