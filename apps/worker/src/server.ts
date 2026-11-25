@@ -1,4 +1,5 @@
 import { createServer as createHttpServer } from 'node:http';
+import { productionEnvProblems } from '@rswim/contracts';
 import { sql } from '@rswim/db';
 import { serve } from 'inngest/node';
 import { controlDb, inngestClient as inngest, log } from './client';
@@ -6,6 +7,17 @@ import { functions } from './functions';
 import { initMonitoring } from './monitoring';
 
 initMonitoring();
+
+// A production worker with a fake provider, a dev switch or a missing key must not start: Railway then keeps the
+// previous deploy running and the failed one shows in its logs (names only, never values).
+const envProblems = productionEnvProblems('worker', process.env);
+if (envProblems.length > 0) {
+  log.fatal(
+    { problems: envProblems },
+    'refusing to start: the production environment is not right',
+  );
+  process.exit(1);
+}
 
 const port = Number(process.env.PORT ?? 3030);
 
