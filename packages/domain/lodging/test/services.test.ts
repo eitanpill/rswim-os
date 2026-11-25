@@ -12,12 +12,18 @@ import { addDays } from '../src/policies';
 import {
   addRooms,
   bookStay,
+  addRate,
   getStay,
+  holidayNights,
+  holidaysAhead,
+  loadRates,
   lodgingBoard,
   lodgingDay,
   loadRooms,
   moveStay,
+  removeRate,
   saveLodgingSettings,
+  setRateActive,
   searchFree,
   sendMorningBrief,
   setHousekeeping,
@@ -311,6 +317,127 @@ describe('lodging', () => {
     expect(out.free.nights).toBe(2);
     expect(out.free.options[0]).toMatchObject({ room: 'דורמס גדול', total_shekels: 320 });
     expect(out.bad).toEqual({ error: 'check_out must be after check_in' });
+  });
+
+  it('prices stays from the price list and keeps the price a stay was booked at', async () => {
+    // 2027-07-05 is a Monday; the stay runs Monday to Saturday morning (Thursday and Friday are weekend nights).
+    const [summer, weekend] = await asOwner(async (tx, ctx) => [
+      await addRate(tx, ctx, {
+        name: 'קיץ משפחות',
+        kind: 'season',
+        startsOn: '2027-07-01',
+        endsOn: '2027-08-31',
+        yearly: true,
+        roomKind: 'family',
+        mode: 'fixed',
+        priceNight: 60_000,
+        minNights: 3,
+      }),
+      await addRate(tx, ctx, {
+        name: 'סוף שבוע',
+        kind: 'weekend',
+        nightsOfWeek: ['4', '5', '5'],
+        roomKind: '',
+        mode: 'percent',
+        percent: 10,
+        // The form sends every field; a weekend ignores the dates and the yearly box.
+        startsOn: '2027-01-01',
+        endsOn: '2027-01-02',
+        yearly: 'on',
+      }),
+      await addRate(tx, ctx, {
+        name: 'חגים',
+        kind: 'holiday',
+        mode: 'fixed',
+        priceNight: 99_000,
+        percent: 5,
+      }),
+    ]);
+    const rates = await asOwner((tx) => loadRates(tx));
+    expect(
+      rates.map((r) => [
+        r.kind,
+        r.startsOn,
+        r.yearly,
+        r.nightsOfWeek,
+        r.percent,
+        r.priceNightAgorot,
+      ]),
+    ).toEqual([
+      ['season', '2027-07-01', true, null, null, 60_000],
+      ['weekend', null, false, [4, 5], 10, null],
+      ['holiday', null, false, null, null, 99_000],
+    ]);
+    await expect(
+      asOwner((tx, ctx) =>
+        addRate(tx, ctx, { name: 'x', kind: 'season', mode: 'percent', percent: 5 }),
+      ),
+    ).rejects.toMatchObject({
+      issues: [{ path: ['endsOn'], message: 'lodging.errors.rateDates' }],
+    });
+    await expect(
+      asOwner((tx, ctx) =>
+        addRate(tx, ctx, { name: 'x', kind: 'weekend', mode: 'percent', percent: 5 }),
+      ),
+    ).rejects.toMatchObject({ issues: [{ path: ['nightsOfWeek'] }] });
+    await expect(
+      asOwner((tx, ctx) => addRate(tx, ctx, { name: 'x', kind: 'holiday', mode: 'fixed' })),
+    ).rejects.toMatchObject({ issues: [{ path: ['priceNight'] }] });
+    await expect(
+      asOwner((tx, ctx) => addRate(tx, ctx, { name: 'x', kind: 'holiday', mode: 'percent' })),
+    ).rejects.toMatchObject({ issues: [{ path: ['percent'] }] });
+
+    const ask = { checkIn: '2028-07-03', checkOut: '2028-07-08', guests: 2 };
+    // 2028: the yearly season comes back. Mon-Wed 600, Thu-Fri 660 → 3,120 for the family rooms; the dorm keeps 90 a bed.
+    const free = await asOwner((tx) => searchFree(tx, ask));
+    const fam = free.find((o) => o.roomName === 'משפחתי 2');
+    expect([fam?.totalAgorot, fam?.minNights, fam?.tooShort]).toEqual([312_000, 3, false]);
+    expect(fam?.priced[3]?.rules.map((r) => r.name)).toEqual(['קיץ משפחות', 'סוף שבוע']);
+    const short = await asOwner((tx) => searchFree(tx, { ...ask, checkOut: '2028-07-05' }));
+    expect(short.find((o) => o.roomName === 'משפחתי 2')?.tooShort).toBe(true);
+
+    // The office may book a short stay; the bot may not.
+    await expect(
+      asOwner((tx, ctx) =>
+        bookStay(tx, ctx, {
+          roomId: family[1]!,
+          guestName: 'בוט',
+          guests: 2,
+          checkIn: '2028-07-03',
+          checkOut: '2028-07-04',
+          source: 'bot',
+        }),
+      ),
+    ).rejects.toMatchObject({ code: 'lodging.errors.tooShort', params: { n: 3 } });
+    const [id] = await asOwner((tx, ctx) =>
+      bookStay(tx, ctx, { roomId: family[1]!, guestName: 'משפחת קיץ', ...ask }),
+    );
+    // A paused or removed rule changes the next quote, never a stay already booked.
+    await asOwner(async (tx) => {
+      await setRateActive(tx, { id: weekend!, active: '' });
+      await removeRate(tx, { id: summer! });
+    });
+    const after = await asOwner((tx) =>
+      searchFree(tx, { ...ask, checkIn: '2028-07-10', checkOut: '2028-07-15' }),
+    );
+    expect(after.find((o) => o.roomName === 'משפחתי 2')?.totalAgorot).toBe(225_000);
+    expect((await asOwner((tx) => getStay(tx, id!)))?.totalAgorot).toBe(312_000);
+    await expect(asOwner((tx) => removeRate(tx, { id: summer! }))).rejects.toMatchObject({
+      code: 'common.errors.notFound',
+    });
+    await expect(
+      asOwner((tx) => setRateActive(tx, { id: summer!, active: 'on' })),
+    ).rejects.toMatchObject({ code: 'common.errors.notFound' });
+  });
+
+  it('knows the holiday nights, as Israel keeps them', () => {
+    expect([...holidayNights('2027-06-08', '2027-06-14')]).toEqual([['2027-06-10', 'שבועות']]);
+    expect([...holidayNights('2027-09-29', '2027-10-05')].map(([d, n]) => [d, n])).toEqual([
+      ['2027-10-01', 'ראש השנה'],
+      ['2027-10-02', 'ראש השנה ב׳'],
+    ]);
+    expect(holidayNights('2027-04-18', '2027-05-01').size).toBe(7);
+    expect(holidaysAhead('2027-06-01', 30)).toEqual([{ date: '2027-06-10', name: 'שבועות' }]);
   });
 
   it('keeps lodging to the office', async () => {

@@ -8,16 +8,20 @@ import {
   type HousekeepingState,
   type RoomFacility,
   type RoomKind,
+  type RoomPricePer,
   type RoomSoldBy,
   type StayStatus,
 } from '@rswim/contracts';
 import { agorot, formatILS } from '@rswim/money';
+import { addDays, nightsBetween } from './dates';
+import { quoteStay, type HolidayNights, type NightPrice, type RateFacts } from './prices';
 
 export interface RoomFacts {
   id: string;
   name: string;
   kind: RoomKind;
   soldBy: RoomSoldBy;
+  pricePer: RoomPricePer;
   maxGuests: number;
   priceNightAgorot: number | null;
   toilet: RoomFacility;
@@ -50,18 +54,7 @@ export function roomNames(name: string, count: number, from = 1): string[] {
   return Array.from({ length: count }, (_, i) => `${name} ${from + i}`);
 }
 
-/** Day arithmetic on ISO dates (YYYY-MM-DD), in UTC so no time zone moves a day. */
-export function addDays(date: string, days: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
-export function nightsBetween(checkIn: string, checkOut: string): number {
-  return Math.round(
-    (Date.parse(`${checkOut}T00:00:00Z`) - Date.parse(`${checkIn}T00:00:00Z`)) / 86_400_000,
-  );
-}
+export { addDays, nightsBetween } from './dates';
 
 const holds = (s: StayFacts) => STAY_HOLDING.includes(s.status);
 const overlaps = (
@@ -140,9 +133,23 @@ export interface FreeOption {
   /** How many guests this option holds: the room's maximum, or the dorm's free beds. */
   room: number;
   nights: number;
-  /** The whole stay for these guests, when the room has a price. */
+  /** The whole stay for these guests from the price list, when the room has a price. */
   totalAgorot: number | null;
+  /** Night by night, with the rules that shaped each night. */
+  priced: NightPrice[];
+  /** The fewest nights these dates ask for, and whether the stay is shorter. */
+  minNights: number;
+  tooShort: boolean;
 }
+
+/** The price list a search prices with: its rules, the holiday nights in range, and the business's minimum stay. */
+export interface Pricing {
+  rates: readonly RateFacts[];
+  holidays: HolidayNights;
+  minNights: number;
+}
+
+const NO_PRICING: Pricing = { rates: [], holidays: new Map(), minNights: 1 };
 
 /**
  * Rooms and dorm beds free for these nights that hold this many guests, cheapest first (unpriced last), then by name.
@@ -151,14 +158,22 @@ export function freeOptions(
   rooms: readonly RoomFacts[],
   stays: readonly StayFacts[],
   ask: { checkIn: string; checkOut: string; guests: number },
+  pricing: Pricing = NO_PRICING,
 ): FreeOption[] {
   if (ask.checkOut <= ask.checkIn) return [];
   const nights = nightsBetween(ask.checkIn, ask.checkOut);
   const out: FreeOption[] = [];
   for (const room of rooms) {
     if (!room.active) continue;
-    const price = (units: number) =>
-      room.priceNightAgorot === null ? null : room.priceNightAgorot * nights * units;
+    const quoted = () => {
+      const q = quoteStay(room, ask, pricing.rates, pricing.holidays, pricing.minNights);
+      return {
+        totalAgorot: q.totalAgorot,
+        priced: q.nights,
+        minNights: q.minNights,
+        tooShort: q.tooShort,
+      };
+    };
     if (room.soldBy === 'bed') {
       const beds = freeBeds(room, ask, stays);
       if (beds.length >= ask.guests) {
@@ -170,7 +185,7 @@ export function freeOptions(
           bedIds: beds.map((b) => b.id),
           room: beds.length,
           nights,
-          totalAgorot: price(ask.guests),
+          ...quoted(),
         });
       }
     } else if (room.maxGuests >= ask.guests && isFree(room, null, ask, stays)) {
@@ -182,12 +197,13 @@ export function freeOptions(
         bedIds: [],
         room: room.maxGuests,
         nights,
-        totalAgorot: price(1),
+        ...quoted(),
       });
     }
   }
   return out.sort(
     (a, b) =>
+      Number(a.tooShort) - Number(b.tooShort) ||
       (a.totalAgorot ?? Number.MAX_SAFE_INTEGER) - (b.totalAgorot ?? Number.MAX_SAFE_INTEGER) ||
       a.roomName.localeCompare(b.roomName, 'he'),
   );
@@ -444,29 +460,53 @@ export function briefText(
   return out.join('\n');
 }
 
-/** Plain lines about the rooms for the new-customers bot (what kinds, how many, what they cost). */
+/** Plain lines about the rooms for the new-customers bot (what kinds, how many, what they cost, the price list). */
 export function botFacts(
   rooms: readonly RoomFacts[],
   times: { checkIn: string; checkOut: string },
+  rates: readonly RateFacts[] = [],
+  minNights = 1,
 ): string[] {
   const active = rooms.filter((r) => r.active);
   if (!active.length) return [];
   const lines = [
     `Lodging on site: ${active.length} rooms. Check-in from ${times.checkIn}, check-out by ${times.checkOut}.`,
   ];
+  if (minNights > 1) lines.push(`Minimum stay: ${minNights} nights.`);
   for (const r of active) {
+    const per = r.soldBy === 'bed' ? ' per bed' : r.pricePer === 'guest' ? ' per guest' : '';
     const price =
       r.priceNightAgorot === null
         ? 'price on request'
-        : `${formatILS(agorot(r.priceNightAgorot), 'he')} a night${r.soldBy === 'bed' ? ' per bed' : ''}`;
+        : `${formatILS(agorot(r.priceNightAgorot), 'he')} a night${per} (base price)`;
     const sleeps =
       r.soldBy === 'bed' ? `${r.beds.length} beds sold one by one` : `up to ${r.maxGuests} guests`;
     lines.push(
       `- ${r.name} (${r.kind}): ${sleeps}; toilet ${r.toilet}, shower ${r.shower}; ${price}.`,
     );
   }
+  const live = rates.filter((r) => r.active);
+  if (live.length) {
+    lines.push('Price list on top of the base prices:');
+    for (const r of live) {
+      const effect =
+        r.mode === 'fixed'
+          ? `${formatILS(agorot(r.priceNightAgorot ?? 0), 'he')} a night`
+          : `${(r.percent ?? 0) > 0 ? '+' : ''}${r.percent ?? 0}%`;
+      const when =
+        r.kind === 'season'
+          ? `${r.startsOn} to ${r.endsOn}${r.yearly ? ' every year' : ''}`
+          : r.kind === 'weekend'
+            ? `weekend nights (${(r.nightsOfWeek ?? []).join(', ')}; 0 = Sunday night)`
+            : 'Jewish holiday nights';
+      const min = r.minNights ? `, at least ${r.minNights} nights` : '';
+      lines.push(
+        `- ${r.name}: ${when}${r.roomKind ? ` (${r.roomKind} rooms)` : ''}: ${effect}${min}.`,
+      );
+    }
+  }
   lines.push(
-    'Never promise a room: check availability with lodging_availability; the office confirms the booking.',
+    'Never compute a price yourself: lodging_availability gives the exact total for the dates; the office confirms the booking.',
   );
   return lines;
 }

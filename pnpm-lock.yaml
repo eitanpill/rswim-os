@@ -939,6 +939,9 @@ importers:
 
   packages/domain/lodging:
     dependencies:
+      '@rswim/calendar':
+        specifier: workspace:*
+        version: link:../../calendar
       '@rswim/contracts':
         specifier: workspace:*
         version: link:../../contracts

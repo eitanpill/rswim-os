@@ -2,20 +2,27 @@ import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   displayPhoneIL,
+  DEFAULT_WEEKEND_NIGHTS,
   LODGING_BOARD_NIGHTS,
   ROOM_FACILITIES,
   ROOM_KINDS,
+  ROOM_PRICE_PER,
+  type RateKind,
   type HousekeepingState,
 } from '@rswim/contracts';
 import {
   addDays,
   getLodgingSettings,
   getStay,
+  holidaysAhead,
   lodgingBoard,
   lodgingDay,
+  loadRates,
   loadRooms,
   searchFree,
   FreeSearch,
+  type FreeOption,
+  type RateFacts,
   type RoomRow,
   type StayFacts,
 } from '@rswim/domain-lodging';
@@ -26,6 +33,7 @@ import {
   ActionButton,
   ActionForm,
   CheckboxField,
+  CheckboxGroup,
   Field,
   SelectField,
   SubmitButton,
@@ -33,10 +41,13 @@ import {
 import { withSession } from '@/lib/db';
 import { dmy } from '@/lib/options';
 import {
+  addRateAction,
   addRoomsAction,
   bookStayAction,
   housekeepingAction,
   moveStayAction,
+  rateActiveAction,
+  removeRateAction,
   saveLodgingSettingsAction,
   updateRoomAction,
 } from './actions';
@@ -57,13 +68,14 @@ export async function LodgingTabs({
   current,
 }: {
   base: LodgingBase;
-  current: 'today' | 'board' | 'rooms';
+  current: 'today' | 'board' | 'rooms' | 'prices';
 }) {
   const t = await getTranslations('lodging');
   const tabs = [
     { key: 'today', href: base },
     { key: 'board', href: `${base}/board` },
     { key: 'rooms', href: `${base}/rooms` },
+    { key: 'prices', href: `${base}/prices` },
   ] as const;
   return (
     <nav aria-label={t('title')} className="mb-4 flex flex-wrap gap-2" data-testid="lodging-tabs">
@@ -94,6 +106,9 @@ function OffNote({ t, base }: { t: T; base: LodgingBase }) {
     </p>
   );
 }
+
+/** Day and month only ("6.1"): a night in a list, or a season that comes back every year. */
+const dm = (date: string | null) => dmy(date).split('.').slice(0, 2).join('.');
 
 const whereOf = (t: T, rooms: RoomRow[], s: StayFacts) => {
   const room = rooms.find((r) => r.id === s.roomId);
@@ -368,7 +383,12 @@ export async function BoardView({
                           : t('board.holds', { n: o.room })}
                       </span>
                     </span>
-                    <span className="flex items-center gap-2">
+                    <span className="flex flex-wrap items-center gap-2">
+                      {o.tooShort ? (
+                        <Badge tone="warn" data-testid="find-too-short">
+                          {t('board.tooShort', { n: o.minNights })}
+                        </Badge>
+                      ) : null}
                       {o.totalAgorot === null ? (
                         <Badge>{t('board.noPrice')}</Badge>
                       ) : (
@@ -379,6 +399,7 @@ export async function BoardView({
                       <span className={buttonVariants({ size: 'sm' })}>{t('board.book')}</span>
                     </span>
                   </summary>
+                  <PriceLines t={t} option={o} locale={locale} />
                   <ActionForm
                     action={bookStayAction}
                     className="mt-3 grid gap-3 md:grid-cols-2"
@@ -531,6 +552,50 @@ export async function BoardView({
   );
 }
 
+/** Under a free option: the nights the price list changed, grouped ("סוף שבוע × 2 לילות"). */
+function PriceLines({ t, option, locale }: { t: T; option: FreeOption; locale: 'he' | 'en' }) {
+  const groups = new Map<string, { label: string; nights: number }>();
+  for (const night of option.priced) {
+    for (const rule of night.rules) {
+      const label = rule.holiday ? `${rule.name} (${rule.holiday})` : rule.name;
+      const g = groups.get(label) ?? { label, nights: 0 };
+      g.nights++;
+      groups.set(label, g);
+    }
+  }
+  if (!groups.size && option.totalAgorot === null) return null;
+  const perNight = option.priced.map((n) => n.agorot);
+  const same = perNight.every((a) => a === perNight[0]);
+  return (
+    <div className="mt-2 flex flex-col gap-1 text-sm text-ink-muted" data-testid="find-price-lines">
+      {same && perNight[0] != null ? (
+        <span>{t('board.eachNight', { amount: formatILS(agorot(perNight[0]), locale) })}</span>
+      ) : (
+        <span className="flex flex-wrap gap-x-3">
+          {option.priced.map((n) => (
+            <span key={n.date} className="flex gap-1">
+              <bdi dir="ltr" className="tabular-nums">
+                {dm(n.date)}
+              </bdi>
+              <span aria-hidden>·</span>
+              {n.agorot === null ? (
+                t('board.noPrice')
+              ) : (
+                <Money agorot={agorot(n.agorot)} locale={locale} />
+              )}
+            </span>
+          ))}
+        </span>
+      )}
+      {[...groups.values()].map((g) => (
+        <span key={g.label}>
+          {t('board.ruleNights', { rule: g.label, nights: t('nights', { n: g.nights }) })}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 // ─── Rooms and settings ─────────────────────────────────────────────────────
 
 function RoomFields({ t, room }: { t: T; room?: RoomRow }) {
@@ -585,6 +650,13 @@ function RoomFields({ t, room }: { t: T; room?: RoomRow }) {
         inputMode="decimal"
         dir="ltr"
         defaultValue={room?.priceNightAgorot == null ? '' : String(room.priceNightAgorot / 100)}
+      />
+      <SelectField
+        name="pricePer"
+        label={t('rooms.pricePer')}
+        hint={t('rooms.pricePerHint')}
+        defaultValue={room?.pricePer ?? 'room'}
+        options={ROOM_PRICE_PER.map((p) => ({ value: p, label: t(`pricePer.${p}`) }))}
       />
       <Field
         name="note"
@@ -646,6 +718,15 @@ export async function RoomsView() {
             dir="ltr"
             defaultValue={settings.briefPhoneE164 ? displayPhoneIL(settings.briefPhoneE164) : ''}
           />
+          <Field
+            name="minNights"
+            label={t('rooms.minNights')}
+            hint={t('rooms.minNightsHint')}
+            type="number"
+            min={1}
+            max={30}
+            defaultValue={settings.minNights}
+          />
           <div className="flex items-end">
             <SubmitButton>{t('rooms.settings')}</SubmitButton>
           </div>
@@ -690,6 +771,9 @@ export async function RoomsView() {
                       {r.priceNightAgorot !== null ? (
                         <span className="text-sm">
                           <Money agorot={agorot(r.priceNightAgorot)} locale={locale} />
+                          {r.soldBy === 'bed' || r.pricePer === 'guest' ? (
+                            <span className="text-ink-muted"> {t('rooms.eachGuest')}</span>
+                          ) : null}
                         </span>
                       ) : null}
                       <Badge tone={HK_TONE[r.housekeeping]}>
@@ -826,5 +910,224 @@ export async function StayView({ base, id }: { base: LodgingBase; id: string }) 
         </Link>
       </div>
     </Card>
+  );
+}
+
+// ─── The price list ─────────────────────────────────────────────────────────
+
+const WEEK = [0, 1, 2, 3, 4, 5, 6] as const;
+
+/** "פסח א׳", "סוכות ב׳ (חוה״מ)" → "פסח", "סוכות". */
+const holidayName = (name: string) =>
+  name
+    .replace(/\s*\(.*\)$/, '')
+    .replace(/\s+[א-ת]׳$/, '')
+    .trim();
+
+/** One rule's line: when it applies, to which rooms, what it does, and the minimum stay it asks for. */
+function rateSummary(t: T, r: RateFacts, locale: 'he' | 'en'): string {
+  const when =
+    r.kind === 'season'
+      ? t(r.yearly ? 'prices.seasonYearly' : 'prices.seasonOnce', {
+          from: r.yearly ? dm(r.startsOn) : dmy(r.startsOn),
+          to: r.yearly ? dm(r.endsOn) : dmy(r.endsOn),
+        })
+      : r.kind === 'weekend'
+        ? (r.nightsOfWeek ?? []).map((n) => t(`prices.night.${n}`)).join(', ')
+        : t('prices.allHolidays');
+  const effect =
+    r.mode === 'fixed'
+      ? t('prices.fixedEffect', { amount: formatILS(agorot(r.priceNightAgorot ?? 0), locale) })
+      : t((r.percent ?? 0) > 0 ? 'prices.up' : 'prices.down', { n: Math.abs(r.percent ?? 0) });
+  const rooms = r.roomKind ? t(`kind.${r.roomKind}`) : t('prices.allRooms');
+  const min = r.minNights ? ` · ${t('prices.minShort', { n: r.minNights })}` : '';
+  return `${when} · ${rooms} · ${effect}${min}`;
+}
+
+/** The fields every rule shares: which rooms, the price or the percent, and the minimum stay. */
+function RateValueFields({ t, kind }: { t: T; kind: RateKind }) {
+  return (
+    <>
+      <SelectField
+        name="roomKind"
+        label={t('prices.rooms')}
+        includeEmpty={t('prices.allRooms')}
+        options={ROOM_KINDS.map((k) => ({ value: k, label: t(`kind.${k}`) }))}
+      />
+      <Field
+        name="percent"
+        label={t('prices.percent')}
+        hint={t('prices.percentHint')}
+        inputMode="numeric"
+        dir="ltr"
+        defaultValue={kind === 'season' ? '' : kind === 'weekend' ? '15' : '30'}
+      />
+      <Field
+        name="priceNight"
+        label={t('prices.fixed')}
+        hint={t('prices.fixedHint')}
+        inputMode="decimal"
+        dir="ltr"
+      />
+      <Field
+        name="minNights"
+        label={t('prices.minNights')}
+        hint={t('prices.minNightsHint')}
+        type="number"
+        min={1}
+        max={30}
+      />
+    </>
+  );
+}
+
+/**
+ * The price list: seasons (summer against winter), the weekend nights and the Hebrew holidays, each raising, lowering or
+ * setting the night's price for every room or one kind, with a minimum stay. The holidays come from the Hebrew calendar,
+ * so the business never types their dates.
+ */
+export async function PricesView({ base }: { base: LodgingBase }) {
+  const t = await getTranslations('lodging');
+  const locale = (await getLocale()) === 'en' ? 'en' : 'he';
+  const [settings, rates, today] = await withSession((tx) =>
+    Promise.all([getLodgingSettings(tx), loadRates(tx), todayIL(tx)]),
+  );
+  // Consecutive holiday nights as one line: "פסח: 21.4–27.4".
+  const runs: { name: string; from: string; to: string }[] = [];
+  for (const n of holidaysAhead(today, 365)) {
+    const last = runs[runs.length - 1];
+    if (last && addDays(last.to, 1) === n.date) last.to = n.date;
+    else runs.push({ name: holidayName(n.name), from: n.date, to: n.date });
+  }
+  const forms: { kind: RateKind; icon: string }[] = [
+    { kind: 'season', icon: '☀️' },
+    { kind: 'weekend', icon: '🌙' },
+    { kind: 'holiday', icon: '🕎' },
+  ];
+  return (
+    <div className="flex flex-col gap-4">
+      {!settings.enabled ? <OffNote t={t} base={base} /> : null}
+      <Card data-testid="lodging-rates">
+        <CardTitle icon="🏷️">{t('prices.list', { n: rates.length })}</CardTitle>
+        <p className="mb-3 text-sm text-ink-muted">{t('prices.how')}</p>
+        {rates.length === 0 ? (
+          <p className="text-sm text-ink-muted">{t('prices.empty')}</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {rates.map((r) => (
+              <li
+                key={r.id}
+                className={cn(
+                  'flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line px-3 py-2',
+                  !r.active && 'opacity-60',
+                )}
+                data-testid="lodging-rate"
+              >
+                <span className="flex flex-col">
+                  <span className="font-medium">
+                    {r.name} <Badge className="ms-1">{t(`prices.kind.${r.kind}`)}</Badge>
+                    {!r.active ? (
+                      <Badge tone="warn" className="ms-1">
+                        {t('prices.paused')}
+                      </Badge>
+                    ) : null}
+                  </span>
+                  <span className="text-sm text-ink-muted">{rateSummary(t, r, locale)}</span>
+                </span>
+                <span className="flex gap-2">
+                  <ActionButton
+                    action={rateActiveAction}
+                    fields={{ id: r.id, active: r.active ? '' : 'on' }}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    {r.active ? t('prices.pause') : t('prices.resume')}
+                  </ActionButton>
+                  <ActionButton
+                    action={removeRateAction}
+                    fields={{ id: r.id }}
+                    variant="ghost"
+                    size="sm"
+                    data-testid="rate-remove"
+                  >
+                    {t('prices.remove')}
+                  </ActionButton>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      {forms.map(({ kind, icon }) => (
+        <Card key={kind} data-testid={`rate-add-${kind}`}>
+          <CardTitle icon={icon}>{t(`prices.add.${kind}`)}</CardTitle>
+          <p className="mb-3 text-sm text-ink-muted">{t(`prices.addHint.${kind}`)}</p>
+          <ActionForm action={addRateAction} className="grid gap-3 md:grid-cols-2" resetOnSuccess>
+            <input type="hidden" name="kind" value={kind} />
+            <Field
+              name="name"
+              label={t('prices.name')}
+              defaultValue={t(`prices.defaultName.${kind}`)}
+              autoComplete="off"
+              required
+            />
+            {kind === 'season' ? (
+              <>
+                <Field name="startsOn" label={t('prices.startsOn')} type="date" required />
+                <Field
+                  name="endsOn"
+                  label={t('prices.endsOn')}
+                  hint={t('prices.endsOnHint')}
+                  type="date"
+                  required
+                />
+                <div className="flex items-end">
+                  <CheckboxField name="yearly" label={t('prices.yearly')} defaultChecked />
+                </div>
+              </>
+            ) : null}
+            {kind === 'weekend' ? (
+              <div className="md:col-span-2">
+                <CheckboxGroup
+                  name="nightsOfWeek"
+                  legend={t('prices.nights')}
+                  options={WEEK.map((n) => ({ value: String(n), label: t(`prices.night.${n}`) }))}
+                  defaultValues={DEFAULT_WEEKEND_NIGHTS.map(String)}
+                />
+              </div>
+            ) : null}
+            <RateValueFields t={t} kind={kind} />
+            <div className="md:col-span-2">
+              <SubmitButton>{t('prices.addButton')}</SubmitButton>
+            </div>
+          </ActionForm>
+        </Card>
+      ))}
+
+      <Card data-testid="lodging-holidays">
+        <CardTitle icon="📅">{t('prices.holidaysTitle')}</CardTitle>
+        <p className="mb-3 text-sm text-ink-muted">{t('prices.holidaysHint')}</p>
+        <ul className="grid gap-1 text-sm md:grid-cols-2">
+          {runs.map((r) => (
+            <li
+              key={r.from}
+              className="flex justify-between gap-2 rounded-lg bg-surface px-3 py-1.5"
+            >
+              <span className="font-medium">{r.name}</span>
+              <span className="tabular-nums text-ink-muted">
+                {r.from === r.to
+                  ? dmy(r.from)
+                  : t('prices.seasonOnce', { from: dmy(r.from), to: dmy(r.to) })}{' '}
+                ·{' '}
+                {t('nights', {
+                  n: Math.round((Date.parse(r.to) - Date.parse(r.from)) / 86_400_000) + 1,
+                })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </div>
   );
 }

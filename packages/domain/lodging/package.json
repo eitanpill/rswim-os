@@ -13,6 +13,7 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
+    "@rswim/calendar": "workspace:*",
     "@rswim/contracts": "workspace:*",
     "@rswim/db": "workspace:*",
     "@rswim/domain-comms": "workspace:*",

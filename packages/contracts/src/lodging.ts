@@ -38,3 +38,22 @@ export type StaySource = (typeof STAY_SOURCES)[number];
 
 /** How many nights ahead the board shows. */
 export const LODGING_BOARD_NIGHTS = 14;
+
+/** A room's price per night is for the whole room, or for each guest in it (a dorm is always per bed). */
+export const ROOM_PRICE_PER = ['room', 'guest'] as const;
+export type RoomPricePer = (typeof ROOM_PRICE_PER)[number];
+
+/**
+ * The price list's rules (docs/LODGING.md, "Prices"): a season (dates, once or every year), the weekend nights, and the
+ * nights of the Hebrew holidays. Each sets the night's price or moves it by a percent, for every room or one kind,
+ * and may ask for a minimum number of nights.
+ */
+export const RATE_KINDS = ['season', 'weekend', 'holiday'] as const;
+export type RateKind = (typeof RATE_KINDS)[number];
+
+/** fixed: the night costs this much; percent: the night's price goes up (or down) by this percent. */
+export const RATE_MODES = ['fixed', 'percent'] as const;
+export type RateMode = (typeof RATE_MODES)[number];
+
+/** Weekend nights by default: Thursday night and Friday night (0 = the night from Sunday to Monday… 6 = Saturday). */
+export const DEFAULT_WEEKEND_NIGHTS: readonly number[] = [4, 5];

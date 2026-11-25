@@ -57,10 +57,48 @@ test('the owner sees the morning, finds a free family room and books it', async 
   await shot(page, 'rooms');
 });
 
+test('the owner keeps a price list of seasons, weekends and holidays, and the board prices by it', async ({
+  page,
+}) => {
+  const tag = randomUUID().slice(0, 4);
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin/lodging/prices');
+  const rates = page.getByTestId('lodging-rate');
+  await expect(rates.filter({ hasText: 'קיץ' })).toContainText('תוספת 20%');
+  await expect(rates.filter({ hasText: 'חגים' })).toContainText('ערבי חג וחול המועד');
+  // The holidays come from the Hebrew calendar, nobody types them.
+  await expect(page.getByTestId('lodging-holidays').locator('li').first()).toBeVisible();
+
+  const season = page.getByTestId('rate-add-season');
+  await season.locator('input[name="name"]').fill(`חורף זול ${tag}`);
+  await season.locator('input[name="startsOn"]').fill('2030-01-05');
+  await season.locator('input[name="endsOn"]').fill('2030-01-20');
+  await season.locator('input[name="yearly"]').uncheck();
+  await season.locator('input[name="percent"]').fill('-10');
+  await season.getByRole('button', { name: 'להוסיף למחירון' }).click();
+  const mine = rates.filter({ hasText: `חורף זול ${tag}` });
+  await expect(mine).toContainText('הנחה 10%');
+  await shot(page, 'prices');
+
+  // A week with a Thursday and a Friday: the weekend nights are dearer, and the board says so.
+  await page.goto(`/admin/lodging/board?in=2030-01-06&out=2030-01-13&guests=2`);
+  const option = page.getByTestId('find-option').filter({ hasText: 'משפחתי 2' });
+  await option.locator('summary').click();
+  await expect(option.getByTestId('find-price-lines')).toContainText('סוף שבוע: 2 לילות');
+  await expect(option.getByTestId('find-price-lines')).toContainText(`חורף זול ${tag}: 7 לילות`);
+  await shot(page, 'board-prices');
+
+  await page.goto('/admin/lodging/prices');
+  await mine.getByTestId('rate-remove').click();
+  await expect(mine).toHaveCount(0);
+});
+
 test('the freediving club desk runs the same lodging', async ({ page }) => {
   await page.goto('/dev/login?as=diveOffice');
   await page.goto('/dive/lodging');
   await expect(page.getByTestId('lodging-arrivals')).toContainText('משפחת חדד');
   await expect(page.getByTestId('lodging-departures')).toContainText('משפחת אדלר');
   await shot(page, 'dive-today');
+  await page.goto('/dive/lodging/prices');
+  await expect(page.getByTestId('lodging-rate').filter({ hasText: 'חורף באילת' })).toBeVisible();
 });
