@@ -217,8 +217,8 @@ const PAYMENT_METHOD: Record<CheckoutMethod, PaymentMethod> = {
   standing_order: 'credit_card',
 };
 
-/** Settles a dive booking or pass checkout (passed in by the dive module's caller). */
-export type DivePaidHook = (
+/** Settles a module's checkout: a dive booking or pass, or a lodging booking (passed in by the caller). */
+export type ModulePaidHook = (
   tx: Tx,
   ctx: ServiceContext,
   checkout: CheckoutRow,
@@ -236,7 +236,7 @@ export async function applyGatewayEvent(
   tx: Tx,
   ctx: ServiceContext,
   event: GatewayEvent,
-  hooks: { onDivePaid?: DivePaidHook } = {},
+  hooks: { onModulePaid?: ModulePaidHook } = {},
 ): Promise<GatewayEventOutcome> {
   const [c] = await tx
     .select()
@@ -315,8 +315,8 @@ export async function applyGatewayEvent(
       paymentId = payment.id;
     }
   } else {
-    if (!hooks.onDivePaid) throw new Error('dive checkout without a dive hook');
-    await hooks.onDivePaid(tx, ctx, c, event);
+    if (!hooks.onModulePaid) throw new Error(`${c.purpose} checkout without a module hook`);
+    await hooks.onModulePaid(tx, ctx, c, event);
   }
 
   await tx

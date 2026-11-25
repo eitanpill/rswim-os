@@ -1,5 +1,7 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
+import { formatILS, agorot } from '@rswim/money';
 import {
   addRate,
   addRooms,
@@ -7,10 +9,14 @@ import {
   HousekeepingInput,
   LodgingSettingsInput,
   moveStay,
+  PaymentInput,
+  PayRequestInput,
   RateInput,
   RateRemove,
   RateToggle,
+  recordPayment,
   removeRate,
+  requestPayment,
   RoomInput,
   RoomUpdate,
   saveLodgingSettings,
@@ -22,6 +28,8 @@ import {
 } from '@rswim/domain-lodging';
 import type { FormState } from '@/lib/form-state';
 import { runForm, shekelFields } from '@/lib/forms';
+import { dmy } from '@/lib/options';
+import { requestOrigin } from '@/lib/payments';
 
 /** Lodging lives under both surfaces: a swim school's office and a freediving club. */
 const PATHS = ['/admin/lodging', '/dive/lodging'].flatMap((p) => [
@@ -31,7 +39,7 @@ const PATHS = ['/admin/lodging', '/dive/lodging'].flatMap((p) => [
   `${p}/prices`,
 ]);
 const withStay = (fd: FormData) => {
-  const id = String(fd.get('id') ?? '');
+  const id = String(fd.get('id') ?? fd.get('stayId') ?? '');
   return [...PATHS, `/admin/lodging/stays/${id}`, `/dive/lodging/stays/${id}`];
 };
 
@@ -109,4 +117,42 @@ export async function removeRateAction(_: FormState, fd: FormData) {
     revalidate: PATHS,
     success: 'lodging.prices.removed',
   });
+}
+
+export async function recordPaymentAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    PaymentInput,
+    (tx, ctx, v) => recordPayment(tx, ctx, v),
+    {
+      revalidate: withStay(fd),
+      success: (r, tr) =>
+        tr(r.confirmed ? 'lodging.pay.recordedConfirmed' : 'lodging.pay.recorded'),
+    },
+    shekelFields('amount'),
+  );
+}
+
+export async function requestPaymentAction(_: FormState, fd: FormData) {
+  const t = await getTranslations('lodging.pay');
+  const publicUrl = await requestOrigin();
+  return runForm(
+    fd,
+    PayRequestInput,
+    (tx, ctx, v) =>
+      requestPayment(tx, ctx, v, {
+        publicUrl,
+        description: (s) =>
+          t('description', { name: s.guestName, from: dmy(s.checkIn), to: dmy(s.checkOut) }),
+        message: (url, amount) =>
+          t(v.what === 'deposit' ? 'messageDeposit' : 'messageBalance', {
+            amount: formatILS(agorot(amount)),
+            url,
+          }),
+      }),
+    {
+      revalidate: withStay(fd),
+      success: (r, tr) => tr(r.sent ? 'lodging.pay.linkSent' : 'lodging.pay.linkMade'),
+    },
+  );
 }

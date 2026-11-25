@@ -30,6 +30,7 @@ export const lodgingLeadBotModule: LeadBotModule = {
       { checkIn: s.checkInTime, checkOut: s.checkOutTime },
       rates,
       s.minNights,
+      { percent: s.depositPercent, holdHours: s.holdHours },
     );
   },
   tools: [

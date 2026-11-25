@@ -25,14 +25,16 @@ through the business's processor into the business's account; the platform never
    (standing-order charges, links, refunds, mandate cancel) + `createCheckout` (hosted page for a card, Bit or a new
    standing order) + `readWebhook` (verify, then normalize the callback). `PAYMENT_GATEWAYS` lists Grow, Cardcom,
    Tranzila and PayPlus with the fields each asks for. Adding a processor = one adapter class + its spec entry.
-3. **Checkouts** (`checkouts`): one amount and what it pays for (`household`, `mandate`, `dive_booking`, `dive_pass`),
+3. **Checkouts** (`checkouts`): one amount and what it pays for (`household`, `mandate`, `dive_booking`, `dive_pass`,
+   `lodging_stay`),
    with a long random token that is the customer's only key. Tapping a method opens the processor's page
    (idempotency key `checkout:<id>:<method>`).
 4. **Callback** `POST /api/webhooks/pay/<connectionId>`: the connection names the business; its own gateway verifies
    the callback; it is stored once by the processor's event id (`webhook_events`, provider `gateway:<connectionId>`)
    and applied at once in the business's scope. A family checkout records a provider payment (ledger, link, dunning,
    receipt as for any payment); a saved card becomes the family's standing order (an older one is cancelled) on the
-   regulations' run day; a dive checkout confirms the booking or issues the pass. A wrong amount is refused
+   regulations' run day; a dive checkout confirms the booking or issues the pass, and a lodging checkout records the
+   booking's payment (both through the module hook `onModulePaid`). A wrong amount is refused
    (`amount_mismatch`); a forged callback gets 401; a failed apply is forgotten so the processor's retry applies it.
 5. **Worker**: billing runs, dunning retries, refunds, mandate cancels and payment links resolve the business's own
    gateway (`tenantPaymentProvider`). A link becomes `RSWIM_PUBLIC_URL/pay/<token>`.

@@ -10,7 +10,7 @@ import type { FormState } from '@/lib/form-state';
 import {
   checkoutUrls,
   gatewayFactory,
-  onDivePaid,
+  onModulePaid,
   payTokenDb,
   paymentsSandbox,
   requestOrigin,
@@ -57,7 +57,7 @@ export async function sandboxAnswerAction(_: FormState, fd: FormData): Promise<F
     token.data,
     method.data,
     fd.get('answer') === 'approve',
-    { build: gatewayFactory, onDivePaid },
+    { build: gatewayFactory, onModulePaid },
   );
   if (outcome === 'not_open') return fail('payments.errors.notOpen');
   if (outcome === 'not_configured') return fail('payments.errors.notConnected');

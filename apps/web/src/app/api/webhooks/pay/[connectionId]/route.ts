@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { ingestGatewayWebhook } from '@rswim/domain-billing';
 import { acrossSchools } from '@/lib/db';
-import { gatewayFactory, onDivePaid } from '@/lib/payments';
+import { gatewayFactory, onModulePaid } from '@/lib/payments';
 
 /**
  * POST /api/webhooks/pay/<connectionId>: a business's processor reports a checkout's result. The connection names the
@@ -19,7 +19,7 @@ export async function POST(
     (d) =>
       ingestGatewayWebhook(d, connectionId, raw, request.headers, {
         build: gatewayFactory,
-        onDivePaid,
+        onModulePaid,
       }),
     (r) => r === 'unknown_connection',
   );

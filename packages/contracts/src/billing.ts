@@ -223,7 +223,13 @@ export type PaymentConnectionStatus = z.infer<typeof PaymentConnectionStatus>;
  * What a checkout pays for: a family's balance or link (`household`), only a standing order for future months
  * (`mandate`), a dive booking, or a dive pass.
  */
-export const CHECKOUT_PURPOSES = ['household', 'mandate', 'dive_booking', 'dive_pass'] as const;
+export const CHECKOUT_PURPOSES = [
+  'household',
+  'mandate',
+  'dive_booking',
+  'dive_pass',
+  'lodging_stay',
+] as const;
 export const CheckoutPurpose = z.enum(CHECKOUT_PURPOSES);
 export type CheckoutPurpose = z.infer<typeof CheckoutPurpose>;
 

@@ -4,7 +4,7 @@
  * bot's availability tool. Office only: an instructor sees nothing.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { asUser, type Tx } from '@rswim/db';
+import { asUser, sql, type Tx } from '@rswim/db';
 import { withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import type { ServiceContext } from '@rswim/domain-core';
@@ -30,6 +30,7 @@ import {
   updateRoom,
 } from '../src/services';
 import { lodgingLeadBotModule } from '../src/bot';
+import { bookingOf, recordPayment, requestPayment, settleLodgingCheckout } from '../src/payments';
 
 let t: TestDatabase;
 let orgId: string;
@@ -438,6 +439,158 @@ describe('lodging', () => {
     ]);
     expect(holidayNights('2027-04-18', '2027-05-01').size).toBe(7);
     expect(holidaysAhead('2027-06-01', 30)).toEqual([{ date: '2027-06-10', name: 'שבועות' }]);
+  });
+
+  it('asks for a deposit, takes it online or by hand, confirms the booking, and frees rooms whose deposit never came', async () => {
+    await asOwner((tx, ctx) =>
+      saveLodgingSettings(tx, ctx, {
+        enabled: true,
+        checkInTime: '14:00',
+        checkOutTime: '10:30',
+        morningBrief: true,
+        briefPhone: '052-0000202',
+        depositPercent: 30,
+        holdHours: 2,
+      }),
+    );
+    const book = (roomId: string, checkIn: string, hold = true) =>
+      asOwner((tx, ctx) =>
+        bookStay(tx, ctx, {
+          roomId,
+          guestName: 'משפחת מקדמה',
+          phone: '050-0000303',
+          guests: 2,
+          checkIn,
+          checkOut: addDays(checkIn, 2),
+          hold,
+        }),
+      ).then((ids) => ids[0] as string);
+    const words = {
+      publicUrl: 'https://inn.test/',
+      description: (s: { guestName: string }) => `לינה: ${s.guestName}`,
+      message: (url: string) => `מקדמה: ${url}`,
+    };
+
+    const stayId = await book(family[1]!, '2029-03-04');
+    const stay = (await asOwner((tx) => getStay(tx, stayId)))!;
+    expect(stay.status).toBe('held');
+    expect(stay.holdUntil!.getTime()).toBeGreaterThan(Date.now() + 60 * 60 * 1000);
+    let view = await asOwner((tx) => bookingOf(tx, stay.bookingId));
+    const total = stay.totalAgorot!;
+    const deposit = Math.round((total * 30) / 10_000) * 100;
+    expect(view.money).toMatchObject({ totalAgorot: total, depositAgorot: deposit, paidAgorot: 0 });
+    expect(view.processor).toBe(false);
+
+    // A link needs the business's processor.
+    await expect(
+      asOwner((tx, ctx) => requestPayment(tx, ctx, { stayId, what: 'deposit' }, words)),
+    ).rejects.toMatchObject({ code: 'payments.errors.notConnected' });
+    await q(
+      `insert into payment_connections (organization_id, provider, methods, enc_credentials, enc_webhook_secret)
+       values ($1, 'grow', '{card,bit,standing_order}', '\\x00', '\\x00')`,
+      [orgId],
+    );
+    const link = await asOwner((tx, ctx) =>
+      requestPayment(tx, ctx, { stayId, what: 'deposit', send: true }, words),
+    );
+    expect(link).toMatchObject({ amountAgorot: deposit, sent: true });
+    expect(link.url).toBe(`https://inn.test/pay/${link.token}`);
+    const [checkout] = await q(`select * from checkouts where token = $1`, [link.token]);
+    expect(checkout).toMatchObject({ purpose: 'lodging_stay', methods: ['card', 'bit'] });
+    expect(new Date(checkout.expires_at).getTime()).toBe(stay.holdUntil!.getTime());
+    expect(
+      await q(`select id from messages where idempotency_key = $1`, [
+        `lodging.pay_link:${checkout.id}`,
+      ]),
+    ).toHaveLength(1);
+    view = await asOwner((tx) => bookingOf(tx, stay.bookingId));
+    expect(view.links).toEqual([expect.objectContaining({ token: link.token, status: 'open' })]);
+
+    // The processor says paid: the deposit is recorded once and the booking confirmed.
+    const settle = () =>
+      withOrg(t.db, orgId, (tx) =>
+        settleLodgingCheckout(
+          tx,
+          { orgId, userId: null },
+          {
+            id: checkout.id,
+            ref: checkout.ref,
+            amountAgorot: checkout.amount_agorot,
+            description: checkout.description,
+          },
+          { externalPaymentId: 'pay-1' },
+        ),
+      );
+    expect(await settle()).toBe('confirmed');
+    expect(await settle()).toBe('no');
+    view = await asOwner((tx) => bookingOf(tx, stay.bookingId));
+    expect(view.payments.map((p) => [p.method, p.amountAgorot])).toEqual([['online', deposit]]);
+    expect(view.money).toMatchObject({ depositPaid: true, dueAgorot: total - deposit });
+    expect((await asOwner((tx) => getStay(tx, stayId)))!).toMatchObject({
+      status: 'confirmed',
+      holdUntil: null,
+    });
+
+    // The rest at the desk; nothing is left to ask for; a refund cannot exceed what was paid.
+    await asOwner((tx, ctx) =>
+      recordPayment(tx, ctx, { stayId, amount: total - deposit, method: 'cash' }),
+    );
+    await expect(
+      asOwner((tx, ctx) => requestPayment(tx, ctx, { stayId, what: 'balance' }, words)),
+    ).rejects.toMatchObject({ code: 'lodging.errors.nothingDue' });
+    await expect(
+      asOwner((tx, ctx) =>
+        recordPayment(tx, ctx, { stayId, amount: total + 100, method: 'cash', refund: true }),
+      ),
+    ).rejects.toMatchObject({ code: 'lodging.errors.refundTooMuch' });
+    await asOwner((tx, ctx) =>
+      recordPayment(tx, ctx, { stayId, amount: 5_000, method: 'transfer', refund: true }),
+    );
+    view = await asOwner((tx) => bookingOf(tx, stay.bookingId));
+    expect(view.money).toMatchObject({ paidAgorot: total - 5_000, dueAgorot: 5_000 });
+    // The money is append-only, even for the office.
+    const err: { cause?: { message?: string } } | null = await asOwner((tx) =>
+      tx.execute(sql`delete from lodging_payments`),
+    ).then(
+      () => null,
+      (e: unknown) => e as { cause?: { message?: string } },
+    );
+    expect(err?.cause?.message).toMatch(/permission denied/);
+
+    // A hold whose deposit never came frees the room; a deposit that still arrives brings it back.
+    const late = await book(family[1]!, '2029-04-01');
+    await q(`update lodging_stays set hold_until = now() - interval '1 minute' where id = $1`, [
+      late,
+    ]);
+    await asOwner((tx) => lodgingBoard(tx, '2029-04-01', 3));
+    expect((await asOwner((tx) => getStay(tx, late)))!.status).toBe('cancelled');
+    const lateStay = (await asOwner((tx) => getStay(tx, late)))!;
+    expect(
+      await asOwner((tx, ctx) =>
+        recordPayment(tx, ctx, { stayId: late, amount: lateStay.totalAgorot!, method: 'bit' }),
+      ),
+    ).toEqual({ confirmed: true });
+    expect((await asOwner((tx) => getStay(tx, late)))!.status).toBe('confirmed');
+
+    // …unless someone else took the room meanwhile.
+    const lost = await book(family[1]!, '2029-05-01');
+    await q(`update lodging_stays set hold_until = now() - interval '1 minute' where id = $1`, [
+      lost,
+    ]);
+    await book(family[1]!, '2029-05-01', false);
+    expect(
+      await asOwner((tx, ctx) =>
+        recordPayment(tx, ctx, { stayId: lost, amount: 100_000, method: 'card' }),
+      ),
+    ).toEqual({ confirmed: false });
+    expect((await asOwner((tx) => getStay(tx, lost)))!.status).toBe('cancelled');
+    await expect(
+      asOwner((tx, ctx) => requestPayment(tx, ctx, { stayId: lost, what: 'balance' }, words)),
+    ).rejects.toMatchObject({ code: 'lodging.errors.notPayable' });
+
+    // The bot knows the deposit rule.
+    const facts = await withOrg(t.db, orgId, (tx) => lodgingLeadBotModule.facts(tx));
+    expect(facts.join('\n')).toContain('held for 2 hours until a deposit of 30%');
   });
 
   it('keeps lodging to the office', async () => {

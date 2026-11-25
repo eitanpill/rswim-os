@@ -333,5 +333,11 @@ describe('the bot', () => {
       /^- דורמס \(dorm\): 3 beds sold one by one; toilet shared, shower shared; .*90.* a night per bed \(base price\)\.$/,
     );
     expect(lines.at(-1)).toContain('lodging_availability');
+    expect(
+      botFacts([fam], { checkIn: '15:00', checkOut: '11:00' }, [], 1, {
+        percent: 25,
+        holdHours: 12,
+      })[1],
+    ).toMatch(/^A booking is held for 12 hours until a deposit of 25%/);
   });
 });

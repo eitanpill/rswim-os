@@ -4,6 +4,7 @@
  * hears today's arrivals, departures and rooms to prepare on WhatsApp. One module for swim schools and freediving
  * clubs; the office of each (owner and admins) runs it.
  */
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { dayInfo } from '@rswim/calendar';
 import {
@@ -55,6 +56,7 @@ import {
   type RoomFacts,
   type StayFacts,
 } from './policies';
+import { holdUntil } from './deposit';
 import { quoteStay, rateProblem, type RateFacts, type StayQuote } from './prices';
 
 const { lodgingSettings, lodgingRooms, lodgingBeds, lodgingStays, lodgingRates } = schema;
@@ -78,6 +80,8 @@ export const LodgingSettingsInput = z.object({
   morningBrief: checkbox(),
   briefPhone: optionalPhone(),
   minNights: requiredInt(1, 30).default(1),
+  depositPercent: requiredInt(0, 100).default(0),
+  holdHours: requiredInt(1, 168).default(24),
 });
 export type LodgingSettingsInput = z.input<typeof LodgingSettingsInput>;
 
@@ -88,6 +92,8 @@ export interface LodgingSettingsView {
   morningBrief: boolean;
   briefPhoneE164: string | null;
   minNights: number;
+  depositPercent: number;
+  holdHours: number;
 }
 
 export async function getLodgingSettings(tx: Tx): Promise<LodgingSettingsView> {
@@ -99,6 +105,8 @@ export async function getLodgingSettings(tx: Tx): Promise<LodgingSettingsView> {
     morningBrief: row?.morningBrief ?? true,
     briefPhoneE164: row?.briefPhoneE164 ?? null,
     minNights: row?.minNights ?? 1,
+    depositPercent: row?.depositPercent ?? 0,
+    holdHours: row?.holdHours ?? 24,
   };
 }
 
@@ -115,6 +123,8 @@ export async function saveLodgingSettings(
     morningBrief: v.morningBrief,
     briefPhoneE164: v.briefPhone,
     minNights: v.minNights,
+    depositPercent: v.depositPercent,
+    holdHours: v.holdHours,
   };
   await guarded(() =>
     tx
@@ -478,8 +488,22 @@ export async function quoteRoom(
 
 // ─── Stays ──────────────────────────────────────────────────────────────────
 
+/**
+ * A held booking whose deposit did not come in time frees its room: it is cancelled (keeping its hold time, so a
+ * payment that still arrives can bring it back while the room is free). Runs before any look at the nights.
+ */
+export async function releaseLapsedHolds(tx: Tx): Promise<number> {
+  const done = await tx
+    .update(lodgingStays)
+    .set({ status: 'cancelled' })
+    .where(and(eq(lodgingStays.status, 'held'), lt(lodgingStays.holdUntil, sql`now()`)))
+    .returning({ id: lodgingStays.id });
+  return done.length;
+}
+
 /** Stays that hold some night between `from` and `to` (cancelled ones never do). */
 export async function loadStays(tx: Tx, from: string, to: string): Promise<StayFacts[]> {
+  await releaseLapsedHolds(tx);
   const rows = await tx
     .select()
     .from(lodgingStays)
@@ -554,6 +578,9 @@ export async function bookStay(tx: Tx, ctx: ServiceContext, input: StayInput): P
   if (quote.tooShort && v.source !== 'office') {
     throw new DomainError('lodging.errors.tooShort', { n: quote.minNights });
   }
+  const settings = await getLodgingSettings(tx);
+  const bookingId = randomUUID();
+  const until = v.hold ? holdUntil(new Date(), settings.holdHours) : null;
   const beds =
     room.soldBy === 'bed' && v.bedId === null
       ? freeBeds(room, v, stays)
@@ -575,6 +602,8 @@ export async function bookStay(tx: Tx, ctx: ServiceContext, input: StayInput): P
           checkIn: v.checkIn,
           checkOut: v.checkOut,
           status: v.hold ? 'held' : 'confirmed',
+          bookingId,
+          holdUntil: until,
           source: v.source,
           note: v.note,
           leadId: v.leadId,
@@ -609,6 +638,8 @@ export async function moveStay(tx: Tx, input: StayMove): Promise<void> {
       .update(lodgingStays)
       .set({
         status: rule.to,
+        // Confirmed or cancelled by the office: no longer waiting for a deposit.
+        ...(v.move === 'confirm' || v.move === 'cancel' ? { holdUntil: null } : {}),
         ...(v.move === 'check_in' ? { checkedInAt: now } : {}),
         ...(v.move === 'check_out' ? { checkedOutAt: now } : {}),
       })
@@ -626,6 +657,8 @@ export interface StayView extends StayFacts {
   source: string;
   nights: number;
   totalAgorot: number | null;
+  bookingId: string;
+  holdUntil: Date | null;
 }
 
 export async function getStay(tx: Tx, id: string): Promise<StayView | null> {
@@ -647,6 +680,8 @@ export async function getStay(tx: Tx, id: string): Promise<StayView | null> {
     nights,
     // The price when booked (the price list may have changed since).
     totalAgorot: row.totalAgorot,
+    bookingId: row.bookingId,
+    holdUntil: row.holdUntil,
   };
 }
 

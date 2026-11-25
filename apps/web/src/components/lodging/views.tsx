@@ -4,6 +4,7 @@ import {
   displayPhoneIL,
   DEFAULT_WEEKEND_NIGHTS,
   LODGING_BOARD_NIGHTS,
+  LODGING_OFFICE_METHODS,
   ROOM_FACILITIES,
   ROOM_KINDS,
   ROOM_PRICE_PER,
@@ -13,6 +14,7 @@ import {
 import {
   addDays,
   getLodgingSettings,
+  bookingOf,
   getStay,
   holidaysAhead,
   lodgingBoard,
@@ -21,6 +23,7 @@ import {
   loadRooms,
   searchFree,
   FreeSearch,
+  type BookingView,
   type FreeOption,
   type RateFacts,
   type RoomRow,
@@ -40,12 +43,15 @@ import {
 } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { dmy } from '@/lib/options';
+import { requestOrigin } from '@/lib/payments';
 import {
   addRateAction,
   addRoomsAction,
   bookStayAction,
   housekeepingAction,
   moveStayAction,
+  recordPaymentAction,
+  requestPaymentAction,
   rateActiveAction,
   removeRateAction,
   saveLodgingSettingsAction,
@@ -423,7 +429,7 @@ export async function BoardView({
                       autoComplete="off"
                     />
                     <Field name="note" label={t('board.note')} autoComplete="off" />
-                    <CheckboxField name="hold" label={t('board.hold')} />
+                    <CheckboxField name="hold" label={t('board.hold', { h: settings.holdHours })} />
                     <div className="md:col-span-2">
                       <SubmitButton>{t('board.book')}</SubmitButton>
                     </div>
@@ -727,6 +733,24 @@ export async function RoomsView() {
             max={30}
             defaultValue={settings.minNights}
           />
+          <Field
+            name="depositPercent"
+            label={t('rooms.depositPercent')}
+            hint={t('rooms.depositPercentHint')}
+            type="number"
+            min={0}
+            max={100}
+            defaultValue={settings.depositPercent}
+          />
+          <Field
+            name="holdHours"
+            label={t('rooms.holdHours')}
+            hint={t('rooms.holdHoursHint')}
+            type="number"
+            min={1}
+            max={168}
+            defaultValue={settings.holdHours}
+          />
           <div className="flex items-end">
             <SubmitButton>{t('rooms.settings')}</SubmitButton>
           </div>
@@ -845,70 +869,283 @@ const MOVES_FOR = {
 export async function StayView({ base, id }: { base: LodgingBase; id: string }) {
   const t = await getTranslations('lodging');
   const locale = (await getLocale()) === 'en' ? 'en' : 'he';
-  const stay = await withSession((tx) => getStay(tx, id));
-  if (!stay) {
+  const found = await withSession(async (tx) => {
+    const s = await getStay(tx, id);
+    return s ? { stay: s, booking: await bookingOf(tx, s.bookingId) } : null;
+  });
+  if (!found) {
     return <EmptyState icon="🛏️" title={t('stay.title')} />;
   }
+  const { stay, booking } = found;
   return (
-    <Card data-testid="lodging-stay">
-      <CardTitle icon="🛏️" aside={<Badge>{t(`status.${stay.status}`)}</Badge>}>
-        {stay.guestName}
-      </CardTitle>
-      <dl className="grid gap-2 text-sm md:grid-cols-2">
-        <div>
-          <dt className="text-ink-muted">{t('stay.where')}</dt>
-          <dd className="font-medium">
-            {stay.roomName}
-            {stay.bedLabel ? ` · ${t('bed', { label: stay.bedLabel })}` : ''}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-ink-muted">{t('stay.dates')}</dt>
-          <dd className="font-medium">
-            {t('stay.since', { from: dmy(stay.checkIn), to: dmy(stay.checkOut) })} ·{' '}
-            {t('nights', { n: stay.nights })}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-ink-muted">{t('stay.who')}</dt>
-          <dd className="font-medium">
-            {t('guests', { n: stay.guests })}
-            {stay.phoneE164 ? (
-              <>
-                {' · '}
-                <bdi dir="ltr">{displayPhoneIL(stay.phoneE164)}</bdi>
-              </>
-            ) : null}
-            {' · '}
-            {t(`source.${stay.source as 'office'}`)}
-          </dd>
-        </div>
-        {stay.totalAgorot !== null ? (
+    <div className="flex flex-col gap-4">
+      <Card data-testid="lodging-stay">
+        <CardTitle icon="🛏️" aside={<Badge>{t(`status.${stay.status}`)}</Badge>}>
+          {stay.guestName}
+        </CardTitle>
+        <dl className="grid gap-2 text-sm md:grid-cols-2">
           <div>
-            <dt className="text-ink-muted">{t('stay.total')}</dt>
+            <dt className="text-ink-muted">{t('stay.where')}</dt>
             <dd className="font-medium">
-              <Money agorot={agorot(stay.totalAgorot)} locale={locale} />
+              {stay.roomName}
+              {stay.bedLabel ? ` · ${t('bed', { label: stay.bedLabel })}` : ''}
             </dd>
           </div>
-        ) : null}
-        {stay.note ? <p className="md:col-span-2">{stay.note}</p> : null}
-      </dl>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {MOVES_FOR[stay.status].map((m) => (
-          <ActionButton
-            key={m}
-            action={moveStayAction}
-            fields={{ id: stay.id, move: m }}
-            variant={m === 'cancel' ? 'secondary' : 'primary'}
-            data-testid={`stay-${m}`}
-          >
-            {t(`moves.${m}`)}
-          </ActionButton>
-        ))}
-        <Link href={`${base}/board`} className={buttonVariants({ variant: 'ghost' })}>
-          {t('stay.back')}
-        </Link>
-      </div>
+          <div>
+            <dt className="text-ink-muted">{t('stay.dates')}</dt>
+            <dd className="font-medium">
+              {t('stay.since', { from: dmy(stay.checkIn), to: dmy(stay.checkOut) })} ·{' '}
+              {t('nights', { n: stay.nights })}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-ink-muted">{t('stay.who')}</dt>
+            <dd className="font-medium">
+              {t('guests', { n: stay.guests })}
+              {stay.phoneE164 ? (
+                <>
+                  {' · '}
+                  <bdi dir="ltr">{displayPhoneIL(stay.phoneE164)}</bdi>
+                </>
+              ) : null}
+              {' · '}
+              {t(`source.${stay.source as 'office'}`)}
+            </dd>
+          </div>
+          {stay.totalAgorot !== null ? (
+            <div>
+              <dt className="text-ink-muted">{t('stay.total')}</dt>
+              <dd className="font-medium">
+                <Money agorot={agorot(stay.totalAgorot)} locale={locale} />
+              </dd>
+            </div>
+          ) : null}
+          {stay.note ? <p className="md:col-span-2">{stay.note}</p> : null}
+        </dl>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {MOVES_FOR[stay.status].map((m) => (
+            <ActionButton
+              key={m}
+              action={moveStayAction}
+              fields={{ id: stay.id, move: m }}
+              variant={m === 'cancel' ? 'secondary' : 'primary'}
+              data-testid={`stay-${m}`}
+            >
+              {t(`moves.${m}`)}
+            </ActionButton>
+          ))}
+          <Link href={`${base}/board`} className={buttonVariants({ variant: 'ghost' })}>
+            {t('stay.back')}
+          </Link>
+        </div>
+      </Card>
+      <StayMoney t={t} locale={locale} stay={stay} booking={booking} />
+    </div>
+  );
+}
+
+const whenFmt = (locale: 'he' | 'en', d: Date) =>
+  new Intl.DateTimeFormat(locale === 'he' ? 'he-IL' : 'en-GB', {
+    timeZone: 'Asia/Jerusalem',
+    day: 'numeric',
+    month: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(d);
+
+/** The booking's money: price, deposit, what was paid and is still owed, payments, and payment links. */
+async function StayMoney({
+  t,
+  locale,
+  stay,
+  booking,
+}: {
+  t: T;
+  locale: 'he' | 'en';
+  stay: NonNullable<Awaited<ReturnType<typeof getStay>>>;
+  booking: BookingView;
+}) {
+  const m = booking.money;
+  const ils = (a: number) => formatILS(agorot(a), locale);
+  const open = stay.status !== 'cancelled' && stay.status !== 'checked_out';
+  const origin = await requestOrigin();
+  return (
+    <Card data-testid="lodging-money">
+      <CardTitle
+        icon="💳"
+        aside={
+          m.depositAgorot ? (
+            <Badge tone={m.depositPaid ? 'ok' : 'warn'} data-testid="money-deposit">
+              {m.depositPaid
+                ? t('pay.depositPaid')
+                : t('pay.depositMissing', { amount: ils(m.depositDueAgorot) })}
+            </Badge>
+          ) : null
+        }
+      >
+        {t('pay.title')}
+      </CardTitle>
+      {m.totalAgorot === null ? (
+        <p className="mb-3 text-sm text-ink-muted">{t('pay.noPrice')}</p>
+      ) : (
+        <div className="mb-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+          <StatTile label={t('pay.total')} value={ils(m.totalAgorot)} />
+          {m.depositAgorot ? (
+            <StatTile
+              label={t('pay.deposit', { p: booking.depositPercent })}
+              value={ils(m.depositAgorot)}
+            />
+          ) : null}
+          <div data-testid="money-paid">
+            <StatTile label={t('pay.paid')} value={ils(m.paidAgorot)} />
+          </div>
+          <div data-testid="money-due">
+            <StatTile
+              label={t('pay.due')}
+              value={ils(m.dueAgorot ?? 0)}
+              tone={m.dueAgorot ? 'warn' : 'ok'}
+            />
+          </div>
+        </div>
+      )}
+      {stay.status === 'held' && stay.holdUntil ? (
+        <p className="mb-3 text-sm text-warn-ink" data-testid="money-hold">
+          {t('pay.holdUntil', { at: whenFmt(locale, stay.holdUntil) })}
+        </p>
+      ) : null}
+      {m.overpaidAgorot > 0 ? (
+        <p className="mb-3 text-sm text-danger-ink">
+          {t('pay.overpaid', { amount: ils(m.overpaidAgorot) })}
+        </p>
+      ) : null}
+
+      <h3 className="mb-1 text-sm font-semibold">{t('pay.history')}</h3>
+      {booking.payments.length === 0 ? (
+        <p className="mb-3 text-sm text-ink-muted">{t('pay.none')}</p>
+      ) : (
+        <ul className="mb-3 flex flex-col gap-1 text-sm" data-testid="money-payments">
+          {booking.payments.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center gap-2">
+              <span className={p.kind === 'refund' ? 'text-danger-ink' : 'font-medium'}>
+                {p.kind === 'refund' ? `${t('pay.refundLine')} ` : ''}
+                <Money agorot={agorot(p.amountAgorot)} locale={locale} />
+              </span>
+              <span className="text-ink-muted">
+                {t(`pay.method.${p.method}`)} · <bdi dir="ltr">{whenFmt(locale, p.createdAt)}</bdi>
+              </span>
+              {p.note ? <span className="text-ink-muted">· {p.note}</span> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {booking.links.length ? (
+        <>
+          <h3 className="mb-1 text-sm font-semibold">{t('pay.links')}</h3>
+          <ul className="mb-3 flex flex-col gap-1 text-sm" data-testid="money-links">
+            {booking.links.map((l) => (
+              <li key={l.token} className="flex flex-wrap items-center gap-2">
+                <Money agorot={agorot(l.amountAgorot)} locale={locale} />
+                <Badge tone={l.status === 'paid' ? 'ok' : l.status === 'open' ? 'warn' : 'neutral'}>
+                  {t(`pay.linkStatus.${l.status as 'open'}`)}
+                </Badge>
+                {l.status === 'open' ? (
+                  <>
+                    <a
+                      href={`/pay/${l.token}`}
+                      className="break-all text-brand-ink underline"
+                      data-testid="money-link"
+                    >
+                      <bdi dir="ltr">{`${origin}/pay/${l.token}`}</bdi>
+                    </a>
+                    <span className="text-ink-muted">
+                      {t('pay.linkUntil', { at: whenFmt(locale, l.expiresAt) })}
+                    </span>
+                  </>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+
+      {open ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          {m.depositDueAgorot > 0 || m.dueAgorot ? (
+            <div>
+              <h3 className="mb-2 text-sm font-semibold">{t('pay.link')}</h3>
+              {booking.processor ? (
+                <ActionForm
+                  action={requestPaymentAction}
+                  className="flex flex-col gap-2"
+                  testId="money-request"
+                >
+                  <input type="hidden" name="stayId" value={stay.id} />
+                  {stay.phoneE164 ? <CheckboxField name="send" label={t('pay.send')} /> : null}
+                  <div className="flex flex-wrap gap-2">
+                    {m.depositDueAgorot > 0 ? (
+                      <SubmitButton name="what" value="deposit" data-testid="money-link-deposit">
+                        {t('pay.linkDeposit', { amount: ils(m.depositDueAgorot) })}
+                      </SubmitButton>
+                    ) : null}
+                    {m.dueAgorot ? (
+                      <SubmitButton
+                        name="what"
+                        value="balance"
+                        variant="secondary"
+                        data-testid="money-link-balance"
+                      >
+                        {t('pay.linkBalance', { amount: ils(m.dueAgorot) })}
+                      </SubmitButton>
+                    ) : null}
+                  </div>
+                </ActionForm>
+              ) : (
+                <p className="text-sm text-ink-muted">{t('pay.noProcessor')}</p>
+              )}
+            </div>
+          ) : null}
+          <div>
+            <h3 className="mb-2 text-sm font-semibold">{t('pay.record')}</h3>
+            <ActionForm
+              action={recordPaymentAction}
+              className="grid gap-2 md:grid-cols-2"
+              testId="money-record"
+            >
+              <input type="hidden" name="stayId" value={stay.id} />
+              <Field
+                name="amount"
+                label={t('pay.amount')}
+                inputMode="decimal"
+                dir="ltr"
+                required
+                defaultValue={
+                  m.depositDueAgorot > 0
+                    ? String(m.depositDueAgorot / 100)
+                    : m.dueAgorot
+                      ? String(m.dueAgorot / 100)
+                      : ''
+                }
+              />
+              <SelectField
+                name="method"
+                label={t('pay.methodLabel')}
+                options={LODGING_OFFICE_METHODS.map((k) => ({
+                  value: k,
+                  label: t(`pay.method.${k}`),
+                }))}
+              />
+              <Field name="note" label={t('pay.note')} autoComplete="off" />
+              <div className="flex items-end">
+                <CheckboxField name="refund" label={t('pay.refund')} />
+              </div>
+              <div className="md:col-span-2">
+                <SubmitButton>{t('pay.save')}</SubmitButton>
+              </div>
+            </ActionForm>
+          </div>
+        </div>
+      ) : null}
     </Card>
   );
 }

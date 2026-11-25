@@ -9,7 +9,10 @@ import {
   addDays,
   addRate,
   addRooms,
+  bookingOf,
   bookStay,
+  getStay,
+  recordPayment,
   moveStay,
   saveLodgingSettings,
   setHousekeeping,
@@ -110,6 +113,9 @@ export async function seedLodgingData(
     morningBrief: true,
     briefPhone: null,
     minNights: 1,
+    // A 30% deposit holds a booking for two days.
+    depositPercent: 30,
+    holdHours: 48,
   });
 
   // The price list: a dearer summer (every year), weekend nights, and the Hebrew holidays with a two-night minimum.
@@ -199,13 +205,33 @@ export async function seedLodgingData(
     });
     if (state === 'in') for (const id of ids) await moveStay(tx, { id, move: 'check_in' });
     stays += ids.length;
+    return ids[0] as string;
+  };
+  /** What the guest paid so far: the deposit, or the whole stay. */
+  const paid = async (stayId: string, part: 'deposit' | 'all', method: 'cash' | 'bit' | 'card') => {
+    const stay = await getStay(tx, stayId);
+    const view = await bookingOf(tx, stay?.bookingId ?? '');
+    const amount = part === 'deposit' ? view.money.depositAgorot : view.money.totalAgorot;
+    if (amount) await recordPayment(tx, ctx, { stayId, amount, method });
   };
 
   if (kind === 'swim') {
     // Family room 1 turns over today: the Mizrahis leave, the Ben Davids arrive.
-    await book(room(0, 0), 'משפחת מזרחי', 4, -3, 0, 'in');
-    await book(room(0, 0), 'משפחת בן דוד', 5, 0, 4, 'confirmed', 'מגיעים עם עגלה, לבקש מיטת תינוק');
-    await book(room(0, 1), 'משפחת אוחיון', 4, -1, 2, 'in');
+    await paid(await book(room(0, 0), 'משפחת מזרחי', 4, -3, 0, 'in'), 'all', 'card');
+    await paid(
+      await book(
+        room(0, 0),
+        'משפחת בן דוד',
+        5,
+        0,
+        4,
+        'confirmed',
+        'מגיעים עם עגלה, לבקש מיטת תינוק',
+      ),
+      'deposit',
+      'bit',
+    );
+    await paid(await book(room(0, 1), 'משפחת אוחיון', 4, -1, 2, 'in'), 'deposit', 'cash');
     await book(room(0, 2), 'משפחת גולן', 3, 0, 3);
     await book(room(0, 3), 'משפחת שטרן', 5, 2, 6, 'held', 'מחכים לאישור תאריכים');
     await book(room(0, 1), 'משפחת ברק', 4, 3, 7);
@@ -217,7 +243,11 @@ export async function seedLodgingData(
     await setHousekeeping(tx, { roomId: room(0, 3), state: 'dirty' });
   } else {
     await book(room(0, 0), 'משפחת אדלר', 4, -2, 0, 'in');
-    await book(room(0, 0), 'משפחת חדד', 4, 0, 3, 'confirmed', 'קורס צלילה חופשית לאבא');
+    await paid(
+      await book(room(0, 0), 'משפחת חדד', 4, 0, 3, 'confirmed', 'קורס צלילה חופשית לאבא'),
+      'deposit',
+      'bit',
+    );
     await book(room(0, 1), 'משפחת רוזנברג', 5, 1, 4, 'held');
     await book(room(1, 0), 'דניאל ומאיה', 2, -1, 2, 'in');
     await book(room(1, 1), 'תום לוי', 1, 0, 2);

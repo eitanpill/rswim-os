@@ -34,12 +34,31 @@ manager and office; instructors and customers see nothing). Package `@rswim/doma
   (`app.lodging_stay_out`).
 - Closing beds that still have a future stay is refused (`lodging.errors.bedInUse`).
 
+## Deposits and payments (`lodging_payments`, `deposit.ts`, `payments.ts`)
+- Settings: the deposit as a percent of the price (`deposit_percent`, 0 = none, rounded to a whole shekel) and how
+  long a held booking waits for it (`hold_hours`, default 24).
+- A booking (`booking_id`; a dorm's beds booked together share one) has an append-only money list: payments and
+  refunds, by hand from the office (cash, card, Bit, transfer) or `online`. Paid, still owed, overpaid and the deposit
+  still missing are derived (`bookingMoney`). A refund larger than what was paid is refused.
+- Booked "held", a stay gets `hold_until` = now + `hold_hours`. Once its deposit is in it is confirmed by itself.
+  When the hold passes without it, the next look at the nights (`releaseLapsedHolds`, before every `loadStays`)
+  cancels it and frees the room, with no cron. A deposit that still arrives brings it back while the room is free;
+  otherwise it stays cancelled and the office refunds.
+- The office sends a payment link for the deposit still missing or the whole balance: a checkout with purpose
+  `lodging_stay` on the business's own processor (`/pay/<token>`, docs/PAYMENTS.md), lasting as long as the hold for a
+  deposit, and optionally sent to the guest's phone on WhatsApp (`lodging.pay_link:<checkout>`). The processor's
+  callback reaches `settleLodgingCheckout` through the billing intake's module hook (`onModulePaid` in
+  `apps/web/src/lib/payments.ts`), recorded once per checkout.
+- No receipt is issued for lodging payments yet.
+
 ## Screens
 - **Today**: arrivals, departures (check in and out with one tap), rooms to make up (turnovers first: someone leaves
   and someone arrives the same day), tonight's occupancy.
 - **Board**: find free rooms for dates and guests, cheapest first, and book; a 14-night grid of rooms and dorm beds.
 - **Rooms and settings**.
 - **Prices**: the price list and the coming year's holiday nights.
+- **A stay**: its details and moves, and the booking's money: price, deposit, paid, still owed, payments, payment
+  links, "link for the deposit / the balance" (optionally on WhatsApp) and "record a payment".
 
 ## The brain
 - 07:00 worker `lodging-morning-brief` (or event `lodging/brief.run`) sends one WhatsApp per business per day
@@ -48,5 +67,6 @@ manager and office; instructors and customers see nothing). Package `@rswim/doma
   (check-in and out times, room kinds) through `registerLeadBotModule`.
 
 ## Next stages
-Booking from the bot (as a brain action with the owner's autonomy level), deposits and payment links, guest reminders
-the day before, and linking a stay to a lead or family. See the master doc's lodging tab.
+Booking from the bot (as a brain action with the owner's autonomy level, then sending the deposit link), guest
+reminders the day before, receipts for lodging payments, blocking a room for repairs, and linking a stay to a lead,
+family, camp or course. See the master doc's lodging tab.

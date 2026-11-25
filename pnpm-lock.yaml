@@ -948,6 +948,9 @@ importers:
       '@rswim/db':
         specifier: workspace:*
         version: link:../../db
+      '@rswim/domain-billing':
+        specifier: workspace:*
+        version: link:../billing
       '@rswim/domain-comms':
         specifier: workspace:*
         version: link:../comms
