@@ -19,6 +19,12 @@ import {
   type DatabaseHost,
   LocalPostgresHost,
   SupabaseManagementHost,
+  ApnsPushProvider,
+  FakePushProvider,
+  FcmPushProvider,
+  type FcmServiceAccount,
+  PlatformPushProvider,
+  type PushProvider,
 } from '@rswim/integrations';
 
 import { getDb, log } from './client';
@@ -191,4 +197,41 @@ export function databaseHost(provider: string): DatabaseHost {
     region: process.env.SUPABASE_REGION || undefined,
     instanceSize: process.env.SUPABASE_INSTANCE_SIZE || undefined,
   });
+}
+
+let pushProviderCache: PushProvider | null | undefined;
+
+/**
+ * Push notifications to the store app (store stage 6), or null while neither platform is set up (families then get
+ * WhatsApp only). Keys live in the worker's environment, never the database or the repository:
+ * - RSWIM_PUSH_FAKE=1: in-memory push for local demos and CI.
+ * - FCM_SERVICE_ACCOUNT_JSON: the Firebase project's service account key (Android).
+ * - APNS_KEY_P8 + APNS_KEY_ID (+ APNS_TEAM_ID, default the business's team; APNS_SANDBOX=1 for Xcode builds): the
+ *   Apple Push Notifications key (iPhone).
+ */
+export function pushProvider(): PushProvider | null {
+  if (pushProviderCache !== undefined) return pushProviderCache;
+  if (process.env.RSWIM_PUSH_FAKE === '1') return (pushProviderCache = new FakePushProvider());
+  const providers: PushProvider[] = [];
+  const fcm = process.env.FCM_SERVICE_ACCOUNT_JSON;
+  if (fcm) {
+    try {
+      providers.push(new FcmPushProvider(JSON.parse(fcm) as FcmServiceAccount));
+    } catch {
+      log.error('FCM_SERVICE_ACCOUNT_JSON is not valid JSON; Android push is off');
+    }
+  }
+  const p8 = process.env.APNS_KEY_P8;
+  const keyId = process.env.APNS_KEY_ID;
+  if (p8 && keyId)
+    providers.push(
+      new ApnsPushProvider({
+        keyP8: p8.replace(/\\n/g, '\n'),
+        keyId,
+        teamId: process.env.APNS_TEAM_ID ?? '6ZNNQLACFA',
+        topic: 'il.co.aquaswim.app',
+        sandbox: process.env.APNS_SANDBOX === '1',
+      }),
+    );
+  return (pushProviderCache = providers.length ? new PlatformPushProvider(providers) : null);
 }

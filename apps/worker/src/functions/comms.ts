@@ -28,6 +28,7 @@ import {
   ownerCopilotModel,
   parentBotModel,
   publicUrl,
+  pushProvider,
   triageClassifier,
 } from '../providers';
 import { toEnvelope } from './core-ping';
@@ -105,6 +106,7 @@ export const commsDispatch = inngest.createFunction(
       blocked: 0,
       broadcasts: 0,
       unconfigured: 0,
+      pushed: 0,
     };
     for (const orgId of orgIds) {
       const r = await step.run(`dispatch-${orgId}`, () =>
@@ -117,7 +119,10 @@ export const commsDispatch = inngest.createFunction(
           }
           const provider = await messagingFor(tx, orgId);
           if (!provider) return { broadcasts, unconfigured: 1 };
-          return { broadcasts, ...(await dispatchDue(tx, ctx, provider, now)) };
+          return {
+            broadcasts,
+            ...(await dispatchDue(tx, ctx, provider, now, pushProvider())),
+          };
         }),
       );
       for (const [k, v] of Object.entries(r)) totals[k as keyof typeof totals] += v;
