@@ -10,6 +10,20 @@ export function isNativeApp(userAgent: string | null | undefined): boolean {
   return !!userAgent && userAgent.includes(NATIVE_APP_TOKEN);
 }
 
+/**
+ * The app adds this token too when its build can take push notifications (store stage 6): always on the iPhone, and
+ * on Android once the Firebase file is in the build (without it, asking Android for a token would crash the app).
+ */
+export const NATIVE_PUSH_TOKEN = 'AquaPush/1';
+
+/** The httpOnly cookie that remembers this phone's push token, so signing out forgets the phone. */
+export const PUSH_COOKIE = 'aqua_push';
+
+/** Pages where the app asks for notifications: a signed-in person's own screens, never sign-in or public pages. */
+export function asksForPush(pathname: string): boolean {
+  return /^\/(parent|admin|instructor|dive|transport|accountant|me)(\/|$)/.test(pathname);
+}
+
 /** The store app's identity, from the environment, for the files that let links open the app (`/.well-known`). */
 export interface AppLinkIdentity {
   /** Apple: `<Team ID>.<bundle id>`, e.g. `ABCDE12345.il.co.aquaswim.app`. */

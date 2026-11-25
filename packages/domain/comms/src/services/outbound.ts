@@ -8,7 +8,7 @@ import type { TemplateKey } from '@rswim/contracts';
 import { and, asc, desc, eq, inArray, lte, schema, sql, type Tx } from '@rswim/db';
 import type { ServiceContext } from '@rswim/domain-core';
 import { resolvePolicyFor } from '@rswim/domain-settings';
-import type { MessagingProvider } from '@rswim/integrations';
+import { PushTokenGone, type MessagingProvider, type PushProvider } from '@rswim/integrations';
 import {
   commsRulesFrom,
   enqueueDecision,
@@ -145,6 +145,39 @@ export interface DispatchResult {
   retrying: number;
   /** Outside WhatsApp's 24-hour window with no approved template (W5). */
   blocked: number;
+  /** Reached the family's phone as a push notification from the store app, instead of WhatsApp (store stage 6). */
+  pushed: number;
+}
+
+/**
+ * Push first (store stage 6): a guardian whose people have the store app on a phone gets the message there, as a
+ * notification titled with the school's name, and WhatsApp is not used. Returns the platform's id when at least one
+ * phone took it; null sends it by WhatsApp. A token the platform calls dead is forgotten.
+ */
+async function pushToGuardian(
+  tx: Tx,
+  push: PushProvider,
+  guardianId: string,
+  message: { title: string; body: string },
+): Promise<string | null> {
+  const r = await tx.execute<{ id: string; platform: 'ios' | 'android'; token: string }>(
+    sql`select d.id, d.platform, d.token from ${schema.pushDevices} d
+        join ${schema.memberships} m on m.organization_id = d.organization_id and m.user_id = d.user_id
+        where m.guardian_id = ${guardianId} and m.status = 'active'
+        order by d.last_seen_at desc limit 5`,
+  );
+  let id: string | null = null;
+  for (const d of r.rows) {
+    if (!push.supports(d.platform)) continue;
+    try {
+      const sent = await push.send({ platform: d.platform, token: d.token }, message);
+      id ??= sent.id;
+    } catch (e) {
+      if (e instanceof PushTokenGone)
+        await tx.delete(schema.pushDevices).where(eq(schema.pushDevices.id, d.id));
+    }
+  }
+  return id;
 }
 
 const MAX_ATTEMPTS = 3;
@@ -152,15 +185,18 @@ const MAX_ATTEMPTS = 3;
 /**
  * Sends the organization's due messages, at most `comms.rate_per_minute` per run (the worker runs it every minute).
  * The send window is decided again now: inside quiet hours or a rest window every due message is held until it ends.
+ * With a push provider, a family's message goes to the store app on their phone first and by WhatsApp only when no
+ * phone took it.
  */
 export async function dispatchDue(
   tx: Tx,
   ctx: ServiceContext,
   provider: MessagingProvider,
   now: Date = new Date(),
+  push: PushProvider | null = null,
 ): Promise<DispatchResult> {
   const rules = await commsRules(tx);
-  const out: DispatchResult = { sent: 0, held: 0, failed: 0, retrying: 0, blocked: 0 };
+  const out: DispatchResult = { sent: 0, held: 0, failed: 0, retrying: 0, blocked: 0, pushed: 0 };
   const due = await tx
     .select()
     .from(messages)
@@ -206,8 +242,29 @@ export async function dispatchDue(
     }
   }
 
+  let title: string | null = null;
   for (const m of due) {
     try {
+      if (push && m.guardianId && m.body) {
+        title ??= await schoolName(tx, ctx.orgId);
+        const pushed = await pushToGuardian(tx, push, m.guardianId, { title, body: m.body });
+        if (pushed) {
+          await tx
+            .update(messages)
+            .set({
+              status: 'sent',
+              channel: 'push',
+              sentAt: now,
+              providerMessageId: pushed,
+              attempts: m.attempts + 1,
+              holdReason: null,
+              error: null,
+            })
+            .where(eq(messages.id, m.id));
+          out.pushed++;
+          continue;
+        }
+      }
       const template = m.locale
         ? await templateFor(tx, m.templateKey as TemplateKey, m.locale)
         : null;

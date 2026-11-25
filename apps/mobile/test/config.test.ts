@@ -11,6 +11,18 @@ describe('the app shell', () => {
     expect(config.appId).toBe('il.co.aquaswim.app');
   });
 
+  it('tells the site it can take push only where it can (iPhone always, Android with Firebase)', () => {
+    expect(config.ios?.appendUserAgent).toBe('AquaSwimApp/1 AquaPush/1');
+    const android = existsSync(new URL('../android/app/google-services.json', import.meta.url));
+    expect(config.android?.appendUserAgent).toBe(
+      android ? 'AquaSwimApp/1 AquaPush/1' : 'AquaSwimApp/1',
+    );
+    expect(file('ios/App/App/App.entitlements')).toContain('<key>aps-environment</key>');
+    expect(file('ios/App/App/AppDelegate.swift')).toContain(
+      'capacitorDidRegisterForRemoteNotifications',
+    );
+  });
+
   it('has its own no-connection screen', () => {
     expect(config.server?.errorPath).toBe('offline.html');
     expect(existsSync(new URL(`../www/${config.server?.errorPath}`, import.meta.url))).toBe(true);

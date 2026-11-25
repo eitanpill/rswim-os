@@ -90,7 +90,9 @@ signed out) or its link `/join/<slug>`; a swim school's office decides join and 
 printable QR, search listing), and `/start` offers the school that already has the person's phone (dev personas
 **דנה (הורה מחפשת בית ספר)** and **מיכל (הורה שבית הספר מכיר)**). The store app (`apps/mobile`, `docs/store/APP.md`) is a Capacitor shell that loads the site; it
 sends user agent `AquaSwimApp` (`lib/native-app.ts`), links open it through `/.well-known` files built from
-`RSWIM_IOS_APP_IDS` and `RSWIM_ANDROID_CERT_SHA256`, and `.github/workflows/mobile.yml` builds both platforms.
+`RSWIM_IOS_APP_IDS` and `RSWIM_ANDROID_CERT_SHA256`, and `.github/workflows/mobile.yml` builds both platforms. Push (stage 6): the app
+registers its token on `/api/push` (`push_devices`), and the dispatcher sends a family's message there first and by
+WhatsApp only when no phone took it (`pushProvider()` in the worker: FCM, APNs, or `RSWIM_PUSH_FAKE=1`).
 Anyone deletes their own account on `/me/account`
 (`public.delete_my_account`, each school's database first; the only owner of a school is refused; hidden dev persona
 `leaver` for the E2E suite).

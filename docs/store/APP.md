@@ -13,8 +13,39 @@ review. What the shell adds is native.
 | Share | `components/share-button.tsx`: the phone's share sheet in the app (`@capacitor/share`), the browser's where it has one, WhatsApp otherwise. First used on the school's join link (`/admin/join`) |
 | No reception | `www/offline.html`, the app's own screen when the site can't be reached; "try again" goes back to the site. The instructors' offline attendance keeps working as before (service worker) |
 | Paying | the processors' pages (Grow, Cardcom, Tranzila, PayPlus) stay inside the app (`allowNavigation`), so the parent comes back to the app after paying. Other links open in the phone's browser |
+| Push notifications | stage 6, below |
 | Icon and splash | `assets/options/*.svg` holds the nine options; `pnpm --filter @rswim/mobile icons <option>` then `pnpm --filter @rswim/mobile assets` writes every size. Pit picked `d-swimmer`, a swimmer in the waves (18.11.2026); options 4 to 9 came in a second round |
 | Identity | bundle id / package `il.co.aquaswim.app` (permanent once published), iPhone only (no iPad build), Android API 36 |
+
+## Push notifications (stage 6)
+
+A family's message goes to the app on their phone first and by WhatsApp only when no phone took it (cheaper than
+WhatsApp, and it works outside WhatsApp's 24-hour window without an approved template). Quiet hours and Shabbat hold
+it the same way.
+
+- The app asks for permission on a signed-in person's own screens only (`asksForPush` in `lib/native-app.ts`), then
+  registers its token on every page load in the current school (`/api/push` → `public.register_push_device`, table
+  `push_devices`, migration 0079). A phone belongs to whoever signed in on it last; signing out forgets it (httpOnly
+  cookie `aqua_push`); deleting the account removes the person's phones.
+- The worker's dispatcher (`dispatchDue` in `@rswim/domain-comms`) looks up the guardian's people's phones, sends
+  through `pushProvider()` (`apps/worker/src/providers.ts`), marks the message `channel = 'push'`, and forgets a token
+  the platform calls dead. Tapping a notification opens the app.
+- Only builds that can take push ask: the app adds `AquaPush/1` to its user agent on the iPhone always, and on Android
+  only when `android/app/google-services.json` is in the build (without it, Android crashes when asked for a token).
+
+Setting it up (once):
+1. Firebase (console.firebase.google.com): add a project (the Google Cloud project of the Play service account is
+   fine), then Add app → Android, package `il.co.aquaswim.app`, and download `google-services.json`. Its whole content
+   goes into the repository secret `GOOGLE_SERVICES_JSON` (CI writes the file before building).
+2. Firebase → Project settings → Service accounts → Generate new private key. The whole JSON goes into the worker's
+   environment as `FCM_SERVICE_ACCOUNT_JSON` (Railway), never chat or the repository.
+3. Apple Developer → Certificates, Identifiers & Profiles → Keys → **+** → Apple Push Notifications service (APNs).
+   Download the .p8 once. The worker gets `APNS_KEY_P8` (the file's whole text) and `APNS_KEY_ID`; the team is
+   6ZNNQLACFA. Identifiers → `il.co.aquaswim.app` → tick Push Notifications (CI's cloud signing then adds it to the
+   profile).
+4. Local demos and CI: `RSWIM_PUSH_FAKE=1` on the worker. With nothing set, families get WhatsApp as before.
+
+Not verified yet: a real notification on a real phone (needs the keys above and a TestFlight / internal testing build).
 
 ## Building
 

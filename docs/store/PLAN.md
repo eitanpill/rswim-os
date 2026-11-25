@@ -53,6 +53,15 @@ Proof: `packages/db/test/rls/school-switch.test.ts`, `apps/web/src/lib/join-link
 - Not verified yet: anything on a real device or simulator (no Mac or Android SDK here); link verification needs the
   store identities in the web app's environment.
 
+## Stage 6: push notifications (25.11.2026)
+- The store app takes push notifications; a family's message goes to the app first and by WhatsApp only when no phone
+  took it. Details and the one-time setup (Firebase, Apple's push key) in `docs/store/APP.md`.
+- Proof: `packages/db/test/rls/push-devices.test.ts`, `packages/integrations/test/push.test.ts`, the push test in
+  `packages/domain/comms/test/services.test.ts`, `apps/mobile/test/config.test.ts`.
+- Not yet: staff and owner messages still go by WhatsApp (they are addressed by phone, not by guardian); a family
+  that turned WhatsApp off is still blocked when the message is queued; push needs a WhatsApp provider configured for
+  the school (the dispatcher runs per school only then).
+
 ## Stage 8, first part: deleting your account (14.11.2026)
 - `/me/account` ("החשבון שלי"), one tap from every screen (the name under the school's name in the header, or the
   avatar on the freediving screens). It says what goes (the sign-in, every membership, join requests not yet

@@ -12,6 +12,7 @@ export default defineConfig({
         'src/copilot.ts',
         'src/dns.ts',
         'src/storage.ts',
+        'src/push.ts',
       ],
       thresholds: { branches: 100, functions: 100, lines: 100, statements: 100 },
     },

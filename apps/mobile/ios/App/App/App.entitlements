@@ -9,5 +9,8 @@
 		<string>applinks:staging.aqua-swim.co.il</string>
 		<string>applinks:*.aqua-swim.co.il</string>
 	</array>
+	<!-- Push notifications (stage 6). TestFlight and the App Store use Apple's production push service. -->
+	<key>aps-environment</key>
+	<string>production</string>
 </dict>
 </plist>
