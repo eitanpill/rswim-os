@@ -11,10 +11,10 @@ export default function PrivacyPage() {
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-10 px-4 py-10" data-testid="privacy">
       <nav className="flex justify-center gap-4 text-sm">
-        <a href="#he" className="font-medium text-brand-600 hover:underline">
+        <a href="#he" className="font-medium text-brand-ink hover:underline">
           עברית
         </a>
-        <a href="#en" className="font-medium text-brand-600 hover:underline">
+        <a href="#en" className="font-medium text-brand-ink hover:underline">
           English
         </a>
       </nav>
