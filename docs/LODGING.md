@@ -85,7 +85,17 @@ manager and office; instructors and customers see nothing). Package `@rswim/doma
 - The lead bot gets the tool `lodging_availability` (free rooms and total price for dates) and the house facts
   (check-in and out times, room kinds) through `registerLeadBotModule`.
 
+## The bot books (`bot.ts`, brain kind `book_lodging`)
+- The lead bot's `lodging_book` books one of the options `lodging_availability` gave (same dates and guests, the room
+  by name, not too short) under the name the customer gave. It goes through the brain like `book_trial`: careful
+  waits for the owner ("כן N" on WhatsApp or the brain screen), balanced and autopilot book at once; the deposit is the
+  amount checked against the owner's payment limit.
+- Run (`holdForLead`): a held booking with `source = 'bot'` and the lead, its phone from the lead (confirmed when the
+  business asks no deposit), a deposit link when a processor is connected, and one WhatsApp to the lead
+  (`lodging.booked:<booking>`) with the room, dates, price, link and hold time. Undo cancels the booking.
+- The brain cannot depend on lodging: the module registers its handler (`registerActionHandler` in
+  `@rswim/domain-copilot`) in the worker (`registerLodgingBot`) and in the web app (`lib/brain-modules.ts`).
+
 ## Next stages
-Booking from the bot (as a brain action with the owner's autonomy level, then sending the deposit link), the guest's
-forms and house rules signed before arrival, receipts for lodging payments, self-booking online, and linking a stay to
+Changing dates from the bot, the guest's forms and house rules signed before arrival, receipts for lodging payments, self-booking online, and linking a stay to
 a lead, family, camp or course. See the master doc's lodging tab.

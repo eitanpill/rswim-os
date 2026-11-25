@@ -1,0 +1,2 @@
+ALTER TABLE "copilot_actions" DROP CONSTRAINT "copilot_actions_kind_check";--> statement-breakpoint
+ALTER TABLE "copilot_actions" ADD CONSTRAINT "copilot_actions_kind_check" CHECK (kind in ('report_absence', 'book_makeup', 'lesson_reminder', 'payment_link', 'freeze', 'move_student', 'message_family', 'substitute', 'cancel_lessons', 'open_makeup_slots', 'book_trial', 'lead_followup', 'book_lodging'));

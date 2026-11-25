@@ -152,7 +152,9 @@ holiday (from `@rswim/calendar`) with minimum stays; a stay keeps its booked pri
 intake's `onModulePaid` hook), and a paid deposit confirms the booking. A room or a dorm bed is closed for repair on dates with `blockRoom` (a stay with
 source `block`). At 07:00 the worker (`lodging-morning-brief`) sends the day's check-ins, check-outs and rooms to prepare
 on WhatsApp, and at 17:00 (`lodging-guest-reminders`) each guest arriving tomorrow gets the times, the arrival note and
-a link for what is owed; the lead bot answers availability with `lodging_availability`.
+a link for what is owed; the lead bot answers availability with `lodging_availability` and books with `lodging_book`
+(brain kind `book_lodging`, run by the module's handler from `registerActionHandler`: the room held and the deposit link
+sent to the lead).
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a

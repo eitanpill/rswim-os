@@ -16,6 +16,7 @@ export const COPILOT_ACTION_KINDS = [
   'substitute',
   'book_trial',
   'lead_followup',
+  'book_lodging',
 ] as const;
 export const CopilotActionKind = z.enum(COPILOT_ACTION_KINDS);
 export type CopilotActionKind = z.infer<typeof CopilotActionKind>;

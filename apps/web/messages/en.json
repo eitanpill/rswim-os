@@ -4169,7 +4169,9 @@
       "substitute": "Find a substitute for {staff} in {group}, {date} {time}",
       "substituteOpen": "Find an instructor for {group}, {date} {time}",
       "trial": "Book a trial for {student} ({family} family) in {group}, {date} {time}",
-      "followUp": "Send {who} a follow-up: \"{text}\""
+      "followUp": "Send {who} a follow-up: \"{text}\"",
+      "lodging": "Hold {room} for {guest} from {date} to {until} ({nights} nights, {amount}) and send the deposit link",
+      "lodgingNoPrice": "Hold {room} for {guest} from {date} to {until} ({nights} nights)"
     },
     "errors": {
       "ownerOnly": "The copilot is for the owner only",
@@ -5683,6 +5685,10 @@
       "lead_followup": {
         "label": "Follow-ups to new customers",
         "hint": "After the trial an offer to continue (or a new date), and one nudge to whoever stopped answering"
+      },
+      "book_lodging": {
+        "label": "Hold a room for a new customer (lodging)",
+        "hint": "The bot holds the room the customer chose on WhatsApp and sends them the deposit link"
       }
     },
     "status": {
@@ -5727,7 +5733,8 @@
       "slotsBooked": "{n} lessons are already booked in these slots, so they can't be undone from here",
       "cap": "Not a valid number",
       "noLessons": "There are no lessons to cancel on these dates",
-      "phone": "Invalid phone number"
+      "phone": "Invalid phone number",
+      "moduleOff": "The lodging module is not running here"
     },
     "whatsapp": {
       "title": "Approvals on WhatsApp",

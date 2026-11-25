@@ -21,6 +21,7 @@
     "@rswim/domain-comms": "workspace:*",
     "@rswim/domain-copilot": "workspace:*",
     "@rswim/domain-core": "workspace:*",
+    "@rswim/domain-crm": "workspace:*",
     "@rswim/domain-scheduling": "workspace:*",
     "@rswim/integrations": "workspace:*",
     "@rswim/money": "workspace:*",

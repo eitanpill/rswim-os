@@ -130,6 +130,21 @@ export const TrialProposal = z
   })
   .strict();
 
+/**
+ * A room held for a new customer by the WhatsApp bot (lodging, stage 6): the lodging module books it held and sends
+ * the deposit link to the lead's phone (its action handler, registered at start).
+ */
+export const LodgingProposal = z
+  .object({
+    leadId: z.uuid(),
+    roomId: z.uuid(),
+    checkIn: Date_,
+    checkOut: Date_,
+    guests: z.int().min(1).max(60),
+    guestName: z.string().trim().min(1).max(120),
+  })
+  .strict();
+
 /** A follow-up WhatsApp to a new customer (WhatsApp track W4): after the trial, or once after going quiet. */
 export const LeadFollowUpProposal = z
   .object({
@@ -151,6 +166,7 @@ export const PROPOSALS = {
   substitute: SubstituteProposal,
   book_trial: TrialProposal,
   lead_followup: LeadFollowUpProposal,
+  book_lodging: LodgingProposal,
 } as const;
 
 export type ProposalParams = {
@@ -165,6 +181,7 @@ export type ProposalParams = {
   substitute: z.infer<typeof SubstituteProposal>;
   book_trial: z.infer<typeof TrialProposal>;
   lead_followup: z.infer<typeof LeadFollowUpProposal>;
+  book_lodging: z.infer<typeof LodgingProposal>;
 };
 
 /** Validates what the model proposed; anything off-shape is refused rather than repaired. */
@@ -197,6 +214,15 @@ export function proposalSummary(
       }
     | { kind: 'substitute'; staff: string | null; group: string; date: string; time: string }
     | { kind: 'lead_followup'; who: string; text: string }
+    | {
+        kind: 'book_lodging';
+        guest: string;
+        room: string;
+        date: string;
+        until: string;
+        nights: number;
+        totalAgorot: number | null;
+      }
     | {
         kind: 'book_trial';
         student: string;
@@ -271,6 +297,12 @@ export function proposalSummary(
       };
     case 'lead_followup':
       return { code: 'copilot.summary.followUp', params: { who: p.who, text: p.text } };
+    case 'book_lodging': {
+      const base = { guest: p.guest, room: p.room, date: p.date, until: p.until, nights: p.nights };
+      return p.totalAgorot === null
+        ? { code: 'copilot.summary.lodgingNoPrice', params: base }
+        : { code: 'copilot.summary.lodging', params: { ...base, amount: p.totalAgorot } };
+    }
     case 'substitute':
       // A lesson nobody teaches yet asks for an instructor, not a substitute for someone.
       return p.staff === null

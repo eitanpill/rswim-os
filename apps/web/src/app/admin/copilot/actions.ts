@@ -11,6 +11,7 @@ import {
 import { todayIL } from '@rswim/domain-scheduling';
 import { copilotModel } from '@/lib/copilot';
 import type { FormState } from '@/lib/form-state';
+import '@/lib/brain-modules';
 import { runForm } from '@/lib/forms';
 
 /** The chat, and every screen that shows the brain's actions (an action may have run or be waiting). */

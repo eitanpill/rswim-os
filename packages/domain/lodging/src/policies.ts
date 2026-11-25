@@ -551,6 +551,63 @@ export function reminderText(r: GuestReminder, locale: 'he' | 'en'): string {
   return out.join('\n');
 }
 
+// ─── A booking the bot took ─────────────────────────────────────────────────
+
+export interface BookedNote {
+  guestName: string;
+  business: string;
+  where: string;
+  checkIn: string;
+  checkOut: string;
+  totalAgorot: number | null;
+  /** The deposit still missing (0: none asked). */
+  depositAgorot: number;
+  payUrl: string | null;
+  /** Until when the room waits for the deposit, already in local words ("26.11 15:00"). */
+  holdUntil: string | null;
+}
+
+const BOOKED = {
+  he: {
+    hello: (name: string) => `שלום ${name} 🙂`,
+    held: (where: string, business: string, from: string, to: string) =>
+      `שמרנו לך את ${where} ב${business}, מ־${from} עד ${to}.`,
+    total: (amount: string) => `המחיר לכל השהייה: ${amount}.`,
+    pay: (amount: string, url: string) =>
+      `כדי לאשר את ההזמנה משלמים מקדמה של ${amount} כאן: ${url}`,
+    until: (when: string) => `החדר מחכה למקדמה עד ${when}.`,
+    office: 'מהמשרד יחזרו אליך לגבי המקדמה.',
+    confirmed: 'ההזמנה מאושרת. יום לפני ההגעה נשלח לך את כל הפרטים.',
+  },
+  en: {
+    hello: (name: string) => `Hi ${name} 🙂`,
+    held: (where: string, business: string, from: string, to: string) =>
+      `We're holding ${where} at ${business} for you, from ${from} to ${to}.`,
+    total: (amount: string) => `The whole stay costs ${amount}.`,
+    pay: (amount: string, url: string) => `To confirm, pay a deposit of ${amount} here: ${url}`,
+    until: (when: string) => `The room waits for the deposit until ${when}.`,
+    office: 'The office will be in touch about the deposit.',
+    confirmed: "Your booking is confirmed. We'll send you all the details the day before.",
+  },
+} as const;
+
+/** The guest's WhatsApp once the bot holds their room: where and when, the price, and the deposit link. */
+export function bookedText(b: BookedNote, locale: 'he' | 'en'): string {
+  const w = BOOKED[locale];
+  const out: string[] = [
+    w.hello(b.guestName),
+    w.held(b.where, b.business, dotted(b.checkIn), dotted(b.checkOut)),
+  ];
+  if (b.totalAgorot !== null) out.push(w.total(formatILS(agorot(b.totalAgorot), locale)));
+  if (b.depositAgorot > 0) {
+    out.push(b.payUrl ? w.pay(formatILS(agorot(b.depositAgorot), locale), b.payUrl) : w.office);
+    if (b.holdUntil) out.push(w.until(b.holdUntil));
+  } else {
+    out.push(w.confirmed);
+  }
+  return out.join('\n');
+}
+
 /** What the reminder's payment link says it pays for. */
 export function reminderPayFor(
   stay: { guestName: string; checkIn: string; checkOut: string },
@@ -611,7 +668,8 @@ export function botFacts(
     }
   }
   lines.push(
-    'Never compute a price yourself: lodging_availability gives the exact total for the dates; the office confirms the booking.',
+    'Never compute a price yourself: lodging_availability gives the exact total for the dates.',
+    'To book: once the customer chose one of the options lodging_availability gave and told you the name for the booking, call lodging_book with the same dates, guests and room. "done": the room is held and the customer gets the details (and the deposit link) in a separate WhatsApp, so do not repeat the link; "waiting": the office confirms soon; anything else: hand off to the office.',
   );
   return lines;
 }
