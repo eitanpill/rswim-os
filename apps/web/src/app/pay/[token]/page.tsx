@@ -71,8 +71,13 @@ async function Body({
   token: string;
 }) {
   const t = await getTranslations('payments.page');
+  // A lodging guest has no account to go back to.
   const home =
-    v.purpose === 'dive_booking' || v.purpose === 'dive_pass' ? '/dive/me' : '/parent/payments';
+    v.purpose === 'lodging_stay'
+      ? null
+      : v.purpose === 'dive_booking' || v.purpose === 'dive_pass'
+        ? '/dive/me'
+        : '/parent/payments';
   if (v.status === 'paid') {
     return (
       <Notice tone="ok" testId="pay-paid">
@@ -85,10 +90,14 @@ async function Body({
           </p>
         ) : null}
         {v.method ? <p className="text-sm text-ink-muted">{t(`paidBy.${v.method}`)}</p> : null}
-        <p className="text-sm text-ink-muted">{t('receipt')}</p>
-        <a href={home} className="text-sm font-medium text-brand-ink underline">
-          {t('backHome')}
-        </a>
+        {home ? (
+          <>
+            <p className="text-sm text-ink-muted">{t('receipt')}</p>
+            <a href={home} className="text-sm font-medium text-brand-ink underline">
+              {t('backHome')}
+            </a>
+          </>
+        ) : null}
       </Notice>
     );
   }

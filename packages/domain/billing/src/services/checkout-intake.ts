@@ -15,7 +15,7 @@ import {
   openCheckout,
   startCheckout,
   type CheckoutUrls,
-  type DivePaidHook,
+  type ModulePaidHook,
   type GatewayEventOutcome,
   type OpenCheckoutInput,
 } from './checkout';
@@ -52,7 +52,7 @@ export async function ingestGatewayWebhook(
   connectionId: string,
   rawBody: string,
   headers: Headers,
-  opts: { build: GatewayFactory; onDivePaid?: DivePaidHook },
+  opts: { build: GatewayFactory; onModulePaid?: ModulePaidHook },
 ): Promise<IngestOutcome> {
   if (!/^[0-9a-f-]{36}$/i.test(connectionId)) return 'unknown_connection';
   const [conn] = await asPlatform(db, (tx) =>
@@ -86,7 +86,7 @@ export async function ingestGatewayWebhook(
   try {
     outcome = await withOrg(db, conn.orgId, (tx) =>
       applyGatewayEvent(tx, { orgId: conn.orgId, userId: null }, event, {
-        onDivePaid: opts.onDivePaid,
+        onModulePaid: opts.onModulePaid,
       }),
     );
   } catch (e) {
@@ -182,7 +182,7 @@ export async function answerSandboxCheckout(
   token: string,
   method: CheckoutMethod,
   approve: boolean,
-  opts: { build: GatewayFactory; onDivePaid?: DivePaidHook },
+  opts: { build: GatewayFactory; onModulePaid?: ModulePaidHook },
 ): Promise<IngestOutcome | 'not_open'> {
   const found = await checkoutByToken(db, token);
   if (!found) return 'not_open';

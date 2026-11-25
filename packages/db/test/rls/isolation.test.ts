@@ -162,6 +162,7 @@ const TENANT_TABLES = [
   'lodging_beds',
   'lodging_stays',
   'lodging_rates',
+  'lodging_payments',
   'dive_staff_certs',
   'dive_form_templates',
   'dive_form_signatures',

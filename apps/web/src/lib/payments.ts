@@ -6,9 +6,11 @@ import {
   payNowAs,
   paymentsOfferFor,
   type GatewayFactory,
+  type ModulePaidHook,
   type OpenCheckoutInput,
 } from '@rswim/domain-billing';
 import { settleDiveCheckout } from '@rswim/domain-dive/checkout';
+import { settleLodgingCheckout } from '@rswim/domain-lodging/payments';
 import { createGateway, gatewaySandbox } from '@rswim/integrations';
 import { isDemoMode } from './auth/dev';
 import { acrossSchools, db, dbFor } from './db';
@@ -25,8 +27,14 @@ export function paymentsSandbox(): boolean {
 export const gatewayFactory: GatewayFactory = (kind, creds, opts) =>
   createGateway(kind, creds, { ...opts, sandbox: paymentsSandbox() });
 
-/** What a paid dive checkout settles (a booking or a pass), passed to the billing intake. */
-export const onDivePaid = settleDiveCheckout;
+/** What a paid module checkout settles (a dive booking or pass, a lodging booking), passed to the billing intake. */
+export const onModulePaid: ModulePaidHook = async (tx, ctx, checkout, event) => {
+  if (checkout.purpose === 'lodging_stay') {
+    await settleLodgingCheckout(tx, ctx, checkout, event);
+  } else {
+    await settleDiveCheckout(tx, ctx, checkout, event);
+  }
+};
 
 /** This request's public origin (behind the platform's proxy too), for the processor's return and callback URLs. */
 export async function requestOrigin(): Promise<string> {

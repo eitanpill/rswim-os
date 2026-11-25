@@ -102,3 +102,55 @@ test('the freediving club desk runs the same lodging', async ({ page }) => {
   await page.goto('/dive/lodging/prices');
   await expect(page.getByTestId('lodging-rate').filter({ hasText: 'חורף באילת' })).toBeVisible();
 });
+
+test('a held booking asks for a deposit, the guest pays the link, and the desk takes the rest', async ({
+  page,
+}) => {
+  const tag = randomUUID().slice(0, 4);
+  const guest = `משפחת מקדמה ${tag}`;
+  await page.goto('/dev/login?as=owner');
+  await page.goto(`/admin/lodging/board?in=${dayFromNow(40)}&out=${dayFromNow(42)}&guests=2`);
+  const option = page.getByTestId('find-option').first();
+  await option.locator('summary').click();
+  await option.locator('input[name="guestName"]').fill(guest);
+  await option.locator('input[name="phone"]').fill('050-0000404');
+  await option.locator('input[name="hold"]').check();
+  await option.getByRole('button', { name: 'להזמין' }).click();
+  await expect(page.getByText('ההזמנה נשמרה')).toBeVisible();
+
+  await page.goto(`/admin/lodging/board?from=${dayFromNow(40)}`);
+  const href = await page
+    .getByTestId('board-stay')
+    .filter({ hasText: guest })
+    .first()
+    .getAttribute('href');
+  expect(href).toMatch(/^\/admin\/lodging\/stays\//);
+  const stayUrl = href as string;
+  await page.goto(stayUrl);
+  const money = page.getByTestId('lodging-money');
+  await expect(money.getByTestId('money-deposit')).toContainText('חסרה מקדמה');
+  await expect(money.getByTestId('money-hold')).toContainText('מוחזק עד');
+  await money.locator('input[name="send"]').check();
+  await money.getByTestId('money-link-deposit').click();
+  await expect(money.getByTestId('money-link')).toBeVisible();
+  await shot(page, 'stay-deposit');
+
+  // The guest's side: the business's processor (sandboxed here) takes the card, and its callback records it.
+  await money.getByTestId('money-link').click();
+  await expect(page.getByTestId('pay-amount')).toContainText('₪');
+  await page.getByTestId('pay-card').click();
+  await expect(page).toHaveURL(/\/sandbox\?m=card/);
+  await page.getByTestId('sandbox-approve').click();
+  await expect(page.getByTestId('pay-paid')).toBeVisible();
+  await page.goto(stayUrl);
+  await expect(page.getByTestId('lodging-stay')).toContainText('מאושר');
+  await expect(money.getByTestId('money-deposit')).toContainText('המקדמה התקבלה');
+  await expect(money.getByTestId('money-payments')).toContainText('בקישור לתשלום');
+
+  // The rest at the desk, in cash: nothing is left to pay.
+  const record = money.getByTestId('money-record');
+  await record.locator('select[name="method"]').selectOption('cash');
+  await record.getByRole('button', { name: 'לרשום' }).click();
+  await expect(money.getByTestId('money-due')).toHaveText(/נשאר לשלם\W*0\W*₪/);
+  await shot(page, 'stay-paid');
+});

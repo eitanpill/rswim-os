@@ -466,6 +466,7 @@ export function botFacts(
   times: { checkIn: string; checkOut: string },
   rates: readonly RateFacts[] = [],
   minNights = 1,
+  deposit: { percent: number; holdHours: number } = { percent: 0, holdHours: 24 },
 ): string[] {
   const active = rooms.filter((r) => r.active);
   if (!active.length) return [];
@@ -473,6 +474,11 @@ export function botFacts(
     `Lodging on site: ${active.length} rooms. Check-in from ${times.checkIn}, check-out by ${times.checkOut}.`,
   ];
   if (minNights > 1) lines.push(`Minimum stay: ${minNights} nights.`);
+  if (deposit.percent > 0) {
+    lines.push(
+      `A booking is held for ${deposit.holdHours} hours until a deposit of ${deposit.percent}% of its price is paid (by a payment link from the office); then it is confirmed. The rest is paid by arrival.`,
+    );
+  }
   for (const r of active) {
     const per = r.soldBy === 'bed' ? ' per bed' : r.pricePer === 'guest' ? ' per guest' : '';
     const price =

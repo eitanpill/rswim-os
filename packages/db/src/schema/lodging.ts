@@ -15,6 +15,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import {
   HOUSEKEEPING_STATES,
+  LODGING_PAYMENT_KINDS,
+  LODGING_PAYMENT_METHODS,
   RATE_KINDS,
   RATE_MODES,
   ROOM_FACILITIES,
@@ -25,6 +27,7 @@ import {
   STAY_STATUSES,
 } from '@rswim/contracts';
 import { createdAt, id, inList, orgId, updatedAt } from './_helpers';
+import { checkouts } from './billing';
 import { organizations } from './tenancy';
 
 /**
@@ -46,10 +49,16 @@ export const lodgingSettings = pgTable(
     briefPhoneE164: text('brief_phone_e164'),
     /** The fewest nights a guest books, unless a rule of the price list asks for more. */
     minNights: integer('min_nights').notNull().default(1),
+    /** The deposit a booking asks for, as a percent of its price (0: none). */
+    depositPercent: integer('deposit_percent').notNull().default(0),
+    /** How long a held booking waits for its deposit before the room is free again. */
+    holdHours: integer('hold_hours').notNull().default(24),
     updatedAt: updatedAt(),
   },
   () => [
     check('lodging_settings_min_nights', sql`min_nights between 1 and 30`),
+    check('lodging_settings_deposit', sql`deposit_percent between 0 and 100`),
+    check('lodging_settings_hold_hours', sql`hold_hours between 1 and 168`),
     check('lodging_settings_check_in', sql`check_in_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'`),
     check('lodging_settings_check_out', sql`check_out_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'`),
   ],
@@ -138,6 +147,10 @@ export const lodgingStays = pgTable(
     source: text('source').notNull().default('office'),
     note: text('note'),
     leadId: uuid('lead_id'),
+    /** One booking: a dorm's beds booked together share it (and its payments). */
+    bookingId: uuid('booking_id').notNull().defaultRandom(),
+    /** A held booking waits for its deposit until then; after it the room is free again. */
+    holdUntil: timestamp('hold_until', { withTimezone: true }),
     /** The price when booked, from the price list (null when the room has no price). */
     totalAgorot: integer('total_agorot'),
     checkedInAt: timestamp('checked_in_at', { withTimezone: true }),
@@ -149,6 +162,7 @@ export const lodgingStays = pgTable(
     unique('lodging_stays_org_id').on(t.organizationId, t.id),
     index('lodging_stays_room_dates').on(t.organizationId, t.roomId, t.checkIn, t.checkOut),
     index('lodging_stays_org_dates').on(t.organizationId, t.checkIn, t.checkOut),
+    index('lodging_stays_booking').on(t.organizationId, t.bookingId),
     foreignKey({
       name: 'lodging_stays_room_fk',
       columns: [t.organizationId, t.roomId],
@@ -213,5 +227,42 @@ export const lodgingRates = pgTable(
       sql`(mode = 'fixed' and price_night_agorot is not null and price_night_agorot >= 0) or (mode = 'percent' and percent is not null and percent between -90 and 500)`,
     ),
     check('lodging_rates_min_nights_check', sql`min_nights is null or min_nights between 1 and 30`),
+  ],
+);
+
+/**
+ * A booking's money (docs/LODGING.md, "Deposits and payments"), append-only: each payment or refund, by hand from the
+ * office or online through the business's processor (its checkout). What is paid and still owed is derived.
+ */
+export const lodgingPayments = pgTable(
+  'lodging_payments',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    bookingId: uuid('booking_id').notNull(),
+    kind: text('kind').notNull().default('payment'),
+    method: text('method').notNull(),
+    amountAgorot: integer('amount_agorot').notNull(),
+    checkoutId: uuid('checkout_id'),
+    externalId: text('external_id'),
+    note: text('note'),
+    createdBy: uuid('created_by'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('lodging_payments_org_id').on(t.organizationId, t.id),
+    unique('lodging_payments_checkout').on(t.organizationId, t.checkoutId),
+    index('lodging_payments_booking').on(t.organizationId, t.bookingId),
+    foreignKey({
+      name: 'lodging_payments_checkout_fk',
+      columns: [t.organizationId, t.checkoutId],
+      foreignColumns: [checkouts.organizationId, checkouts.id],
+    }),
+    check('lodging_payments_kind_check', sql.raw(`kind in (${inList(LODGING_PAYMENT_KINDS)})`)),
+    check(
+      'lodging_payments_method_check',
+      sql.raw(`method in (${inList(LODGING_PAYMENT_METHODS)})`),
+    ),
+    check('lodging_payments_amount_check', sql`amount_agorot > 0`),
   ],
 );

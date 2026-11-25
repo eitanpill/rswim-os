@@ -57,3 +57,14 @@ export type RateMode = (typeof RATE_MODES)[number];
 
 /** Weekend nights by default: Thursday night and Friday night (0 = the night from Sunday to Monday… 6 = Saturday). */
 export const DEFAULT_WEEKEND_NIGHTS: readonly number[] = [4, 5];
+
+/**
+ * Money for a booking (docs/LODGING.md, "Deposits and payments"): what the guest paid (or got back), and how. Online
+ * payments come from the business's own processor (a checkout); the rest the office records by hand.
+ */
+export const LODGING_PAYMENT_KINDS = ['payment', 'refund'] as const;
+export type LodgingPaymentKind = (typeof LODGING_PAYMENT_KINDS)[number];
+export const LODGING_PAYMENT_METHODS = ['cash', 'card', 'bit', 'transfer', 'online'] as const;
+export type LodgingPaymentMethod = (typeof LODGING_PAYMENT_METHODS)[number];
+/** The methods the office records by hand ("online" is only the processor's). */
+export const LODGING_OFFICE_METHODS = ['cash', 'card', 'bit', 'transfer'] as const;

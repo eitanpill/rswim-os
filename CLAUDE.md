@@ -146,7 +146,10 @@ last 30 days, and "I'm taking over" (`chat_holds`), which keeps every bot quiet 
 Lodging (`docs/LODGING.md`, optional per business, `@rswim/domain-lodging`): rooms by kind with beds and private or shared
 facilities, stays (dorms by the bed, overlaps refused in the database), `/admin/lodging` and `/dive/lodging` (today,
 board, rooms, prices). The price list (`lodging_rates`, `prices.ts`) prices each night by season, weekend and Hebrew
-holiday (from `@rswim/calendar`) with minimum stays; a stay keeps its booked price (`total_agorot`). At 07:00 the worker (`lodging-morning-brief`) sends the day's check-ins, check-outs and rooms to prepare
+holiday (from `@rswim/calendar`) with minimum stays; a stay keeps its booked price (`total_agorot`). A held booking waits
+`hold_hours` for its deposit (`deposit_percent`), then frees its room by itself; the office records payments
+(`lodging_payments`, append-only) or sends a payment link (checkout purpose `lodging_stay`, settled through the billing
+intake's `onModulePaid` hook), and a paid deposit confirms the booking. At 07:00 the worker (`lodging-morning-brief`) sends the day's check-ins, check-outs and rooms to prepare
 on WhatsApp; the lead bot answers availability with `lodging_availability`.
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase

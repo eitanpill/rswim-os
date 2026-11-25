@@ -6744,7 +6744,7 @@
       "book": "Book",
       "guestName": "Guest name",
       "phone": "Phone",
-      "hold": "Hold without confirming (waiting for approval or payment)",
+      "hold": "Hold until the deposit arrives (up to {h} hours, then the room is freed)",
       "note": "Note",
       "booked": "Booking saved",
       "held": "On hold",
@@ -6796,7 +6796,11 @@
       "pricePerHint": "A dorm is always priced per bed",
       "eachGuest": "per guest",
       "minNights": "Minimum nights per booking",
-      "minNightsHint": "Unless a price rule asks for more. The office may book fewer; the bot and online bookings may not."
+      "minNightsHint": "Unless a price rule asks for more. The office may book fewer; the bot and online bookings may not.",
+      "depositPercent": "Deposit (percent of the price)",
+      "depositPercentHint": "0 = no deposit. A held booking is confirmed by itself once the deposit arrives.",
+      "holdHours": "Hours a booking waits for its deposit",
+      "holdHoursHint": "After that the room is freed by itself"
     },
     "kind": {
       "single": "Single",
@@ -6829,7 +6833,11 @@
       "tooShort": "The booking needs at least {n} nights.",
       "rateDates": "A start and an end date, the end after the start.",
       "rateNights": "Pick at least one night of the week.",
-      "rateValue": "Enter a fixed price a night or a percent change (not 0)."
+      "rateValue": "Enter a fixed price a night or a percent change (not 0).",
+      "refundTooMuch": "You cannot refund more than was paid",
+      "nothingDue": "Nothing to collect right now",
+      "notPayable": "The booking was cancelled or has ended",
+      "noPhone": "The guest has no phone to send to on WhatsApp"
     },
     "pricePer": {
       "room": "For the whole room",
@@ -6898,6 +6906,55 @@
       "minShort": "at least {n} nights",
       "holidaysTitle": "Holidays in the coming year",
       "holidaysHint": "The nights the holiday price applies to, from the Hebrew calendar."
+    },
+    "pay": {
+      "title": "Payment",
+      "total": "Price",
+      "paid": "Paid",
+      "due": "Still to pay",
+      "overpaid": "Paid too much, refund the guest: {amount}",
+      "deposit": "Deposit ({p}%)",
+      "depositPaid": "Deposit received",
+      "depositMissing": "Deposit missing: {amount}",
+      "noPrice": "The room has no price, so there is no amount to collect. You can still record a payment.",
+      "holdUntil": "Held until {at}. If the deposit does not arrive by then, the room is freed.",
+      "history": "Payments",
+      "none": "Nothing paid yet",
+      "refundLine": "Refund",
+      "method": {
+        "cash": "Cash",
+        "card": "Card",
+        "bit": "Bit",
+        "transfer": "Bank transfer",
+        "online": "Payment link"
+      },
+      "record": "Record a payment",
+      "amount": "Amount (₪)",
+      "methodLabel": "Paid by",
+      "refund": "This is a refund to the guest",
+      "note": "Note",
+      "save": "Record",
+      "recorded": "Payment recorded",
+      "recordedConfirmed": "Payment recorded and the booking confirmed",
+      "link": "Payment link",
+      "linkDeposit": "Deposit link ({amount})",
+      "linkBalance": "Balance link ({amount})",
+      "send": "Send it to the guest on WhatsApp",
+      "linkMade": "The link is ready, copy it from the list",
+      "linkSent": "The link was sent to the guest on WhatsApp",
+      "links": "Payment links",
+      "linkStatus": {
+        "open": "Open",
+        "paid": "Paid",
+        "failed": "Failed",
+        "expired": "Expired",
+        "cancelled": "Cancelled"
+      },
+      "linkUntil": "Valid until {at}",
+      "noProcessor": "Connect a payment processor on the payments screen to send payment links.",
+      "description": "Lodging: {name}, {from} to {to}",
+      "messageDeposit": "Hello! To keep your booking we ask for a deposit of {amount}. Pay here: {url}",
+      "messageBalance": "Hello! The balance for your stay is {amount}. Pay here: {url}"
     }
   },
   "leadInvite": {
