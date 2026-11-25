@@ -30,8 +30,8 @@ debug APK (downloadable from the run for 14 days) and an iPhone simulator build,
 On main (and from Actions → Mobile app → Run workflow) the `testflight` job archives the iPhone app on GitHub's Mac,
 signs it with Xcode's cloud signing through the App Store Connect key, and uploads it to TestFlight with the run number
 as build number. Nobody needs Xcode or a Mac (Pit has no room for Xcode, 19.11.2026). Without the key's secrets the job
-is skipped. TestFlight builds load staging for now; the store build switches `AQUA_APP_URL` to production. Google Play
-internal testing joins the same way once its keys are in the secrets.
+is skipped. TestFlight builds load staging for now; the store build switches `AQUA_APP_URL` to production. The `play` job does the
+same for Google Play (below): a signed bundle with the run number as version code, sent to internal testing.
 
 ## Setting up the stores (once)
 
@@ -47,9 +47,18 @@ Apple (App Store Connect, the organization account):
 
 Google (Play Console, the organization account):
 1. Create app: Aqua Swim, Hebrew, App, Free.
-2. The first build is uploaded by hand (a signed AAB from Android Studio) to Internal testing; Play App Signing then
-   holds the app's key.
-3. Setup → App signing: copy both SHA-256 fingerprints (app signing key and upload key) into the web app's
-   `RSWIM_ANDROID_CERT_SHA256` (comma-separated).
-4. For builds from CI: a Google Cloud service account with release rights in Play Console; its JSON key goes into the
-   repository's secrets.
+2. The upload key: a keystore made once (25.11.2026, alias `upload`, upload-key SHA-256
+   `44:6F:9F:13:D8:10:70:39:2A:BB:51:9F:80:13:A2:B4:8A:EF:73:4D:F5:83:1E:05:FD:67:E7:77:22:53:11:68`). It lives only in
+   the repository's secrets: `ANDROID_KEYSTORE_B64` (the .jks file in base64) and `ANDROID_KEYSTORE_PASSWORD`. Lost, it
+   is replaced through Play Console (App integrity → request upload key reset); the app's own key stays with Google.
+3. With those secrets, every merge to main that touches `apps/mobile` (or a push to a `play/*` branch, or Actions →
+   Mobile app → Run workflow) builds the signed bundle in the `play` job; download `aqua-swim-android-store-<n>` from
+   the run. The first bundle is uploaded by hand: Play Console → Test and release → Testing → Internal testing →
+   Create new release (accept Play App Signing), then add the testers' emails.
+4. Setup → App signing: copy both SHA-256 fingerprints (app signing key and upload key) into the web app's
+   `RSWIM_ANDROID_CERT_SHA256` (comma-separated), so links open the app.
+5. For uploads from CI: Google Cloud console → the project linked to Play Console → IAM → Service accounts → create
+   one, Keys → Add key → JSON. Play Console → Users and permissions → Invite new users → the service account's email,
+   app Aqua Swim, permission "Release apps to testing tracks". The JSON file's whole content goes into the repository
+   secret `PLAY_SERVICE_ACCOUNT_JSON`, never chat. From then on each run lands in internal testing as a draft release
+   (Play takes drafts only until the app is first published); "Review release" → "Start rollout" sends it to testers.

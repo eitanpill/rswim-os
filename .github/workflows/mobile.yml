@@ -1,7 +1,9 @@
 name: Mobile app
 
 # Builds the store app (apps/mobile, docs/store/APP.md) on every change to it and on every merge to main.
-# Pull requests build unsigned. On main, testflight/* branches (and by hand) the testflight job signs the iPhone app in the cloud and uploads
+# Pull requests build unsigned. On main, play/* branches (and by hand) the play job builds Android's signed bundle (AAB) with the
+# upload key (ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD) and, once PLAY_SERVICE_ACCOUNT_JSON is set, sends it to
+# Google Play's internal testing. On main, testflight/* branches (and by hand) the testflight job signs the iPhone app in the cloud and uploads
 # it to TestFlight once the App Store Connect key is in the repository's secrets (APPSTORE_ISSUER_ID, APPSTORE_KEY_ID,
 # APPSTORE_P8); without them it is skipped. No Mac or Xcode is needed on anyone's desk (docs/store/APP.md).
 on:
@@ -9,7 +11,7 @@ on:
     paths: ['apps/mobile/**', '.github/workflows/mobile.yml']
   push:
     # A push to a testflight/* branch uploads that branch's build to TestFlight without merging it.
-    branches: [main, 'testflight/**']
+    branches: [main, 'testflight/**', 'play/**']
     paths: ['apps/mobile/**', '.github/workflows/mobile.yml']
   workflow_dispatch:
 
@@ -46,6 +48,77 @@ jobs:
           name: aqua-swim-android-debug
           path: apps/mobile/android/app/build/outputs/apk/debug/*.apk
           retention-days: 14
+
+  play:
+    # The store bundle for Google Play, signed with the upload key (Play App Signing keeps the app's own key). The first
+    # bundle goes to Play Console by hand (an app's first upload can't come through the API); after that, with the
+    # service account's key in PLAY_SERVICE_ACCOUNT_JSON, every run lands in internal testing as a draft release.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_B64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' }}
+      HAS_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+    steps:
+      - name: Skip without the upload key
+        if: env.HAS_KEYSTORE != 'true'
+        run: echo "::notice::ANDROID_KEYSTORE_B64 and ANDROID_KEYSTORE_PASSWORD are not set; no store bundle built."
+      - uses: actions/checkout@v4
+        if: env.HAS_KEYSTORE == 'true'
+      - uses: pnpm/action-setup@v4
+        if: env.HAS_KEYSTORE == 'true'
+      - uses: actions/setup-node@v4
+        if: env.HAS_KEYSTORE == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        if: env.HAS_KEYSTORE == 'true'
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - if: env.HAS_KEYSTORE == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: env.HAS_KEYSTORE == 'true'
+        run: pnpm --filter @rswim/mobile sync:android
+      - name: Write the upload key
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          printf '%s' "$ANDROID_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/keys/upload.jks"
+          chmod 600 "$RUNNER_TEMP/keys/upload.jks"
+      - name: Build the signed bundle
+        if: env.HAS_KEYSTORE == 'true'
+        working-directory: apps/mobile/android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/keys/upload.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          AQUA_VERSION_CODE: ${{ github.run_number }}
+        run: |
+          ./gradlew bundleRelease
+          jarsigner -verify app/build/outputs/bundle/release/app-release.aab | tail -1
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_KEYSTORE == 'true'
+        with:
+          name: aqua-swim-android-store-${{ github.run_number }}
+          path: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+      - name: Send to Google Play internal testing
+        if: env.HAS_KEYSTORE == 'true' && env.HAS_PLAY == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: il.co.aquaswim.app
+          releaseFiles: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          # A Play app that was never published takes draft releases only; Pit rolls one out in Play Console.
+          status: draft
+      - name: Remove the upload key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
 
   ios:
     runs-on: macos-latest
