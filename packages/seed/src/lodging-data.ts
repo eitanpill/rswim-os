@@ -121,6 +121,7 @@ export async function seedLodgingData(
     holdHours: 48,
     // The day-before WhatsApp tells the guest how to get here.
     guestReminder: true,
+    payAtArrival: true,
     arrivalNote:
       kind === 'swim'
         ? 'החניה ליד הבריכה, הכניסה מהשער הצפוני. קוד לשער: 2580. הקבלה פתוחה עד 20:00.'
@@ -198,6 +199,8 @@ export async function seedLodgingData(
     to: number,
     state: 'held' | 'confirmed' | 'in' = 'confirmed',
     note: string | null = null,
+    /** The guest pays the rest at the desk on arrival, in cash or by card. */
+    payAtArrival = false,
   ) => {
     const ids = await bookStay(tx, ctx, {
       roomId,
@@ -208,6 +211,7 @@ export async function seedLodgingData(
       checkIn: day(from),
       checkOut: day(to),
       hold: state === 'held',
+      payAtArrival,
       note,
       source: 'office',
       leadId: null,
@@ -236,6 +240,8 @@ export async function seedLodgingData(
         4,
         'confirmed',
         'מגיעים עם עגלה, לבקש מיטת תינוק',
+        // Deposit by Bit, the rest in cash at the desk.
+        true,
       ),
       'deposit',
       'bit',

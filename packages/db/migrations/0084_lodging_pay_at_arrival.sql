@@ -1,0 +1,2 @@
+ALTER TABLE "lodging_settings" ADD COLUMN "pay_at_arrival" boolean DEFAULT true NOT NULL;--> statement-breakpoint
+ALTER TABLE "lodging_stays" ADD COLUMN "pay_at_arrival" boolean DEFAULT false NOT NULL;

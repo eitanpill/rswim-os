@@ -53,6 +53,7 @@ import {
   housekeepingAction,
   moveStayAction,
   recordPaymentAction,
+  payAtArrivalAction,
   requestPaymentAction,
   rateActiveAction,
   removeRateAction,
@@ -130,7 +131,8 @@ const whereOf = (t: T, rooms: RoomRow[], s: StayFacts) => {
 export async function TodayView({ base }: { base: LodgingBase }) {
   const t = await getTranslations('lodging');
   const day = await withSession((tx) => lodgingDay(tx));
-  const { plan, rooms, settings } = day;
+  const locale = (await getLocale()) === 'en' ? 'en' : 'he';
+  const { plan, rooms, settings, collect } = day;
   if (!rooms.length) {
     return (
       <Card>
@@ -160,6 +162,15 @@ export async function TodayView({ base }: { base: LodgingBase }) {
           {whereOf(t, rooms, s)} · {t('guests', { n: s.guests })}
           {s.status === 'held' ? ` · ${t('status.held')}` : ''}
         </span>
+        {move === 'check_in' && collect[s.id] ? (
+          <span className="mt-1" data-testid="lodging-collect">
+            <Badge tone="warn">
+              {t(s.payAtArrival ? 'today.collectAtDesk' : 'today.collect', {
+                amount: formatILS(agorot(collect[s.id] ?? 0), locale),
+              })}
+            </Badge>
+          </span>
+        ) : null}
       </Link>
       <ActionButton action={moveStayAction} fields={{ id: s.id, move }} size="sm">
         {t(`moves.${move}`)}
@@ -465,6 +476,9 @@ export async function BoardView({
                     />
                     <Field name="note" label={t('board.note')} autoComplete="off" />
                     <CheckboxField name="hold" label={t('board.hold', { h: settings.holdHours })} />
+                    {settings.payAtArrival ? (
+                      <CheckboxField name="payAtArrival" label={t('board.payAtArrival')} />
+                    ) : null}
                     <div className="md:col-span-2">
                       <SubmitButton>{t('board.book')}</SubmitButton>
                     </div>
@@ -844,6 +858,13 @@ export async function RoomsView() {
             />
           </div>
           <div className="md:col-span-2">
+            <CheckboxField
+              name="payAtArrival"
+              label={t('rooms.payAtArrival')}
+              defaultChecked={settings.payAtArrival}
+            />
+          </div>
+          <div className="md:col-span-2">
             <TextareaField
               name="arrivalNote"
               label={t('rooms.arrivalNote')}
@@ -1150,6 +1171,30 @@ async function StayMoney({
         <p className="mb-3 text-sm text-warn-ink" data-testid="money-hold">
           {t('pay.holdUntil', { at: whenFmt(locale, stay.holdUntil) })}
         </p>
+      ) : null}
+      {open && (stay.payAtArrival || booking.payAtArrivalAllowed) ? (
+        <div
+          className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line px-3 py-2"
+          data-testid="money-at-arrival"
+          data-on={stay.payAtArrival ? 'yes' : 'no'}
+        >
+          <span className="text-sm">
+            {stay.payAtArrival
+              ? `${t('pay.atArrivalIs', {
+                  amount: ils(Math.max(0, (m.dueAgorot ?? 0) - m.depositDueAgorot)),
+                })}${m.depositDueAgorot > 0 ? ` ${t('pay.atArrivalDeposit')}` : ''}`
+              : t('pay.atArrivalOffNote')}
+          </span>
+          <ActionButton
+            action={payAtArrivalAction}
+            fields={{ stayId: stay.id, ...(stay.payAtArrival ? {} : { on: 'on' }) }}
+            size="sm"
+            variant="secondary"
+            data-testid="money-at-arrival-toggle"
+          >
+            {stay.payAtArrival ? t('pay.atArrivalStop') : t('pay.atArrivalStart')}
+          </ActionButton>
+        </div>
       ) : null}
       {m.overpaidAgorot > 0 ? (
         <p className="mb-3 text-sm text-danger-ink">

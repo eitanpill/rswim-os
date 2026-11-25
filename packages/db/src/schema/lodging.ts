@@ -57,6 +57,8 @@ export const lodgingSettings = pgTable(
     guestReminder: boolean('guest_reminder').notNull().default(true),
     /** How to get here and get in (directions, parking, the gate code), sent in that reminder. */
     arrivalNote: text('arrival_note'),
+    /** Guests may pay what is left after the deposit at the desk on arrival, in cash or by card. */
+    payAtArrival: boolean('pay_at_arrival').notNull().default(true),
     updatedAt: updatedAt(),
   },
   () => [
@@ -157,6 +159,8 @@ export const lodgingStays = pgTable(
     holdUntil: timestamp('hold_until', { withTimezone: true }),
     /** The price when booked, from the price list (null when the room has no price). */
     totalAgorot: integer('total_agorot'),
+    /** The guest pays what is left after the deposit at the desk on arrival (cash or card), not by a link. */
+    payAtArrival: boolean('pay_at_arrival').notNull().default(false),
     checkedInAt: timestamp('checked_in_at', { withTimezone: true }),
     checkedOutAt: timestamp('checked_out_at', { withTimezone: true }),
     createdAt: createdAt(),

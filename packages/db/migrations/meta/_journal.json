@@ -589,6 +589,13 @@
       "when": 1795602299093,
       "tag": "0083_brain_book_lodging",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1795619124768,
+      "tag": "0084_lodging_pay_at_arrival",
+      "breakpoints": true
     }
   ]
 }

@@ -51,7 +51,7 @@ export const lodgingLeadBotModule: LeadBotModule = {
       { checkIn: s.checkInTime, checkOut: s.checkOutTime },
       rates,
       s.minNights,
-      { percent: s.depositPercent, holdHours: s.holdHours },
+      { percent: s.depositPercent, holdHours: s.holdHours, payAtArrival: s.payAtArrival },
     );
   },
   tools: [
@@ -73,7 +73,7 @@ export const lodgingLeadBotModule: LeadBotModule = {
     {
       name: 'lodging_book',
       description:
-        'Books one of the options lodging_availability offered, for this customer: the same dates and guests, the room by its name, and the name the booking is under. Returns status done (held, details and deposit link sent to the customer), waiting (the office confirms), not_allowed or failed.',
+        'Books one of the options lodging_availability offered, for this customer: the same dates and guests, the room by its name, and the name the booking is under. pay_at_arrival true when the customer prefers to pay the rest at reception on arrival (cash or card) and the business allows it; the deposit is still paid by link. Returns status done (held, details and deposit link sent to the customer), waiting (the office confirms), not_allowed or failed.',
       input_schema: {
         type: 'object',
         properties: {
@@ -82,6 +82,7 @@ export const lodgingLeadBotModule: LeadBotModule = {
           guests: { type: 'integer' },
           room: { type: 'string' },
           guest_name: { type: 'string' },
+          pay_at_arrival: { type: 'boolean' },
         },
         required: ['check_in', 'check_out', 'guests', 'room', 'guest_name'],
         additionalProperties: false,
@@ -119,6 +120,7 @@ export const lodgingLeadBotModule: LeadBotModule = {
 const Book = Availability.extend({
   room: z.string().trim().min(1).max(120),
   guest_name: z.string().trim().min(1).max(120),
+  pay_at_arrival: z.boolean().optional(),
 });
 
 /** The bot books what it offered: only a free option of these dates that is not too short. */
@@ -142,6 +144,8 @@ async function bookFromBot(tx: Tx, ctx: ServiceContext, leadId: string, input: u
     checkOut: ask.check_out,
     guests: ask.guests,
     guestName: ask.guest_name,
+    // Only where the business lets guests pay at the desk; otherwise the rest goes by link as usual.
+    ...(ask.pay_at_arrival && settings.payAtArrival ? { payAtArrival: true } : {}),
   };
   try {
     const out = await takeAction(tx, ctx, {
@@ -190,6 +194,7 @@ export async function holdForLead(
     checkIn: p.checkIn,
     checkOut: p.checkOut,
     hold: settings.depositPercent > 0,
+    payAtArrival: !!p.payAtArrival && settings.payAtArrival,
     source: 'bot',
     leadId: p.leadId,
   });
@@ -240,6 +245,7 @@ export async function holdForLead(
           depositAgorot: deposit,
           payUrl,
           holdUntil: until,
+          payAtArrival: stay.payAtArrival,
         },
         locale,
       ),

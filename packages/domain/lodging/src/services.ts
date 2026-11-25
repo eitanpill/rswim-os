@@ -25,6 +25,7 @@ import {
   STAY_HOLDING,
   STAY_BOOKING_SOURCES,
   type HousekeepingState,
+  type LodgingPaymentKind,
   type RoomFacility,
   type RateKind,
   type RateMode,
@@ -57,10 +58,11 @@ import {
   type RoomFacts,
   type StayFacts,
 } from './policies';
-import { holdUntil } from './deposit';
+import { bookingMoney, holdUntil } from './deposit';
 import { quoteStay, rateProblem, type RateFacts, type StayQuote } from './prices';
 
-const { lodgingSettings, lodgingRooms, lodgingBeds, lodgingStays, lodgingRates } = schema;
+const { lodgingSettings, lodgingRooms, lodgingBeds, lodgingStays, lodgingRates, lodgingPayments } =
+  schema;
 
 async function guarded<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -85,6 +87,7 @@ export const LodgingSettingsInput = z.object({
   holdHours: requiredInt(1, 168).default(24),
   guestReminder: checkbox(),
   arrivalNote: optionalText(1000),
+  payAtArrival: checkbox(),
 });
 export type LodgingSettingsInput = z.input<typeof LodgingSettingsInput>;
 
@@ -99,6 +102,8 @@ export interface LodgingSettingsView {
   holdHours: number;
   guestReminder: boolean;
   arrivalNote: string | null;
+  /** Guests may pay what is left after the deposit at the desk on arrival (cash or card). */
+  payAtArrival: boolean;
 }
 
 export async function getLodgingSettings(tx: Tx): Promise<LodgingSettingsView> {
@@ -114,6 +119,7 @@ export async function getLodgingSettings(tx: Tx): Promise<LodgingSettingsView> {
     holdHours: row?.holdHours ?? 24,
     guestReminder: row?.guestReminder ?? true,
     arrivalNote: row?.arrivalNote ?? null,
+    payAtArrival: row?.payAtArrival ?? true,
   };
 }
 
@@ -134,6 +140,7 @@ export async function saveLodgingSettings(
     holdHours: v.holdHours,
     guestReminder: v.guestReminder,
     arrivalNote: v.arrivalNote,
+    payAtArrival: v.payAtArrival,
   };
   await guarded(() =>
     tx
@@ -537,6 +544,7 @@ const toFacts = (r: typeof lodgingStays.$inferSelect): StayFacts => ({
   checkOut: r.checkOut,
   status: r.status as StayStatus,
   ...(r.source === 'block' ? { blocked: true } : {}),
+  ...(r.payAtArrival ? { payAtArrival: true } : {}),
 });
 
 export const FreeSearch = z
@@ -564,6 +572,8 @@ export const StayInput = z
     checkIn: requiredDate(),
     checkOut: requiredDate(),
     hold: checkbox().default(false),
+    /** The guest pays what is left after the deposit at the desk on arrival (the business must allow it). */
+    payAtArrival: checkbox().default(false),
     note: optionalText(500),
     source: z.enum(STAY_BOOKING_SOURCES).default('office'),
     leadId: z.uuid().nullable().default(null),
@@ -589,6 +599,8 @@ export async function bookStay(tx: Tx, ctx: ServiceContext, input: StayInput): P
     throw new DomainError('lodging.errors.tooShort', { n: quote.minNights });
   }
   const settings = await getLodgingSettings(tx);
+  if (v.payAtArrival && !settings.payAtArrival)
+    throw new DomainError('lodging.errors.noPayAtArrival');
   const bookingId = randomUUID();
   const until = v.hold ? holdUntil(new Date(), settings.holdHours) : null;
   const beds =
@@ -618,6 +630,7 @@ export async function bookStay(tx: Tx, ctx: ServiceContext, input: StayInput): P
           note: v.note,
           leadId: v.leadId,
           totalAgorot: quote.totalAgorot,
+          payAtArrival: v.payAtArrival,
         })
         .returning({ id: lodgingStays.id }),
     );
@@ -725,6 +738,7 @@ export interface StayView extends StayFacts {
   totalAgorot: number | null;
   bookingId: string;
   holdUntil: Date | null;
+  payAtArrival: boolean;
 }
 
 export async function getStay(tx: Tx, id: string): Promise<StayView | null> {
@@ -748,6 +762,7 @@ export async function getStay(tx: Tx, id: string): Promise<StayView | null> {
     totalAgorot: row.totalAgorot,
     bookingId: row.bookingId,
     holdUntil: row.holdUntil,
+    payAtArrival: row.payAtArrival,
   };
 }
 
@@ -769,6 +784,54 @@ export interface LodgingDay {
   plan: DayPlan;
   /** Every stay that is part of today, for names and links. */
   stays: StayFacts[];
+  /** What each of today's arrivals still owes, for the desk to collect (stays that owe nothing left out). */
+  collect: Record<string, number>;
+}
+
+/**
+ * What these stays' bookings still owe: the price booked (cancelled beds left out) less what came in. The desk collects
+ * it on arrival; stays that owe nothing, or have no price, are left out.
+ */
+export async function dueByStay(
+  tx: Tx,
+  stayIds: readonly string[],
+): Promise<Record<string, number>> {
+  if (!stayIds.length) return {};
+  const mine = await tx
+    .select({ id: lodgingStays.id, bookingId: lodgingStays.bookingId })
+    .from(lodgingStays)
+    .where(inArray(lodgingStays.id, [...stayIds]));
+  const bookingIds = [...new Set(mine.map((r) => r.bookingId))];
+  const [stays, payments] = await Promise.all([
+    tx.select().from(lodgingStays).where(inArray(lodgingStays.bookingId, bookingIds)),
+    tx
+      .select({
+        bookingId: lodgingPayments.bookingId,
+        kind: lodgingPayments.kind,
+        amountAgorot: lodgingPayments.amountAgorot,
+      })
+      .from(lodgingPayments)
+      .where(inArray(lodgingPayments.bookingId, bookingIds)),
+  ]);
+  const due = new Map<string, number>();
+  for (const bookingId of bookingIds) {
+    const all = stays.filter((s) => s.bookingId === bookingId);
+    const live = all.filter((s) => s.status !== 'cancelled');
+    const priced = live.length ? live : all;
+    const total = priced.some((s) => s.totalAgorot === null)
+      ? null
+      : priced.reduce((sum, s) => sum + (s.totalAgorot ?? 0), 0);
+    const lines = payments
+      .filter((p) => p.bookingId === bookingId)
+      .map((p) => ({ kind: p.kind as LodgingPaymentKind, amountAgorot: p.amountAgorot }));
+    due.set(bookingId, bookingMoney(total, lines, 0).dueAgorot ?? 0);
+  }
+  const out: Record<string, number> = {};
+  for (const r of mine) {
+    const amount = due.get(r.bookingId) ?? 0;
+    if (amount > 0) out[r.id] = amount;
+  }
+  return out;
 }
 
 export async function lodgingDay(tx: Tx, date?: string): Promise<LodgingDay> {
@@ -778,7 +841,12 @@ export async function lodgingDay(tx: Tx, date?: string): Promise<LodgingDay> {
     loadRooms(tx),
     loadStays(tx, addDays(day, -1), addDays(day, 2)),
   ]);
-  return { settings, rooms, plan: dayPlan(rooms, stays, day), stays };
+  const plan = dayPlan(rooms, stays, day);
+  const collect = await dueByStay(
+    tx,
+    plan.arrivals.map((s) => s.id),
+  );
+  return { settings, rooms, plan, stays, collect };
 }
 
 /**
@@ -794,7 +862,7 @@ export async function sendMorningBrief(
   if (!settings.morningBrief) return { sent: false, reason: 'brief_off' };
   const phone = settings.briefPhoneE164 ?? (await getAgentSettings(tx)).approvalPhoneE164;
   if (!phone) return { sent: false, reason: 'no_phone' };
-  const { rooms, plan } = await lodgingDay(tx);
+  const { rooms, plan, collect } = await lodgingDay(tx);
   if (!rooms.some((r) => r.active)) return { sent: false, reason: 'no_rooms' };
   const out = await enqueueMessage(tx, ctx, {
     guardian: {
@@ -812,6 +880,7 @@ export async function sendMorningBrief(
         rooms,
         { checkIn: settings.checkInTime, checkOut: settings.checkOutTime },
         locale,
+        collect,
       ),
     }),
     idempotencyKey: `lodging.brief:${plan.date}`,

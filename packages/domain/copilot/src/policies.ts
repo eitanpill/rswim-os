@@ -142,6 +142,8 @@ export const LodgingProposal = z
     checkOut: Date_,
     guests: z.int().min(1).max(60),
     guestName: z.string().trim().min(1).max(120),
+    /** The guest pays the rest at the desk on arrival (cash or card); the deposit still goes by link. */
+    payAtArrival: z.boolean().optional(),
   })
   .strict();
 

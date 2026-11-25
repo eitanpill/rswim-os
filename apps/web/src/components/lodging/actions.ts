@@ -12,6 +12,7 @@ import {
   LodgingSettingsInput,
   moveStay,
   PaymentInput,
+  PayAtArrivalInput,
   PayRequestInput,
   RateInput,
   RateRemove,
@@ -23,6 +24,7 @@ import {
   RoomUpdate,
   saveLodgingSettings,
   setHousekeeping,
+  setPayAtArrival,
   setRateActive,
   StayInput,
   StayMove,
@@ -157,6 +159,14 @@ export async function requestPaymentAction(_: FormState, fd: FormData) {
       success: (r, tr) => tr(r.sent ? 'lodging.pay.linkSent' : 'lodging.pay.linkMade'),
     },
   );
+}
+
+/** The guest pays the rest at the desk on arrival (cash or card), or goes back to paying by link. */
+export async function payAtArrivalAction(_: FormState, fd: FormData) {
+  return runForm(fd, PayAtArrivalInput, (tx, _ctx, v) => setPayAtArrival(tx, v), {
+    revalidate: withStay(fd),
+    success: fd.get('on') ? 'lodging.pay.atArrivalOn' : 'lodging.pay.atArrivalOff',
+  });
 }
 
 /** Closes a room, or one bed of a dorm ("roomId:bedId"), for repair on some nights. */

@@ -6710,7 +6710,9 @@
       "briefOff": "The morning message is off.",
       "blocked": "Closed for repair",
       "reminderOn": "Every guest arriving tomorrow gets a WhatsApp reminder at 17:00: arrival time, directions and what is still owed.",
-      "reminderOff": "The guest reminder the day before arrival is off (in the rooms settings)."
+      "reminderOff": "The guest reminder the day before arrival is off (in the rooms settings).",
+      "collect": "Collect {amount}",
+      "collectAtDesk": "Pays on arrival: collect {amount}"
     },
     "guests": "{n, plural, one {1 guest} other {# guests}}",
     "nights": "{n, plural, one {1 night} other {# nights}}",
@@ -6761,7 +6763,8 @@
       "held": "On hold",
       "tooShort": "At least {n} nights",
       "eachNight": "{amount} each night",
-      "ruleNights": "{rule}: {nights}"
+      "ruleNights": "{rule}: {nights}",
+      "payAtArrival": "Pays the rest on arrival (cash or card)"
     },
     "stay": {
       "title": "Booking",
@@ -6814,7 +6817,8 @@
       "holdHoursHint": "After that the room is freed by itself",
       "guestReminder": "Remind the guest the day before arrival (WhatsApp, 17:00)",
       "arrivalNote": "Arrival instructions",
-      "arrivalNoteHint": "Sent to the guest in the reminder: how to get here, where to park, the gate code."
+      "arrivalNoteHint": "Sent to the guest in the reminder: how to get here, where to park, the gate code.",
+      "payAtArrival": "Guests may pay the rest on arrival, in cash or by card (the deposit is always paid ahead)"
     },
     "kind": {
       "single": "Single",
@@ -6852,7 +6856,8 @@
       "nothingDue": "Nothing to collect right now",
       "notPayable": "The booking was cancelled or has ended",
       "noPhone": "The guest has no phone to send to on WhatsApp",
-      "blockTaken": "Some of these nights are booked. Move the booking first, then close the room."
+      "blockTaken": "Some of these nights are booked. Move the booking first, then close the room.",
+      "noPayAtArrival": "This business does not take payment on arrival. Turn it on in the lodging settings."
     },
     "pricePer": {
       "room": "For the whole room",
@@ -6969,7 +6974,14 @@
       "noProcessor": "Connect a payment processor on the payments screen to send payment links.",
       "description": "Lodging: {name}, {from} to {to}",
       "messageDeposit": "Hello! To keep your booking we ask for a deposit of {amount}. Pay here: {url}",
-      "messageBalance": "Hello! The balance for your stay is {amount}. Pay here: {url}"
+      "messageBalance": "Hello! The balance for your stay is {amount}. Pay here: {url}",
+      "atArrivalIs": "The guest pays on arrival: {amount} at reception, in cash or by card.",
+      "atArrivalOffNote": "The guest pays the rest by link. You can switch to paying on arrival.",
+      "atArrivalStart": "Pays on arrival",
+      "atArrivalStop": "Back to paying by link",
+      "atArrivalOn": "Marked: the rest is paid on arrival",
+      "atArrivalOff": "The rest is paid by link again",
+      "atArrivalDeposit": "The deposit is still paid ahead by link."
     },
     "block": {
       "title": "Close a room for repair",
