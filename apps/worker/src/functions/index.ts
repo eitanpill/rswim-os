@@ -21,7 +21,13 @@ import {
   brainInbound,
   crmPipelineSync,
 } from './comms';
-import { brainEveningSummary, brainLearning, brainMemory, brainMorningCheck } from './brain';
+import {
+  brainEveningSummary,
+  brainLearning,
+  brainMemory,
+  brainMorningCheck,
+  brainWeeklyCoach,
+} from './brain';
 import { corePing } from './core-ping';
 import { crmApplyWebhook, crmImportContacts, crmPushGuardian } from './crm';
 import { outboxRelay } from './outbox-relay';
@@ -45,9 +51,19 @@ import { lodgingMorningBrief } from './lodging';
 import { brainLeadFollowUps, enrollmentTrialReminders } from './leads';
 import { platformProvisionDatabase, platformSyncSchool } from './tenancy';
 import { transportPlanRuns } from './transport';
+import {
+  commsWhatsAppCheck,
+  commsWhatsAppRegister,
+  commsWhatsAppTemplates,
+  commsWhatsAppTemplateSync,
+} from './whatsapp';
 
 export const functions = [
   outboxRelay,
+  commsWhatsAppCheck,
+  commsWhatsAppRegister,
+  commsWhatsAppTemplates,
+  commsWhatsAppTemplateSync,
   lodgingMorningBrief,
   brainLeadFollowUps,
   enrollmentTrialReminders,
@@ -95,5 +111,6 @@ export const functions = [
   brainEveningSummary,
   brainMemory,
   brainLearning,
+  brainWeeklyCoach,
   crmPipelineSync,
 ];

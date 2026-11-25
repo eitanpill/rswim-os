@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import {
+  aiLevel,
   askCopilot,
   confirmCopilotAction,
   dismissCopilotAction,
@@ -20,7 +21,8 @@ export async function askCopilotAction(_: FormState, fd: FormData) {
   return runForm(
     fd,
     z.object({ prompt: z.string().trim().min(1, 'forms.errors.required').max(2000) }),
-    async (tx, ctx, { prompt }) => askCopilot(tx, ctx, copilotModel(await todayIL(tx)), prompt),
+    async (tx, ctx, { prompt }) =>
+      askCopilot(tx, ctx, copilotModel(await todayIL(tx), await aiLevel(tx)), prompt),
     { revalidate: PAGE },
   );
 }

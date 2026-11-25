@@ -11,7 +11,12 @@ import {
   levelsWithinCeiling,
   matchingProfile,
   ownerReply,
+  ownerAnswerText,
   staffAbsence,
+  staffAttendanceAsk,
+  staffAttendanceText,
+  staffDayAsk,
+  staffDayText,
   staffReplyText,
   summaryText,
   undoable,
@@ -216,6 +221,83 @@ describe("an instructor's message", () => {
     expect(en(0, 0)).toContain('no lessons');
     expect(en(2, 1)).toContain('approval');
     expect(en(2, 0)).toContain('looking for a substitute');
+  });
+});
+
+describe('staff and owner on WhatsApp (W7)', () => {
+  const T = '2026-11-03';
+  const lesson = { time: '16:00', title: 'דולפינים', place: 'בריכת גילה', people: 6 };
+
+  it("reads an instructor's question about their day", () => {
+    expect(staffDayAsk('מה יש לי היום?', T)).toEqual({ date: T });
+    expect(staffDayAsk('הלו״ז שלי מחר', T)).toEqual({ date: '2026-11-04' });
+    expect(staffDayAsk('What do I have tomorrow', T)).toEqual({ date: '2026-11-04' });
+    expect(staffDayAsk('מתי ישיבת הצוות?', T)).toBeNull();
+  });
+
+  it('reads a request to mark attendance', () => {
+    expect(staffAttendanceAsk('איפה מסמנים נוכחות?')).toBe(true);
+    expect(staffAttendanceAsk('roll call')).toBe(true);
+    expect(staffAttendanceAsk('מה יש לי היום')).toBe(false);
+  });
+
+  it("writes the instructor's day", () => {
+    const url = 'https://app.test/instructor';
+    expect(staffDayText({ date: T, today: T, lessons: [lesson], url }, 'he')).toBe(
+      `השיעורים שלך היום:\n• 16:00 דולפינים, בריכת גילה (6 משתתפים)\nפרטים ונוכחות: ${url}`,
+    );
+    expect(staffDayText({ date: '2026-11-04', today: T, lessons: [lesson], url: '' }, 'he')).toBe(
+      'השיעורים שלך ב-04/11/2026:\n• 16:00 דולפינים, בריכת גילה (6 משתתפים)',
+    );
+    expect(staffDayText({ date: T, today: T, lessons: [], url }, 'he')).toBe(
+      'אין לך שיעורים היום.',
+    );
+    expect(staffDayText({ date: T, today: T, lessons: [lesson], url }, 'en')).toBe(
+      `Your lessons today:\n• 16:00 דולפינים, בריכת גילה (6)\nDetails and attendance: ${url}`,
+    );
+    expect(staffDayText({ date: '2026-11-04', today: T, lessons: [lesson], url: '' }, 'en')).toBe(
+      'Your lessons on 04/11/2026:\n• 16:00 דולפינים, בריכת גילה (6)',
+    );
+    expect(staffDayText({ date: '2026-11-04', today: T, lessons: [], url }, 'en')).toBe(
+      'You have no lessons on 04/11/2026.',
+    );
+    expect(staffDayText({ date: '2026-11-04', today: T, lessons: [], url }, 'he')).toBe(
+      'אין לך שיעורים ב-04/11/2026.',
+    );
+    expect(staffDayText({ date: T, today: T, lessons: [], url }, 'en')).toBe(
+      'You have no lessons today.',
+    );
+  });
+
+  it('points to attendance, naming the lesson when one is near', () => {
+    const url = 'https://app.test/instructor';
+    expect(staffAttendanceText({ next: lesson, url }, 'he')).toContain('דולפינים בשעה 16:00');
+    expect(staffAttendanceText({ next: null, url }, 'he')).toContain('לא נשאר לך שיעור היום');
+    expect(staffAttendanceText({ next: lesson, url }, 'en')).toContain('at 16:00');
+    expect(staffAttendanceText({ next: null, url }, 'en')).toContain('no lesson left');
+  });
+
+  it("writes the owner's answer with what was done and what waits", () => {
+    expect(
+      ownerAnswerText(
+        {
+          answer: 'יש 3 חובות.',
+          waiting: [{ ref: 7, summary: 'לבטל שיעורים' }],
+          done: ['נשלח קישור'],
+        },
+        'he',
+      ),
+    ).toBe(
+      'יש 3 חובות.\n\n✅ בוצע: נשלח קישור\n\n🤖 מחכה לאישור שלך (#7): לבטל שיעורים\nלאישור "כן 7", לביטול "לא 7".',
+    );
+    expect(
+      ownerAnswerText(
+        { answer: null, waiting: [{ ref: 7, summary: 'cancel' }], done: ['sent'] },
+        'en',
+      ),
+    ).toBe('✅ Done: sent\n\n🤖 Waiting for you (#7): cancel\nReply "yes 7" or "no 7".');
+    expect(ownerAnswerText({ answer: null, waiting: [], done: [] }, 'he')).toContain('לא הצלחתי');
+    expect(ownerAnswerText({ answer: null, waiting: [], done: [] }, 'en')).toContain('could not');
   });
 });
 

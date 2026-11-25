@@ -8,7 +8,10 @@ import {
   GhlMessagingProvider,
   HttpGhlClient,
   MetaApiError,
+  FakeWhatsAppAdmin,
   MetaCloudMessagingProvider,
+  MetaWhatsAppAdmin,
+  type WhatsAppAdmin,
   type GhlClient,
   type GhlContact,
   type MessagingProvider,
@@ -84,4 +87,35 @@ export async function messagingFor(tx: Tx, orgId: string): Promise<MessagingProv
   const token = process.env.GHL_API_TOKEN;
   if (!settings || !token) return null;
   return new GhlMessagingProvider({ token, locationId: settings.locationId });
+}
+
+const fakeAdmins = new Map<string, FakeWhatsAppAdmin>();
+
+/**
+ * Meta's management API for an org's connected number (the connection check, templates), or null when no number is
+ * connected. With RSWIM_MESSAGING_FAKE=1 it is an in-memory stand-in that approves templates on the next look.
+ */
+export async function whatsappAdminFor(
+  tx: Tx,
+  orgId: string,
+): Promise<{ admin: WhatsAppAdmin; connectionId: string; verifyToken: string } | null> {
+  const own = await loadWhatsApp(tx, orgId);
+  if (!own) return null;
+  const base = { connectionId: own.connectionId, verifyToken: own.verifyToken };
+  if (process.env.RSWIM_MESSAGING_FAKE === '1') {
+    let fake = fakeAdmins.get(own.connectionId);
+    if (!fake) {
+      fake = new FakeWhatsAppAdmin(own);
+      fakeAdmins.set(own.connectionId, fake);
+    } else fake.review();
+    return { admin: fake, ...base };
+  }
+  return {
+    admin: new MetaWhatsAppAdmin({
+      phoneNumberId: own.phoneNumberId,
+      businessAccountId: own.businessAccountId,
+      accessToken: own.accessToken,
+    }),
+    ...base,
+  };
 }

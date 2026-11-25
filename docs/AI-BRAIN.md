@@ -186,6 +186,8 @@ new, unless the owner turned the evening summary off.
 6. **Learning the owner** (this PR): approvals, take-backs and the reasons she drops proposals turn into suggested
    levels and a morning check that stops asking what she said no to.
 7. **Looking ahead**: holidays, seasons and the school year against last year's months; heads-ups weeks before.
-8. **A weekly coach**: Sunday's three priorities with buttons, and whether last week's advice worked.
+   First cut in the weekly coach (WhatsApp track W8): the next holiday against the same month last year.
+8. **A weekly coach**: Sunday's three priorities with buttons, and whether last week's advice worked. First cut
+   (W8): the Sunday WhatsApp with three priorities and replies; tracking the advice is still open.
 
 Kinds not wired yet show as "soon" in the settings.

@@ -3396,6 +3396,7 @@
     "tabs": {
       "label": "Messaging screens",
       "inbox": "Inbox",
+      "chats": "Conversations",
       "bot": "Bot",
       "log": "Log",
       "templates": "Templates & automations",
@@ -4271,7 +4272,8 @@
       "plan": "Subscription",
       "setup": "Setup",
       "connections": "Connections",
-      "lodging": "Lodging"
+      "lodging": "Lodging",
+      "chats": "Conversations"
     },
     "clubFallback": "Freediving club",
     "tagline": "Freediving · Gulf of Eilat",
@@ -4702,7 +4704,8 @@
         "ratio": "Instructor ratio",
         "arrived": "Arrivals",
         "expected": "Expected revenue"
-      }
+      },
+      "allChats": "All WhatsApp conversations"
     },
     "payMethod": {
       "card": "Card",
@@ -5831,7 +5834,8 @@
       "errors": {
         "gone": "This suggestion is no longer current; refresh the page"
       }
-    }
+    },
+    "chatLink": "Talk to the assistant"
   },
   "payments": {
     "kicker": "Money",
@@ -6565,6 +6569,7 @@
   },
   "whatsapp": {
     "title": "Business WhatsApp",
+    "kickerDive": "Connections",
     "subtitle": "The business's own number connected straight to Meta: messages go out from it and replies reach the inbox and the bot",
     "ownerOnly": "Only the owner connects the WhatsApp number.",
     "officeConnected": "Connected: messages go out from {phone}.",
@@ -6611,7 +6616,52 @@
       "ownerOnly": "Only the owner connects the number",
       "numberTaken": "This number is already connected to another business",
       "notConnected": "No number is connected",
-      "unknownVariable": "Details the message does not have: {names}"
+      "unknownVariable": "Details the message does not have: {names}",
+      "pin": "The PIN is 6 digits"
+    },
+    "live": {
+      "title": "Going live, three steps",
+      "check": "1. Check the connection",
+      "checkHint": "We check the details with Meta and connect incoming messages to the system. Nothing to paste into Meta.",
+      "checkRun": "Check the connection",
+      "checkAsked": "The check is on its way. Refresh the page in a moment.",
+      "checkOk": "Connected: {name}. Number quality: {quality}. Incoming messages reach the system.",
+      "checkPending": "No result yet. After pressing the check, refresh the page in a few minutes.",
+      "checkFailed": "The check failed. Meta answered:",
+      "register": "WhatsApp Manager shows the number \"not connected\"? Register the number",
+      "registerHint": "A number not registered on the Cloud API receives no messages. Registering moves the number to receive messages here. If it is active in the WhatsApp Business app on a phone, it stops working there.",
+      "registerPin": "6-digit PIN",
+      "registerPinHint": "If the number has no two-step verification yet, choose a new PIN here and keep it. If it has one, enter the same PIN. Forgot it? Change it in WhatsApp Manager, in the number's settings.",
+      "registerRun": "Register the number",
+      "registerAsked": "Registration is on its way. Refresh the page in a moment: the result shows under the connection check.",
+      "quality": {
+        "GREEN": "good",
+        "YELLOW": "medium",
+        "RED": "low",
+        "NA": "not rated yet"
+      },
+      "templates": "2. Message approval at Meta",
+      "templatesHint": "To message a customer who has not written in the last 24 hours, Meta has to approve the wording first. One tap sends every message for approval. It usually takes minutes to a day.",
+      "templatesRun": "Send the messages for approval",
+      "templatesAsked": "The messages are being sent for approval. Refresh the page in a moment.",
+      "count": {
+        "approved": "{n} approved",
+        "waiting": "{n} waiting",
+        "not_sent": "{n} not sent yet",
+        "rejected": "{n} rejected"
+      },
+      "problem": {
+        "rejected": "Meta rejected the wording. Edit it on the templates screen and send again.",
+        "edge_variable": "The wording starts or ends with a variable, which Meta does not approve. Add a word before or after it.",
+        "too_long": "The wording is longer than 1,024 characters.",
+        "not_sent": "Sending for approval failed."
+      },
+      "test": "3. Test message",
+      "testHint": "First send a message from your phone to the business number, then enter your number here. The message arrives within a minute.",
+      "testPhone": "Your phone",
+      "testRun": "Send a test message",
+      "testQueued": "The message is queued. You can see it in the message log.",
+      "testText": "Connection test: this message was sent from the system through your business number. Everything works!"
     }
   },
   "lodging": {
@@ -6794,6 +6844,101 @@
       "unknown": "Link not found",
       "expired": "This link is no longer valid",
       "otherPhone": "This link was sent to another number. Sign in with the number it was sent to."
+    }
+  },
+  "aiLevel": {
+    "title": "How smart the bot and the assistant are",
+    "hint": "How strong a model answers for the business on WhatsApp and in your assistant. A smarter level answers better and uses the month's AI allowance faster.",
+    "current": "Current level",
+    "pick": "Choose",
+    "saved": "Level saved",
+    "stretch": "{times, plural, =1 {Each answer is one AI action} other {# times more answers from the same allowance}}",
+    "scope": "This applies to the bot (families, new leads and divers) and to the assistant. Message sorting, morning insights and imports stay as they are.",
+    "frugal": {
+      "label": "Frugal",
+      "hint": "Fast and cheap. Good for simple questions: prices, hours, open places."
+    },
+    "balanced": {
+      "label": "Balanced",
+      "hint": "Understands everyday conversations well and takes actions. Fits most businesses."
+    },
+    "smart": {
+      "label": "Smart",
+      "hint": "The strongest model. For complex conversations and the best answers."
+    }
+  },
+  "chats": {
+    "title": "Conversations",
+    "subtitle": "Every WhatsApp conversation in one place: who wrote, what the bot answered and what waits for you",
+    "filters": "Filter conversations",
+    "filter": {
+      "all": "All",
+      "waiting": "Waiting for an answer",
+      "held": "With a person"
+    },
+    "empty": "No conversations yet. The first WhatsApp message will show up here.",
+    "emptyFilter": "No conversations like that right now",
+    "kind": {
+      "family": "Family",
+      "lead": "New customer",
+      "staff": "Staff",
+      "unknown": "Unknown"
+    },
+    "staff": "Staff member",
+    "us": "Us",
+    "heldBadge": "With a person",
+    "waitingBadge": "{n, plural, one {# message waiting} other {# messages waiting}}",
+    "botAnswered": "Bot answered",
+    "back": "All conversations",
+    "familyCard": "Family card",
+    "hold": {
+      "on": "You hold this conversation. The bot is quiet.",
+      "onHint": "Since {when}. Give it back to the bot when you are done.",
+      "off": "The bot answers this conversation",
+      "offHint": "Want to answer yourself? The bot stops answering this number until you give the conversation back.",
+      "take": "I'm taking over",
+      "release": "Give back to the bot"
+    },
+    "taken": "The conversation is yours. The bot will not answer this number.",
+    "released": "The conversation is back with the bot",
+    "sent": "Your answer is queued",
+    "reply": "Reply",
+    "replyHint": "Sent on WhatsApp, respecting quiet hours and Shabbat",
+    "windowClosed": "More than 24 hours since their last message. On a Meta business number free text will not go out until they write again.",
+    "send": "Send",
+    "by": {
+      "person": "Customer",
+      "bot": "Bot",
+      "office": "Staff",
+      "auto": "Automatic message"
+    },
+    "status": {
+      "queued": "On its way",
+      "held": "Goes out after quiet hours",
+      "sent": "Sent",
+      "failed": "Not sent",
+      "blocked": "Blocked"
+    },
+    "reason": {
+      "unknown": "did not know the answer",
+      "sensitive": "sensitive topic",
+      "needs_action": "needed the staff to act",
+      "model_failed": "model error",
+      "ai_cap": "AI allowance used up"
+    },
+    "perf": {
+      "title": "Bot performance",
+      "alone": "Closed by the bot alone",
+      "aloneHint": "{answered} of {total} messages",
+      "handedOff": "Passed to staff",
+      "topReason": "Mostly: {reason}",
+      "noHandoffs": "Nothing passed on",
+      "waiting": "Conversations waiting",
+      "waitingHint": "With a message not handled yet",
+      "held": "Conversations with a person",
+      "heldHint": "The bot is quiet in them",
+      "period": "Last 30 days",
+      "bad": "{n} answers marked as not good"
     }
   }
 }

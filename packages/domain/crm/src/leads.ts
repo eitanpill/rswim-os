@@ -360,3 +360,13 @@ export async function leadSources(tx: Tx, month: string) {
   );
   return sourcesReport(list);
 }
+
+/** Names of leads by id, for a list that shows who wrote (the conversations screen). */
+export async function leadNames(tx: Tx, ids: readonly string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const list = await tx
+    .select({ id: leads.id, name: leads.name })
+    .from(leads)
+    .where(inArray(leads.id, [...ids]));
+  return new Map(list.flatMap((l) => (l.name ? [[l.id, l.name] as const] : [])));
+}

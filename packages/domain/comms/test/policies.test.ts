@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { restWindow } from '@rswim/calendar';
 import { DEFAULT_ORG_RULES, type Classification } from '@rswim/contracts';
 import {
+  botScore,
+  chatKind,
   classifyInbound,
   commsRulesFrom,
   enqueueDecision,
@@ -355,5 +357,21 @@ describe('message words', () => {
     expect(messageDate('2026-10-07', 'he')).toBe('יום רביעי 7.10');
     expect(messageDate('2026-10-07', 'en')).toBe('Wednesday 7.10');
     expect(messagePeriod('2026-10')).toBe('10/2026');
+  });
+});
+
+describe('the conversations screen', () => {
+  it('scores how much the bot closed alone', () => {
+    expect(botScore({ answered: 0, handedOff: 0 })).toEqual({ total: 0, alonePercent: null });
+    expect(botScore({ answered: 3, handedOff: 1 })).toEqual({ total: 4, alonePercent: 75 });
+    expect(botScore({ answered: 2, handedOff: 1 }).alonePercent).toBe(67);
+  });
+
+  it('names who a conversation is with', () => {
+    const none = { householdId: null, leadId: null, staffMemberId: null };
+    expect(chatKind({ ...none, householdId: 'h', leadId: 'l' })).toBe('family');
+    expect(chatKind({ ...none, staffMemberId: 's' })).toBe('staff');
+    expect(chatKind({ ...none, leadId: 'l' })).toBe('lead');
+    expect(chatKind(none)).toBe('unknown');
   });
 });

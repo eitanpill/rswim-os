@@ -14,10 +14,10 @@ until a business's Meta account is connected.
 | W4 Follow-up and lead report | After-trial offer and reminder, one nudge for silent leads, morning count, monthly sources report | Done (PR #60) |
 | W5 Meta Cloud API direct (on fakes) | Send/receive without GHL, the 24-hour window, approved templates with variables, SMS/app fallback | Done (PR #61, SMS/app fallback later) |
 | W6 The club on WhatsApp: customers | Balance and pay link, receipts, schedule, dive booking and passes, missing forms, transport | Done |
-| W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | |
-| W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | |
-| W9 One conversations screen | Every conversation in one place, "I'm taking over" per chat, bot performance | |
-| W10 Live at Reut's | Real number and templates, careful mode, two weeks of close watch, then one-click connect per business | Needs Pit |
+| W7 The club on WhatsApp: staff and owner | Instructor's day, attendance, shift swaps; owner questions and commands with "כן N" | Done |
+| W8 The brain on WhatsApp | Brain stages 7-8: forecasts and the weekly coach, delivered on WhatsApp with do-it replies | Done (first cut) |
+| W9 One conversations screen | Every conversation in one place, "I'm taking over" per chat, bot performance | Done |
+| W10 Live at Reut's | Real number and templates, careful mode, two weeks of close watch, then one-click connect per business | First part built (check, templates' review, test message); the real number needs Pit |
 
 Always a person: discounts and refunds, complaints, health and safety, leaving, anyone who asks for a human.
 
@@ -174,3 +174,81 @@ Always a person: discounts and refunds, complaints, health and safety, leaving, 
   `app.dive_seats_taken` for the worker: it counted no seats under the system role.
 - The stand-in understands "מה פנוי", "להזמין N", "מתי הצלילה הבאה", "כרטיסייה", "טפסים".
 
+## W7: the club on WhatsApp, staff and owner
+
+All in `brain-inbound.ts` (worker function `brain-inbound`), texts in `agent-policies.ts`.
+
+- An instructor writes "מה יש לי היום" / "הלו״ז שלי מחר": the lessons they lead that day, one line each (time, group,
+  place, how many take part), and the link to their screen. A club's instructor gets their sessions of today and
+  tomorrow the same way (`instructorDay`), with the link to `/dive/instructor`. Rules only.
+- "נוכחות": the link to the instructor's screen, naming the lesson that is on now or next. Attendance itself is marked
+  on the screen, not by text: a name typed wrong would mark the wrong child.
+- "אני חולה היום" opens substitute searches as before (brain stage 3): that is the shift swap on WhatsApp.
+- The owner writes anything from the approvals number that is not "כן N", "לא N" or "תזכור ש...": her assistant answers
+  it as in the app (`askCopilot` as the school's owner), at her AI level. An action it proposes runs or waits by the
+  brain's levels; one that waits comes back in the same answer with its "כן N". Needs `copilot.enabled` and a model
+  in the worker (`ANTHROPIC_API_KEY`, or the stand-in with `RSWIM_COPILOT_FAKE=1`); otherwise her message stays in the
+  inbox. Once the assistant is on, the parents' bot leaves every message from that number alone.
+- An owner who also teaches: the instructor's rules read her message first.
+
+## W8: the brain on WhatsApp, the weekly coach
+
+`coach.ts` and `coach-policies.ts` in `@rswim/domain-copilot`, worker function `brain-weekly-coach` (Sundays 08:00).
+
+- One message to the owner's approvals number: last week in a line (joined, left, collected), at most three things
+  that matter this week, and the next holiday in the coming six weeks with how the same month went a year ago (from
+  the brain's month snapshots, when it remembers that month).
+- Priorities in a fixed order: actions that wait for her (each with its "כן N" / "לא N"), lessons of the coming week
+  without an instructor, families whose debt passed the digest's attention age, and the emptiest group under the
+  digest's low-occupancy mark.
+- What she can do is a reply: "כן N" decides a waiting action, and with her assistant on WhatsApp (W7) the message
+  suggests asking it ("מי חייב לנו?"). Without the assistant it points to the screen instead.
+- Not sent without an approvals number, with her summaries turned off, or with nothing to say; once a week.
+- Still open from brain stages 7 and 8: a three-month forecast with ranges, and tracking whether last week's advice
+  worked.
+
+## W9: one conversations screen
+
+`services/chats.ts` in `@rswim/domain-comms`, table `chat_holds`, screens `/admin/messages/chats` and `/dive/chats`
+(one shared component, `apps/web/src/components/chats`).
+
+- One list by phone, the newest first, whoever the person is: a family, a new customer, a diver, staff. Each row
+  shows the last line either way, how many messages wait in the inbox, what the bot did, and whether a person holds
+  the conversation. Filters: all, waiting for an answer, with a person.
+- A conversation opens as one thread, both directions, each outgoing line marked as the bot's, the office's or an
+  automatic message, with its delivery status.
+- "I'm taking over" (`takeOverChat`): a row in `chat_holds` for that phone. `runParentBot` checks it before anything
+  else, so the parents' bot, the lead bot and the divers' bot all stay quiet for that number; the message waits in
+  the inbox. "Give back to the bot" (`releaseChat`) removes the row. A hold has no expiry: the screen counts the held
+  conversations at its head so none is forgotten.
+- The reply box answers whoever wrote (`replyToChat`): a family through the inbox's reply (so the bot still learns
+  from it), a new customer through the lead's reply (the lead moves to "talking"), anyone else as free text. The
+  person's waiting messages leave the inbox. Outside WhatsApp's 24-hour window the box says so.
+- Bot performance at the head (`botPerformance`, last 30 days): the share of messages the bot closed alone, how many
+  it passed on and the most common reason, conversations waiting, conversations with a person.
+- A freediving club reaches the screen from the front desk's leads panel.
+
+## W10, first part: going live from the connection page
+
+Three steps on `/admin/integrations/whatsapp` (a club: `/dive/whatsapp`), once the number's details are saved. The owner asks; the worker talks to
+Meta (`whatsapp-admin.ts`, worker functions in `functions/whatsapp.ts`).
+
+- **Check the connection** (`comms.whatsapp_check_requested`): the worker reads the number from Meta (verified name,
+  quality) and tells Meta to send this business account's messages to the connection's own webhook address
+  (`POST /<WABA>/subscribed_apps` with `override_callback_uri` and the verify token), so the owner pastes nothing
+  into Meta. Meta's refusal is kept on the connection in Meta's words.
+- **Send the messages to Meta's review** (`comms.whatsapp_templates_requested`): every active message becomes a
+  utility template (`metaTemplateDraft`): our variables numbered with an example each, the business's name written
+  into the text, and a name that changes when the text does (`<key>_<locale>_<mark>`). A message named by hand is left
+  alone; one that starts or ends with a variable, or is only a variable, is listed on the page instead of sent. A
+  template already at Meta under that name is adopted. Every 30 minutes the worker brings Meta's decisions home while
+  any template waits (`comms-whatsapp-template-sync`).
+- A template we sent is used only once Meta approved it (`metaTemplateUsable`); until then a message outside the
+  24-hour window is blocked as before. A template named by hand counts as approved.
+- **Test message**: free text from the business number to a phone the owner types.
+- With `RSWIM_MESSAGING_FAKE=1` Meta is a fake (`FakeWhatsAppAdmin`): the check passes, and templates are approved on
+  the next look.
+- Still Pit's: Meta business verification, a number, a system-user token, and taking `RSWIM_MESSAGING_FAKE` off the
+  worker. Not built: Embedded Signup (one-click connect needs Meta's Tech Provider approval).
+- A freediving club has the same page on `/dive/whatsapp` (owner only), opened from `/dive/connections`; both pages
+  are one component (`components/whatsapp/view.tsx`).

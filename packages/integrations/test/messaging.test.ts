@@ -3,6 +3,8 @@ import type Anthropic from '@anthropic-ai/sdk';
 import {
   ClaudeTriageClassifier,
   FakeMessagingProvider,
+  FakeWhatsAppAdmin,
+  MetaWhatsAppAdmin,
   GhlApiError,
   GhlMessagingProvider,
   MetaApiError,
@@ -203,5 +205,212 @@ describe('ClaudeTriageClassifier', () => {
       ).toBeNull();
     }
     expect(new ClaudeTriageClassifier({ apiKey: 'k', model: 'm' }).name).toBe('claude:m');
+  });
+});
+
+describe('MetaWhatsAppAdmin', () => {
+  const capture = (replies: unknown[], status = 200) => {
+    const requests: { url: string; method: string; body: unknown; type: string | null }[] = [];
+    const fetchImpl = (async (url: string, init: RequestInit) => {
+      requests.push({
+        url,
+        method: String(init.method),
+        body: init.body ? JSON.parse(String(init.body)) : null,
+        type: new Headers(init.headers).get('Content-Type'),
+      });
+      const reply = replies.shift();
+      return new Response(typeof reply === 'string' ? reply : JSON.stringify(reply), { status });
+    }) as unknown as typeof fetch;
+    return { requests, fetchImpl };
+  };
+  const admin = (fetchImpl: typeof fetch) =>
+    new MetaWhatsAppAdmin({
+      phoneNumberId: '1000001',
+      businessAccountId: '2000001',
+      accessToken: 'token',
+      fetch: fetchImpl,
+    });
+
+  it('reads the number, with nulls for what Meta leaves out', async () => {
+    const { requests, fetchImpl } = capture([
+      {
+        display_phone_number: '+972 50-123-4567',
+        verified_name: 'Demo Swim',
+        quality_rating: 'GREEN',
+      },
+      { id: '1000001', verified_name: '' },
+    ]);
+    const a = admin(fetchImpl);
+    expect(await a.number()).toEqual({
+      displayPhone: '+972 50-123-4567',
+      verifiedName: 'Demo Swim',
+      quality: 'GREEN',
+    });
+    expect(requests[0]).toMatchObject({
+      url: 'https://graph.facebook.com/v23.0/1000001?fields=display_phone_number,verified_name,quality_rating',
+      method: 'GET',
+      body: null,
+      type: null,
+    });
+    expect(await a.number()).toEqual({ displayPhone: null, verifiedName: null, quality: null });
+  });
+
+  it('subscribes the app to the business account, then points it at our webhook address', async () => {
+    const { requests, fetchImpl } = capture([
+      { success: true },
+      { success: true },
+      { success: false },
+      { success: true },
+      { success: false },
+    ]);
+    const a = admin(fetchImpl);
+    await a.subscribe('https://app.test/api/webhooks/whatsapp/c1', 'verify');
+    expect(requests[0]).toMatchObject({
+      url: 'https://graph.facebook.com/v23.0/2000001/subscribed_apps',
+      method: 'POST',
+      body: null,
+      type: null,
+    });
+    expect(requests[1]).toMatchObject({
+      url: 'https://graph.facebook.com/v23.0/2000001/subscribed_apps',
+      method: 'POST',
+      type: 'application/json',
+      body: {
+        override_callback_uri: 'https://app.test/api/webhooks/whatsapp/c1',
+        verify_token: 'verify',
+      },
+    });
+    await expect(a.subscribe('https://app.test/x', 'verify')).rejects.toBeInstanceOf(MetaApiError);
+    await expect(a.subscribe('https://app.test/x', 'verify')).rejects.toBeInstanceOf(MetaApiError);
+  });
+
+  it('registers the number on the Cloud API with its PIN', async () => {
+    const { requests, fetchImpl } = capture([{ success: true }, { success: false }]);
+    const a = admin(fetchImpl);
+    await a.register('123456');
+    expect(requests[0]).toMatchObject({
+      url: 'https://graph.facebook.com/v23.0/1000001/register',
+      method: 'POST',
+      type: 'application/json',
+      body: { messaging_product: 'whatsapp', pin: '123456' },
+    });
+    await expect(a.register('123456')).rejects.toBeInstanceOf(MetaApiError);
+  });
+
+  it('creates a utility template with its examples, and one without placeholders', async () => {
+    const { requests, fetchImpl } = capture([{ id: '900', status: 'PENDING' }, {}]);
+    const a = admin(fetchImpl);
+    const draft = {
+      name: 'trial_he_ab12',
+      language: 'he' as const,
+      text: 'היי {{1}}, נתראה {{2}}.',
+    };
+    expect(await a.createTemplate({ ...draft, examples: ['דנה', '21.11'] })).toEqual({
+      id: '900',
+      name: 'trial_he_ab12',
+      language: 'he',
+      status: 'PENDING',
+    });
+    expect(requests[0]).toMatchObject({
+      url: 'https://graph.facebook.com/v23.0/2000001/message_templates',
+      body: {
+        name: 'trial_he_ab12',
+        language: 'he',
+        category: 'utility',
+        parameter_format: 'positional',
+        components: [
+          {
+            type: 'body',
+            text: 'היי {{1}}, נתראה {{2}}.',
+            example: { body_text: [['דנה', '21.11']] },
+          },
+        ],
+      },
+    });
+    expect(await a.createTemplate({ ...draft, text: 'שלום', examples: [] })).toMatchObject({
+      id: null,
+      status: 'PENDING',
+    });
+    expect(requests[1]?.body).toMatchObject({ components: [{ type: 'body', text: 'שלום' }] });
+    expect(
+      (requests[1]?.body as { components: Record<string, unknown>[] }).components[0],
+    ).not.toHaveProperty('example');
+  });
+
+  it('lists templates with their status, skipping rows it cannot read', async () => {
+    const { requests, fetchImpl } = capture([
+      {
+        data: [
+          { id: '900', name: 'a', language: 'he', status: 'APPROVED' },
+          { name: 'b', language: 'en', status: 'REJECTED' },
+          { name: 'broken' },
+        ],
+      },
+      { paging: {} },
+    ]);
+    const a = admin(fetchImpl);
+    expect(await a.templates()).toEqual([
+      { id: '900', name: 'a', language: 'he', status: 'APPROVED' },
+      { id: null, name: 'b', language: 'en', status: 'REJECTED' },
+    ]);
+    expect(requests[0]?.url).toContain('/2000001/message_templates?fields=id,name,language,status');
+    expect(await a.templates()).toEqual([]);
+  });
+
+  it("raises Meta's refusal and an unreadable answer", async () => {
+    const refused = capture(['{"error":{"message":"Invalid OAuth access token"}}'], 401);
+    await expect(admin(refused.fetchImpl).number()).rejects.toMatchObject({
+      status: 401,
+      message: expect.stringContaining('Invalid OAuth'),
+    });
+    const garbage = capture(['<html>']);
+    await expect(admin(garbage.fetchImpl).templates()).rejects.toBeInstanceOf(MetaApiError);
+    const plain = new MetaWhatsAppAdmin({
+      phoneNumberId: '1',
+      businessAccountId: '2',
+      accessToken: 't',
+      baseUrl: 'http://127.0.0.1:9',
+      apiVersion: 'v27.0',
+    });
+    await expect(plain.number()).rejects.toThrow();
+  });
+});
+
+describe('FakeWhatsAppAdmin', () => {
+  it('keeps templates waiting until the review, and refuses a duplicate name', async () => {
+    const a = new FakeWhatsAppAdmin({ phoneNumberId: '1000001', businessAccountId: '2000001' });
+    expect(await a.number()).toMatchObject({ verifiedName: 'Demo Business', quality: 'GREEN' });
+    await a.subscribe('https://app.test/hook', 'verify');
+    expect(a.subscriptions).toEqual([
+      { callbackUrl: 'https://app.test/hook', verifyToken: 'verify' },
+    ]);
+    const draft = { language: 'he' as const, text: 'שלום {{1}}', examples: ['דנה'] };
+    expect(await a.createTemplate({ ...draft, name: 'one' })).toMatchObject({ status: 'PENDING' });
+    await a.createTemplate({ ...draft, name: 'two' });
+    await expect(a.createTemplate({ ...draft, name: 'one' })).rejects.toBeInstanceOf(MetaApiError);
+    a.review(['two']);
+    a.review();
+    expect(await a.templates()).toEqual([
+      { id: 'tpl_1', name: 'one', language: 'he', status: 'APPROVED' },
+      { id: 'tpl_2', name: 'two', language: 'he', status: 'REJECTED' },
+    ]);
+  });
+
+  it('registers the number, and refuses a PIN of zeros like a wrong one', async () => {
+    const a = new FakeWhatsAppAdmin({ phoneNumberId: '1', businessAccountId: '2000001' });
+    await a.register('123456');
+    await expect(a.register('000000')).rejects.toBeInstanceOf(MetaApiError);
+    expect(a.registrations).toEqual(['123456']);
+  });
+
+  it('refuses everything for a business account marked to fail', async () => {
+    const a = new FakeWhatsAppAdmin({ phoneNumberId: '1', businessAccountId: '20000000' });
+    await expect(a.number()).rejects.toBeInstanceOf(MetaApiError);
+    await expect(a.subscribe('u', 'v')).rejects.toBeInstanceOf(MetaApiError);
+    await expect(a.register('123456')).rejects.toBeInstanceOf(MetaApiError);
+    await expect(
+      a.createTemplate({ name: 'n', language: 'he', text: 't', examples: [] }),
+    ).rejects.toBeInstanceOf(MetaApiError);
+    await expect(a.templates()).rejects.toBeInstanceOf(MetaApiError);
   });
 });

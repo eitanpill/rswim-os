@@ -1,13 +1,14 @@
 import 'server-only';
+import { aiModelFor, type AiLevel } from '@rswim/contracts';
 import { FakeCopilotModel } from '@rswim/domain-copilot';
 import { ClaudeCopilotModel, type CopilotModel } from '@rswim/integrations';
 
 /**
  * The copilot's model: the rules-based stand-in with RSWIM_COPILOT_FAKE=1 (demos, tests), Claude with
- * ANTHROPIC_API_KEY, otherwise none (the screen says so).
+ * ANTHROPIC_API_KEY at the level the owner picked, otherwise none (the screen says so).
  */
-export function copilotModel(today: string): CopilotModel | null {
+export function copilotModel(today: string, level: AiLevel): CopilotModel | null {
   if (process.env.RSWIM_COPILOT_FAKE === '1') return new FakeCopilotModel(today);
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  return apiKey ? new ClaudeCopilotModel({ apiKey }) : null;
+  return apiKey ? new ClaudeCopilotModel({ apiKey, model: aiModelFor('copilot', level) }) : null;
 }

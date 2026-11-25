@@ -9,38 +9,66 @@
  *
  * - The owner writes "תזכור ש..." from that number: the brain keeps it as a note (stage 5) and says so.
  *
- * Everything else stays in the inbox. The rules decide; no model reads these messages.
+ * - An instructor asks for their day or for attendance (WhatsApp track W7): the lessons they lead that day, one line
+ *   each, and the link to their screen. A club's instructor gets their sessions the same way.
+ * - The owner writes anything else from the approvals number (W7): the assistant answers it like the chat in the app,
+ *   as the owner. An action it proposes runs or waits by the brain's levels, and one that waits comes back with its
+ *   "כן N". This is the only part a model reads, and only when the worker has one.
+ *
+ * Everything else stays in the inbox. The rules decide the rest; no model reads those messages.
  */
-import { and, desc, eq, schema, sql, type Tx } from '@rswim/db';
+import { and, asc, desc, eq, schema, sql, type Tx } from '@rswim/db';
 import { enqueueMessage } from '@rswim/domain-comms';
 import type { ServiceContext } from '@rswim/domain-core';
+import { instructorDay } from '@rswim/domain-dive';
+import { aiAllowed, hasFeature } from '@rswim/domain-platform';
 import { todayIL } from '@rswim/domain-scheduling';
+import { resolvePolicyFor } from '@rswim/domain-settings';
+import type { CopilotModel } from '@rswim/integrations';
 import { getAgentSettings } from './agent';
 import {
   decisionText,
+  ownerAnswerText,
   ownerReply,
   staffAbsence,
+  staffAttendanceAsk,
+  staffAttendanceText,
+  staffDayAsk,
+  staffDayText,
   staffReplyText,
   summaryText,
   type DecisionOutcome,
   type OwnerReply,
+  type StaffLesson,
 } from './agent-policies';
 import { remember } from './memory';
 import { rememberRequest, rememberedText } from './memory-policies';
 import type { Explanation } from './policies';
 import {
+  askCopilot,
   confirmCopilotAction,
+  copilotAvailable,
   dismissCopilotAction,
   substituteSummary,
   takeAction,
 } from './services';
 
-const { copilotActions, inboundMessages } = schema;
+const { copilotActions, copilotRequests, inboundMessages } = schema;
+
+export interface BrainInboundOptions {
+  /** The assistant's model, for the owner's free questions; without one they stay in the inbox. */
+  model?: CopilotModel | null;
+  /** The site's address, for the instructor's links. */
+  publicUrl?: string;
+}
 
 export type BrainInboundResult =
   | { outcome: 'skipped'; reason: string }
   | { outcome: 'remembered'; memoryId: string }
   | { outcome: 'owner_decided'; decision: DecisionOutcome; actionId: string | null }
+  | { outcome: 'owner_asked'; requestId: string; waiting: number }
+  | { outcome: 'staff_day'; date: string; lessons: number }
+  | { outcome: 'staff_attendance'; lesson: boolean }
   | {
       outcome: 'staff_request';
       date: string;
@@ -50,13 +78,19 @@ export type BrainInboundResult =
 const rows = async <T>(tx: Tx, q: ReturnType<typeof sql>) =>
   (await tx.execute<Record<string, unknown>>(q)).rows as T[];
 
-/** Whether a message is the owner answering a waiting action or asking to remember (the parents' bot leaves those alone). */
+/**
+ * Whether a message from the approvals number is the brain's (the parents' bot leaves those alone): an answer to a
+ * waiting action, "תזכור ש...", or anything at all once the owner's assistant is on (it answers her there).
+ */
 export async function isOwnerReply(
   tx: Tx,
   m: { fromPhoneE164: string | null; body: string },
 ): Promise<boolean> {
-  if (!m.fromPhoneE164 || (!ownerReply(m.body) && !rememberRequest(m.body))) return false;
-  return (await getAgentSettings(tx)).approvalPhoneE164 === m.fromPhoneE164;
+  if (!m.fromPhoneE164) return false;
+  if ((await getAgentSettings(tx)).approvalPhoneE164 !== m.fromPhoneE164) return false;
+  if (ownerReply(m.body) || rememberRequest(m.body)) return true;
+  const today = await todayIL(tx);
+  return (await resolvePolicyFor(tx, { date: today })).rules.copilot?.enabled === true;
 }
 
 /** Reads one inbound message for the brain: an owner's decision, an instructor's request, or nothing. */
@@ -64,6 +98,7 @@ export async function runBrainInbound(
   tx: Tx,
   ctx: ServiceContext,
   inboundMessageId: string,
+  opts: BrainInboundOptions = {},
 ): Promise<BrainInboundResult> {
   const [row] = await tx
     .select()
@@ -80,12 +115,19 @@ export async function runBrainInbound(
   const note = fromOwner ? rememberRequest(row.body) : null;
   if (note) return rememberFromWhatsApp(tx, ctx, row, note.body);
   if (row.staffMemberId) {
-    const ask = staffAbsence(row.body, await todayIL(tx));
+    const today = await todayIL(tx);
+    const ask = staffAbsence(row.body, today);
     if (ask) {
       if (settings.effective.substitute === 'off') return { outcome: 'skipped', reason: 'off' };
       return staffRequest(tx, ctx, row, ask.date);
     }
+    const base = (opts.publicUrl ?? '').replace(/\/$/, '');
+    if (staffAttendanceAsk(row.body)) return staffAttendance(tx, ctx, row, today, base);
+    const day = staffDayAsk(row.body, today);
+    if (day) return staffDay(tx, ctx, row, day.date, today, base);
   }
+  // An owner who also teaches gets the instructor's answers above; anything else of hers is for her assistant.
+  if (fromOwner) return ownerQuestion(tx, ctx, row, opts.model ?? null);
   return { outcome: 'skipped', reason: 'not_for_brain' };
 }
 
@@ -123,6 +165,140 @@ async function schoolOwner(tx: Tx): Promise<string | null> {
         order by created_at limit 1`,
   );
   return owner?.userId ?? null;
+}
+
+/** The owner's free message from the approvals number: the assistant answers it as her, like the chat in the app. */
+async function ownerQuestion(
+  tx: Tx,
+  ctx: ServiceContext,
+  row: InboundRow,
+  model: CopilotModel | null,
+): Promise<BrainInboundResult> {
+  const text = row.body.trim();
+  if (!text || text.length > 2000) return { outcome: 'skipped', reason: 'not_for_brain' };
+  // With the assistant off, or no model in the worker, her message stays in the inbox.
+  if (!(await copilotAvailable(tx, model)).ok)
+    return { outcome: 'skipped', reason: 'not_for_brain' };
+  // The assistant belongs to plans that include it, on WhatsApp as on its screen.
+  if (!(await hasFeature(tx, 'copilot'))) return { outcome: 'skipped', reason: 'not_for_brain' };
+  if (!(await aiAllowed(tx))) return { outcome: 'skipped', reason: 'ai_cap' };
+  const userId = await schoolOwner(tx);
+  if (!userId) return { outcome: 'skipped', reason: 'no_owner' };
+  const requestId = await askCopilot(tx, { orgId: ctx.orgId, userId }, model, text);
+  const [req] = await tx
+    .select({ answer: copilotRequests.answer })
+    .from(copilotRequests)
+    .where(eq(copilotRequests.id, requestId));
+  const acts = await tx
+    .select({
+      ref: copilotActions.ref,
+      status: copilotActions.status,
+      summary: copilotActions.summary,
+    })
+    .from(copilotActions)
+    .where(eq(copilotActions.requestId, requestId))
+    .orderBy(asc(copilotActions.ref));
+  const line = (a: (typeof acts)[number]) => summaryText(a.summary as Explanation, 'he');
+  const waiting = acts.flatMap((a) =>
+    a.status === 'proposed' && a.ref !== null ? [{ ref: a.ref, summary: line(a) }] : [],
+  );
+  await replyTo(
+    tx,
+    ctx,
+    row,
+    ownerAnswerText(
+      {
+        answer: req?.answer?.trim() || null,
+        waiting,
+        done: acts.filter((a) => a.status === 'confirmed').map(line),
+      },
+      'he',
+    ),
+  );
+  await markHandled(tx, row, 'actioned');
+  return { outcome: 'owner_asked', requestId, waiting: waiting.length };
+}
+
+/** The lessons a staff member leads on a date: a swim school's sessions, and a club's sessions (today and tomorrow). */
+async function staffLessons(tx: Tx, staffId: string, date: string): Promise<StaffLesson[]> {
+  const swim = await rows<StaffLesson & { at: string }>(
+    tx,
+    sql`select to_char(s.starts_at at time zone 'Asia/Jerusalem', 'HH24:MI') "time", t.name title, v.name place,
+               (select count(*)::int from enrollments e
+                where e.class_template_id = t.id and e.status = 'active' and e.starts_on <= s.date
+                  and (e.ends_on is null or e.ends_on > s.date)) people,
+               s.starts_at::text at
+        from sessions s join class_templates t on t.id = s.class_template_id join venues v on v.id = s.venue_id
+        where s.date = ${date}::date and s.status = 'scheduled'
+          and coalesce((select ss.staff_member_id from session_staff ss
+                        where ss.session_id = s.id and ss.role = 'lead'), t.lead_staff_id) = ${staffId}
+        order by s.starts_at`,
+  );
+  if (swim.length > 0)
+    return swim.map(({ time, title, place, people }) => ({ time, title, place, people }));
+  const il = (iso: string, o: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', ...o }).format(new Date(iso));
+  const dive = (await instructorDay(tx, staffId)).sessions;
+  return dive
+    .filter((d) => il(d.startsAt, { year: 'numeric', month: '2-digit', day: '2-digit' }) === date)
+    .map((d) => ({
+      time: il(d.startsAt, { hour: '2-digit', minute: '2-digit', hour12: false }),
+      title: d.title,
+      place: d.siteName,
+      people: d.booked,
+    }));
+}
+
+/** Whether the business is a freediving club (its staff's screens live under /dive). */
+async function staffScreen(tx: Tx, base: string): Promise<string> {
+  if (!base) return '';
+  const [org] = await rows<{ vertical: string }>(
+    tx,
+    sql`select vertical from organizations limit 1`,
+  );
+  return org?.vertical === 'freediving' ? `${base}/dive/instructor` : `${base}/instructor`;
+}
+
+/** "מה יש לי היום": the instructor's lessons that day and the link to their screen. */
+async function staffDay(
+  tx: Tx,
+  ctx: ServiceContext,
+  row: InboundRow,
+  date: string,
+  today: string,
+  base: string,
+): Promise<BrainInboundResult> {
+  const lessons = await staffLessons(tx, row.staffMemberId as string, date);
+  await replyTo(
+    tx,
+    ctx,
+    row,
+    staffDayText({ date, today, lessons, url: await staffScreen(tx, base) }, 'he'),
+  );
+  await markHandled(tx, row, 'actioned');
+  return { outcome: 'staff_day', date, lessons: lessons.length };
+}
+
+/** "נוכחות": the link to the instructor's screen, naming the next lesson of today that has not ended long ago. */
+async function staffAttendance(
+  tx: Tx,
+  ctx: ServiceContext,
+  row: InboundRow,
+  today: string,
+  base: string,
+): Promise<BrainInboundResult> {
+  const url = await staffScreen(tx, base);
+  // Without the site's address there is no link to give: a person reads the message.
+  if (!url) return { outcome: 'skipped', reason: 'no_url' };
+  const lessons = await staffLessons(tx, row.staffMemberId as string, today);
+  const [{ now } = { now: '00:00' }] = await rows<{ now: string }>(
+    tx,
+    sql`select to_char(now() at time zone 'Asia/Jerusalem' - interval '90 minutes', 'HH24:MI') now`,
+  );
+  const next = lessons.find((l) => l.time >= now) ?? null;
+  await replyTo(tx, ctx, row, staffAttendanceText({ next, url }, 'he'));
+  await markHandled(tx, row, 'actioned');
+  return { outcome: 'staff_attendance', lesson: next !== null };
 }
 
 /** "תזכור ש..." from the approvals number: a note in the owner's words, and one line back. */

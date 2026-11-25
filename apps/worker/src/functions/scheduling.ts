@@ -107,30 +107,29 @@ export const schedulingApplySubstitute = inngest.createFunction(
 );
 
 /**
- * Every five minutes: open substitute requests whose wave timed out offer the next wave, or become unfilled for the
+ * Every ten minutes: open substitute requests whose wave timed out offer the next wave, or become unfilled for the
  * owner. Finding the tenants is cross-tenant plumbing; each step runs inside its tenant under RLS.
  */
 export const schedulingSubstituteWaves = inngest.createFunction(
   {
     id: 'scheduling-substitute-waves',
-    triggers: [{ cron: '*/5 * * * *' }],
+    triggers: [{ cron: '*/10 * * * *' }],
     concurrency: { limit: 1 },
   },
   async ({ step }) => {
-    const orgIds = await step.run('find-orgs', () =>
-      asPlatform(getDb(), async (tx) =>
-        (
-          await tx
-            .selectDistinct({ id: schema.substituteRequests.organizationId })
-            .from(schema.substituteRequests)
-            .where(
-              and(
-                eq(schema.substituteRequests.status, 'open'),
-                lte(schema.substituteRequests.nextWaveAt, sql`now()`),
-              ),
-            )
-        ).map((r) => r.id),
-      ),
+    // A read, outside a step: an idle run costs one Inngest execution.
+    const orgIds = await asPlatform(getDb(), async (tx) =>
+      (
+        await tx
+          .selectDistinct({ id: schema.substituteRequests.organizationId })
+          .from(schema.substituteRequests)
+          .where(
+            and(
+              eq(schema.substituteRequests.status, 'open'),
+              lte(schema.substituteRequests.nextWaveAt, sql`now()`),
+            ),
+          )
+      ).map((r) => r.id),
     );
     let advanced = 0;
     let unfilled = 0;

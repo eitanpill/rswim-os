@@ -42,8 +42,9 @@ describe('ClaudeCopilotModel', () => {
       },
       { stop_reason: 'end_turn', content: [{ type: 'text', text: 'מצאתי את יואב.' }] },
     ]);
+    // Without a model it runs at the default level (balanced).
     const model = new ClaudeCopilotModel({ client });
-    expect(model.name).toBe('claude:claude-opus-5-5');
+    expect(model.name).toBe('claude:claude-sonnet-5-5');
     const out = await model.run({
       system: 'sys',
       prompt: 'איפה יואב?',
@@ -75,7 +76,7 @@ describe('ClaudeCopilotModel', () => {
       ],
     });
     expect(calls[0]).toMatchObject({
-      model: 'claude-opus-5-5',
+      model: 'claude-sonnet-5-5',
       thinking: { type: 'adaptive' },
       system: 'sys',
     });

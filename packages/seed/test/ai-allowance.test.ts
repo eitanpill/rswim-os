@@ -10,7 +10,13 @@ import { DEMO_ORG, PERSONAS } from '@rswim/db/personas';
 import { withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import { intakeInbound } from '@rswim/domain-comms';
-import { askCopilot, FakeParentBotModel, runParentBot } from '@rswim/domain-copilot';
+import {
+  aiLevel,
+  askCopilot,
+  FakeParentBotModel,
+  runParentBot,
+  setAiLevel,
+} from '@rswim/domain-copilot';
 import { toDomainError, type ServiceContext } from '@rswim/domain-core';
 import { aiAllowance, aiUsageByFeature, recordAiUsage } from '@rswim/domain-platform';
 import { reportUsage, type CopilotModel } from '@rswim/integrations';
@@ -91,6 +97,37 @@ describe('AI allowance', () => {
   it('only the owner and admins read it; an instructor cannot', async () => {
     expect((await as('instructor', (tx) => aiAllowance(tx))).used).toBe(0);
     expect((await as('admin', (tx) => aiAllowance(tx))).used).toBe(1);
+  });
+
+  it('the owner picks the level; cheaper levels take less of the allowance', async () => {
+    expect(await as('owner', (tx) => aiLevel(tx))).toBe('balanced');
+    await as('owner', (tx) => setAiLevel(tx, owner, 'frugal'));
+    // The worker reads the owner's choice; the office cannot change it.
+    expect(await withOrg(t.db, DEMO_ORG.id, (tx) => aiLevel(tx))).toBe('frugal');
+    await expect(
+      as('admin', (tx) => setAiLevel(tx, { ...owner, userId: PERSONAS.admin.userId }, 'smart')),
+    ).rejects.toThrow();
+    expect(await as('owner', (tx) => aiLevel(tx))).toBe('frugal');
+
+    const use = (model: string) => ({
+      model,
+      inputTokens: 100,
+      outputTokens: 10,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+    });
+    // Three balanced answers are one and a half actions; a frugal one adds a tenth. With the copilot's one: 3.
+    for (let i = 0; i < 3; i++)
+      await withOrg(t.db, DEMO_ORG.id, (tx) =>
+        recordAiUsage(tx, DEMO_ORG.id, 'parent_bot', [use('claude-sonnet-5-5')]),
+      );
+    await withOrg(t.db, DEMO_ORG.id, (tx) =>
+      recordAiUsage(tx, DEMO_ORG.id, 'parent_bot', [use('claude-haiku-5-5')]),
+    );
+    expect((await as('owner', (tx) => aiAllowance(tx))).used).toBe(3);
+    expect((await as('owner', (tx) => aiUsageByFeature(tx))).parent_bot.actions).toBe(2);
+    await q(`delete from ai_usage where feature = 'parent_bot'`);
+    expect((await as('owner', (tx) => aiAllowance(tx))).used).toBe(1);
   });
 
   it('warns near the cap, and past it the copilot refuses and the bot hands off', async () => {

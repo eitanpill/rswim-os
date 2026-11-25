@@ -218,6 +218,34 @@ export function windowOpen(lastInboundAt: Date | null, now: Date): boolean {
   );
 }
 
+// ─── The conversations screen (W9) ──────────────────────────────────────────
+
+export interface BotScore {
+  /** Messages the bot dealt with. */
+  total: number;
+  /** Out of 100, how many it answered without a person; null when it had none. */
+  alonePercent: number | null;
+}
+
+/** How much of its work the bot finished alone: the one number the owner reads on the conversations screen. */
+export function botScore(f: { answered: number; handedOff: number }): BotScore {
+  const total = f.answered + f.handedOff;
+  return { total, alonePercent: total === 0 ? null : Math.round((f.answered / total) * 100) };
+}
+
+/** Who a conversation is with, from what the last message was matched to. */
+export type ChatKind = 'family' | 'lead' | 'staff' | 'unknown';
+
+export function chatKind(f: {
+  householdId: string | null;
+  leadId: string | null;
+  staffMemberId: string | null;
+}): ChatKind {
+  if (f.householdId) return 'family';
+  if (f.staffMemberId) return 'staff';
+  return f.leadId ? 'lead' : 'unknown';
+}
+
 export type OutboundShape =
   | { kind: 'text' }
   | { kind: 'template'; name: string; language: 'he' | 'en'; values: string[] }
@@ -232,11 +260,12 @@ export function outboundShape(f: {
   window: boolean;
   open: boolean;
   locale: 'he' | 'en';
-  meta: { name: string | null; params: readonly string[] } | null;
+  meta: { name: string | null; params: readonly string[]; status?: string | null } | null;
   vars: Record<string, unknown> | null;
 }): OutboundShape {
   if (!f.window || f.open) return { kind: 'text' };
-  const name = f.meta?.name;
+  // A template we sent to Meta goes only once Meta approved it; one the owner named by hand is taken as approved.
+  const name = metaTemplateUsable(f.meta?.status ?? null) ? f.meta?.name : null;
   const values = (f.meta?.params ?? []).map((p) => f.vars?.[p]);
   if (name && values.every((v) => v !== undefined && v !== null && String(v) !== '')) {
     return { kind: 'template', name, language: f.locale, values: values.map(String) };
@@ -245,6 +274,78 @@ export function outboundShape(f: {
     kind: 'blocked',
     reason: 'outside_window',
     explanation: explain(name ? 'blocked.outside_window_vars' : 'blocked.outside_window'),
+  };
+}
+
+/** Meta's review ended well, or the template was named by hand (no status kept). */
+export function metaTemplateUsable(status: string | null): boolean {
+  return status === null || status === 'APPROVED';
+}
+
+/** Whether Meta still has to decide on a template (so its status is worth asking for again). */
+export function metaReviewOpen(status: string | null): boolean {
+  return status !== null && !['APPROVED', 'REJECTED', 'DISABLED'].includes(status);
+}
+
+export type MetaDraftProblem = 'no_text' | 'edge_variable' | 'too_long';
+export type MetaDraft =
+  | { ok: true; name: string; text: string; params: string[]; examples: string[] }
+  | { ok: false; reason: MetaDraftProblem };
+
+/** Meta's limit for a template's body. */
+export const META_BODY_MAX = 1024;
+
+/** A short, stable mark of a text (FNV-1a), so an edited message gets a new template name at Meta. */
+function mark(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
+}
+
+/** An example value for one of our variables, as Meta's reviewers ask for with every placeholder. */
+function exampleFor(name: string, school: string): string {
+  if (name === 'school_name') return school || 'Aqua Swim';
+  if (/link|url/.test(name)) return 'https://example.com/a1b2c3';
+  if (/amount|price|balance/.test(name)) return '250';
+  if (/date|day/.test(name)) return '21.11';
+  if (/time|hour/.test(name)) return '17:00';
+  return /name/.test(name) ? 'דנה' : 'דוגמה';
+}
+
+/**
+ * One of our messages as a template Meta can review: our `{{variable}}` placeholders numbered in order of first use
+ * ({{1}}, {{2}}…) with an example each, under a name that changes when the text does. The business's name is written
+ * into the text (it never changes between messages, and most of ours end with it). Meta refuses a body that is only a
+ * placeholder, that starts or ends with one, or that is too long, so those are reported instead of sent.
+ */
+export function metaTemplateDraft(f: {
+  key: string;
+  locale: 'he' | 'en';
+  body: string;
+  school: string;
+}): MetaDraft {
+  const school = f.school.trim();
+  const body = f.body
+    .replace(VARIABLE, (whole, name: string) => (name === 'school_name' && school ? school : whole))
+    .trim()
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n');
+  const bare = body.replace(VARIABLE, '').trim();
+  if (!bare) return { ok: false, reason: 'no_text' };
+  if (/^\{\{[^}]*\}\}/.test(body) || /\{\{[^}]*\}\}$/.test(body))
+    return { ok: false, reason: 'edge_variable' };
+  const params = templateVariables(body);
+  const text = body.replace(VARIABLE, (_, name: string) => `{{${params.indexOf(name) + 1}}}`);
+  if (text.length > META_BODY_MAX) return { ok: false, reason: 'too_long' };
+  return {
+    ok: true,
+    name: `${f.key}_${f.locale}_${mark(body)}`,
+    text,
+    params,
+    examples: params.map((p) => exampleFor(p, school)),
   };
 }
 

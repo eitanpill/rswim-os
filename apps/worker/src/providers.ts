@@ -1,6 +1,7 @@
 import { loadGateway } from '@rswim/domain-billing';
 import { withOrg } from '@rswim/db/service';
-import { FakeParentBotModel } from '@rswim/domain-copilot';
+import { aiModelFor, type AiLevel } from '@rswim/contracts';
+import { FakeCopilotModel, FakeParentBotModel } from '@rswim/domain-copilot';
 import {
   createGateway,
   gatewaySandbox,
@@ -123,20 +124,45 @@ export function insightWriter(): InsightWriter | null {
   return (insights ??= new ClaudeInsightWriter({ apiKey: process.env.ANTHROPIC_API_KEY }));
 }
 
-let botModel: CopilotModel | undefined;
+const botModels = new Map<string, CopilotModel>();
+
+/** Whether a model can answer for the bot at all: the stand-in, or Claude's key. */
+export function botConfigured(): boolean {
+  return process.env.RSWIM_BOT_FAKE === '1' || Boolean(process.env.ANTHROPIC_API_KEY);
+}
 
 /**
- * The model behind the parents' bot, or null (the bot then stays out of the way and the inbox works as before).
+ * The model behind the bot (families, leads, divers) at the level the business's owner picked, or null (the bot then
+ * stays out of the way and the inbox works as before).
  * - RSWIM_BOT_FAKE=1: the rules-based stand-in, for demos and tests.
- * - ANTHROPIC_API_KEY: Claude with the bot's read tools. The owner still has to turn on `comms.bot_enabled`.
+ * - ANTHROPIC_API_KEY: Claude with the bot's tools. The owner still has to turn on `comms.bot_enabled`.
  */
-export function parentBotModel(): CopilotModel | null {
-  if (process.env.RSWIM_BOT_FAKE === '1') return (botModel ??= new FakeParentBotModel());
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  return (botModel ??= new ClaudeCopilotModel({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-    maxTurns: 6,
-  }));
+export function parentBotModel(level: AiLevel): CopilotModel | null {
+  if (!botConfigured()) return null;
+  const fake = process.env.RSWIM_BOT_FAKE === '1';
+  const key = fake ? 'fake' : level;
+  let model = botModels.get(key);
+  if (!model) {
+    model = fake
+      ? new FakeParentBotModel()
+      : new ClaudeCopilotModel({
+          apiKey: process.env.ANTHROPIC_API_KEY,
+          model: aiModelFor('parent_bot', level),
+          maxTurns: 6,
+        });
+    botModels.set(key, model);
+  }
+  return model;
+}
+
+/**
+ * The owner's assistant for her WhatsApp questions (brain-inbound, WhatsApp track W7), at her level: the rules-based
+ * stand-in with RSWIM_COPILOT_FAKE=1, Claude with ANTHROPIC_API_KEY, otherwise none (her message stays in the inbox).
+ */
+export function ownerCopilotModel(level: AiLevel, today: string): CopilotModel | null {
+  if (process.env.RSWIM_COPILOT_FAKE === '1') return new FakeCopilotModel(today);
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  return apiKey ? new ClaudeCopilotModel({ apiKey, model: aiModelFor('copilot', level) }) : null;
 }
 
 /**

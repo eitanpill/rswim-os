@@ -419,7 +419,7 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   `aiAllowance` counts the month (Asia/Jerusalem); from 80% the owner is warned, at the cap the copilot refuses
   (`platform.errors.aiCap`), the parents' bot hands the family to the office (handoff reason `ai_cap`), the worker
   skips Claude's triage and insight notes (the rules still run), and an import's columns are placed by the rules only.
-- Models per feature (decision 8): copilot and parents' bot on Opus, morning insight notes on Sonnet, message triage
+- Models per feature (decision 8; since 2026-11-20 the owner's AI level picks the first two): copilot and parents' bot on Opus, morning insight notes on Sonnet, message triage
   and import columns on Haiku.
 - The brain (`/admin/brain`) is on every plan now; the owner's chat copilot stays on pro; the parents' bot is a plan
   feature (`parent_bot`, growth and pro), per the approved price list.
@@ -523,3 +523,48 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
   day to the lodging number; the lead bot answers free rooms and prices; instructors see nothing. Same screens on
   `/admin/lodging` and `/dive/lodging`, demo data in both demo businesses.
 - Not verified: the morning brief on real WhatsApp (messaging runs on the fake).
+
+## AI level per business (2026-11-20)
+
+- The owner picks how strong a model answers for the business on the connections screen (`/admin/connections`,
+  `/dive/connections`): frugal, balanced (default) or smart. It decides the model of the bot (families, leads, divers)
+  and of the owner's assistant; triage, morning notes and imports keep their own models.
+- Stored in `agent_settings.ai_level` (migration 0076, owner only). `aiModelFor(feature, level)` in `@rswim/contracts`.
+- The monthly allowance counts a balanced answer as half an action and a frugal one as a tenth (`aiActionTenths`,
+  the same rule in SQL in `aiAllowance`); the meter rounds part actions up.
+- Not verified: answers from the real models at each level (no `ANTHROPIC_API_KEY` in this environment; tests run on
+  the fake and on injected models).
+
+## WhatsApp W7: staff and owner (2026-11-20)
+
+- An instructor asks for their day or for attendance on WhatsApp and gets the lessons and the link (swim and dive).
+- The owner's free message from the approvals number is answered by her assistant, with "כן N" for what waits.
+- Not verified: the assistant's answers on the real model, and real WhatsApp delivery (both on fakes in tests).
+
+## WhatsApp W8: the weekly coach (2026-11-20)
+
+- Sundays at 08:00 the owner's approvals number gets the week: last week, three priorities with replies, the next
+  holiday against last year (`brain-weekly-coach`, `coach.ts`).
+- Not built yet: the three-month forecast and tracking last week's advice.
+- Not verified: real WhatsApp delivery (messaging runs on the fake).
+
+## WhatsApp W9: one conversations screen (2026-11-20)
+
+- `/admin/messages/chats` (and `/dive/chats`): every WhatsApp conversation by phone, the whole thread, a reply box,
+  and "I'm taking over", which keeps every bot quiet for that number until it is given back (`chat_holds`).
+- Bot performance for the last 30 days at the head of the screen.
+- Not built: an automatic return to the bot after a quiet period, and search in the list.
+- Not verified: real WhatsApp delivery (messaging runs on the fake).
+
+## WhatsApp W10, first part: going live from the connection page (2026-11-20)
+
+- `/admin/integrations/whatsapp` has three steps for a connected number: check the connection (Meta's view of the
+  number, and our webhook subscribed for the business by the worker), send every message to Meta's review as a
+  template and follow the decisions, and send a test message.
+- A template we sent is used only after Meta approved it.
+- Four default messages were reworded so none starts or ends with a variable (Meta refuses those); businesses that
+  already have the old wording see them listed on the page.
+- A freediving club's owner has the same page on `/dive/whatsapp`, from the club's connections screen.
+- Not built: Embedded Signup.
+- Not verified: every call to Meta. They are written from Meta's documentation and run against a fake here; the
+  first real check needs Pit's verified business, a number and a token.

@@ -178,6 +178,237 @@ export class MetaCloudMessagingProvider implements MessagingProvider {
   }
 }
 
+// ─── Meta's management API for one business account (WhatsApp track W10) ────
+
+export interface WhatsAppNumberInfo {
+  displayPhone: string | null;
+  verifiedName: string | null;
+  /** GREEN, YELLOW, RED or NA. */
+  quality: string | null;
+}
+
+export interface MetaTemplateDraft {
+  name: string;
+  language: 'he' | 'en';
+  /** The text with {{1}}, {{2}}… */
+  text: string;
+  /** One example value per placeholder, in order. */
+  examples: string[];
+}
+
+export interface MetaTemplateState {
+  id: string | null;
+  name: string;
+  language: string;
+  /** Meta's word: PENDING, APPROVED, REJECTED, PAUSED, DISABLED… */
+  status: string;
+}
+
+/** What the worker asks of Meta about a connected business: its number, its webhook and its templates. */
+export interface WhatsAppAdmin {
+  number(): Promise<WhatsAppNumberInfo>;
+  /** Has Meta send this business account's messages to `callbackUrl` (checked by Meta with `verifyToken`). */
+  subscribe(callbackUrl: string, verifyToken: string): Promise<void>;
+  /**
+   * Registers the number on the Cloud API (WhatsApp Manager shows it "not connected" until then) with the six-digit
+   * PIN of its two-step verification; a number still on the WhatsApp Business app leaves it.
+   */
+  register(pin: string): Promise<void>;
+  createTemplate(draft: MetaTemplateDraft): Promise<MetaTemplateState>;
+  templates(): Promise<MetaTemplateState[]>;
+}
+
+export interface MetaAdminOptions {
+  phoneNumberId: string;
+  businessAccountId: string;
+  accessToken: string;
+  apiVersion?: string;
+  baseUrl?: string;
+  fetch?: typeof fetch;
+}
+
+/**
+ * Meta's Graph API for a WhatsApp Business Account, as published in 2026-11: GET /<phone-number-id>,
+ * POST /<waba-id>/subscribed_apps (first plain, then with `override_callback_uri` and `verify_token`: Meta refuses an
+ * override before the app is subscribed to the account, error #100, seen on staging 2026-11-21),
+ * POST /<phone-number-id>/register (a number Meta shows "not connected" receives nothing until it is registered, seen
+ * on staging 2026-11-23), and POST / GET /<waba-id>/message_templates. Not yet exercised against a live account.
+ */
+export class MetaWhatsAppAdmin implements WhatsAppAdmin {
+  private readonly fetchImpl: typeof fetch;
+
+  constructor(private readonly opts: MetaAdminOptions) {
+    this.fetchImpl = opts.fetch ?? fetch;
+  }
+
+  private async call(path: string, init: { method: 'GET' | 'POST'; body?: unknown }) {
+    const res = await this.fetchImpl(
+      `${this.opts.baseUrl ?? 'https://graph.facebook.com'}/${this.opts.apiVersion ?? 'v23.0'}/${path}`,
+      {
+        method: init.method,
+        headers: {
+          Authorization: `Bearer ${this.opts.accessToken}`,
+          ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+        },
+        ...(init.body ? { body: JSON.stringify(init.body) } : {}),
+      },
+    );
+    const text = await res.text();
+    if (!res.ok) throw new MetaApiError(res.status, text);
+    try {
+      return JSON.parse(text) as Record<string, unknown>;
+    } catch {
+      throw new MetaApiError(res.status, text);
+    }
+  }
+
+  async number(): Promise<WhatsAppNumberInfo> {
+    const r = await this.call(
+      `${this.opts.phoneNumberId}?fields=display_phone_number,verified_name,quality_rating`,
+      { method: 'GET' },
+    );
+    const str = (v: unknown) => (typeof v === 'string' && v ? v : null);
+    return {
+      displayPhone: str(r.display_phone_number),
+      verifiedName: str(r.verified_name),
+      quality: str(r.quality_rating),
+    };
+  }
+
+  async subscribe(callbackUrl: string, verifyToken: string): Promise<void> {
+    const path = `${this.opts.businessAccountId}/subscribed_apps`;
+    const plain = await this.call(path, { method: 'POST' });
+    if (plain.success !== true) throw new MetaApiError(200, JSON.stringify(plain));
+    const r = await this.call(path, {
+      method: 'POST',
+      body: { override_callback_uri: callbackUrl, verify_token: verifyToken },
+    });
+    if (r.success !== true) throw new MetaApiError(200, JSON.stringify(r));
+  }
+
+  async register(pin: string): Promise<void> {
+    const r = await this.call(`${this.opts.phoneNumberId}/register`, {
+      method: 'POST',
+      body: { messaging_product: 'whatsapp', pin },
+    });
+    if (r.success !== true) throw new MetaApiError(200, JSON.stringify(r));
+  }
+
+  async createTemplate(draft: MetaTemplateDraft): Promise<MetaTemplateState> {
+    const r = await this.call(`${this.opts.businessAccountId}/message_templates`, {
+      method: 'POST',
+      body: {
+        name: draft.name,
+        language: draft.language,
+        category: 'utility',
+        parameter_format: 'positional',
+        components: [
+          {
+            type: 'body',
+            text: draft.text,
+            ...(draft.examples.length ? { example: { body_text: [draft.examples] } } : {}),
+          },
+        ],
+      },
+    });
+    return {
+      id: typeof r.id === 'string' ? r.id : null,
+      name: draft.name,
+      language: draft.language,
+      status: typeof r.status === 'string' ? r.status : 'PENDING',
+    };
+  }
+
+  async templates(): Promise<MetaTemplateState[]> {
+    const r = await this.call(
+      `${this.opts.businessAccountId}/message_templates?fields=id,name,language,status&limit=250`,
+      { method: 'GET' },
+    );
+    const data = Array.isArray(r.data) ? (r.data as Record<string, unknown>[]) : [];
+    return data.flatMap((t) =>
+      typeof t.name === 'string' && typeof t.language === 'string' && typeof t.status === 'string'
+        ? [
+            {
+              id: typeof t.id === 'string' ? t.id : null,
+              name: t.name,
+              language: t.language,
+              status: t.status,
+            },
+          ]
+        : [],
+    );
+  }
+}
+
+/**
+ * Meta's management API in memory, for demos and tests: a number named after its id, templates that wait as PENDING
+ * until `review()`, and a business account id containing 0000000 refuses everything.
+ */
+export class FakeWhatsAppAdmin implements WhatsAppAdmin {
+  readonly subscriptions: { callbackUrl: string; verifyToken: string }[] = [];
+  /** PINs the number was registered with; a PIN of zeros is refused like a wrong one. */
+  readonly registrations: string[] = [];
+  readonly created = new Map<string, MetaTemplateState & { text: string; examples: string[] }>();
+
+  constructor(private readonly opts: { phoneNumberId: string; businessAccountId: string }) {}
+
+  private guard() {
+    if (this.opts.businessAccountId.includes('0000000'))
+      throw new MetaApiError(400, '{"error":{"message":"(#100) Invalid parameter"}}');
+  }
+
+  async number(): Promise<WhatsAppNumberInfo> {
+    this.guard();
+    return { displayPhone: null, verifiedName: 'Demo Business', quality: 'GREEN' };
+  }
+
+  async subscribe(callbackUrl: string, verifyToken: string): Promise<void> {
+    this.guard();
+    this.subscriptions.push({ callbackUrl, verifyToken });
+  }
+
+  async register(pin: string): Promise<void> {
+    this.guard();
+    if (pin === '000000')
+      throw new MetaApiError(
+        400,
+        '{"error":{"message":"(#133005) Two step verification PIN Mismatch"}}',
+      );
+    this.registrations.push(pin);
+  }
+
+  async createTemplate(draft: MetaTemplateDraft): Promise<MetaTemplateState> {
+    this.guard();
+    const key = `${draft.name}:${draft.language}`;
+    if (this.created.has(key))
+      throw new MetaApiError(400, '{"error":{"message":"Template name already exists"}}');
+    const state = {
+      id: `tpl_${this.created.size + 1}`,
+      name: draft.name,
+      language: draft.language,
+      status: 'PENDING',
+    };
+    this.created.set(key, { ...state, text: draft.text, examples: draft.examples });
+    return state;
+  }
+
+  async templates(): Promise<MetaTemplateState[]> {
+    this.guard();
+    return [...this.created.values()].map(({ id, name, language, status }) => ({
+      id,
+      name,
+      language,
+      status,
+    }));
+  }
+
+  /** Meta's review, in tests: every waiting template is approved, or the named ones refused. */
+  review(rejected: string[] = []) {
+    for (const t of this.created.values())
+      if (t.status === 'PENDING') t.status = rejected.includes(t.name) ? 'REJECTED' : 'APPROVED';
+  }
+}
+
 /**
  * Checks Meta's webhook signature (`X-Hub-Signature-256: sha256=<hex>`, an HMAC-SHA256 of the raw body with the app
  * secret), in constant time. False on anything malformed.

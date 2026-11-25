@@ -13,15 +13,23 @@ import {
   runAutomation,
   sendHolidayNotice,
 } from '@rswim/domain-comms';
-import { runBrainInbound, runParentBot } from '@rswim/domain-copilot';
+import { aiLevel, runBrainInbound, runParentBot } from '@rswim/domain-copilot';
 import { syncPipelineStage, type PipelineStage } from '@rswim/domain-crm';
 import { consumeOnce } from '@rswim/domain-core/worker';
 import { aiAllowed, recordAiUsage } from '@rswim/domain-platform';
 import { trackUsage } from '@rswim/integrations';
+import { TICK_CRON } from '../ticks';
+import { todayIL } from '@rswim/domain-scheduling';
 import { and, eq, lte, schema } from '@rswim/db';
 import { getDb, inngest, log } from '../client';
 import { ghlFor, messagingFor } from '../ghl';
-import { parentBotModel, publicUrl, triageClassifier } from '../providers';
+import {
+  botConfigured,
+  ownerCopilotModel,
+  parentBotModel,
+  publicUrl,
+  triageClassifier,
+} from '../providers';
 import { toEnvelope } from './core-ping';
 
 const sys = (envelope: DomainEventEnvelope) => ({ orgId: envelope.organizationId, userId: null });
@@ -65,30 +73,30 @@ export const commsAutomations = Array.from(
 );
 
 /**
- * Every minute: expand scheduled broadcasts whose time came, then send due messages through the provider. The send
+ * Every few minutes (`TICK_CRON`): expand scheduled broadcasts whose time came, then send due messages through the provider. The send
  * window (quiet hours, Shabbat and Yom Tov) is decided again at send time. Finding the tenants is cross-tenant
  * plumbing; the work runs per tenant under RLS.
  */
 export const commsDispatch = inngest.createFunction(
-  { id: 'comms-dispatch', triggers: [{ cron: '* * * * *' }], concurrency: { limit: 1 } },
+  { id: 'comms-dispatch', triggers: [{ cron: TICK_CRON }], concurrency: { limit: 1 } },
   async ({ step }) => {
     const now = new Date();
-    const orgIds = await step.run('find-orgs', () =>
-      asPlatform(getDb(), async (tx) => {
-        const broadcasting = (
-          await tx
-            .selectDistinct({ id: schema.broadcasts.organizationId })
-            .from(schema.broadcasts)
-            .where(
-              and(
-                eq(schema.broadcasts.status, 'scheduled'),
-                lte(schema.broadcasts.scheduledFor, now),
-              ),
-            )
-        ).map((r) => r.id);
-        return [...new Set([...(await orgsWithDueMessages(tx, now)), ...broadcasting])];
-      }),
-    );
+    // A read, outside a step: an idle run (nothing due) costs one Inngest execution, not two.
+    const orgIds = await asPlatform(getDb(), async (tx) => {
+      const broadcasting = (
+        await tx
+          .selectDistinct({ id: schema.broadcasts.organizationId })
+          .from(schema.broadcasts)
+          .where(
+            and(
+              eq(schema.broadcasts.status, 'scheduled'),
+              lte(schema.broadcasts.scheduledFor, now),
+            ),
+          )
+      ).map((r) => r.id);
+      return [...new Set([...(await orgsWithDueMessages(tx, now)), ...broadcasting])];
+    });
+    if (orgIds.length === 0) return { idle: true };
     const totals = {
       sent: 0,
       held: 0,
@@ -204,11 +212,12 @@ export const commsParentBot = inngest.createFunction(
   async ({ event, step }) => {
     const envelope = toEnvelope(event);
     const { inboundMessageId } = z.object({ inboundMessageId: z.uuid() }).parse(envelope.payload);
-    const model = parentBotModel();
-    if (!model) return { skipped: 'not_configured' };
+    if (!botConfigured()) return { skipped: 'not_configured' };
     return step.run('answer', async () => {
       let result: unknown = { skipped: 'already' };
       await consumeOnce(getDb(), 'comms-parent-bot', envelope, async (tx) => {
+        const model = parentBotModel(await aiLevel(tx));
+        if (!model) return;
         result = await runParentBot(tx, sys(envelope), model, inboundMessageId, {
           publicUrl: publicUrl(),
         });
@@ -220,7 +229,8 @@ export const commsParentBot = inngest.createFunction(
 
 /**
  * The business brain on WhatsApp beyond families (docs/AI-BRAIN.md, stage 3): the owner's "כן 12" / "לא 12" decides a
- * waiting action, and an instructor's "אני חולה היום" opens substitute searches. Rules only, no model needed.
+ * waiting action, an instructor's "אני חולה היום" opens substitute searches, an instructor gets their day, and the
+ * owner's free question is answered by her assistant (the only part that needs a model).
  */
 export const brainInbound = inngest.createFunction(
   { id: 'brain-inbound', triggers: [{ event: 'comms.inbound_received' }], retries: 3 },
@@ -230,7 +240,10 @@ export const brainInbound = inngest.createFunction(
     return step.run('read', async () => {
       let result: unknown = { skipped: 'already' };
       await consumeOnce(getDb(), 'brain-inbound', envelope, async (tx) => {
-        result = await runBrainInbound(tx, sys(envelope), inboundMessageId);
+        result = await runBrainInbound(tx, sys(envelope), inboundMessageId, {
+          model: ownerCopilotModel(await aiLevel(tx), await todayIL(tx)),
+          publicUrl: publicUrl(),
+        });
       });
       return result;
     });

@@ -12,12 +12,15 @@ import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import { intakeInbound } from '@rswim/domain-comms';
 import {
   askCopilot,
+  coachFacts,
   confirmCopilotAction,
   FakeCopilotModel,
   FakeParentBotModel,
+  holidaysAhead,
   listCopilot,
   runBrainInbound,
   runParentBot,
+  sendWeeklyCoach,
   setApprovalPhone,
   undoCopilotAction,
 } from '@rswim/domain-copilot';
@@ -38,7 +41,11 @@ let model: FakeCopilotModel;
 /** An instructor with a phone who leads lessons on the next day with lessons. */
 const staff = { id: '', phone: '', first: '', lessons: 0 };
 
-async function write(phone: string, body: string) {
+async function write(
+  phone: string,
+  body: string,
+  opts: Parameters<typeof runBrainInbound>[3] = {},
+) {
   const intake = await withOrg(t.db, DEMO_ORG.id, (tx) =>
     intakeInbound(tx, worker, {
       provider: 'ghl',
@@ -51,7 +58,7 @@ async function write(phone: string, body: string) {
   );
   if (intake.outcome !== 'stored') throw new Error('not stored');
   const run = await withOrg(t.db, DEMO_ORG.id, (tx) =>
-    runBrainInbound(tx, worker, intake.inboundMessageId),
+    runBrainInbound(tx, worker, intake.inboundMessageId, opts),
   );
   const replies = await q(
     `select to_phone_e164, body from messages where inbound_message_id = $1`,
@@ -199,6 +206,31 @@ describe('the brain takes requests from the owner and the instructors', () => {
     expect(ownerChat.run).toEqual({ outcome: 'skipped', reason: 'not_for_brain' });
   });
 
+  it('tells an instructor their day and where to mark attendance (W7)', async () => {
+    const [{ n }] = await q(
+      `select count(*)::int n from sessions s join class_templates t on t.id = s.class_template_id
+       where s.date = $1::date and s.status = 'scheduled'
+         and coalesce((select ss.staff_member_id from session_staff ss
+                       where ss.session_id = s.id and ss.role = 'lead'), t.lead_staff_id) = $2`,
+      [today, staff.id],
+    );
+    const day = await write(staff.phone, 'מה יש לי היום?', { publicUrl: 'https://app.test/' });
+    expect(day.run).toEqual({ outcome: 'staff_day', date: today, lessons: n });
+    expect(day.status).toBe('actioned');
+    expect(day.replies).toHaveLength(1);
+    expect(day.replies[0].to_phone_e164).toBe(staff.phone);
+    expect(day.replies[0].body).toContain(n > 0 ? 'השיעורים שלך היום' : 'אין לך שיעורים היום');
+    if (n > 0) expect(day.replies[0].body).toContain('https://app.test/instructor');
+
+    const roll = await write(staff.phone, 'איפה מסמנים נוכחות?', { publicUrl: 'https://app.test' });
+    expect(roll.run).toMatchObject({ outcome: 'staff_attendance' });
+    expect(roll.replies[0].body).toContain('https://app.test/instructor');
+    // Without the site's address there is no link to send: the office reads it.
+    const noUrl = await write(staff.phone, 'נוכחות');
+    expect(noUrl.run).toEqual({ outcome: 'skipped', reason: 'no_url' });
+    expect(noUrl.replies).toHaveLength(0);
+  });
+
   it('asks for substitutes from the owner chat', async () => {
     const r = await as(async (tx) => {
       const id = await askCopilot(tx, owner, model, `תמצא מחליף ל${staff.first} ב-${tomorrow}`);
@@ -261,5 +293,58 @@ describe('the brain takes requests from the owner and the instructors', () => {
     });
     expect(empty.actions).toHaveLength(0);
     expect(empty.answer).toContain('אין שיעורים לבטל');
+  });
+
+  it("answers the owner's free message on WhatsApp and takes her yes there (W7)", async () => {
+    const ask = await write(OWNER_PHONE, 'מי חייב כסף?', { model });
+    expect(ask.run).toMatchObject({ outcome: 'owner_asked', waiting: 0 });
+    expect(ask.status).toBe('actioned');
+    expect(ask.replies).toHaveLength(1);
+    expect(ask.replies[0].to_phone_e164).toBe(OWNER_PHONE);
+    expect(ask.replies[0].body.length).toBeGreaterThan(5);
+    // The parents' bot leaves her line to the assistant.
+    const bot = await withOrg(t.db, DEMO_ORG.id, (tx) =>
+      runParentBot(tx, worker, new FakeParentBotModel(), ask.id),
+    );
+    expect(bot).toMatchObject({ outcome: 'skipped' });
+
+    // A command waits for her by the brain's levels, and comes back with its number.
+    const [{ d: later }] = await q(
+      `select min(date)::text d from sessions where date > $1::date and status = 'scheduled'`,
+      [tomorrow],
+    );
+    const cmd = await write(OWNER_PHONE, `תבטל את השיעורים ב-${later} בגלל תקלה בבריכה`, { model });
+    expect(cmd.run).toMatchObject({ outcome: 'owner_asked', waiting: 1 });
+    const [action] = await q(
+      `select ref, status, source from copilot_actions where request_id = $1`,
+      [(cmd.run as { requestId: string }).requestId],
+    );
+    expect(action).toMatchObject({ status: 'proposed', source: 'owner_chat' });
+    expect(cmd.replies[0].body).toContain(`כן ${action.ref}`);
+    const yes = await write(OWNER_PHONE, `כן ${action.ref}`, { model });
+    expect(yes.run).toMatchObject({ outcome: 'owner_decided', decision: 'confirmed' });
+    expect(
+      await q(`select 1 from sessions where date = $1::date and status = 'scheduled'`, [later]),
+    ).toHaveLength(0);
+  });
+
+  it('sends the weekly coach to the owner once a week (W8)', async () => {
+    const facts = await withOrg(t.db, DEMO_ORG.id, (tx) => coachFacts(tx, today));
+    expect(facts.groups.length).toBeGreaterThan(0);
+    const first = await withOrg(t.db, DEMO_ORG.id, (tx) => sendWeeklyCoach(tx, worker, model));
+    expect(first).toEqual({ sent: true });
+    const [msg] = await q(`select to_phone_e164, body from messages where idempotency_key = $1`, [
+      `agent.coach:${facts.weekOf}`,
+    ]);
+    expect(msg.to_phone_e164).toBe(OWNER_PHONE);
+    expect(msg.body).toContain('השבוע שלך');
+    expect(await withOrg(t.db, DEMO_ORG.id, (tx) => sendWeeklyCoach(tx, worker, model))).toEqual({
+      sent: false,
+      reason: 'already',
+    });
+    // Pesach 2027 starts on 22 April: one entry for the holiday, not one per day.
+    const ahead = holidaysAhead('2027-04-01');
+    expect(ahead[0]).toMatchObject({ date: '2027-04-22', daysAway: 21 });
+    expect(new Set(ahead.map((h) => h.name)).size).toBe(ahead.length);
   });
 });

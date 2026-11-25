@@ -54,6 +54,11 @@ export const messageTemplates = pgTable(
       .array()
       .notNull()
       .default(sql`'{}'::text[]`),
+    /** Meta's review of that template (W10): its id there, its status (PENDING, APPROVED, REJECTED…) and a refusal. */
+    metaTemplateId: text('meta_template_id'),
+    metaStatus: text('meta_status'),
+    metaError: text('meta_error'),
+    metaSubmittedAt: timestamp('meta_submitted_at', { withTimezone: true }),
     active: boolean('active').notNull().default(true),
     updatedBy: uuid('updated_by'),
     createdAt: createdAt(),
@@ -313,6 +318,27 @@ export const botReplies = pgTable(
 );
 
 /**
+ * "I'm taking over" (WhatsApp track W9): while a row holds a phone, no bot answers that number. A person at the
+ * office took the conversation and gives it back when done.
+ */
+export const chatHolds = pgTable(
+  'chat_holds',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    phoneE164: text('phone_e164').notNull(),
+    takenBy: uuid('taken_by'),
+    takenAt: timestamp('taken_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('chat_holds_org_id').on(t.organizationId, t.id),
+    unique('chat_holds_phone').on(t.organizationId, t.phoneE164),
+  ],
+);
+
+/**
  * The bot's questions and answers. The office writes them, and every answer the office gives to a question the bot
  * handed off becomes a suggestion here; only active entries reach the bot.
  */
@@ -364,6 +390,12 @@ export const whatsappConnections = pgTable(
     encAppSecret: bytea('enc_app_secret').notNull(),
     lastInboundAt: timestamp('last_inbound_at', { withTimezone: true }),
     lastError: text('last_error'),
+    /** The connection check (W10): what Meta says about the number, and whether its messages are sent to us. */
+    verifiedName: text('verified_name'),
+    quality: text('quality'),
+    checkedAt: timestamp('checked_at', { withTimezone: true }),
+    subscribedAt: timestamp('subscribed_at', { withTimezone: true }),
+    checkError: text('check_error'),
     connectedBy: uuid('connected_by'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

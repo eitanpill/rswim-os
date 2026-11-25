@@ -2,7 +2,7 @@
  * WhatsApp track W5: the owner connects the business's own number on Meta's Cloud API and gets the webhook address
  * and verify token to paste into Meta; Meta's subscription check answers only with that token, and a webhook body
  * not signed with the business's app secret is refused. The office sees only whether it is connected. Every number,
- * token and secret is fake.
+ * token and secret is fake. W10 adds the going-live steps on the same page.
  */
 import { expect, test } from '@playwright/test';
 
@@ -39,6 +39,14 @@ test('the owner connects the business number and Meta can subscribe to it', asyn
   });
   expect(forged.status()).toBe(401);
 
+  // Going live (W10): the check, the templates' review and a test message are asked here; the worker talks to Meta.
+  await expect(page.getByTestId('whatsapp-check')).toHaveAttribute('data-ok', 'no');
+  await page.getByTestId('whatsapp-check-run').click();
+  await expect(page.getByTestId('whatsapp-live')).toContainText('הבדיקה יצאה לדרך');
+  await page.getByTestId('whatsapp-templates-run').click();
+  await expect(page.getByTestId('whatsapp-templates')).toContainText('ההודעות נשלחות לאישור');
+  await expect(page.getByTestId('whatsapp-test-form')).toBeVisible();
+
   await page.goto('/admin/connections');
   await expect(page.getByTestId('connection-whatsapp')).toHaveAttribute('data-state', 'connected');
   await expect(page.getByTestId('connection-whatsapp-link')).toHaveAttribute(
@@ -54,6 +62,37 @@ test('the owner connects the business number and Meta can subscribe to it', asyn
   // Leave the demo as it was: the owner switches the number off.
   await page.goto('/dev/login?as=owner');
   await page.goto('/admin/integrations/whatsapp');
+  page.once('dialog', (d) => d.accept());
+  await page.getByRole('button', { name: 'ניתוק המספר' }).click();
+  await expect(status).toHaveAttribute('data-status', 'disconnected');
+});
+
+test('a freediving club connects its own number from its connections screen', async ({ page }) => {
+  await page.goto('/dev/login?as=diveOwner');
+  await page.goto('/dive/connections');
+  await page.getByTestId('connection-whatsapp-link').click();
+  await expect(page).toHaveURL(/\/dive\/whatsapp$/);
+  const form = page.getByTestId('whatsapp-form');
+  await form.getByLabel('מספר הטלפון של העסק').fill('+972 8-555-0188');
+  await form.getByLabel('Phone number ID').fill('109900000002');
+  await form.getByLabel('WhatsApp Business Account ID').fill('209900000002');
+  await form.getByLabel('Access token (משתמש מערכת)').fill('fake-e2e-dive-token-not-real');
+  await form.getByLabel('App secret').fill('fedcba9876543210fedcba9876543210');
+  await page.getByTestId('whatsapp-save').click();
+  const status = page.getByTestId('whatsapp-status');
+  await expect(status).toHaveAttribute('data-status', 'connected');
+  await expect(page.getByTestId('whatsapp-live')).toBeVisible();
+  await page.getByTestId('whatsapp-check-run').click();
+  await expect(page.getByTestId('whatsapp-live')).toContainText('הבדיקה יצאה לדרך');
+
+  // The desk has no business on this page.
+  await page.goto('/dev/login?as=diveOffice');
+  await page.goto('/dive/whatsapp');
+  await expect(page).toHaveURL(/\/dive\/office$/);
+
+  // Leave the demo as it was.
+  await page.goto('/dev/login?as=diveOwner');
+  await page.goto('/dive/whatsapp');
   page.once('dialog', (d) => d.accept());
   await page.getByRole('button', { name: 'ניתוק המספר' }).click();
   await expect(status).toHaveAttribute('data-status', 'disconnected');

@@ -24,7 +24,13 @@ import { and, desc, eq, inArray, schema, sql, type Tx } from '@rswim/db';
 import { ledgerOfHousehold } from '@rswim/domain-billing';
 import { formsDueFor } from '@rswim/domain-enrollment';
 import { makeupOffers } from '@rswim/domain-attendance';
-import { commsRules, enqueueMessage, israelLocalDateTime, schoolName } from '@rswim/domain-comms';
+import {
+  chatHeld,
+  commsRules,
+  enqueueMessage,
+  israelLocalDateTime,
+  schoolName,
+} from '@rswim/domain-comms';
 import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
 import { guardiansOfHouseholds } from '@rswim/domain-people';
 import { aiAllowed, hasFeature, recordAiUsage } from '@rswim/domain-platform';
@@ -579,6 +585,8 @@ export async function runParentBot(
   if (done) return { outcome: 'skipped', reason: 'already' };
   // The owner answering a waiting action on WhatsApp is the brain's (brain-inbound.ts), not a family's question.
   if (await isOwnerReply(tx, row)) return { outcome: 'skipped', reason: 'owner_reply' };
+  // A person at the office took this conversation (W9): no bot answers until they give it back.
+  if (await chatHeld(tx, row.fromPhoneE164)) return { outcome: 'skipped', reason: 'taken_over' };
   // A new customer (a lead, not a family) gets the front-desk bot (lead-bot.ts, WhatsApp track W2).
   if (row.householdId === null && row.leadId !== null) return runLeadBot(tx, ctx, model, row, opts);
   // A freediving club's registered diver gets the divers' bot (diver-bot.ts, WhatsApp track W6).

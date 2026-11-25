@@ -12,7 +12,7 @@ GoHighLevel (white-labeled "LeadYourWay") stays the marketing and lead engine. R
 - `apps/web`: Next.js 15 (App Router), TypeScript strict, Server Actions (tRPC joins in Phase 1 when client-side queries appear). Surfaces: `/admin`, `/instructor`, `/parent`, `/transport`, `/accountant`, `/platform`
 - `apps/worker`: Inngest functions (outbox relay, scheduled jobs)
 - PostgreSQL on Supabase, Drizzle ORM, SQL migrations + RLS policies in repo
-- Supabase Auth: email/password for staff, phone OTP for parents
+- Supabase Auth: email/password for staff, phone OTP for parents. People stay signed in until they sign out (`lib/supabase/session-policy.ts`: 400-day httpOnly cookies renewed on each refresh in the middleware, one-year ceiling); sign-out is this device only, a password change signs out the others
 - Tailwind 4 + shadcn-style components in `packages/ui`, logical CSS properties only (`ms-`, `pe-`, `start-`, never `ml-`/`right-`; ESLint blocks them)
 - `@hebcal/core` for the Hebrew calendar
 - Vitest (domain, 100% branch coverage on policies), Playwright (E2E + RTL screenshots)
@@ -77,7 +77,7 @@ WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, 
 `ANTHROPIC_API_KEY`; without it the rules classifier decides alone. With `comms.bot_enabled` on, the parents' bot
 (`/admin/messages/bot`) answers families from their own data and the office's approved answers, with Claude
 (`ANTHROPIC_API_KEY`) or a rules-based fake (`RSWIM_BOT_FAKE=1`) in the worker, records absences, books makeups and asks
-for freezes at the brain's levels, and hands the rest to the inbox. The business brain (`docs/AI-BRAIN.md`, `/admin/brain`, owner only, table `agent_settings`) decides per kind of action whether the AI acts alone, waits for the owner, or is off; its journal is `copilot_actions`. Waiting actions go to the owner's WhatsApp when she sets an approvals number there ("כן N" / "לא N" decides them), and an instructor's "אני חולה היום" opens substitute searches (worker function `brain-inbound`, rules only). Every morning at 07:00 it proposes payment links for old debts and instructor searches for uncovered lessons, and at 20:00 it sends the owner a WhatsApp summary of the day. Its memory (`/admin/brain/memory`, tables `business_snapshots` and `business_memories`, worker function `brain-memory` at 05:45) keeps each month's facts, what happened, and what the owner asked it to remember ("תזכור ש..." in the chat or from the approvals number). It learns from her decisions (stage 6): it suggests levels on `/admin/brain` (never sets them), skips families and amounts she dropped with a reason ("לא 12 מקרה מיוחד"), and tells her WhatsApp what it learned on Sundays at 09:00 (worker function `brain-learning`). The owner copilot (`/admin/copilot`, policy `copilot.enabled`) runs on Claude when the web app has `ANTHROPIC_API_KEY`,
+for freezes at the brain's levels, and hands the rest to the inbox. The business brain (`docs/AI-BRAIN.md`, `/admin/brain`, owner only, table `agent_settings`) decides per kind of action whether the AI acts alone, waits for the owner, or is off; its journal is `copilot_actions`. Waiting actions go to the owner's WhatsApp when she sets an approvals number there ("כן N" / "לא N" decides them), an instructor's "אני חולה היום" opens substitute searches, "מה יש לי היום" and "נוכחות" get the instructor their lessons and the link, and any other message from the approvals number is answered by the owner's assistant (worker function `brain-inbound`; only that last part uses a model). Every morning at 07:00 it proposes payment links for old debts and instructor searches for uncovered lessons, and at 20:00 it sends the owner a WhatsApp summary of the day. Its memory (`/admin/brain/memory`, tables `business_snapshots` and `business_memories`, worker function `brain-memory` at 05:45) keeps each month's facts, what happened, and what the owner asked it to remember ("תזכור ש..." in the chat or from the approvals number). It learns from her decisions (stage 6): it suggests levels on `/admin/brain` (never sets them), skips families and amounts she dropped with a reason ("לא 12 מקרה מיוחד"), and tells her WhatsApp what it learned on Sundays at 09:00 (worker function `brain-learning`). On Sundays at 08:00 the weekly coach (`brain-weekly-coach`, `coach.ts`) sends her the week: three priorities with what to reply, and the next holiday against last year. The owner copilot (`/admin/copilot`, policy `copilot.enabled`) runs on Claude when the web app has `ANTHROPIC_API_KEY`,
 or on a rules-based fake with `RSWIM_COPILOT_FAKE=1` (demos and E2E). The owner's insights feed (command center, policy
 `insights.*`) is rule-based and advisory only; the worker refreshes it daily and, with `ANTHROPIC_API_KEY`, has Claude
 write each insight's explanation and next step. Trial pipeline moves need
@@ -115,7 +115,9 @@ sign a new standing order.
 Claude's allowance (SaaS stage 6): every Claude call reports its tokens (`trackUsage` in `@rswim/integrations`), each
 piece of AI work is one row of `ai_usage` with its cost, and `plans.ai_monthly_actions` caps the month (`aiAllowance`
 in `@rswim/domain-platform`); past the cap the copilot refuses, the parents' bot hands off and the worker skips Claude.
-The owner sees the meter and what is connected on `/admin/connections` (`/dive/connections`).
+The owner sees the meter and what is connected on `/admin/connections` (`/dive/connections`). There she also picks the AI level
+(`agent_settings.ai_level`: frugal, balanced, smart): it sets the model of the bot and of her assistant
+(`aiModelFor`), and a cheaper level takes less of the allowance per answer (`aiActionTenths`).
 WhatsApp track (`docs/whatsapp/PLAN.md`): a WhatsApp message from a number that is not a family, staff member or diver
 opens a lead (`leads`, `@rswim/domain-crm` `leads.ts`; one list for swim and dive). Join requests, families, trial and
 group seats and divers move it on through database triggers (`app.touch_lead`). The office works them on
@@ -127,12 +129,17 @@ they go quiet), trials are reminded the day before at 17:00, and `/admin/leads` 
 (`/admin/integrations/whatsapp`, table `whatsapp_connections`, secrets sealed with the org's data key, webhook
 `/api/webhooks/whatsapp/<connectionId>` signed with the app secret); the worker then sends through it, free text inside
 WhatsApp's 24-hour window and the approved Meta template outside it (named per message on the templates screen), with
-`RSWIM_MESSAGING_FAKE=1` on a fake that keeps the window rules. The bot's sign-up link is personal (`/i/<token>`, `lead-invite.ts`): the
+`RSWIM_MESSAGING_FAKE=1` on a fake that keeps the window rules. Going live (W10, `whatsapp-admin.ts`) is three steps on
+that page (a club's is `/dive/whatsapp`; one component, `components/whatsapp/view.tsx`), asked by the owner and done by the worker: a connection check that also subscribes the business's webhook at
+Meta, every message sent to Meta's review as a template (used only once approved; decisions synced every 30 minutes),
+and a test message; with the fake, Meta is `FakeWhatsAppAdmin`. The bot's sign-up link is personal (`/i/<token>`, `lead-invite.ts`): the
 person signs in with the invited phone and enters the school at once (`openInviteFamily` + `claim_by_phone`). Existing families (W6) ask the
 bot to pay (a link for the open balance through the brain's `payment_link` level), for receipts, missing forms and
 transport, and a family with a lesson tomorrow who owes forms gets `forms_reminder` at 17:00, once a week. A club's
 registered diver gets the divers' bot (`diver-bot.ts`): coming dives, passes, missing forms, and booking a session
-(a pass covers it, or the place is held with the link `/dive/me/pay/<bookingId>`).
+(a pass covers it, or the place is held with the link `/dive/me/pay/<bookingId>`). Every conversation sits on one screen
+(`/admin/messages/chats`, `/dive/chats`; `chats.ts` in `@rswim/domain-comms`): the thread by phone, a reply, the bot's
+last 30 days, and "I'm taking over" (`chat_holds`), which keeps every bot quiet for that number until it is given back.
 
 Lodging (`docs/LODGING.md`, optional per business, `@rswim/domain-lodging`): rooms by kind with beds and private or shared
 facilities, stays (dorms by the bed, overlaps refused in the database), `/admin/lodging` and `/dive/lodging` (today,

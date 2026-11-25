@@ -279,8 +279,15 @@ export function ActionButton({
   children,
   confirm,
   fields = {},
+  showSuccess = false,
   ...props
-}: { action: Action; confirm?: string; fields?: Record<string, string> } & ButtonProps) {
+}: {
+  action: Action;
+  confirm?: string;
+  fields?: Record<string, string>;
+  /** Also show the action's success message under the button (for work that continues in the background). */
+  showSuccess?: boolean;
+} & ButtonProps) {
   const [state, formAction] = useActionState(action, initialFormState);
   return (
     <form
@@ -296,6 +303,11 @@ export function ActionButton({
       <SubmitButton {...props}>{children}</SubmitButton>
       {state.message && !state.ok ? (
         <span role="alert" className="text-xs text-danger-ink">
+          {state.message}
+        </span>
+      ) : null}
+      {showSuccess && state.message && state.ok ? (
+        <span role="status" className="text-xs text-ink-muted">
           {state.message}
         </span>
       ) : null}

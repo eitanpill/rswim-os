@@ -39,6 +39,11 @@ export async function whatsappConnection(tx: Tx) {
       verifyToken: whatsappConnections.verifyToken,
       lastInboundAt: whatsappConnections.lastInboundAt,
       lastError: whatsappConnections.lastError,
+      verifiedName: whatsappConnections.verifiedName,
+      quality: whatsappConnections.quality,
+      checkedAt: whatsappConnections.checkedAt,
+      subscribedAt: whatsappConnections.subscribedAt,
+      checkError: whatsappConnections.checkError,
       updatedAt: whatsappConnections.updatedAt,
     })
     .from(whatsappConnections);
@@ -68,6 +73,11 @@ export async function connectWhatsApp(tx: Tx, ctx: ServiceContext, raw: WhatsApp
     encAccessToken: encryptField(dek, input.accessToken, enc('enc_access_token', rowId)),
     encAppSecret: encryptField(dek, input.appSecret, enc('enc_app_secret', rowId)),
     lastError: null,
+    verifiedName: null,
+    quality: null,
+    checkedAt: null,
+    subscribedAt: null,
+    checkError: null,
     connectedBy: ctx.userId,
   };
   try {
@@ -106,14 +116,24 @@ export async function disconnectWhatsApp(tx: Tx) {
 export interface LoadedWhatsApp {
   connectionId: string;
   phoneNumberId: string;
+  businessAccountId: string;
+  verifyToken: string;
   accessToken: string;
   appSecret: string;
 }
 
 /** The tenant's connected number with its secrets, opened as its system role (the worker, the webhook). */
 export async function loadWhatsApp(tx: Tx, orgId: string): Promise<LoadedWhatsApp | null> {
-  const r = await tx.execute<{ id: string; phone_number_id: string; t: Buffer; s: Buffer }>(
-    sql`select id, phone_number_id, enc_access_token t, enc_app_secret s from whatsapp_connections
+  const r = await tx.execute<{
+    id: string;
+    phone_number_id: string;
+    business_account_id: string;
+    verify_token: string;
+    t: Buffer;
+    s: Buffer;
+  }>(
+    sql`select id, phone_number_id, business_account_id, verify_token, enc_access_token t, enc_app_secret s
+        from whatsapp_connections
         where organization_id = ${orgId} and status = 'connected'`,
   );
   const row = r.rows[0];
@@ -123,6 +143,8 @@ export async function loadWhatsApp(tx: Tx, orgId: string): Promise<LoadedWhatsAp
   return {
     connectionId: row.id,
     phoneNumberId: row.phone_number_id,
+    businessAccountId: row.business_account_id,
+    verifyToken: row.verify_token,
     accessToken: decryptField(dek, row.t, enc('enc_access_token', row.id)),
     appSecret: decryptField(dek, row.s, enc('enc_app_secret', row.id)),
   };
@@ -161,6 +183,11 @@ export async function setMetaTemplate(tx: Tx, ctx: ServiceContext, raw: MetaTemp
     .set({
       metaName: input.metaName || null,
       metaParams: params?.ok ? params.params : [],
+      // Named by hand: taken as approved, with nothing of ours waiting at Meta.
+      metaTemplateId: null,
+      metaStatus: null,
+      metaError: null,
+      metaSubmittedAt: null,
       updatedBy: ctx.userId,
     })
     .where(eq(messageTemplates.id, tpl.id));

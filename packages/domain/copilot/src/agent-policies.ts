@@ -285,6 +285,98 @@ export function staffReplyText(
     : `תודה, רפואה שלמה. מחפשים מחליף ל-${r.lessons} השיעורים שלך ב-${d}, וההורים יעודכנו.`;
 }
 
+// ─── Staff and owner on WhatsApp (WhatsApp track W7) ────────────────────────
+
+const nextDay = (d: string) =>
+  new Date(Date.parse(`${d}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+
+/** An instructor asks what they teach: "מה יש לי היום", "הלו״ז שלי מחר". Today unless they say tomorrow. */
+export function staffDayAsk(text: string, today: string): { date: string } | null {
+  const t = text.trim().replace(/\s+/g, ' ');
+  const asks =
+    /(מה יש לי|לו["״']?ז|השיעורים שלי|איזה שיעורים|אילו שיעורים|מתי אני (?:מלמד|מלמדת|עובד|עובדת)|my (?:day|lessons|schedule|sessions)|what do i have)/i;
+  if (!asks.test(t)) return null;
+  return { date: /מחר|tomorrow/i.test(t) ? nextDay(today) : today };
+}
+
+/** An instructor asks to mark attendance: "נוכחות", "לסמן נוכחות". */
+export function staffAttendanceAsk(text: string): boolean {
+  return /(נוכחות|מי הגיע|attendance|roll ?call)/i.test(text);
+}
+
+export interface StaffLesson {
+  /** HH:MM in Asia/Jerusalem. */
+  time: string;
+  title: string;
+  place: string;
+  /** Children in the group, or divers booked. */
+  people: number;
+}
+
+/** The instructor's day, one line per lesson, with the link to their screen. */
+export function staffDayText(
+  d: { date: string; today: string; lessons: readonly StaffLesson[]; url: string },
+  locale: Locale,
+): string {
+  const en = locale === 'en';
+  const when =
+    d.date === d.today ? (en ? 'today' : 'היום') : en ? `on ${dmy(d.date)}` : `ב-${dmy(d.date)}`;
+  if (d.lessons.length === 0)
+    return en ? `You have no lessons ${when}.` : `אין לך שיעורים ${when}.`;
+  const lines = d.lessons.map((l) =>
+    en
+      ? `• ${l.time} ${l.title}, ${l.place} (${l.people})`
+      : `• ${l.time} ${l.title}, ${l.place} (${l.people} משתתפים)`,
+  );
+  const head = en ? `Your lessons ${when}:` : `השיעורים שלך ${when}:`;
+  const tail = d.url
+    ? en
+      ? `\nDetails and attendance: ${d.url}`
+      : `\nפרטים ונוכחות: ${d.url}`
+    : '';
+  return `${head}\n${lines.join('\n')}${tail}`;
+}
+
+/** Where the instructor marks attendance: the link, and the lesson it is for when one is near. */
+export function staffAttendanceText(
+  a: { next: StaffLesson | null; url: string },
+  locale: Locale,
+): string {
+  if (locale === 'en')
+    return a.next
+      ? `Attendance for ${a.next.title} at ${a.next.time}: ${a.url}`
+      : `You have no lesson left today. Your screen: ${a.url}`;
+  return a.next
+    ? `נוכחות לשיעור ${a.next.title} בשעה ${a.next.time} מסמנים כאן: ${a.url}`
+    : `לא נשאר לך שיעור היום. המסך שלך: ${a.url}`;
+}
+
+/** The owner's answer on WhatsApp: what the assistant said, and each action that waits with how to decide it. */
+export function ownerAnswerText(
+  o: {
+    answer: string | null;
+    waiting: readonly { ref: number; summary: string }[];
+    done: readonly string[];
+  },
+  locale: Locale,
+): string {
+  const en = locale === 'en';
+  const parts: string[] = [];
+  if (o.answer) parts.push(o.answer);
+  for (const d of o.done) parts.push(en ? `✅ Done: ${d}` : `✅ בוצע: ${d}`);
+  for (const w of o.waiting)
+    parts.push(
+      en
+        ? `🤖 Waiting for you (#${w.ref}): ${w.summary}\nReply "yes ${w.ref}" or "no ${w.ref}".`
+        : `🤖 מחכה לאישור שלך (#${w.ref}): ${w.summary}\nלאישור "כן ${w.ref}", לביטול "לא ${w.ref}".`,
+    );
+  if (parts.length === 0)
+    return en
+      ? 'I could not answer that. Try again in other words, or open the assistant in the app.'
+      : 'לא הצלחתי לענות על זה. אפשר לנסח אחרת, או לפתוח את העוזר באפליקציה.';
+  return parts.join('\n\n');
+}
+
 // ─── The morning check and the evening summary (stage 4) ────────────────────
 
 export interface MorningFacts {
