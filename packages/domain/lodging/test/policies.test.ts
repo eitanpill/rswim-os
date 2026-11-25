@@ -364,6 +364,16 @@ describe('the day', () => {
     expect(en).toContain('Closed for repair (2):');
     expect(en).toContain('open again 08.12.2026');
   });
+
+  it('tells the desk what to collect from each arrival', () => {
+    const rooms = [fam, fam2, single, dorm];
+    const plan = dayPlan(rooms, [leaves, comes, dormBed, staying], today);
+    const times = { checkIn: '15:00', checkOut: '11:00' };
+    const he = briefText(plan, rooms, times, 'he', { [comes.id]: 54_000 });
+    expect(he).toMatch(/· לגבות .*540/);
+    expect(briefText(plan, rooms, times, 'en', { [comes.id]: 54_000 })).toMatch(/· collect .*540/);
+    expect(briefText(plan, rooms, times, 'he')).not.toContain('לגבות');
+  });
 });
 
 describe("the guest's reminder", () => {
@@ -404,6 +414,27 @@ describe("the guest's reminder", () => {
     expect(reminderText({ ...base, arrivalNote: null }, 'en')).not.toContain('Getting here');
   });
 
+  it('paying at the desk: the deposit by its link, the rest at reception in cash or by card', () => {
+    const desk = { ...base, atArrival: true, depositDueAgorot: 24_000 };
+    const he = reminderText(desk, 'he');
+    expect(he).toMatch(
+      /המקדמה \(.*240.*\) עוד לא שולמה\. אפשר לשלם אותה כאן: https:\/\/example\.test\/pay\/abc/,
+    );
+    expect(he).toMatch(/את .*600.* משלמים בקבלה בהגעה, במזומן או באשראי\./);
+    expect(he).not.toContain('אפשר לשלם כאן');
+    // The deposit is in (or no link): all that is owed waits for the desk.
+    const en = reminderText({ ...desk, depositDueAgorot: 0, payUrl: null }, 'en');
+    expect(en).toMatch(/You pay .*840.* at reception on arrival, in cash or by card\./);
+    expect(en).not.toContain('deposit');
+    expect(reminderText({ ...desk, payUrl: null }, 'en')).toMatch(/You pay .*840/);
+    const { depositDueAgorot: _, ...noDeposit } = desk;
+    expect(reminderText(noDeposit, 'en')).toMatch(/You pay .*840/);
+    // Only the deposit was owed: nothing left for the desk.
+    const onlyDeposit = reminderText({ ...desk, dueAgorot: 24_000 }, 'en');
+    expect(onlyDeposit).toContain('The deposit');
+    expect(onlyDeposit).not.toContain('at reception');
+  });
+
   it("names what the reminder's link pays for", () => {
     const s = { guestName: 'לוי', checkIn: '2026-12-05', checkOut: '2026-12-08' };
     expect(reminderPayFor(s, 'he')).toBe('לינה: לוי, 05.12.2026 עד 08.12.2026');
@@ -438,6 +469,22 @@ describe('a booking the bot took', () => {
     expect(en).not.toContain('costs');
     expect(en).not.toContain('waits');
   });
+  it('says the rest is paid at reception when the guest pays on arrival', () => {
+    expect(bookedText({ ...base, payAtArrival: true }, 'he')).toMatch(
+      /את השאר \(.*840.*\) משלמים בקבלה בהגעה, במזומן או באשראי\./,
+    );
+    expect(bookedText({ ...base, payAtArrival: true, depositAgorot: 0 }, 'en')).toMatch(
+      /The rest \(.*1,200.*\) is paid at reception on arrival/,
+    );
+    // Nothing left after the deposit, or no price: no such line.
+    expect(bookedText({ ...base, payAtArrival: true, depositAgorot: 120_000 }, 'he')).not.toContain(
+      'בקבלה',
+    );
+    expect(bookedText({ ...base, payAtArrival: true, totalAgorot: null }, 'he')).not.toContain(
+      'בקבלה',
+    );
+    expect(bookedText(base, 'he')).not.toContain('בקבלה');
+  });
   it('confirms at once when no deposit is asked', () => {
     expect(bookedText({ ...base, depositAgorot: 0 }, 'he')).toContain('ההזמנה מאושרת');
     expect(bookedText({ ...base, depositAgorot: 0 }, 'en')).toContain('Your booking is confirmed');
@@ -465,5 +512,14 @@ describe('the bot', () => {
         holdHours: 12,
       })[1],
     ).toMatch(/^A booking is held for 12 hours until a deposit of 25%/);
+    const desk = (percent: number) =>
+      botFacts([fam], { checkIn: '15:00', checkOut: '11:00' }, [], 1, {
+        percent,
+        holdHours: 12,
+        payAtArrival: true,
+      }).join('\n');
+    expect(desk(25)).toContain('pay the rest (after the deposit) at reception on arrival');
+    expect(desk(25)).toContain('pay_at_arrival true');
+    expect(desk(0)).toContain('The customer may pay at reception on arrival, in cash or by card.');
   });
 });

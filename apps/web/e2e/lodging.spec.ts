@@ -229,3 +229,37 @@ test('a room the WhatsApp bot chose for a new customer waits on the brain, and t
   await page.goto(`/admin/lodging/board?from=${dayFromNow(28)}`);
   await expect(page.getByTestId('board-stay').filter({ hasText: 'משפחת רוזן' })).toBeVisible();
 });
+
+test('a guest pays the rest at the desk on arrival: the desk sees what to collect, and the deposit still goes ahead', async ({
+  page,
+}) => {
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin/lodging');
+  // The Ben Davids paid their deposit and pay the rest at the desk; the Golans owe it all.
+  const benDavid = page.getByTestId('lodging-arrival').filter({ hasText: 'משפחת בן דוד' });
+  await expect(benDavid.getByTestId('lodging-collect')).toContainText('משלם בהגעה: לגבות');
+  await expect(
+    page
+      .getByTestId('lodging-arrival')
+      .filter({ hasText: 'משפחת גולן' })
+      .getByTestId('lodging-collect'),
+  ).toContainText('לגבות');
+  await shot(page, 'today-collect');
+
+  await benDavid.getByRole('link').click();
+  const desk = page.getByTestId('money-at-arrival');
+  await expect(desk).toHaveAttribute('data-on', 'yes');
+  await expect(desk).toContainText('במזומן או באשראי');
+  await shot(page, 'stay-at-arrival');
+  // Back to paying by link, and again at the desk.
+  await desk.getByTestId('money-at-arrival-toggle').click();
+  await expect(desk).toHaveAttribute('data-on', 'no');
+  await desk.getByTestId('money-at-arrival-toggle').click();
+  await expect(desk).toHaveAttribute('data-on', 'yes');
+
+  // The business decides whether guests may pay at the desk at all.
+  await page.goto('/admin/lodging/rooms');
+  await expect(
+    page.getByTestId('lodging-settings-form').locator('input[name="payAtArrival"]'),
+  ).toBeChecked();
+});

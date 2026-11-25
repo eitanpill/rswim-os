@@ -67,6 +67,17 @@ manager and office; instructors and customers see nothing). Package `@rswim/doma
   `apps/web/src/lib/payments.ts`), recorded once per checkout.
 - No receipt is issued for lodging payments yet.
 
+## Paying at the desk on arrival (`pay_at_arrival`)
+
+A guest may pay what is left after the deposit at reception on arrival, in cash or by card, when the business allows it
+(`lodging_settings.pay_at_arrival`, on by default, in the lodging settings). The booking then carries
+`lodging_stays.pay_at_arrival` (every stay of the booking, set from the board's booking form, the stay page's toggle
+`setPayAtArrival`, or the bot's `lodging_book` with `pay_at_arrival: true`). The deposit does not change: a held booking
+still waits for it by link and still frees its room when the hold ends. The day-before reminder then sends a link only
+for a missing deposit and tells the guest the rest is paid at reception; the bot's note says the same. The desk sees
+what each arrival still owes (`LodgingDay.collect`, `dueByStay`) on today's screen and in the 07:00 brief ("לגבות"),
+and records the cash or card payment on the stay page.
+
 ## Screens
 - **Today**: arrivals, departures (check in and out with one tap), rooms to make up (turnovers first: someone leaves
   and someone arrives the same day), tonight's occupancy.

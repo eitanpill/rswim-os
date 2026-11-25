@@ -43,6 +43,8 @@ export interface StayFacts {
   status: StayStatus;
   /** Not a guest: the room (or the bed) is closed for repair on these nights; `guestName` holds the reason. */
   blocked?: boolean;
+  /** The guest pays what is left after the deposit at the desk on arrival (cash or card). */
+  payAtArrival?: boolean;
 }
 
 /** A shared dorm is sold bed by bed; every other room is booked whole. */
@@ -412,6 +414,7 @@ const BRIEF = {
     quiet: 'אין הגעות ואין עזיבות היום.',
     blocked: (n: number) => `חסומים לתיקון (${n}):`,
     until: (d: string) => `נפתח שוב ב־${d}`,
+    collect: (amount: string) => `לגבות ${amount}`,
   },
   en: {
     title: (d: string) => `🛏️ Lodging today (${d})`,
@@ -430,6 +433,7 @@ const BRIEF = {
     quiet: 'No arrivals and no departures today.',
     blocked: (n: number) => `Closed for repair (${n}):`,
     until: (d: string) => `open again ${d}`,
+    collect: (amount: string) => `collect ${amount}`,
   },
 } as const;
 
@@ -439,6 +443,8 @@ export function briefText(
   rooms: readonly RoomFacts[],
   times: { checkIn: string; checkOut: string },
   locale: 'he' | 'en',
+  /** What each arriving stay's booking still owes, for the desk to collect (stays that owe nothing left out). */
+  collect: Readonly<Record<string, number>> = {},
 ): string {
   const w = BRIEF[locale];
   const byRoom = new Map(rooms.map((r) => [r.id, r]));
@@ -459,7 +465,11 @@ export function briefText(
     );
   }
   if (plan.arrivals.length) {
-    out.push('', w.arrivals(plan.arrivals.length, times.checkIn), ...plan.arrivals.map(line));
+    const arrival = (s: StayFacts) => {
+      const due = collect[s.id];
+      return due ? `${line(s)} · ${w.collect(formatILS(agorot(due), locale))}` : line(s);
+    };
+    out.push('', w.arrivals(plan.arrivals.length, times.checkIn), ...plan.arrivals.map(arrival));
   }
   out.push('', w.prepare(plan.toPrepare.length));
   out.push(
@@ -498,8 +508,12 @@ export interface GuestReminder {
   arrivalNote: string | null;
   /** Still owed (null: the booking has no price). */
   dueAgorot: number | null;
-  /** A link that pays what is owed, when the business takes payments online. */
+  /** A link that pays what is owed (or, paying at the desk, the deposit still missing), when the business takes payments online. */
   payUrl: string | null;
+  /** The guest pays what is left at the desk on arrival, in cash or by card. */
+  atArrival?: boolean;
+  /** The deposit still missing (paying at the desk, the link pays only this). */
+  depositDueAgorot?: number;
 }
 
 const REMIND = {
@@ -513,6 +527,9 @@ const REMIND = {
     due: (amount: string) => `נשאר לשלם: ${amount}.`,
     pay: (url: string) => `אפשר לשלם כאן: ${url}`,
     payThere: 'אפשר לשלם במקום בהגעה.',
+    deposit: (amount: string, url: string) =>
+      `המקדמה (${amount}) עוד לא שולמה. אפשר לשלם אותה כאן: ${url}`,
+    atDesk: (amount: string) => `את ${amount} משלמים בקבלה בהגעה, במזומן או באשראי.`,
     bye: 'נסיעה טובה! לשאלות אפשר לענות להודעה הזאת.',
     payFor: (name: string, from: string, to: string) => `לינה: ${name}, ${from} עד ${to}`,
   },
@@ -527,6 +544,9 @@ const REMIND = {
     due: (amount: string) => `Still to pay: ${amount}.`,
     pay: (url: string) => `You can pay here: ${url}`,
     payThere: 'You can pay on arrival.',
+    deposit: (amount: string, url: string) =>
+      `The deposit (${amount}) is still missing. You can pay it here: ${url}`,
+    atDesk: (amount: string) => `You pay ${amount} at reception on arrival, in cash or by card.`,
     bye: 'Safe travels! Reply to this message with any question.',
     payFor: (name: string, from: string, to: string) => `Lodging: ${name}, ${from} to ${to}`,
   },
@@ -544,8 +564,17 @@ export function reminderText(r: GuestReminder, locale: 'he' | 'en'): string {
   const note = r.arrivalNote?.trim();
   if (note) out.push('', w.how, note);
   if (r.dueAgorot !== null && r.dueAgorot > 0) {
-    out.push('', w.due(formatILS(agorot(r.dueAgorot), locale)));
-    out.push(r.payUrl ? w.pay(r.payUrl) : w.payThere);
+    const ils = (a: number) => formatILS(agorot(a), locale);
+    out.push('', w.due(ils(r.dueAgorot)));
+    if (!r.atArrival) {
+      out.push(r.payUrl ? w.pay(r.payUrl) : w.payThere);
+    } else {
+      const deposit = r.depositDueAgorot ?? 0;
+      // The deposit still goes by link; only the rest waits for the desk.
+      if (deposit > 0 && r.payUrl) out.push(w.deposit(ils(deposit), r.payUrl));
+      const rest = deposit > 0 && r.payUrl ? r.dueAgorot - deposit : r.dueAgorot;
+      if (rest > 0) out.push(w.atDesk(ils(rest)));
+    }
   }
   out.push('', w.bye);
   return out.join('\n');
@@ -565,6 +594,8 @@ export interface BookedNote {
   payUrl: string | null;
   /** Until when the room waits for the deposit, already in local words ("26.11 15:00"). */
   holdUntil: string | null;
+  /** The guest pays the rest at the desk on arrival, in cash or by card. */
+  payAtArrival?: boolean;
 }
 
 const BOOKED = {
@@ -578,6 +609,7 @@ const BOOKED = {
     until: (when: string) => `החדר מחכה למקדמה עד ${when}.`,
     office: 'מהמשרד יחזרו אליך לגבי המקדמה.',
     confirmed: 'ההזמנה מאושרת. יום לפני ההגעה נשלח לך את כל הפרטים.',
+    rest: (amount: string) => `את השאר (${amount}) משלמים בקבלה בהגעה, במזומן או באשראי.`,
   },
   en: {
     hello: (name: string) => `Hi ${name} 🙂`,
@@ -588,6 +620,8 @@ const BOOKED = {
     until: (when: string) => `The room waits for the deposit until ${when}.`,
     office: 'The office will be in touch about the deposit.',
     confirmed: "Your booking is confirmed. We'll send you all the details the day before.",
+    rest: (amount: string) =>
+      `The rest (${amount}) is paid at reception on arrival, in cash or by card.`,
   },
 } as const;
 
@@ -604,6 +638,10 @@ export function bookedText(b: BookedNote, locale: 'he' | 'en'): string {
     if (b.holdUntil) out.push(w.until(b.holdUntil));
   } else {
     out.push(w.confirmed);
+  }
+  if (b.payAtArrival && b.totalAgorot !== null) {
+    const rest = b.totalAgorot - b.depositAgorot;
+    if (rest > 0) out.push(w.rest(formatILS(agorot(rest), locale)));
   }
   return out.join('\n');
 }
@@ -622,7 +660,10 @@ export function botFacts(
   times: { checkIn: string; checkOut: string },
   rates: readonly RateFacts[] = [],
   minNights = 1,
-  deposit: { percent: number; holdHours: number } = { percent: 0, holdHours: 24 },
+  deposit: { percent: number; holdHours: number; payAtArrival?: boolean } = {
+    percent: 0,
+    holdHours: 24,
+  },
 ): string[] {
   const active = rooms.filter((r) => r.active);
   if (!active.length) return [];
@@ -633,6 +674,13 @@ export function botFacts(
   if (deposit.percent > 0) {
     lines.push(
       `A booking is held for ${deposit.holdHours} hours until a deposit of ${deposit.percent}% of its price is paid (by a payment link from the office); then it is confirmed. The rest is paid by arrival.`,
+    );
+  }
+  if (deposit.payAtArrival) {
+    lines.push(
+      deposit.percent > 0
+        ? 'The customer may pay the rest (after the deposit) at reception on arrival, in cash or by card; the deposit itself is always paid in advance by the link. When they prefer that, book with pay_at_arrival true.'
+        : 'The customer may pay at reception on arrival, in cash or by card. When they prefer that, book with pay_at_arrival true.',
     );
   }
   for (const r of active) {

@@ -1,7 +1,8 @@
 /**
  * The guest's reminder (docs/LODGING.md, "The day before"): at 17:00 each guest arriving tomorrow hears on WhatsApp
  * when to come, which room is theirs, how to get here (the business's arrival note) and what is still owed, with a
- * payment link when the business takes payments online. Once per booking and arrival day.
+ * payment link when the business takes payments online (a guest paying at the desk gets a link only for a missing
+ * deposit, and hears that the rest is paid on arrival in cash or by card). Once per booking and arrival day.
  */
 import { and, eq, inArray, isNotNull, ne, schema, type Tx } from '@rswim/db';
 import { enqueueMessage } from '@rswim/domain-comms';
@@ -64,17 +65,21 @@ export async function sendGuestReminders(
       .join(', ');
     const view = await bookingOf(tx, bookingId);
     const due = view.money.dueAgorot;
+    // Paying at the desk, only the deposit (when still missing) goes by link; otherwise the link pays all that is owed.
+    const atArrival = first.payAtArrival;
+    const what = atArrival ? 'deposit' : 'balance';
+    const linkAmount = atArrival ? view.money.depositDueAgorot : (due ?? 0);
     let payUrl: string | null = null;
-    if (due !== null && due > 0 && view.processor) {
+    if (linkAmount > 0 && view.processor) {
       // A link already open for this amount (sent by the office, or by an earlier run) is sent again.
-      const open = view.links.find((l) => l.status === 'open' && l.amountAgorot === due);
+      const open = view.links.find((l) => l.status === 'open' && l.amountAgorot === linkAmount);
       payUrl = open
         ? `${base}/pay/${open.token}`
         : (
             await requestPayment(
               tx,
               ctx,
-              { stayId: first.id, what: 'balance' },
+              { stayId: first.id, what },
               { publicUrl: base, description: (s) => reminderPayFor(s, 'he'), message: () => '' },
             )
           ).url;
@@ -102,6 +107,8 @@ export async function sendGuestReminders(
             arrivalNote: settings.arrivalNote,
             dueAgorot: due,
             payUrl,
+            atArrival,
+            depositDueAgorot: view.money.depositDueAgorot,
           },
           locale,
         ),

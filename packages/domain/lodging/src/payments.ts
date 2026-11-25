@@ -45,6 +45,8 @@ export interface BookingView {
   stayIds: string[];
   money: BookingMoney;
   depositPercent: number;
+  /** The business lets guests pay the rest at the desk on arrival. */
+  payAtArrivalAllowed: boolean;
   payments: LodgingPaymentRow[];
   /** Payment links sent for this booking, newest first. */
   links: PaymentLinkRow[];
@@ -109,6 +111,7 @@ export async function bookingOf(tx: Tx, bookingId: string): Promise<BookingView>
     stayIds: stays.map((s) => s.id),
     money: bookingMoney(total, lines, settings.depositPercent),
     depositPercent: settings.depositPercent,
+    payAtArrivalAllowed: settings.payAtArrival,
     payments: lines,
     links: links.map((l) => ({
       ...l,
@@ -160,6 +163,28 @@ async function confirmIfDeposited(
   } catch {
     return 'taken';
   }
+}
+
+export const PayAtArrivalInput = z.object({ stayId: z.uuid(), on: checkbox() });
+export type PayAtArrivalInput = z.input<typeof PayAtArrivalInput>;
+
+/**
+ * The guest pays what is left after the deposit at the desk on arrival, in cash or by card (or goes back to paying by
+ * link). The deposit is untouched: a held booking still waits for it and still frees its room when it never comes.
+ */
+export async function setPayAtArrival(tx: Tx, input: PayAtArrivalInput): Promise<void> {
+  const v = PayAtArrivalInput.parse(input);
+  const stay = await stayOf(tx, v.stayId);
+  if (v.on && !(await getLodgingSettings(tx)).payAtArrival) {
+    throw new DomainError('lodging.errors.noPayAtArrival');
+  }
+  if (stay.status === 'cancelled' || stay.status === 'checked_out') {
+    throw new DomainError('lodging.errors.cannotMove');
+  }
+  await tx
+    .update(lodgingStays)
+    .set({ payAtArrival: v.on })
+    .where(eq(lodgingStays.bookingId, stay.bookingId));
 }
 
 export const PaymentInput = z.object({

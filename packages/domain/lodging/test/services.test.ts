@@ -22,6 +22,7 @@ import {
   lodgingDay,
   loadRooms,
   moveStay,
+  releaseLapsedHolds,
   removeRate,
   saveLodgingSettings,
   setRateActive,
@@ -32,7 +33,13 @@ import {
 } from '../src/services';
 import { confirmCopilotAction, undoCopilotAction } from '@rswim/domain-copilot';
 import { lodgingLeadBotModule, registerLodgingActions } from '../src/bot';
-import { bookingOf, recordPayment, requestPayment, settleLodgingCheckout } from '../src/payments';
+import {
+  bookingOf,
+  recordPayment,
+  requestPayment,
+  setPayAtArrival,
+  settleLodgingCheckout,
+} from '../src/payments';
 import { sendGuestReminders } from '../src/reminders';
 
 let t: TestDatabase;
@@ -266,6 +273,7 @@ describe('lodging', () => {
         morningBrief: true,
         briefPhone: '052-0000202',
         guestReminder: true,
+        payAtArrival: true,
       }),
     );
     expect(
@@ -456,6 +464,7 @@ describe('lodging', () => {
         depositPercent: 30,
         holdHours: 2,
         guestReminder: true,
+        payAtArrival: true,
       }),
     );
     const book = (roomId: string, checkIn: string, hold = true) =>
@@ -736,6 +745,7 @@ describe('lodging', () => {
       morningBrief: true,
       briefPhone: '052-0000202',
       guestReminder: true,
+      payAtArrival: true,
       arrivalNote: 'חונים ליד השער, קוד 4321',
     };
     await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, settings));
@@ -808,6 +818,7 @@ describe('lodging', () => {
         checkOutTime: '10:30',
         morningBrief: true,
         guestReminder: true,
+        payAtArrival: true,
         depositPercent: 30,
         holdHours: 24,
       }),
@@ -877,6 +888,7 @@ describe('lodging', () => {
         checkOutTime: '10:30',
         morningBrief: true,
         guestReminder: true,
+        payAtArrival: true,
         depositPercent: 0,
       }),
     );
@@ -907,6 +919,191 @@ describe('lodging', () => {
         guest_name: 'משפחת ווטסאפ',
       }),
     ).toEqual({ status: 'not_allowed' });
+  });
+
+  it('lets a guest pay the rest at the desk on arrival, while the deposit still goes by link and still lapses', async () => {
+    const settings = {
+      enabled: true,
+      checkInTime: '14:00',
+      checkOutTime: '10:30',
+      morningBrief: true,
+      guestReminder: true,
+      payAtArrival: true,
+      depositPercent: 30,
+      holdHours: 24,
+    };
+    await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, settings));
+    await q(
+      `update agent_settings set profile = 'balanced', levels = '{}' where organization_id = $1`,
+      [orgId],
+    );
+
+    // The bot: the customer prefers to pay at the desk. The deposit link still goes out, and the rest waits for arrival.
+    const [{ id: leadId }] = await q(
+      `insert into leads (organization_id, name, phone_e164, source) values ($1, 'משפחת מזומן', '+972500000707', 'whatsapp') returning id`,
+      [orgId],
+    );
+    const from = addDays(today, 90);
+    const ask = { check_in: from, check_out: addDays(from, 2), guests: 2 };
+    const call = (tool: string, input: unknown) =>
+      withOrg(t.db, orgId, (tx) =>
+        lodgingLeadBotModule.call(tx, { orgId, userId: null }, leadId, tool, input),
+      );
+    const free = (await call('lodging_availability', ask)) as { options: { room: string }[] };
+    expect(
+      await call('lodging_book', {
+        ...ask,
+        room: free.options[0]!.room,
+        guest_name: 'משפחת מזומן',
+        pay_at_arrival: true,
+      }),
+    ).toEqual({ status: 'done' });
+    const [botStay] = await q(
+      `select id, status, pay_at_arrival, booking_id from lodging_stays where lead_id = $1`,
+      [leadId],
+    );
+    expect(botStay).toMatchObject({ status: 'held', pay_at_arrival: true });
+    const [booked] = await q(`select body from messages where idempotency_key = $1`, [
+      `lodging.booked:${botStay.booking_id}`,
+    ]);
+    expect(booked.body).toMatch(/מקדמה של .* כאן: https:\/\/inn\.test\/pay\/\S+/);
+    expect(booked.body).toMatch(/את השאר \(.*\) משלמים בקבלה בהגעה, במזומן או באשראי\./);
+    // No deposit by the end of the hold: the room is free again, paying at the desk or not.
+    await q(`update lodging_stays set hold_until = now() - interval '1 minute' where id = $1`, [
+      botStay.id,
+    ]);
+    expect(await withOrg(t.db, orgId, (tx) => releaseLapsedHolds(tx))).toBe(1);
+    expect((await asOwner((tx) => getStay(tx, botStay.id)))!.status).toBe('cancelled');
+
+    // The office: two families arriving tomorrow pay at the desk; one already paid its deposit.
+    const tomorrow = addDays(today, 1);
+    const suites = await asOwner((tx, ctx) =>
+      addRooms(tx, ctx, {
+        name: 'סוויטה',
+        kind: 'suite',
+        count: 3,
+        beds: 1,
+        maxGuests: 2,
+        toilet: 'private',
+        shower: 'private',
+        priceNight: 50_000,
+        note: null,
+      }),
+    );
+    const rooms = suites.map((roomId) => ({ roomId }));
+    const book = (i: number, guestName: string, phone: string) =>
+      asOwner((tx, ctx) =>
+        bookStay(tx, ctx, {
+          roomId: rooms[i]!.roomId,
+          guestName,
+          phone,
+          guests: 1,
+          checkIn: tomorrow,
+          checkOut: addDays(tomorrow, 2),
+          hold: true,
+          payAtArrival: true,
+        }),
+      ).then((ids) => ids[0] as string);
+    const deposited = await book(0, 'משפחת מקדמה', '050-0000808');
+    const notYet = await book(1, 'משפחת בלי מקדמה', '050-0000909');
+    const dep = (await asOwner((tx) => getStay(tx, deposited)))!;
+    const depView = await asOwner((tx) => bookingOf(tx, dep.bookingId));
+    expect(depView.payAtArrivalAllowed).toBe(true);
+    const paid = await asOwner((tx, ctx) =>
+      recordPayment(tx, ctx, {
+        stayId: deposited,
+        amount: depView.money.depositDueAgorot,
+        method: 'card',
+      }),
+    );
+    expect(paid.confirmed).toBe(true);
+
+    // The desk sees what to collect from each arrival.
+    const day = await asOwner((tx) => lodgingDay(tx, tomorrow));
+    expect(day.collect[deposited]).toBe(dep.totalAgorot! - depView.money.depositDueAgorot);
+    expect(day.collect[notYet]).toBe((await asOwner((tx) => getStay(tx, notYet)))!.totalAgorot);
+    expect(day.plan.arrivals.find((s) => s.id === deposited)?.payAtArrival).toBe(true);
+
+    // The day before: no link for the rest; the one without its deposit gets a link for the deposit only.
+    await withOrg(t.db, orgId, (tx) =>
+      sendGuestReminders(tx, { orgId, userId: null }, 'https://inn.test/'),
+    );
+    const body = async (stayId: string) => {
+      const s = (await asOwner((tx) => getStay(tx, stayId)))!;
+      const [m] = await q(`select body from messages where idempotency_key = $1`, [
+        `lodging.reminder:${s.bookingId}:${tomorrow}`,
+      ]);
+      return m.body as string;
+    };
+    const one = await body(deposited);
+    expect(one).toMatch(/את .* משלמים בקבלה בהגעה, במזומן או באשראי\./);
+    expect(one).not.toContain('https://');
+    const two = await body(notYet);
+    expect(two).toMatch(
+      /המקדמה \(.*\) עוד לא שולמה\. אפשר לשלם אותה כאן: https:\/\/inn\.test\/pay\/\S+/,
+    );
+    expect(two).toContain('משלמים בקבלה בהגעה');
+    const two_ = (await asOwner((tx) => getStay(tx, notYet)))!;
+    const links = (await asOwner((tx) => bookingOf(tx, two_.bookingId))).links;
+    expect(links).toHaveLength(1);
+    expect(links[0]!.amountAgorot).toBe(
+      (await asOwner((tx) => bookingOf(tx, two_.bookingId))).money.depositDueAgorot,
+    );
+
+    // The desk takes the rest in cash: nothing left to collect.
+    await asOwner((tx, ctx) =>
+      recordPayment(tx, ctx, {
+        stayId: deposited,
+        amount: day.collect[deposited]!,
+        method: 'cash',
+      }),
+    );
+    expect((await asOwner((tx) => lodgingDay(tx, tomorrow))).collect[deposited]).toBeUndefined();
+
+    // Back to paying by link, and on again; the whole booking follows.
+    await asOwner((tx) => setPayAtArrival(tx, { stayId: notYet, on: false }));
+    expect((await asOwner((tx) => getStay(tx, notYet)))!.payAtArrival).toBe(false);
+    await asOwner((tx) => setPayAtArrival(tx, { stayId: notYet, on: true }));
+    expect((await asOwner((tx) => getStay(tx, notYet)))!.payAtArrival).toBe(true);
+
+    // A business that does not take payment at the desk refuses it, from the office and from the bot.
+    await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, { ...settings, payAtArrival: false }));
+    await expect(
+      asOwner((tx) => setPayAtArrival(tx, { stayId: notYet, on: true })),
+    ).rejects.toMatchObject({ code: 'lodging.errors.noPayAtArrival' });
+    await expect(
+      asOwner((tx, ctx) =>
+        bookStay(tx, ctx, {
+          roomId: rooms[2]!.roomId,
+          guestName: 'לא בהגעה',
+          guests: 1,
+          checkIn: addDays(today, 120),
+          checkOut: addDays(today, 121),
+          payAtArrival: true,
+        }),
+      ),
+    ).rejects.toMatchObject({ code: 'lodging.errors.noPayAtArrival' });
+    const from2 = addDays(today, 95);
+    const ask2 = { check_in: from2, check_out: addDays(from2, 1), guests: 1 };
+    const free2 = (await call('lodging_availability', ask2)) as { options: { room: string }[] };
+    expect(
+      await call('lodging_book', {
+        ...ask2,
+        room: free2.options[0]!.room,
+        guest_name: 'משפחת מזומן',
+        pay_at_arrival: true,
+      }),
+    ).toEqual({ status: 'done' });
+    const [plain] = await q(
+      `select pay_at_arrival from lodging_stays where lead_id = $1 and check_in = $2`,
+      [leadId, from2],
+    );
+    expect(plain.pay_at_arrival).toBe(false);
+    // A cancelled stay cannot change how it pays.
+    await expect(
+      asOwner((tx) => setPayAtArrival(tx, { stayId: botStay.id, on: false })),
+    ).rejects.toMatchObject({ code: 'lodging.errors.cannotMove' });
+    await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, settings));
   });
 
   it('keeps lodging to the office', async () => {
