@@ -22,6 +22,7 @@ import {
   undoCopilotAction,
 } from '@rswim/domain-copilot';
 import type { FormState } from '@/lib/form-state';
+import '@/lib/brain-modules';
 import { runForm } from '@/lib/forms';
 
 /** Every screen that shows the brain's actions or settings. */

@@ -21,6 +21,8 @@ export const AGENT_ACTION_KINDS = [
   'book_trial',
   // A follow-up WhatsApp to a new customer: after the trial, or once after going quiet (WhatsApp track W4).
   'lead_followup',
+  // A room held for a new customer by the WhatsApp bot, with its deposit link (lodging, stage 6).
+  'book_lodging',
 ] as const;
 export const AgentActionKind = z.enum(AGENT_ACTION_KINDS);
 export type AgentActionKind = z.infer<typeof AgentActionKind>;
@@ -42,6 +44,7 @@ export const AGENT_WIRED_KINDS: readonly AgentActionKind[] = [
   'substitute',
   'book_trial',
   'lead_followup',
+  'book_lodging',
 ];
 
 /** off: never; suggest: a proposal only; approve: ready, runs on the owner's tap; auto: runs at once and is reported. */
@@ -65,6 +68,7 @@ export const AGENT_KIND_CEILING: Record<AgentActionKind, AutonomyLevel> = {
   open_makeup_slots: 'auto',
   book_trial: 'auto',
   lead_followup: 'auto',
+  book_lodging: 'auto',
 };
 
 /** Ready-made settings for the whole table; the owner can change any row afterwards. */
@@ -91,6 +95,7 @@ export const AGENT_PROFILE_LEVELS: Record<AgentProfile, Record<AgentActionKind, 
     lesson_reminder: 'auto',
     book_makeup: 'auto',
     payment_link: 'auto',
+    book_lodging: 'auto',
   },
   // Everything as far as its ceiling allows.
   autopilot: { ...AGENT_KIND_CEILING },

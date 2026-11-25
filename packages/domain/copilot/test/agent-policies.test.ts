@@ -144,6 +144,24 @@ describe('WhatsApp approvals', () => {
     // An unknown sentence shows its key; a missing value is left out; a non-date stays as it is.
     expect(summaryText({ code: 'copilot.summary.other', params: {} }, 'he')).toBe('other');
     expect(
+      summaryText(
+        {
+          code: 'copilot.summary.lodging',
+          params: {
+            guest: 'לוי',
+            room: 'משפחתי 1',
+            date: '2026-12-05',
+            until: '2026-12-07',
+            nights: 2,
+            amount: 90_000,
+          },
+        },
+        'he',
+      ),
+    ).toBe(
+      'להחזיק ללוי את משפחתי 1 מ-05/12/2026 עד 07/12/2026 (2 לילות, ₪900) ולשלוח קישור למקדמה',
+    );
+    expect(
       summaryText({ code: 'copilot.summary.add', params: { student: 'נועה', date: 'מחר' } }, 'he'),
     ).toBe('לשבץ את נועה ב, החל מ-מחר');
   });

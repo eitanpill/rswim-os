@@ -20,3 +20,4 @@ export * from './diver-bot-policies';
 export * from './diver-bot';
 export * from './coach';
 export * from './coach-policies';
+export * from './action-handlers';

@@ -10,7 +10,7 @@ import { registerLodgingBot, sendGuestReminders, sendMorningBrief } from '@rswim
 import { getDb, inngest } from '../client';
 import { publicUrl } from '../providers';
 
-registerLodgingBot();
+registerLodgingBot(publicUrl);
 
 export const lodgingMorningBrief = inngest.createFunction(
   {

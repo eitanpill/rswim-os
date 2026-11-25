@@ -30,7 +30,8 @@ import {
   setHousekeeping,
   updateRoom,
 } from '../src/services';
-import { lodgingLeadBotModule } from '../src/bot';
+import { confirmCopilotAction, undoCopilotAction } from '@rswim/domain-copilot';
+import { lodgingLeadBotModule, registerLodgingActions } from '../src/bot';
 import { bookingOf, recordPayment, requestPayment, settleLodgingCheckout } from '../src/payments';
 import { sendGuestReminders } from '../src/reminders';
 
@@ -792,6 +793,120 @@ describe('lodging', () => {
     await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, { ...settings, enabled: false }));
     expect(await run()).toEqual({ sent: 0, reason: 'off' });
     await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, settings));
+  });
+
+  it('books from the bot through the brain: waits for the owner, then holds the room and sends the deposit link', async () => {
+    registerLodgingActions(() => 'https://inn.test');
+    const [{ id: leadId }] = await q(
+      `insert into leads (organization_id, name, phone_e164, source) values ($1, 'משפחת ווטסאפ', '+972500000606', 'whatsapp') returning id`,
+      [orgId],
+    );
+    await asOwner((tx, ctx) =>
+      saveLodgingSettings(tx, ctx, {
+        enabled: true,
+        checkInTime: '14:00',
+        checkOutTime: '10:30',
+        morningBrief: true,
+        guestReminder: true,
+        depositPercent: 30,
+        holdHours: 24,
+      }),
+    );
+    const from = addDays(today, 70);
+    const ask = { check_in: from, check_out: addDays(from, 2), guests: 2 };
+    const call = (tool: string, input: unknown) =>
+      withOrg(t.db, orgId, (tx) =>
+        lodgingLeadBotModule.call(tx, { orgId, userId: null }, leadId, tool, input),
+      );
+    const free = (await call('lodging_availability', ask)) as { options: { room: string }[] };
+    const room = free.options[0]!.room;
+
+    // Only what it offered, by name, and only with sane input.
+    expect(
+      await call('lodging_book', { ...ask, room: 'חדר שלא קיים', guest_name: 'משפחת ווטסאפ' }),
+    ).toMatchObject({ status: 'failed' });
+    expect(await call('lodging_book', { ...ask, guest_name: '' })).toMatchObject({
+      status: 'failed',
+    });
+
+    // Careful by default: it waits for the owner.
+    expect(await call('lodging_book', { ...ask, room, guest_name: 'משפחת ווטסאפ' })).toEqual({
+      status: 'waiting',
+    });
+    const [action] = await q(
+      `select id, status, summary from copilot_actions where kind = 'book_lodging'`,
+    );
+    expect(action).toMatchObject({ status: 'proposed' });
+    expect(action.summary).toMatchObject({
+      code: 'copilot.summary.lodging',
+      params: { guest: 'משפחת ווטסאפ', room, date: from, nights: 2 },
+    });
+    expect(await q(`select 1 from lodging_stays where lead_id = $1`, [leadId])).toHaveLength(0);
+
+    // The owner says yes: the room is held for the lead and the link goes to their phone.
+    const out = await asOwner((tx, ctx) => confirmCopilotAction(tx, ctx, action.id));
+    expect(out.status).toBe('confirmed');
+    const [stay] = await q(
+      `select id, status, source, phone_e164, booking_id from lodging_stays where lead_id = $1`,
+      [leadId],
+    );
+    expect(stay).toMatchObject({ status: 'held', source: 'bot', phone_e164: '+972500000606' });
+    const [msg] = await q(`select body from messages where idempotency_key = $1`, [
+      `lodging.booked:${stay.booking_id}`,
+    ]);
+    expect(msg.body).toContain('שמרנו לך את');
+    expect(msg.body).toMatch(/מקדמה של .* כאן: https:\/\/inn\.test\/pay\/\S+/);
+    expect(msg.body).toContain('החדר מחכה למקדמה עד');
+    const view = await asOwner((tx) => bookingOf(tx, stay.booking_id));
+    expect(view.links).toHaveLength(1);
+
+    // Undone: the room is free again.
+    await asOwner((tx, ctx) => undoCopilotAction(tx, ctx, action.id));
+    expect((await asOwner((tx) => getStay(tx, stay.id)))!.status).toBe('cancelled');
+
+    // With the bot allowed to book alone (and no deposit asked), it books at once, confirmed.
+    await q(
+      `insert into agent_settings (organization_id, profile, levels) values ($1, 'balanced', '{}')
+       on conflict (organization_id) do update set profile = 'balanced', levels = '{}'`,
+      [orgId],
+    );
+    await asOwner((tx, ctx) =>
+      saveLodgingSettings(tx, ctx, {
+        enabled: true,
+        checkInTime: '14:00',
+        checkOutTime: '10:30',
+        morningBrief: true,
+        guestReminder: true,
+        depositPercent: 0,
+      }),
+    );
+    expect(await call('lodging_book', { ...ask, room, guest_name: 'משפחת ווטסאפ' })).toEqual({
+      status: 'done',
+    });
+    const [again] = await q(
+      `select status, booking_id from lodging_stays where lead_id = $1 and status <> 'cancelled'`,
+      [leadId],
+    );
+    expect(again.status).toBe('confirmed');
+    const [note] = await q(`select body from messages where idempotency_key = $1`, [
+      `lodging.booked:${again.booking_id}`,
+    ]);
+    expect(note.body).toContain('ההזמנה מאושרת');
+
+    // Off: the bot is told it may not.
+    await q(
+      `update agent_settings set levels = '{"book_lodging":"off"}' where organization_id = $1`,
+      [orgId],
+    );
+    expect(
+      await call('lodging_book', {
+        ...ask,
+        check_in: addDays(from, 10),
+        check_out: addDays(from, 12),
+        room,
+        guest_name: 'משפחת ווטסאפ',
+      }),
+    ).toEqual({ status: 'not_allowed' });
   });
 
   it('keeps lodging to the office', async () => {

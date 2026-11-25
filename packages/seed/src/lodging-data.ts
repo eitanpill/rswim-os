@@ -5,6 +5,7 @@
  */
 import { createDb, sql, type Tx } from '@rswim/db';
 import type { ServiceContext } from '@rswim/domain-core';
+import { createLead } from '@rswim/domain-crm';
 import {
   addDays,
   addRate,
@@ -13,6 +14,7 @@ import {
   bookingOf,
   bookStay,
   getStay,
+  lodgingLeadBotModule,
   recordPayment,
   moveStay,
   saveLodgingSettings,
@@ -250,6 +252,19 @@ export async function seedLodgingData(
     await setHousekeeping(tx, { roomId: room(0, 3), state: 'dirty' });
     // A double room is painted next week.
     await blockRoom(tx, ctx, { roomId: room(1, 0), from: day(4), to: day(7), reason: 'צביעה' });
+    // A new customer on WhatsApp chose a family room for next month: the bot holds it once the owner says yes.
+    const leadId = await createLead(tx, ctx, {
+      name: 'משפחת רוזן',
+      phone: fakePhone(),
+      source: 'whatsapp',
+      interest: 'חדר משפחה',
+    });
+    const ask = { check_in: day(30), check_out: day(33), guests: 4 };
+    await lodgingLeadBotModule.call(tx, ctx, leadId, 'lodging_book', {
+      ...ask,
+      room: 'משפחתי 3',
+      guest_name: 'משפחת רוזן',
+    });
   } else {
     await book(room(0, 0), 'משפחת אדלר', 4, -2, 0, 'in');
     await paid(

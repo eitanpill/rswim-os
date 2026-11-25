@@ -207,3 +207,25 @@ test('the owner closes a room for repair and opens it again, and sets what the g
   await page.goto('/admin/lodging');
   await expect(page.getByTestId('lodging-reminder-note')).toContainText('17:00');
 });
+
+test('a room the WhatsApp bot chose for a new customer waits on the brain, and the owner holds it', async ({
+  page,
+}) => {
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin/brain');
+  await expect(page.getByTestId('brain-level-book_lodging')).toBeVisible();
+  const waiting = page.getByTestId('brain-waiting');
+  await expect(waiting).toContainText('להחזיק למשפחת רוזן את משפחתי 3');
+  await shot(page, 'brain-lodging');
+  const action = page.locator('[data-testid="agent-action"][data-kind="book_lodging"]').first();
+  await action.getByTestId('agent-approve').click();
+  await expect(waiting).not.toContainText('להחזיק למשפחת רוזן');
+  await page.goto('/admin/brain/journal');
+  await expect(
+    page
+      .locator('[data-testid="agent-action"][data-kind="book_lodging"][data-status="confirmed"]')
+      .first(),
+  ).toBeVisible();
+  await page.goto(`/admin/lodging/board?from=${dayFromNow(28)}`);
+  await expect(page.getByTestId('board-stay').filter({ hasText: 'משפחת רוזן' })).toBeVisible();
+});

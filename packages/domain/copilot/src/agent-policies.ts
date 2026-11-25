@@ -104,6 +104,7 @@ const UNDOABLE: ReadonlySet<AgentActionKind> = new Set([
   'freeze',
   'substitute',
   'book_trial',
+  'book_lodging',
 ]);
 
 export function undoable(kind: AgentActionKind): boolean {
@@ -126,6 +127,9 @@ const SUMMARY_TEXT: Record<Locale, Record<string, string>> = {
     makeup: 'לקבוע ל{student} השלמה ב{group}, {date} {time}',
     trial: 'לקבוע ל{student} (משפחת {family}) שיעור ניסיון ב{group}, {date} {time}',
     followUp: 'לשלוח ל{who} הודעת מעקב: "{text}"',
+    lodging:
+      'להחזיק ל{guest} את {room} מ-{date} עד {until} ({nights} לילות, {amount}) ולשלוח קישור למקדמה',
+    lodgingNoPrice: 'להחזיק ל{guest} את {room} מ-{date} עד {until} ({nights} לילות)',
     freeze: 'להקפיא את המקום של {student} ב{group} מ-{date} עד {until}',
     cancelLessons: 'לבטל את השיעורים ב{venue} מ-{date} עד {until} ({sessions} שיעורים, {reason})',
     cancelLessonsAll: 'לבטל את כל השיעורים מ-{date} עד {until} ({sessions} שיעורים, {reason})',
@@ -142,6 +146,9 @@ const SUMMARY_TEXT: Record<Locale, Record<string, string>> = {
     makeup: 'Book a makeup for {student} in {group}, {date} {time}',
     trial: 'Book a trial for {student} ({family} family) in {group}, {date} {time}',
     followUp: 'Send {who} a follow-up: "{text}"',
+    lodging:
+      'Hold {room} for {guest} from {date} to {until} ({nights} nights, {amount}) and send the deposit link',
+    lodgingNoPrice: 'Hold {room} for {guest} from {date} to {until} ({nights} nights)',
     freeze: "Freeze {student}'s place in {group} from {date} to {until}",
     cancelLessons:
       'Cancel the lessons at {venue} from {date} to {until} ({sessions} lessons, {reason})',

@@ -54,6 +54,7 @@ import {
   type CopilotTool,
   type CopilotTraceStep,
 } from '@rswim/integrations';
+import { actionHandler, type ModuleResults } from './action-handlers';
 import { gateFor, getAgentSettings } from './agent';
 import { approvalText } from './agent-policies';
 import { sendLeadFollowUp } from './lead-followup';
@@ -1118,6 +1119,12 @@ async function apply(tx: Tx, ctx: ServiceContext, a: typeof copilotActions.$infe
       return bookLeadTrial(tx, ctx, a.params as ProposalParams['book_trial']);
     case 'lead_followup':
       return sendLeadFollowUp(tx, ctx, a.params as ProposalParams['lead_followup']);
+    case 'book_lodging':
+      return actionHandler('book_lodging').execute(
+        tx,
+        ctx,
+        a.params as ProposalParams['book_lodging'],
+      );
     default: {
       const p = a.params as ProposalParams['open_makeup_slots'];
       const slotIds = await openSlots(tx, ctx, {
@@ -1248,6 +1255,9 @@ export async function undoCopilotAction(tx: Tx, ctx: ServiceContext, id: string)
       break;
     case 'book_trial':
       await cancelLeadTrial(tx, ctx, (a.result as { trialId: string }).trialId);
+      break;
+    case 'book_lodging':
+      await actionHandler('book_lodging').undo(tx, ctx, a.result as ModuleResults['book_lodging']);
       break;
     case 'substitute':
       await cancelSubstituteRequest(

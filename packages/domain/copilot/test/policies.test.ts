@@ -390,6 +390,28 @@ describe('stage 3: cancelling lessons and substitutes', () => {
       code: 'copilot.summary.followUp',
       params: { who: 'רונית', text: 'היי' },
     });
+    const room = {
+      kind: 'book_lodging' as const,
+      guest: 'משפחת לוי',
+      room: 'משפחתי 1',
+      date: '2026-12-05',
+      until: '2026-12-07',
+      nights: 2,
+    };
+    expect(proposalSummary({ ...room, totalAgorot: 90_000 })).toEqual({
+      code: 'copilot.summary.lodging',
+      params: {
+        guest: 'משפחת לוי',
+        room: 'משפחתי 1',
+        date: '2026-12-05',
+        until: '2026-12-07',
+        nights: 2,
+        amount: 90_000,
+      },
+    });
+    expect(proposalSummary({ ...room, totalAgorot: null }).code).toBe(
+      'copilot.summary.lodgingNoPrice',
+    );
   });
 
   it('understands cancelling a day and finding a substitute in the fake', () => {

@@ -960,6 +960,9 @@ importers:
       '@rswim/domain-core':
         specifier: workspace:*
         version: link:../core
+      '@rswim/domain-crm':
+        specifier: workspace:*
+        version: link:../crm
       '@rswim/domain-scheduling':
         specifier: workspace:*
         version: link:../scheduling

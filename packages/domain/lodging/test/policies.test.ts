@@ -9,6 +9,7 @@ import {
   freeOptions,
   isFree,
   nightsBetween,
+  bookedText,
   reminderPayFor,
   reminderText,
   roomNames,
@@ -407,6 +408,39 @@ describe("the guest's reminder", () => {
     const s = { guestName: 'לוי', checkIn: '2026-12-05', checkOut: '2026-12-08' };
     expect(reminderPayFor(s, 'he')).toBe('לינה: לוי, 05.12.2026 עד 08.12.2026');
     expect(reminderPayFor(s, 'en')).toBe('Lodging: לוי, 05.12.2026 to 08.12.2026');
+  });
+});
+
+describe('a booking the bot took', () => {
+  const base = {
+    guestName: 'משפחת לוי',
+    business: 'בריכת הדגמה',
+    where: 'משפחתי 1',
+    checkIn: '2026-12-05',
+    checkOut: '2026-12-08',
+    totalAgorot: 120_000,
+    depositAgorot: 36_000,
+    payUrl: 'https://example.test/pay/x',
+    holdUntil: '26.11 15:00',
+  };
+  it('holds the room and asks for the deposit by its link, until the hold ends', () => {
+    const he = bookedText(base, 'he');
+    expect(he).toContain('שמרנו לך את משפחתי 1 בבריכת הדגמה, מ־05.12.2026 עד 08.12.2026.');
+    expect(he).toMatch(/המחיר לכל השהייה: .*1,200/);
+    expect(he).toMatch(/מקדמה של .*360.* כאן: https:\/\/example\.test\/pay\/x/);
+    expect(he).toContain('החדר מחכה למקדמה עד 26.11 15:00.');
+    const enFull = bookedText(base, 'en');
+    expect(enFull).toContain('The whole stay costs');
+    expect(enFull).toContain('To confirm, pay a deposit of');
+    expect(enFull).toContain('The room waits for the deposit until 26.11 15:00.');
+    const en = bookedText({ ...base, payUrl: null, holdUntil: null, totalAgorot: null }, 'en');
+    expect(en).toContain('The office will be in touch about the deposit.');
+    expect(en).not.toContain('costs');
+    expect(en).not.toContain('waits');
+  });
+  it('confirms at once when no deposit is asked', () => {
+    expect(bookedText({ ...base, depositAgorot: 0 }, 'he')).toContain('ההזמנה מאושרת');
+    expect(bookedText({ ...base, depositAgorot: 0 }, 'en')).toContain('Your booking is confirmed');
   });
 });
 
