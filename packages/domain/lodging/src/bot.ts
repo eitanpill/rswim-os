@@ -8,7 +8,7 @@ import type { Tx } from '@rswim/db';
 import { registerLeadBotModule, type LeadBotModule } from '@rswim/domain-copilot';
 import { DomainError } from '@rswim/domain-core';
 import { botFacts } from './policies';
-import { getLodgingSettings, loadRooms, searchFree } from './services';
+import { getLodgingSettings, loadRates, loadRooms, searchFree } from './services';
 
 const Availability = z.object({
   check_in: z.iso.date(),
@@ -24,13 +24,19 @@ export const lodgingLeadBotModule: LeadBotModule = {
   },
   async facts(tx: Tx) {
     const s = await getLodgingSettings(tx);
-    return botFacts(await loadRooms(tx), { checkIn: s.checkInTime, checkOut: s.checkOutTime });
+    const [rooms, rates] = await Promise.all([loadRooms(tx), loadRates(tx)]);
+    return botFacts(
+      rooms,
+      { checkIn: s.checkInTime, checkOut: s.checkOutTime },
+      rates,
+      s.minNights,
+    );
   },
   tools: [
     {
       name: 'lodging_availability',
       description:
-        'Rooms and dorm beds free for some nights for this many guests, with the price for the whole stay. Dates are YYYY-MM-DD; check_out is the morning they leave.',
+        'Rooms and dorm beds free for some nights for this many guests, with the price for the whole stay from the price list (seasons, weekends, holidays). Dates are YYYY-MM-DD; check_out is the morning they leave. An option with too_short needs at least min_nights nights.',
       input_schema: {
         type: 'object',
         properties: {
@@ -60,6 +66,11 @@ export const lodgingLeadBotModule: LeadBotModule = {
         sold_by: o.soldBy,
         holds_guests: o.room,
         total_shekels: o.totalAgorot === null ? null : o.totalAgorot / 100,
+        min_nights: o.minNights,
+        too_short: o.tooShort,
+        special_nights: [
+          ...new Set(o.priced.flatMap((n) => n.rules.map((r) => r.holiday ?? r.name))),
+        ],
       })),
     };
   },

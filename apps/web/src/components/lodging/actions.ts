@@ -1,15 +1,21 @@
 'use server';
 
 import {
+  addRate,
   addRooms,
   bookStay,
   HousekeepingInput,
   LodgingSettingsInput,
   moveStay,
+  RateInput,
+  RateRemove,
+  RateToggle,
+  removeRate,
   RoomInput,
   RoomUpdate,
   saveLodgingSettings,
   setHousekeeping,
+  setRateActive,
   StayInput,
   StayMove,
   updateRoom,
@@ -18,7 +24,12 @@ import type { FormState } from '@/lib/form-state';
 import { runForm, shekelFields } from '@/lib/forms';
 
 /** Lodging lives under both surfaces: a swim school's office and a freediving club. */
-const PATHS = ['/admin/lodging', '/dive/lodging'].flatMap((p) => [p, `${p}/board`, `${p}/rooms`]);
+const PATHS = ['/admin/lodging', '/dive/lodging'].flatMap((p) => [
+  p,
+  `${p}/board`,
+  `${p}/rooms`,
+  `${p}/prices`,
+]);
 const withStay = (fd: FormData) => {
   const id = String(fd.get('id') ?? '');
   return [...PATHS, `/admin/lodging/stays/${id}`, `/dive/lodging/stays/${id}`];
@@ -72,5 +83,30 @@ export async function moveStayAction(_: FormState, fd: FormData) {
   return runForm(fd, StayMove, (tx, _ctx, v) => moveStay(tx, v), {
     revalidate: withStay(fd),
     success: 'lodging.moved',
+  });
+}
+
+export async function addRateAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    RateInput,
+    (tx, ctx, v) => addRate(tx, ctx, v),
+    { revalidate: PATHS, success: 'lodging.prices.added' },
+    // A fixed price when one is typed, otherwise the percent.
+    (raw) => {
+      const priced = shekelFields('priceNight')(raw);
+      return { ...priced, mode: priced.priceNight === undefined ? 'percent' : 'fixed' };
+    },
+  );
+}
+
+export async function rateActiveAction(_: FormState, fd: FormData) {
+  return runForm(fd, RateToggle, (tx, _ctx, v) => setRateActive(tx, v), { revalidate: PATHS });
+}
+
+export async function removeRateAction(_: FormState, fd: FormData) {
+  return runForm(fd, RateRemove, (tx, _ctx, v) => removeRate(tx, v), {
+    revalidate: PATHS,
+    success: 'lodging.prices.removed',
   });
 }

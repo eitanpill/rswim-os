@@ -6670,7 +6670,8 @@
     "tabs": {
       "today": "Today",
       "board": "Occupancy",
-      "rooms": "Rooms & settings"
+      "rooms": "Rooms & settings",
+      "prices": "Prices"
     },
     "off": "Lodging is still off: the bot and the morning message don't use it. Turn it on under Rooms & settings.",
     "empty": {
@@ -6745,7 +6746,10 @@
       "hold": "Hold without confirming (waiting for approval or payment)",
       "note": "Note",
       "booked": "Booking saved",
-      "held": "On hold"
+      "held": "On hold",
+      "tooShort": "At least {n} nights",
+      "eachNight": "{amount} each night",
+      "ruleNights": "{rule}: {nights}"
     },
     "stay": {
       "title": "Booking",
@@ -6775,7 +6779,7 @@
       "toilet": "Toilet",
       "shower": "Shower",
       "price": "Price a night (₪)",
-      "priceHint": "Whole room; a dorm per bed",
+      "priceHint": "The base price. Seasons, weekends and holidays are in Prices",
       "note": "Note",
       "active": "Open for bookings",
       "list": "Rooms ({n})",
@@ -6786,7 +6790,12 @@
       "dormSummary": "{beds, plural, one {1 bed} other {# beds}} sold one by one",
       "facilities": "Toilet {toilet} · shower {shower}",
       "perNight": "{amount} a night",
-      "perBed": "{amount} a bed a night"
+      "perBed": "{amount} a bed a night",
+      "pricePer": "The price is",
+      "pricePerHint": "A dorm is always priced per bed",
+      "eachGuest": "per guest",
+      "minNights": "Minimum nights per booking",
+      "minNightsHint": "Unless a price rule asks for more. The office may book fewer; the bot and online bookings may not."
     },
     "kind": {
       "single": "Single",
@@ -6815,7 +6824,79 @@
       "bedOneGuest": "One guest sleeps in a dorm bed.",
       "bedNotInRoom": "That bed is not in this room.",
       "bedInUse": "A bed with a booking can't be closed. Move or cancel the booking first.",
-      "cannotMove": "This can't be done with the booking as it is now."
+      "cannotMove": "This can't be done with the booking as it is now.",
+      "tooShort": "The booking needs at least {n} nights.",
+      "rateDates": "A start and an end date, the end after the start.",
+      "rateNights": "Pick at least one night of the week.",
+      "rateValue": "Enter a fixed price a night or a percent change (not 0)."
+    },
+    "pricePer": {
+      "room": "For the whole room",
+      "guest": "Per guest"
+    },
+    "prices": {
+      "list": "Price list ({n})",
+      "how": "Each room starts from its base price. A season changes it on its dates, then a holiday or a weekend changes it again (a holiday before a weekend). The price is fixed when booked.",
+      "empty": "No rules yet: every night costs the room's base price.",
+      "paused": "Paused",
+      "pause": "Pause",
+      "resume": "Turn on",
+      "remove": "Remove",
+      "added": "Added to the price list",
+      "removed": "Rule removed",
+      "kind": {
+        "season": "Season",
+        "weekend": "Weekend",
+        "holiday": "Holidays"
+      },
+      "add": {
+        "season": "Add a season",
+        "weekend": "Weekend price",
+        "holiday": "Holiday price"
+      },
+      "addHint": {
+        "season": "Say a dearer summer or a cheaper winter. A season that comes back every year needs no new dates.",
+        "weekend": "The nights the price differs. By default Thursday and Friday nights.",
+        "holiday": "Holidays come from the Hebrew calendar: the night before each holiday and the middle days. No dates to type."
+      },
+      "defaultName": {
+        "season": "Summer",
+        "weekend": "Weekend",
+        "holiday": "Holidays"
+      },
+      "name": "Name",
+      "startsOn": "First night",
+      "endsOn": "Last night",
+      "endsOnHint": "This night included",
+      "yearly": "Comes back every year on the same dates",
+      "nights": "Which nights",
+      "night": {
+        "0": "Sunday",
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday"
+      },
+      "rooms": "Which rooms",
+      "allRooms": "All rooms",
+      "percent": "Percent change",
+      "percentHint": "20 = 20% dearer, -15 = 15% cheaper",
+      "fixed": "Or a fixed price a night (₪)",
+      "fixedHint": "When filled, it wins over the percent",
+      "minNights": "Minimum nights",
+      "minNightsHint": "Optional",
+      "addButton": "Add to the price list",
+      "seasonOnce": "{from} to {to}",
+      "seasonYearly": "Every year {from} to {to}",
+      "allHolidays": "Holiday eves and middle days",
+      "fixedEffect": "{amount} a night",
+      "up": "{n}% dearer",
+      "down": "{n}% cheaper",
+      "minShort": "at least {n} nights",
+      "holidaysTitle": "Holidays in the coming year",
+      "holidaysHint": "The nights the holiday price applies to, from the Hebrew calendar."
     }
   },
   "leadInvite": {

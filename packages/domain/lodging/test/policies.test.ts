@@ -20,6 +20,7 @@ const room = (over: Partial<RoomFacts> & { id: string }): RoomFacts => ({
   name: over.id,
   kind: 'family',
   soldBy: 'room',
+  pricePer: 'room',
   maxGuests: 4,
   priceNightAgorot: 40_000,
   toilet: 'private',
@@ -322,12 +323,14 @@ describe('the bot', () => {
     expect(
       botFacts([room({ id: 'x', active: false })], { checkIn: '15:00', checkOut: '11:00' }),
     ).toEqual([]);
-    expect(botFacts([fam], { checkIn: '15:00', checkOut: '11:00' })[1]).toMatch(/400.* a night\.$/);
+    expect(botFacts([fam], { checkIn: '15:00', checkOut: '11:00' })[1]).toMatch(
+      /400.* a night \(base price\)\.$/,
+    );
     const lines = botFacts([fam2, dorm], { checkIn: '15:00', checkOut: '11:00' });
     expect(lines[0]).toBe('Lodging on site: 2 rooms. Check-in from 15:00, check-out by 11:00.');
     expect(lines[1]).toContain('up to 4 guests; toilet private, shower private; price on request.');
     expect(lines[2]).toMatch(
-      /^- דורמס \(dorm\): 3 beds sold one by one; toilet shared, shower shared; .*90.* a night per bed\.$/,
+      /^- דורמס \(dorm\): 3 beds sold one by one; toilet shared, shower shared; .*90.* a night per bed \(base price\)\.$/,
     );
     expect(lines.at(-1)).toContain('lodging_availability');
   });

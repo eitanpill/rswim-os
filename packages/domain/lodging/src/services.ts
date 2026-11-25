@@ -5,26 +5,34 @@
  * clubs; the office of each (owner and admins) runs it.
  */
 import { z } from 'zod';
+import { dayInfo } from '@rswim/calendar';
 import {
   checkbox,
   HOUSEKEEPING_STATES,
+  optionalDate,
   optionalInt,
   optionalPhone,
   optionalText,
   requiredDate,
   requiredInt,
   requiredText,
+  RATE_KINDS,
+  RATE_MODES,
   ROOM_FACILITIES,
   ROOM_KINDS,
+  ROOM_PRICE_PER,
   STAY_HOLDING,
   STAY_SOURCES,
   type HousekeepingState,
   type RoomFacility,
+  type RateKind,
+  type RateMode,
   type RoomKind,
+  type RoomPricePer,
   type RoomSoldBy,
   type StayStatus,
 } from '@rswim/contracts';
-import { and, asc, eq, gt, inArray, lt, schema, sql, type Tx } from '@rswim/db';
+import { and, asc, desc, eq, gt, inArray, lt, schema, sql, type Tx } from '@rswim/db';
 import { enqueueMessage } from '@rswim/domain-comms';
 import { getAgentSettings } from '@rswim/domain-copilot';
 import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
@@ -43,11 +51,13 @@ import {
   type BoardRow,
   type DayPlan,
   type FreeOption,
+  type Pricing,
   type RoomFacts,
   type StayFacts,
 } from './policies';
+import { quoteStay, rateProblem, type RateFacts, type StayQuote } from './prices';
 
-const { lodgingSettings, lodgingRooms, lodgingBeds, lodgingStays } = schema;
+const { lodgingSettings, lodgingRooms, lodgingBeds, lodgingStays, lodgingRates } = schema;
 
 async function guarded<T>(fn: () => Promise<T>): Promise<T> {
   try {
@@ -67,8 +77,9 @@ export const LodgingSettingsInput = z.object({
   checkOutTime: hhmm,
   morningBrief: checkbox(),
   briefPhone: optionalPhone(),
+  minNights: requiredInt(1, 30).default(1),
 });
-export type LodgingSettingsInput = z.infer<typeof LodgingSettingsInput>;
+export type LodgingSettingsInput = z.input<typeof LodgingSettingsInput>;
 
 export interface LodgingSettingsView {
   enabled: boolean;
@@ -76,6 +87,7 @@ export interface LodgingSettingsView {
   checkOutTime: string;
   morningBrief: boolean;
   briefPhoneE164: string | null;
+  minNights: number;
 }
 
 export async function getLodgingSettings(tx: Tx): Promise<LodgingSettingsView> {
@@ -86,6 +98,7 @@ export async function getLodgingSettings(tx: Tx): Promise<LodgingSettingsView> {
     checkOutTime: row?.checkOutTime ?? '11:00',
     morningBrief: row?.morningBrief ?? true,
     briefPhoneE164: row?.briefPhoneE164 ?? null,
+    minNights: row?.minNights ?? 1,
   };
 }
 
@@ -101,6 +114,7 @@ export async function saveLodgingSettings(
     checkOutTime: v.checkOutTime,
     morningBrief: v.morningBrief,
     briefPhoneE164: v.briefPhone,
+    minNights: v.minNights,
   };
   await guarded(() =>
     tx
@@ -121,6 +135,7 @@ const roomFields = {
   shower: z.enum(ROOM_FACILITIES, 'forms.errors.invalid'),
   /** Agorot (the form's shekels go through shekelFields). */
   priceNight: optionalInt(0, 10_000_000),
+  pricePer: z.enum(ROOM_PRICE_PER, 'forms.errors.invalid').default('room'),
   note: optionalText(500),
 };
 
@@ -129,10 +144,10 @@ const roomFields = {
  * so its guests are its beds whatever the form says.
  */
 export const RoomInput = z.object({ ...roomFields, count: requiredInt(1, 50).default(1) });
-export type RoomInput = z.infer<typeof RoomInput>;
+export type RoomInput = z.input<typeof RoomInput>;
 
 export const RoomUpdate = z.object({ id: z.uuid(), ...roomFields, active: checkbox() });
-export type RoomUpdate = z.infer<typeof RoomUpdate>;
+export type RoomUpdate = z.input<typeof RoomUpdate>;
 
 export async function addRooms(tx: Tx, ctx: ServiceContext, input: RoomInput): Promise<string[]> {
   const v = RoomInput.parse(input);
@@ -155,6 +170,7 @@ export async function addRooms(tx: Tx, ctx: ServiceContext, input: RoomInput): P
           toilet: v.toilet,
           shower: v.shower,
           priceNightAgorot: v.priceNight,
+          pricePer: v.kind === 'dorm' ? 'room' : v.pricePer,
           note: v.note,
           sort: ++sort,
         })
@@ -210,6 +226,7 @@ export async function updateRoom(tx: Tx, ctx: ServiceContext, input: RoomUpdate)
         toilet: v.toilet,
         shower: v.shower,
         priceNightAgorot: v.priceNight,
+        pricePer: v.kind === 'dorm' ? 'room' : v.pricePer,
         note: v.note,
         active: v.active,
       })
@@ -274,6 +291,7 @@ export async function loadRooms(tx: Tx): Promise<RoomRow[]> {
     name: r.name,
     kind: r.kind as RoomKind,
     soldBy: r.soldBy as RoomSoldBy,
+    pricePer: r.pricePer as RoomPricePer,
     maxGuests: r.maxGuests,
     priceNightAgorot: r.priceNightAgorot,
     toilet: r.toilet as RoomFacility,
@@ -284,6 +302,178 @@ export async function loadRooms(tx: Tx): Promise<RoomRow[]> {
     bedCount: r.beds,
     note: r.note,
   }));
+}
+
+// ─── The price list ─────────────────────────────────────────────────────────
+
+/**
+ * One rule of the price list. A season has its first and last night (and may come back every year); the weekend has
+ * its nights; the holidays need neither. It sets the night's price (shekels in the form, agorot here) or moves it by a
+ * percent, for every room or one kind, and may ask for a minimum stay.
+ */
+export const RateInput = z
+  .object({
+    name: requiredText(60),
+    kind: z.enum(RATE_KINDS, 'forms.errors.invalid'),
+    startsOn: optionalDate(),
+    endsOn: optionalDate(),
+    yearly: checkbox().default(false),
+    nightsOfWeek: z
+      .array(z.coerce.number().int().min(0).max(6))
+      .default([])
+      .transform((v) => [...new Set(v)].sort()),
+    roomKind: z
+      .preprocess(
+        (v) => (v === '' || v === undefined ? null : v),
+        z.enum(ROOM_KINDS, 'forms.errors.invalid').nullable(),
+      )
+      .optional()
+      .transform((v) => v ?? null),
+    mode: z.enum(RATE_MODES, 'forms.errors.invalid'),
+    priceNight: optionalInt(0, 10_000_000),
+    percent: optionalInt(-90, 500),
+    minNights: optionalInt(1, 30),
+  })
+  .superRefine((v, ctx) => {
+    const problem = rateProblem({
+      kind: v.kind,
+      startsOn: v.startsOn,
+      endsOn: v.endsOn,
+      nightsOfWeek: v.nightsOfWeek,
+      mode: v.mode,
+      priceNightAgorot: v.priceNight,
+      percent: v.percent,
+    });
+    if (problem) {
+      const path =
+        problem === 'lodging.errors.rateDates'
+          ? 'endsOn'
+          : problem === 'lodging.errors.rateNights'
+            ? 'nightsOfWeek'
+            : v.mode === 'fixed'
+              ? 'priceNight'
+              : 'percent';
+      ctx.addIssue({ code: 'custom', path: [path], message: problem });
+    }
+  });
+export type RateInput = z.input<typeof RateInput>;
+
+export async function addRate(tx: Tx, ctx: ServiceContext, input: RateInput): Promise<string> {
+  const v = RateInput.parse(input);
+  const [row] = await guarded(() =>
+    tx
+      .insert(lodgingRates)
+      .values({
+        organizationId: ctx.orgId,
+        name: v.name,
+        kind: v.kind,
+        startsOn: v.kind === 'season' ? v.startsOn : null,
+        endsOn: v.kind === 'season' ? v.endsOn : null,
+        yearly: v.kind === 'season' && v.yearly,
+        nightsOfWeek: v.kind === 'weekend' ? v.nightsOfWeek : null,
+        roomKind: v.roomKind,
+        mode: v.mode,
+        priceNightAgorot: v.mode === 'fixed' ? v.priceNight : null,
+        percent: v.mode === 'percent' ? v.percent : null,
+        minNights: v.minNights,
+      })
+      .returning({ id: lodgingRates.id }),
+  );
+  return (row as { id: string }).id;
+}
+
+export const RateToggle = z.object({ id: z.uuid(), active: checkbox() });
+export type RateToggle = z.input<typeof RateToggle>;
+
+/** Pauses a rule or turns it back on (a paused rule changes no price). */
+export async function setRateActive(tx: Tx, input: RateToggle): Promise<void> {
+  const v = RateToggle.parse(input);
+  const done = await tx
+    .update(lodgingRates)
+    .set({ active: v.active })
+    .where(eq(lodgingRates.id, v.id))
+    .returning({ id: lodgingRates.id });
+  if (!done.length) throw new DomainError('common.errors.notFound');
+}
+
+export const RateRemove = z.object({ id: z.uuid() });
+
+/** Removes a rule. Stays already booked keep the price they were booked at. */
+export async function removeRate(tx: Tx, input: z.input<typeof RateRemove>): Promise<void> {
+  const v = RateRemove.parse(input);
+  const done = await tx
+    .delete(lodgingRates)
+    .where(eq(lodgingRates.id, v.id))
+    .returning({ id: lodgingRates.id });
+  if (!done.length) throw new DomainError('common.errors.notFound');
+}
+
+/** Every rule of the price list: seasons by their first night, then the weekend, then the holidays. */
+export async function loadRates(tx: Tx): Promise<RateFacts[]> {
+  const rows = await tx.select().from(lodgingRates).orderBy(desc(lodgingRates.createdAt));
+  const rank = { season: 0, weekend: 1, holiday: 2 } as const;
+  return rows
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      kind: r.kind as RateKind,
+      startsOn: r.startsOn,
+      endsOn: r.endsOn,
+      yearly: r.yearly,
+      nightsOfWeek: r.nightsOfWeek,
+      roomKind: r.roomKind as RoomKind | null,
+      mode: r.mode as RateMode,
+      priceNightAgorot: r.priceNightAgorot,
+      percent: r.percent,
+      minNights: r.minNights,
+      active: r.active,
+      createdAt: r.createdAt.toISOString(),
+    }))
+    .sort(
+      (a, b) => rank[a.kind] - rank[b.kind] || (a.startsOn ?? '').localeCompare(b.startsOn ?? ''),
+    );
+}
+
+/**
+ * The Hebrew holidays' nights between two dates (the first night included, the last excluded): the night before a
+ * holiday or one of its middle days, and the nights of the middle days (Sukkot, Pesach), as Israel keeps them.
+ */
+export function holidayNights(from: string, to: string): Map<string, string> {
+  const out = new Map<string, string>();
+  for (let night = from; night < to; night = addDays(night, 1)) {
+    const today = dayInfo(night);
+    const next = dayInfo(addDays(night, 1));
+    const holiday =
+      next.isYomTov || next.isCholHaMoed ? next : today.isCholHaMoed ? today : undefined;
+    if (holiday) out.set(night, (holiday.holidays[0]?.he ?? '').replace(/\s*\d{4}$/, ''));
+  }
+  return out;
+}
+
+/** Everything a search or a booking prices with, for these nights. */
+export async function pricingFor(tx: Tx, from: string, to: string): Promise<Pricing> {
+  const [rates, settings] = await Promise.all([loadRates(tx), getLodgingSettings(tx)]);
+  return { rates, holidays: holidayNights(from, to), minNights: settings.minNights };
+}
+
+export interface HolidayNight {
+  date: string;
+  name: string;
+}
+
+/** The holiday nights ahead (for the price list screen): one line per night. */
+export function holidaysAhead(from: string, days = 365): HolidayNight[] {
+  return [...holidayNights(from, addDays(from, days))].map(([date, name]) => ({ date, name }));
+}
+
+/** One room's price for some nights (the stay screen, the bot, a booking). */
+export async function quoteRoom(
+  tx: Tx,
+  room: RoomFacts,
+  ask: { checkIn: string; checkOut: string; guests: number },
+): Promise<StayQuote> {
+  const pricing = await pricingFor(tx, ask.checkIn, ask.checkOut);
+  return quoteStay(room, ask, pricing.rates, pricing.holidays, pricing.minNights);
 }
 
 // ─── Stays ──────────────────────────────────────────────────────────────────
@@ -322,11 +512,12 @@ export type FreeSearch = z.infer<typeof FreeSearch>;
 
 /** Rooms and dorm beds free for these nights that hold this many guests, cheapest first. */
 export async function searchFree(tx: Tx, ask: FreeSearch): Promise<FreeOption[]> {
-  const [rooms, stays] = await Promise.all([
+  const [rooms, stays, pricing] = await Promise.all([
     loadRooms(tx),
     loadStays(tx, ask.checkIn, ask.checkOut),
+    pricingFor(tx, ask.checkIn, ask.checkOut),
   ]);
-  return freeOptions(rooms, stays, ask);
+  return freeOptions(rooms, stays, ask, pricing);
 }
 
 export const StayInput = z
@@ -358,6 +549,11 @@ export async function bookStay(tx: Tx, ctx: ServiceContext, input: StayInput): P
   const stays = await loadStays(tx, v.checkIn, v.checkOut);
   const problem = stayProblem(room, v, stays);
   if (problem) throw new DomainError(problem);
+  // The office may book a shorter stay than the price list asks for; the bot and online bookings may not.
+  const quote = await quoteRoom(tx, room, { ...v, guests: room.soldBy === 'bed' ? 1 : v.guests });
+  if (quote.tooShort && v.source !== 'office') {
+    throw new DomainError('lodging.errors.tooShort', { n: quote.minNights });
+  }
   const beds =
     room.soldBy === 'bed' && v.bedId === null
       ? freeBeds(room, v, stays)
@@ -382,6 +578,7 @@ export async function bookStay(tx: Tx, ctx: ServiceContext, input: StayInput): P
           source: v.source,
           note: v.note,
           leadId: v.leadId,
+          totalAgorot: quote.totalAgorot,
         })
         .returning({ id: lodgingStays.id }),
     );
@@ -448,8 +645,8 @@ export async function getStay(tx: Tx, id: string): Promise<StayView | null> {
     note: row.note,
     source: row.source,
     nights,
-    // A room's price is per night for the whole room, a dorm's per bed; a stay is one room or one bed.
-    totalAgorot: room?.priceNightAgorot == null ? null : room.priceNightAgorot * nights,
+    // The price when booked (the price list may have changed since).
+    totalAgorot: row.totalAgorot,
   };
 }
 

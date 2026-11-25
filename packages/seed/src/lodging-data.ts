@@ -7,6 +7,7 @@ import { createDb, sql, type Tx } from '@rswim/db';
 import type { ServiceContext } from '@rswim/domain-core';
 import {
   addDays,
+  addRate,
   addRooms,
   bookStay,
   moveStay,
@@ -108,7 +109,62 @@ export async function seedLodgingData(
     checkOutTime: '11:00',
     morningBrief: true,
     briefPhone: null,
+    minNights: 1,
   });
+
+  // The price list: a dearer summer (every year), weekend nights, and the Hebrew holidays with a two-night minimum.
+  if (kind === 'swim') {
+    await addRate(tx, ctx, {
+      name: 'קיץ',
+      kind: 'season',
+      startsOn: '2026-07-01',
+      endsOn: '2026-08-31',
+      yearly: true,
+      mode: 'percent',
+      percent: 20,
+      minNights: 2,
+    });
+    await addRate(tx, ctx, {
+      name: 'סוף שבוע',
+      kind: 'weekend',
+      nightsOfWeek: [4, 5],
+      mode: 'percent',
+      percent: 15,
+    });
+    await addRate(tx, ctx, {
+      name: 'חגים',
+      kind: 'holiday',
+      roomKind: 'family',
+      mode: 'fixed',
+      priceNight: 85_000,
+      minNights: 2,
+    });
+  } else {
+    // Eilat is busiest in the winter and on the holidays.
+    await addRate(tx, ctx, {
+      name: 'חורף באילת',
+      kind: 'season',
+      startsOn: '2026-11-01',
+      endsOn: '2027-02-28',
+      yearly: true,
+      mode: 'percent',
+      percent: 15,
+    });
+    await addRate(tx, ctx, {
+      name: 'סוף שבוע',
+      kind: 'weekend',
+      nightsOfWeek: [4, 5],
+      mode: 'percent',
+      percent: 10,
+    });
+    await addRate(tx, ctx, {
+      name: 'חגים',
+      kind: 'holiday',
+      mode: 'percent',
+      percent: 30,
+      minNights: 2,
+    });
+  }
 
   const groups: string[][] = [];
   for (const r of ROOMS[kind]) groups.push(await addRooms(tx, ctx, { ...r, note: null }));
