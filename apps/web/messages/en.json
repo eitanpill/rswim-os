@@ -6700,7 +6700,10 @@
       "markClean": "Done",
       "briefTo": "Every morning at 07:00 a message with arrivals, departures and rooms to prepare goes to {phone}.",
       "briefOwner": "Every morning at 07:00 a message with arrivals, departures and rooms to prepare goes to the brain's approvals number.",
-      "briefOff": "The morning message is off."
+      "briefOff": "The morning message is off.",
+      "blocked": "Closed for repair",
+      "reminderOn": "Every guest arriving tomorrow gets a WhatsApp reminder at 17:00: arrival time, directions and what is still owed.",
+      "reminderOff": "The guest reminder the day before arrival is off (in the rooms settings)."
     },
     "guests": "{n, plural, one {1 guest} other {# guests}}",
     "nights": "{n, plural, one {1 night} other {# nights}}",
@@ -6715,7 +6718,8 @@
     "source": {
       "office": "Office",
       "bot": "Bot",
-      "online": "Online"
+      "online": "Online",
+      "block": "Block"
     },
     "moves": {
       "confirm": "Confirm",
@@ -6800,7 +6804,10 @@
       "depositPercent": "Deposit (percent of the price)",
       "depositPercentHint": "0 = no deposit. A held booking is confirmed by itself once the deposit arrives.",
       "holdHours": "Hours a booking waits for its deposit",
-      "holdHoursHint": "After that the room is freed by itself"
+      "holdHoursHint": "After that the room is freed by itself",
+      "guestReminder": "Remind the guest the day before arrival (WhatsApp, 17:00)",
+      "arrivalNote": "Arrival instructions",
+      "arrivalNoteHint": "Sent to the guest in the reminder: how to get here, where to park, the gate code."
     },
     "kind": {
       "single": "Single",
@@ -6837,7 +6844,8 @@
       "refundTooMuch": "You cannot refund more than was paid",
       "nothingDue": "Nothing to collect right now",
       "notPayable": "The booking was cancelled or has ended",
-      "noPhone": "The guest has no phone to send to on WhatsApp"
+      "noPhone": "The guest has no phone to send to on WhatsApp",
+      "blockTaken": "Some of these nights are booked. Move the booking first, then close the room."
     },
     "pricePer": {
       "room": "For the whole room",
@@ -6955,6 +6963,25 @@
       "description": "Lodging: {name}, {from} to {to}",
       "messageDeposit": "Hello! To keep your booking we ask for a deposit of {amount}. Pay here: {url}",
       "messageBalance": "Hello! The balance for your stay is {amount}. Pay here: {url}"
+    },
+    "block": {
+      "title": "Close a room for repair",
+      "open": "Close a room",
+      "body": "On these nights the room (or bed) cannot be booked, the board shows it closed, and it is left out of occupancy.",
+      "target": "Room or bed",
+      "wholeDorm": "{room} (whole room)",
+      "reason": "Reason",
+      "reasonExample": "e.g. painting, air conditioner repair",
+      "from": "From",
+      "to": "Open again on",
+      "toHint": "The first night it can be booked again",
+      "save": "Close",
+      "saved": "The room is closed on these dates",
+      "legend": "Closed for repair",
+      "badge": "Closed for repair",
+      "dates": "{from} to {to} (open again)",
+      "remove": "Open the room",
+      "openFrom": "Open again {date}"
     }
   },
   "leadInvite": {

@@ -149,8 +149,10 @@ board, rooms, prices). The price list (`lodging_rates`, `prices.ts`) prices each
 holiday (from `@rswim/calendar`) with minimum stays; a stay keeps its booked price (`total_agorot`). A held booking waits
 `hold_hours` for its deposit (`deposit_percent`), then frees its room by itself; the office records payments
 (`lodging_payments`, append-only) or sends a payment link (checkout purpose `lodging_stay`, settled through the billing
-intake's `onModulePaid` hook), and a paid deposit confirms the booking. At 07:00 the worker (`lodging-morning-brief`) sends the day's check-ins, check-outs and rooms to prepare
-on WhatsApp; the lead bot answers availability with `lodging_availability`.
+intake's `onModulePaid` hook), and a paid deposit confirms the booking. A room or a dorm bed is closed for repair on dates with `blockRoom` (a stay with
+source `block`). At 07:00 the worker (`lodging-morning-brief`) sends the day's check-ins, check-outs and rooms to prepare
+on WhatsApp, and at 17:00 (`lodging-guest-reminders`) each guest arriving tomorrow gets the times, the arrival note and
+a link for what is owed; the lead bot answers availability with `lodging_availability`.
 
 A database per school (`docs/TENANT-DATABASES.md`): with the `/platform` switch on, a new school gets its own Supabase
 project (worker `platform-provision-database`, Management API with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_ORG_SLUG`, or a

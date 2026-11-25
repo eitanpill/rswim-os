@@ -23,7 +23,7 @@ import {
   ROOM_KINDS,
   ROOM_PRICE_PER,
   STAY_HOLDING,
-  STAY_SOURCES,
+  STAY_BOOKING_SOURCES,
   type HousekeepingState,
   type RoomFacility,
   type RateKind,
@@ -45,6 +45,7 @@ import {
   dayPlan,
   freeBeds,
   freeOptions,
+  isFree,
   nightsBetween,
   roomNames,
   soldByFor,
@@ -82,6 +83,8 @@ export const LodgingSettingsInput = z.object({
   minNights: requiredInt(1, 30).default(1),
   depositPercent: requiredInt(0, 100).default(0),
   holdHours: requiredInt(1, 168).default(24),
+  guestReminder: checkbox(),
+  arrivalNote: optionalText(1000),
 });
 export type LodgingSettingsInput = z.input<typeof LodgingSettingsInput>;
 
@@ -94,6 +97,8 @@ export interface LodgingSettingsView {
   minNights: number;
   depositPercent: number;
   holdHours: number;
+  guestReminder: boolean;
+  arrivalNote: string | null;
 }
 
 export async function getLodgingSettings(tx: Tx): Promise<LodgingSettingsView> {
@@ -107,6 +112,8 @@ export async function getLodgingSettings(tx: Tx): Promise<LodgingSettingsView> {
     minNights: row?.minNights ?? 1,
     depositPercent: row?.depositPercent ?? 0,
     holdHours: row?.holdHours ?? 24,
+    guestReminder: row?.guestReminder ?? true,
+    arrivalNote: row?.arrivalNote ?? null,
   };
 }
 
@@ -125,6 +132,8 @@ export async function saveLodgingSettings(
     minNights: v.minNights,
     depositPercent: v.depositPercent,
     holdHours: v.holdHours,
+    guestReminder: v.guestReminder,
+    arrivalNote: v.arrivalNote,
   };
   await guarded(() =>
     tx
@@ -527,6 +536,7 @@ const toFacts = (r: typeof lodgingStays.$inferSelect): StayFacts => ({
   checkIn: r.checkIn,
   checkOut: r.checkOut,
   status: r.status as StayStatus,
+  ...(r.source === 'block' ? { blocked: true } : {}),
 });
 
 export const FreeSearch = z
@@ -555,7 +565,7 @@ export const StayInput = z
     checkOut: requiredDate(),
     hold: checkbox().default(false),
     note: optionalText(500),
-    source: z.enum(STAY_SOURCES).default('office'),
+    source: z.enum(STAY_BOOKING_SOURCES).default('office'),
     leadId: z.uuid().nullable().default(null),
   })
   .refine((v) => v.checkOut > v.checkIn, { path: ['checkOut'], message: 'lodging.errors.dates' });
@@ -616,6 +626,54 @@ export async function bookStay(tx: Tx, ctx: ServiceContext, input: StayInput): P
   return ids;
 }
 
+export const BlockInput = z
+  .object({
+    roomId: z.uuid(),
+    bedId: z.preprocess((v) => (v === '' ? null : v), z.uuid().nullable().default(null)),
+    from: requiredDate(),
+    to: requiredDate(),
+    reason: requiredText(120),
+  })
+  .refine((v) => v.to > v.from, { path: ['to'], message: 'lodging.errors.dates' });
+export type BlockInput = z.input<typeof BlockInput>;
+
+/**
+ * Closes a room (or one bed of a dorm) for repair from `from` until `to` (the first night it is open again): nobody can
+ * book those nights, the board shows them closed, and the morning brief leaves the room out. A night already sold
+ * cannot be closed (the booking moves first).
+ */
+export async function blockRoom(tx: Tx, ctx: ServiceContext, input: BlockInput): Promise<string> {
+  const v = BlockInput.parse(input);
+  const rooms = await loadRooms(tx);
+  const room = rooms.find((r) => r.id === v.roomId);
+  if (!room) throw new DomainError('common.errors.notFound');
+  if (v.bedId && !room.beds.some((b) => b.id === v.bedId)) {
+    throw new DomainError('common.errors.notFound');
+  }
+  const nights = { checkIn: v.from, checkOut: v.to };
+  if (nightsBetween(v.from, v.to) > 365) throw new DomainError('lodging.errors.tooLong');
+  const stays = await loadStays(tx, v.from, v.to);
+  // The whole room, or the one bed: free on every night (a dorm closed whole needs all its beds free).
+  if (!isFree(room, v.bedId, nights, stays)) throw new DomainError('lodging.errors.blockTaken');
+  const [row] = await guarded(() =>
+    tx
+      .insert(lodgingStays)
+      .values({
+        organizationId: ctx.orgId,
+        roomId: room.id,
+        bedId: v.bedId,
+        guestName: v.reason,
+        guests: 1,
+        checkIn: v.from,
+        checkOut: v.to,
+        status: 'confirmed',
+        source: 'block',
+      })
+      .returning({ id: lodgingStays.id }),
+  );
+  return (row as { id: string }).id;
+}
+
 export const STAY_MOVES = ['confirm', 'check_in', 'check_out', 'cancel'] as const;
 export const StayMove = z.object({ id: z.uuid(), move: z.enum(STAY_MOVES) });
 export type StayMove = z.infer<typeof StayMove>;
@@ -633,6 +691,14 @@ export async function moveStay(tx: Tx, input: StayMove): Promise<void> {
   const v = StayMove.parse(input);
   const rule = MOVES[v.move];
   const now = new Date();
+  // A block is not a guest: it only ends (opened again), never checks in or out.
+  const [current] = await tx
+    .select({ source: lodgingStays.source })
+    .from(lodgingStays)
+    .where(eq(lodgingStays.id, v.id));
+  if (current?.source === 'block' && v.move !== 'cancel') {
+    throw new DomainError('lodging.errors.cannotMove');
+  }
   const done = await guarded(() =>
     tx
       .update(lodgingStays)

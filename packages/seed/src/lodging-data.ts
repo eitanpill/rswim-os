@@ -9,6 +9,7 @@ import {
   addDays,
   addRate,
   addRooms,
+  blockRoom,
   bookingOf,
   bookStay,
   getStay,
@@ -116,6 +117,12 @@ export async function seedLodgingData(
     // A 30% deposit holds a booking for two days.
     depositPercent: 30,
     holdHours: 48,
+    // The day-before WhatsApp tells the guest how to get here.
+    guestReminder: true,
+    arrivalNote:
+      kind === 'swim'
+        ? 'החניה ליד הבריכה, הכניסה מהשער הצפוני. קוד לשער: 2580. הקבלה פתוחה עד 20:00.'
+        : 'חונים בחניון החוף, המשרד ליד המזח. מגיעים אחרי 20:00? מתקשרים ונשאיר מפתח בתיבה.',
   });
 
   // The price list: a dearer summer (every year), weekend nights, and the Hebrew holidays with a two-night minimum.
@@ -241,6 +248,8 @@ export async function seedLodgingData(
     await book(room(2, 0), 'זוג תרמילאים', 2, 1, 3);
     // Room 4 was left untidy by the last guests.
     await setHousekeeping(tx, { roomId: room(0, 3), state: 'dirty' });
+    // A double room is painted next week.
+    await blockRoom(tx, ctx, { roomId: room(1, 0), from: day(4), to: day(7), reason: 'צביעה' });
   } else {
     await book(room(0, 0), 'משפחת אדלר', 4, -2, 0, 'in');
     await paid(
@@ -253,6 +262,12 @@ export async function seedLodgingData(
     await book(room(1, 1), 'תום לוי', 1, 0, 2);
     await book(room(2, 0), 'סדנת סוף שבוע', 6, -1, 1, 'in');
     await book(room(2, 0), 'צוללים מחיפה', 3, 2, 5);
+    await blockRoom(tx, ctx, {
+      roomId: room(1, 1),
+      from: day(3),
+      to: day(5),
+      reason: 'תיקון מזגן',
+    });
   }
 
   return { rooms: groups.flat().length, stays };

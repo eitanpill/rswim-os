@@ -154,3 +154,56 @@ test('a held booking asks for a deposit, the guest pays the link, and the desk t
   await expect(money.getByTestId('money-due')).toHaveText(/נשאר לשלם\W*0\W*₪/);
   await shot(page, 'stay-paid');
 });
+
+test('the owner closes a room for repair and opens it again, and sets what the guests hear the day before', async ({
+  page,
+}) => {
+  const tag = randomUUID().slice(0, 4);
+  const reason = `צביעה ${tag}`;
+  await page.goto('/dev/login?as=owner');
+  await page.goto(`/admin/lodging/board?from=${dayFromNow(60)}`);
+  const block = page.getByTestId('lodging-block');
+  await block.locator('summary').click();
+  await block.locator('select[name="target"]').selectOption({ label: 'זוגי 2' });
+  await block.locator('input[name="reason"]').fill(reason);
+  await block.locator('input[name="from"]').fill(dayFromNow(61));
+  await block.locator('input[name="to"]').fill(dayFromNow(64));
+  await block.getByRole('button', { name: 'לחסום' }).click();
+  await expect(page.getByText('החדר נחסם בתאריכים האלה')).toBeVisible();
+  const closed = page.getByTestId('board-block').filter({ hasText: reason });
+  await expect(closed).toBeVisible();
+  await shot(page, 'board-block');
+
+  // Nobody can book it on those nights.
+  await page.goto(`/admin/lodging/board?in=${dayFromNow(62)}&out=${dayFromNow(63)}&guests=2`);
+  await expect(page.getByTestId('find-options')).toBeVisible();
+  await expect(page.getByTestId('find-option').filter({ hasText: 'זוגי 2' })).toHaveCount(0);
+  await expect(page.getByTestId('find-option').filter({ hasText: 'זוגי 1' })).toHaveCount(1);
+
+  // Its page: the reason, the dates, and one way out.
+  await page.goto(`/admin/lodging/board?from=${dayFromNow(60)}`);
+  const href = await closed.first().getAttribute('href');
+  await page.goto(href as string);
+  const card = page.getByTestId('lodging-stay-block');
+  await expect(card).toContainText(reason);
+  await expect(page.getByTestId('lodging-money')).toHaveCount(0);
+  await shot(page, 'stay-block');
+  await card.getByTestId('block-remove').click();
+  await expect(card.getByTestId('block-remove')).toHaveCount(0);
+  await page.goto(`/admin/lodging/board?from=${dayFromNow(60)}`);
+  await expect(page.getByTestId('board-block').filter({ hasText: reason })).toHaveCount(0);
+
+  // The day-before reminder and how to get here.
+  await page.goto('/admin/lodging/rooms');
+  const settings = page.getByTestId('lodging-settings-form');
+  await expect(settings.locator('input[name="guestReminder"]')).toBeChecked();
+  await settings.locator('textarea[name="arrivalNote"]').fill(`החניה ליד הבריכה, קוד לשער ${tag}`);
+  await settings.getByRole('button', { name: 'הגדרות לינה' }).click();
+  await page.reload();
+  await expect(settings.locator('textarea[name="arrivalNote"]')).toHaveValue(
+    `החניה ליד הבריכה, קוד לשער ${tag}`,
+  );
+  await shot(page, 'rooms-reminder');
+  await page.goto('/admin/lodging');
+  await expect(page.getByTestId('lodging-reminder-note')).toContainText('17:00');
+});

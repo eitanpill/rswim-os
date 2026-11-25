@@ -11,6 +11,7 @@ import type { ServiceContext } from '@rswim/domain-core';
 import { addDays } from '../src/policies';
 import {
   addRooms,
+  blockRoom,
   bookStay,
   addRate,
   getStay,
@@ -31,6 +32,7 @@ import {
 } from '../src/services';
 import { lodgingLeadBotModule } from '../src/bot';
 import { bookingOf, recordPayment, requestPayment, settleLodgingCheckout } from '../src/payments';
+import { sendGuestReminders } from '../src/reminders';
 
 let t: TestDatabase;
 let orgId: string;
@@ -262,6 +264,7 @@ describe('lodging', () => {
         checkOutTime: '10:30',
         morningBrief: true,
         briefPhone: '052-0000202',
+        guestReminder: true,
       }),
     );
     expect(
@@ -451,6 +454,7 @@ describe('lodging', () => {
         briefPhone: '052-0000202',
         depositPercent: 30,
         holdHours: 2,
+        guestReminder: true,
       }),
     );
     const book = (roomId: string, checkIn: string, hold = true) =>
@@ -591,6 +595,203 @@ describe('lodging', () => {
     // The bot knows the deposit rule.
     const facts = await withOrg(t.db, orgId, (tx) => lodgingLeadBotModule.facts(tx));
     expect(facts.join('\n')).toContain('held for 2 hours until a deposit of 30%');
+  });
+
+  let doubles: string[];
+
+  it('closes a room or a bed for repair: nobody books it, the day leaves it out, and it opens again', async () => {
+    doubles = await asOwner((tx, ctx) =>
+      addRooms(tx, ctx, {
+        name: 'זוגי',
+        kind: 'double',
+        count: 3,
+        beds: 1,
+        maxGuests: 2,
+        toilet: 'private',
+        shower: 'private',
+        priceNight: 30_000,
+        note: null,
+      }),
+    );
+    const [d0, d1] = doubles as [string, string];
+    const from = addDays(today, 5);
+    const block = await asOwner((tx, ctx) =>
+      blockRoom(tx, ctx, { roomId: d0, from, to: addDays(from, 3), reason: 'צביעה' }),
+    );
+    expect(await asOwner((tx) => getStay(tx, block))).toMatchObject({
+      source: 'block',
+      blocked: true,
+      guestName: 'צביעה',
+      status: 'confirmed',
+    });
+    const free = await asOwner((tx) =>
+      searchFree(tx, { checkIn: addDays(from, 1), checkOut: addDays(from, 2), guests: 2 }),
+    );
+    expect(free.map((o) => o.roomId)).not.toContain(d0);
+    expect(free.map((o) => o.roomId)).toContain(d1);
+    await expect(
+      asOwner((tx, ctx) =>
+        bookStay(tx, ctx, {
+          roomId: d0,
+          guestName: 'מאוחר מדי',
+          guests: 2,
+          checkIn: addDays(from, 2),
+          checkOut: addDays(from, 4),
+        }),
+      ),
+    ).rejects.toMatchObject({ code: 'lodging.errors.taken' });
+    const day = await asOwner((tx) => lodgingDay(tx, from));
+    expect(day.plan.blocked.map((s) => s.id)).toEqual([block]);
+    expect(day.plan.arrivals.map((s) => s.id)).not.toContain(block);
+    const board = await asOwner((tx) => lodgingBoard(tx, from, 3));
+    const row = board.rows.find((r) => r.roomId === d0)!;
+    expect(row.segments[0]).toMatchObject({ length: 3, stay: { id: block, blocked: true } });
+
+    // Not a guest: no check-in, nothing to pay.
+    await expect(
+      asOwner((tx) => moveStay(tx, { id: block, move: 'check_in' })),
+    ).rejects.toMatchObject({ code: 'lodging.errors.cannotMove' });
+    await expect(
+      asOwner((tx, ctx) => recordPayment(tx, ctx, { stayId: block, amount: 100, method: 'cash' })),
+    ).rejects.toMatchObject({ code: 'lodging.errors.notPayable' });
+
+    // A booked night cannot be closed; an unknown room or a bed of another room, or a year and more, neither.
+    await asOwner((tx, ctx) =>
+      bookStay(tx, ctx, {
+        roomId: d1,
+        guestName: 'אורח',
+        guests: 2,
+        checkIn: addDays(from, 1),
+        checkOut: addDays(from, 2),
+      }),
+    );
+    await expect(
+      asOwner((tx, ctx) =>
+        blockRoom(tx, ctx, { roomId: d1, from, to: addDays(from, 3), reason: 'מזגן' }),
+      ),
+    ).rejects.toMatchObject({ code: 'lodging.errors.blockTaken' });
+    const rooms = await asOwner((tx) => loadRooms(tx));
+    const dormBeds = rooms.find((r) => r.id === dorm)!.beds;
+    await expect(
+      asOwner((tx, ctx) =>
+        blockRoom(tx, ctx, {
+          roomId: '00000000-0000-4000-8000-000000000000',
+          from,
+          to: addDays(from, 1),
+          reason: 'x',
+        }),
+      ),
+    ).rejects.toMatchObject({ code: 'common.errors.notFound' });
+    await expect(
+      asOwner((tx, ctx) =>
+        blockRoom(tx, ctx, {
+          roomId: d1,
+          bedId: dormBeds[0]!.id,
+          from,
+          to: addDays(from, 1),
+          reason: 'x',
+        }),
+      ),
+    ).rejects.toMatchObject({ code: 'common.errors.notFound' });
+    await expect(
+      asOwner((tx, ctx) =>
+        blockRoom(tx, ctx, { roomId: d1, from, to: addDays(from, 400), reason: 'x' }),
+      ),
+    ).rejects.toMatchObject({ code: 'lodging.errors.tooLong' });
+
+    // One bed of the dorm: the others stay on sale.
+    const farFrom = addDays(today, 40);
+    const before = await asOwner((tx) =>
+      searchFree(tx, { checkIn: farFrom, checkOut: addDays(farFrom, 1), guests: 1 }),
+    );
+    await asOwner((tx, ctx) =>
+      blockRoom(tx, ctx, {
+        roomId: dorm,
+        bedId: dormBeds[1]!.id,
+        from: farFrom,
+        to: addDays(farFrom, 2),
+        reason: 'מזרן חדש',
+      }),
+    );
+    const after = await asOwner((tx) =>
+      searchFree(tx, { checkIn: farFrom, checkOut: addDays(farFrom, 1), guests: 1 }),
+    );
+    const bedsFree = (list: typeof before) => list.find((o) => o.roomId === dorm)!.room;
+    expect(bedsFree(after)).toBe(bedsFree(before) - 1);
+
+    // Opened again: the nights are on sale.
+    await asOwner((tx) => moveStay(tx, { id: block, move: 'cancel' }));
+    const again = await asOwner((tx) =>
+      searchFree(tx, { checkIn: addDays(from, 1), checkOut: addDays(from, 2), guests: 2 }),
+    );
+    expect(again.map((o) => o.roomId)).toContain(d0);
+  });
+
+  it('reminds each guest arriving tomorrow once, with the arrival note and a link for what is owed', async () => {
+    const settings = {
+      enabled: true,
+      checkInTime: '14:00',
+      checkOutTime: '10:30',
+      morningBrief: true,
+      briefPhone: '052-0000202',
+      guestReminder: true,
+      arrivalNote: 'חונים ליד השער, קוד 4321',
+    };
+    await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, settings));
+    const tomorrow = addDays(today, 1);
+    const book = (roomId: string, guestName: string, phone: string | null) =>
+      asOwner((tx, ctx) =>
+        bookStay(tx, ctx, {
+          roomId,
+          guestName,
+          phone,
+          guests: 2,
+          checkIn: tomorrow,
+          checkOut: addDays(tomorrow, 2),
+        }),
+      ).then((ids) => ids[0] as string);
+    const [d0, d1, d2] = doubles as [string, string, string];
+    const owes = await book(d0, 'משפחת חייבת', '050-0000404');
+    const paid = await book(d1, 'משפחת שילמה', '050-0000505');
+    await book(d2, 'בלי טלפון', null);
+    const paidStay = (await asOwner((tx) => getStay(tx, paid)))!;
+    await asOwner((tx, ctx) =>
+      recordPayment(tx, ctx, { stayId: paid, amount: paidStay.totalAgorot!, method: 'cash' }),
+    );
+    const run = () =>
+      withOrg(t.db, orgId, (tx) =>
+        sendGuestReminders(tx, { orgId, userId: null }, 'https://inn.test/'),
+      );
+    expect(await run()).toEqual({ sent: 2 });
+    const owesStay = (await asOwner((tx) => getStay(tx, owes)))!;
+    const sent = await q(
+      `select body, to_phone_e164, idempotency_key from messages where idempotency_key like 'lodging.reminder:%' order by to_phone_e164`,
+    );
+    expect(sent.map((m) => m.idempotency_key)).toContain(
+      `lodging.reminder:${owesStay.bookingId}:${tomorrow}`,
+    );
+    const [toOwes, toPaid] = sent as [{ body: string }, { body: string }];
+    expect(toOwes.body).toContain('שלום משפחת חייבת');
+    expect(toOwes.body).toContain('אכסניית בדיקה');
+    expect(toOwes.body).toContain('צ׳ק־אין מ־14:00');
+    expect(toOwes.body).toContain('החדר שלך: זוגי 1');
+    expect(toOwes.body).toContain('חונים ליד השער, קוד 4321');
+    expect(toOwes.body).toMatch(/אפשר לשלם כאן: https:\/\/inn\.test\/pay\/\S+/);
+    expect(toPaid.body).not.toContain('לשלם');
+    const links = await asOwner((tx) => bookingOf(tx, owesStay.bookingId));
+    expect(links.links).toHaveLength(1);
+    expect(links.links[0]!.amountAgorot).toBe(owesStay.totalAgorot);
+
+    // Once: a second run sends nothing and opens no second link.
+    expect(await run()).toEqual({ sent: 0 });
+    expect((await asOwner((tx) => bookingOf(tx, owesStay.bookingId))).links).toHaveLength(1);
+
+    // Off, or lodging off: nothing.
+    await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, { ...settings, guestReminder: false }));
+    expect(await run()).toEqual({ sent: 0, reason: 'reminder_off' });
+    await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, { ...settings, enabled: false }));
+    expect(await run()).toEqual({ sent: 0, reason: 'off' });
+    await asOwner((tx, ctx) => saveLodgingSettings(tx, ctx, settings));
   });
 
   it('keeps lodging to the office', async () => {

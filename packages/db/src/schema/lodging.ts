@@ -53,6 +53,10 @@ export const lodgingSettings = pgTable(
     depositPercent: integer('deposit_percent').notNull().default(0),
     /** How long a held booking waits for its deposit before the room is free again. */
     holdHours: integer('hold_hours').notNull().default(24),
+    /** The day-before WhatsApp to each guest (17:00): arrival time, how to get here, what is still owed. */
+    guestReminder: boolean('guest_reminder').notNull().default(true),
+    /** How to get here and get in (directions, parking, the gate code), sent in that reminder. */
+    arrivalNote: text('arrival_note'),
     updatedAt: updatedAt(),
   },
   () => [

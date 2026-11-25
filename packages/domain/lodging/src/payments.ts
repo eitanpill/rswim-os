@@ -55,6 +55,8 @@ export interface BookingView {
 async function stayOf(tx: Tx, stayId: string) {
   const [row] = await tx.select().from(lodgingStays).where(eq(lodgingStays.id, stayId));
   if (!row) throw new DomainError('common.errors.notFound');
+  // A room closed for repair has nothing to pay.
+  if (row.source === 'block') throw new DomainError('lodging.errors.notPayable');
   return row;
 }
 

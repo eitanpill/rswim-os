@@ -34,6 +34,22 @@ manager and office; instructors and customers see nothing). Package `@rswim/doma
   (`app.lodging_stay_out`).
 - Closing beds that still have a future stay is refused (`lodging.errors.bedInUse`).
 
+## Blocks for repair (`blockRoom`)
+- A room, or one bed of a dorm, closed from a date until the first night it is open again, with a reason. It is a stay
+  with `source = 'block'` (the reason in `guest_name`, status confirmed), so the same database rule keeps anyone from
+  booking those nights, and the search, the board and the bot see it as taken. Nights already booked cannot be closed
+  (`lodging.errors.blockTaken`).
+- A block is not a guest: it never checks in or out and has nothing to pay (`lodging.errors.notPayable`). "Open the
+  room" cancels it. The day (`dayPlan.blocked`) and the morning brief list rooms closed tonight, leave them out of the
+  rooms to prepare, and count occupancy over the open units only.
+
+## The day before (`reminders.ts`)
+- Settings: `guest_reminder` (on by default) and `arrival_note` (directions, parking, the gate code).
+- 17:00 worker `lodging-guest-reminders` (or event `lodging/reminders.run`): each booking arriving tomorrow, held or
+  confirmed, with a phone, gets one WhatsApp (`lodging.reminder:<booking>:<check-in>`): the business, check-in and
+  check-out times, the room, the arrival note, and what is still owed. When the business has a processor it adds a
+  link for the balance, reusing a link already open for that amount (`RSWIM_PUBLIC_URL`).
+
 ## Deposits and payments (`lodging_payments`, `deposit.ts`, `payments.ts`)
 - Settings: the deposit as a percent of the price (`deposit_percent`, 0 = none, rounded to a whole shekel) and how
   long a held booking waits for it (`hold_hours`, default 24).
@@ -54,19 +70,22 @@ manager and office; instructors and customers see nothing). Package `@rswim/doma
 ## Screens
 - **Today**: arrivals, departures (check in and out with one tap), rooms to make up (turnovers first: someone leaves
   and someone arrives the same day), tonight's occupancy.
-- **Board**: find free rooms for dates and guests, cheapest first, and book; a 14-night grid of rooms and dorm beds.
-- **Rooms and settings**.
+- **Board**: find free rooms for dates and guests, cheapest first, and book; a 14-night grid of rooms and dorm beds
+  (blocks in grey with 🔧); "close a room for repair" below it.
+- **Rooms and settings** (including the day-before reminder and the arrival note).
 - **Prices**: the price list and the coming year's holiday nights.
 - **A stay**: its details and moves, and the booking's money: price, deposit, paid, still owed, payments, payment
-  links, "link for the deposit / the balance" (optionally on WhatsApp) and "record a payment".
+  links, "link for the deposit / the balance" (optionally on WhatsApp) and "record a payment". A block's page shows
+  the reason and dates and "open the room".
 
 ## The brain
+- 17:00 worker `lodging-guest-reminders`: the guests' day-before WhatsApp (above).
 - 07:00 worker `lodging-morning-brief` (or event `lodging/brief.run`) sends one WhatsApp per business per day
   (idempotency key `lodging.brief:<date>`) with check-ins, check-outs and rooms to prepare.
 - The lead bot gets the tool `lodging_availability` (free rooms and total price for dates) and the house facts
   (check-in and out times, room kinds) through `registerLeadBotModule`.
 
 ## Next stages
-Booking from the bot (as a brain action with the owner's autonomy level, then sending the deposit link), guest
-reminders the day before, receipts for lodging payments, blocking a room for repairs, and linking a stay to a lead,
-family, camp or course. See the master doc's lodging tab.
+Booking from the bot (as a brain action with the owner's autonomy level, then sending the deposit link), the guest's
+forms and house rules signed before arrival, receipts for lodging payments, self-booking online, and linking a stay to
+a lead, family, camp or course. See the master doc's lodging tab.

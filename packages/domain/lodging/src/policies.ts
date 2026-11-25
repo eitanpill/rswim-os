@@ -41,6 +41,8 @@ export interface StayFacts {
   checkIn: string;
   checkOut: string;
   status: StayStatus;
+  /** Not a guest: the room (or the bed) is closed for repair on these nights; `guestName` holds the reason. */
+  blocked?: boolean;
 }
 
 /** A shared dorm is sold bed by bed; every other room is booked whole. */
@@ -308,7 +310,9 @@ export interface DayPlan {
     why: 'turnover' | 'departure' | 'dirty';
     arrivalToday: boolean;
   }[];
-  /** Occupied units tonight (rooms, and dorm beds) out of all units. */
+  /** Rooms and beds closed for repair tonight (left out of the units). */
+  blocked: StayFacts[];
+  /** Occupied units tonight (rooms, and dorm beds) out of all units open tonight. */
   occupiedTonight: number;
   unitsTonight: number;
 }
@@ -322,23 +326,25 @@ export function dayPlan(
   stays: readonly StayFacts[],
   date: string,
 ): DayPlan {
-  const live = stays.filter(holds);
+  const tonight = { checkIn: date, checkOut: addDays(date, 1) };
+  const blocked = stays.filter((s) => holds(s) && s.blocked && overlaps(s, tonight));
+  const live = stays.filter((s) => holds(s) && !s.blocked);
   const arrivals = live.filter(
     (s) => s.checkIn === date && (s.status === 'held' || s.status === 'confirmed'),
   );
   const departures = live.filter(
     (s) => s.checkOut === date && (s.status === 'confirmed' || s.status === 'checked_in'),
   );
-  const tonight = { checkIn: date, checkOut: addDays(date, 1) };
   const inHouse = live.filter((s) => s.status !== 'checked_out' && overlaps(s, tonight));
   const byRoom = new Map(rooms.map((r) => [r.id, r]));
   const leaving = new Set(
     live.filter((s) => s.checkOut === date && s.status !== 'held').map((s) => s.roomId),
   );
   const arriving = new Set(arrivals.map((s) => s.roomId));
+  const closed = new Set(blocked.filter((s) => s.bedId === null).map((s) => s.roomId));
   const toPrepare: DayPlan['toPrepare'] = [];
   for (const room of rooms) {
-    if (!room.active || room.housekeeping === 'out_of_order') continue;
+    if (!room.active || room.housekeeping === 'out_of_order' || closed.has(room.id)) continue;
     const left = leaving.has(room.id);
     if (!left && room.housekeeping !== 'dirty') continue;
     const arrivalToday = arriving.has(room.id);
@@ -359,10 +365,11 @@ export function dayPlan(
   let units = 0;
   let occupied = 0;
   for (const room of rooms) {
-    if (!room.active) continue;
+    if (!room.active || closed.has(room.id)) continue;
     const mine = inHouse.filter((s) => s.roomId === room.id);
     if (room.soldBy === 'bed') {
-      units += room.beds.length;
+      const shut = new Set(blocked.filter((s) => s.roomId === room.id).map((s) => s.bedId));
+      units += room.beds.filter((b) => !shut.has(b.id)).length;
       occupied += mine.some((s) => s.bedId === null)
         ? room.beds.length
         : new Set(mine.map((s) => s.bedId)).size;
@@ -381,6 +388,7 @@ export function dayPlan(
     departures: sortStays(departures),
     inHouse,
     toPrepare,
+    blocked: sortStays(blocked),
     occupiedTonight: occupied,
     unitsTonight: units,
   };
@@ -402,6 +410,8 @@ const BRIEF = {
     bed: 'מיטה',
     tonight: (o: number, u: number) => `הלילה תפוסים ${o} מתוך ${u}.`,
     quiet: 'אין הגעות ואין עזיבות היום.',
+    blocked: (n: number) => `חסומים לתיקון (${n}):`,
+    until: (d: string) => `נפתח שוב ב־${d}`,
   },
   en: {
     title: (d: string) => `🛏️ Lodging today (${d})`,
@@ -418,6 +428,8 @@ const BRIEF = {
     bed: 'bed',
     tonight: (o: number, u: number) => `Tonight ${o} of ${u} are taken.`,
     quiet: 'No arrivals and no departures today.',
+    blocked: (n: number) => `Closed for repair (${n}):`,
+    until: (d: string) => `open again ${d}`,
   },
 } as const;
 
@@ -437,8 +449,7 @@ export function briefText(
     return bed ? `${room.name}, ${w.bed} ${bed.label}` : room.name;
   };
   const line = (s: StayFacts) => `• ${s.guestName}, ${w.guests(s.guests)} — ${where(s)}`;
-  const [y, m, d] = plan.date.split('-');
-  const out: string[] = [w.title(`${d}.${m}.${y}`)];
+  const out: string[] = [w.title(dotted(plan.date))];
   if (!plan.arrivals.length && !plan.departures.length) out.push(w.quiet);
   if (plan.departures.length) {
     out.push(
@@ -456,8 +467,96 @@ export function briefText(
       ? plan.toPrepare.map((p) => `• ${p.roomName} — ${w.why[p.why]}`)
       : [w.none]),
   );
+  if (plan.blocked.length) {
+    out.push(
+      '',
+      w.blocked(plan.blocked.length),
+      ...plan.blocked.map((s) => `• ${where(s)} — ${s.guestName}, ${w.until(dotted(s.checkOut))}`),
+    );
+  }
   out.push('', w.tonight(plan.occupiedTonight, plan.unitsTonight));
   return out.join('\n');
+}
+
+/** 2026-12-03 → 03.12.2026 */
+function dotted(date: string): string {
+  const [y, m, d] = date.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+// ─── The guest's reminder ───────────────────────────────────────────────────
+
+export interface GuestReminder {
+  guestName: string;
+  business: string;
+  checkIn: string;
+  checkOut: string;
+  checkInTime: string;
+  checkOutTime: string;
+  /** The rooms (and beds) the booking holds, already named. */
+  where: string;
+  arrivalNote: string | null;
+  /** Still owed (null: the booking has no price). */
+  dueAgorot: number | null;
+  /** A link that pays what is owed, when the business takes payments online. */
+  payUrl: string | null;
+}
+
+const REMIND = {
+  he: {
+    hello: (name: string) => `שלום ${name} 👋`,
+    tomorrow: (business: string, d: string) => `מחכים לך מחר (${d}) ב${business}.`,
+    times: (inAt: string, outAt: string, out: string) =>
+      `צ׳ק־אין מ־${inAt}, צ׳ק־אאוט עד ${outAt} ביום ${out}.`,
+    where: (w: string) => `החדר שלך: ${w}`,
+    how: 'איך מגיעים:',
+    due: (amount: string) => `נשאר לשלם: ${amount}.`,
+    pay: (url: string) => `אפשר לשלם כאן: ${url}`,
+    payThere: 'אפשר לשלם במקום בהגעה.',
+    bye: 'נסיעה טובה! לשאלות אפשר לענות להודעה הזאת.',
+    payFor: (name: string, from: string, to: string) => `לינה: ${name}, ${from} עד ${to}`,
+  },
+  en: {
+    hello: (name: string) => `Hi ${name} 👋`,
+    tomorrow: (business: string, d: string) =>
+      `We're expecting you tomorrow (${d}) at ${business}.`,
+    times: (inAt: string, outAt: string, out: string) =>
+      `Check-in from ${inAt}, check-out by ${outAt} on ${out}.`,
+    where: (w: string) => `Your room: ${w}`,
+    how: 'Getting here:',
+    due: (amount: string) => `Still to pay: ${amount}.`,
+    pay: (url: string) => `You can pay here: ${url}`,
+    payThere: 'You can pay on arrival.',
+    bye: 'Safe travels! Reply to this message with any question.',
+    payFor: (name: string, from: string, to: string) => `Lodging: ${name}, ${from} to ${to}`,
+  },
+} as const;
+
+/** The guest's WhatsApp the day before arriving: when, which room, how to get here, and what is still owed. */
+export function reminderText(r: GuestReminder, locale: 'he' | 'en'): string {
+  const w = REMIND[locale];
+  const out: string[] = [
+    w.hello(r.guestName),
+    w.tomorrow(r.business, dotted(r.checkIn)),
+    w.times(r.checkInTime, r.checkOutTime, dotted(r.checkOut)),
+    w.where(r.where),
+  ];
+  const note = r.arrivalNote?.trim();
+  if (note) out.push('', w.how, note);
+  if (r.dueAgorot !== null && r.dueAgorot > 0) {
+    out.push('', w.due(formatILS(agorot(r.dueAgorot), locale)));
+    out.push(r.payUrl ? w.pay(r.payUrl) : w.payThere);
+  }
+  out.push('', w.bye);
+  return out.join('\n');
+}
+
+/** What the reminder's payment link says it pays for. */
+export function reminderPayFor(
+  stay: { guestName: string; checkIn: string; checkOut: string },
+  locale: 'he' | 'en',
+): string {
+  return REMIND[locale].payFor(stay.guestName, dotted(stay.checkIn), dotted(stay.checkOut));
 }
 
 /** Plain lines about the rooms for the new-customers bot (what kinds, how many, what they cost, the price list). */

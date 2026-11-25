@@ -5,6 +5,8 @@ import { formatILS, agorot } from '@rswim/money';
 import {
   addRate,
   addRooms,
+  BlockInput,
+  blockRoom,
   bookStay,
   HousekeepingInput,
   LodgingSettingsInput,
@@ -153,6 +155,25 @@ export async function requestPaymentAction(_: FormState, fd: FormData) {
     {
       revalidate: withStay(fd),
       success: (r, tr) => tr(r.sent ? 'lodging.pay.linkSent' : 'lodging.pay.linkMade'),
+    },
+  );
+}
+
+/** Closes a room, or one bed of a dorm ("roomId:bedId"), for repair on some nights. */
+export async function blockRoomAction(_: FormState, fd: FormData) {
+  return runForm(
+    fd,
+    BlockInput,
+    (tx, ctx, v) => blockRoom(tx, ctx, v),
+    {
+      revalidate: PATHS,
+      success: (_r, tr) => tr('lodging.block.saved'),
+      errorField: (path) =>
+        path[0] === 'roomId' || path[0] === 'bedId' ? 'target' : String(path[0] ?? '_'),
+    },
+    ({ target, ...raw }) => {
+      const [roomId, bedId] = String(target ?? '').split(':');
+      return { ...raw, roomId, bedId: bedId ?? null };
     },
   );
 }
