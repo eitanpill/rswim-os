@@ -9,7 +9,7 @@ the worker refuses to start with any fake or dev switch on.
 |---|---|---|---|
 | Web app (`apps/web`) | Vercel (Pro) | the repository, root `apps/web` | `GET /api/health` |
 | Worker (`apps/worker`) | Railway | root `railway.json` → `deploy/demo/Dockerfile` with `RSWIM_IMAGE=worker` (the same image as `deploy/production/worker.Dockerfile`) | `GET /health` |
-| Database + sign-in | Supabase (Pro), region Frankfurt | migrations in `packages/db/migrations` | |
+| Database + sign-in | Supabase (Pro), region Ireland (eu-west-1) | migrations in `packages/db/migrations` | |
 | Background jobs | Inngest Cloud | the worker registers at `https://<worker>/api/inngest` | |
 | DNS | Cloudflare | `aqua-swim.co.il` | |
 | Errors | Sentry | `SENTRY_DSN` | |
@@ -54,9 +54,15 @@ Railway project and Inngest account. A mistake on staging can then never reach a
 change. Do the steps in this order; nothing is public until step 8.
 
 1. **Supabase**: an organization on the Pro plan (daily backups, no pausing), project `aqua-production`, region
-   Frankfurt (eu-central-1), a strong database password kept in Pit's password manager.
-   - Authentication → URL configuration: site URL `https://app.aqua-swim.co.il`, redirect URL
-     `https://app.aqua-swim.co.il/auth/confirm`.
+   Ireland (eu-west-1), a database password of letters and digits only (no characters a URL would need to escape),
+   kept in Pit's password manager.
+   - Connection strings: Supabase → **Connect** → Direct, then switch on **Use IPv4 connection** (free). That gives the
+     shared pooler, `postgresql://postgres.<ref>:<password>@aws-1-eu-west-1.pooler.supabase.com:<port>/postgres`:
+     transaction pooler port 6543 for Vercel, session pooler port 5432 for Railway. Without the switch the Pro plan
+     shows the *dedicated* pooler and `db.<ref>.supabase.co`, which are IPv6 only: Vercel fails with `ENOTFOUND`.
+   - Authentication → URL configuration: site URL `https://app.aqua-swim.co.il`, redirect URLs
+     `https://app.aqua-swim.co.il/auth/confirm` and, until step 8, `https://aqua-production.vercel.app/**` (the
+     confirmation e-mail of the step 7 test owner comes back there).
    - Authentication → Providers: email on, *Allow new users to sign up* on, *Confirm email* on; phone on, Twilio Verify
      (a paid Twilio account: the trial sends only to verified numbers and adds a prefix).
    - Authentication → SMTP: Resend, host `smtp.resend.com`, port 465, user `resend`, a **new** Resend API key for
@@ -69,13 +75,15 @@ change. Do the steps in this order; nothing is public until step 8.
    staging's. It goes into both Vercel and Railway (steps 3 and 4) and nowhere else.
 3. **Vercel**: a second project in the same team, `aqua-production`, from `eitanpill/rswim-os`, root directory
    `apps/web`, framework Next.js, install command `pnpm install --frozen-lockfile`.
-   - Settings → Git → Production branch: `production`.
+   - Settings → Environments → Production → Branch Tracking: `production`. Vercel saves it only once a deployment of
+     that branch exists, so after the first Promote (step 5): Deployments → Create Deployment → `production`, then save.
+   - Settings → Functions → Function Region: Dublin (`dub1`), next to the database.
    - Settings → Git → Ignored build step, so this project builds only the production branch:
      `if [ "$VERCEL_GIT_COMMIT_REF" = "production" ]; then exit 1; else exit 0; fi`
    - Environment variables (Production): the web column below, with `RSWIM_ENV=production` and
      `NEXT_PUBLIC_RSWIM_ENV=production`.
    - Domain `app.aqua-swim.co.il` is added in step 8, not before.
-4. **Railway**: a new project `aqua-production`, one service `worker` from `eitanpill/rswim-os`, branch `production`,
+4. **Railway**: a new project `aqua-production`, one service (`rswim-worker`) from `eitanpill/rswim-os`, branch `production`,
    one replica, a generated public domain (the Inngest URL). Variables: the worker column below, with
    `RSWIM_IMAGE=worker`, `RSWIM_ENV=production`, `RSWIM_PUBLIC_URL=https://app.aqua-swim.co.il`.
    `DATABASE_URL` is the session pooler (port 5432) of `aqua-production`: the worker migrates.
