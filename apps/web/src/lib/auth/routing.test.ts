@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decideRoute, homePath, surfaceForPath } from './routing';
+import { decideRoute, hiddenInApp, homePath, surfaceForPath } from './routing';
 import type { Session } from './types';
 
 const s = (role: Session['role'], extra: Partial<Session> = {}): Session => ({
@@ -106,5 +106,32 @@ describe('decideRoute', () => {
   it('does not confuse prefixes', () => {
     expect(surfaceForPath('/administrator')).toBeNull();
     expect(surfaceForPath('/admin/x')).toBe('admin');
+  });
+});
+
+describe('the store app (stage 8: no subscription sold or shown in the app)', () => {
+  const app = { nativeApp: true };
+  it('keeps the subscription screens out of the app', () => {
+    for (const p of ['/signup', '/onboarding', '/billing/card', '/admin/plan', '/dive/plan'])
+      expect(hiddenInApp(p)).toBe(true);
+    expect(hiddenInApp('/admin/onboarding')).toBe(false);
+    expect(hiddenInApp('/admin/planner')).toBe(false);
+    expect(decideRoute('/signup', null, app)).toEqual({ action: 'redirect', to: '/login' });
+    expect(decideRoute('/admin/plan', s('owner'), app)).toEqual({
+      action: 'redirect',
+      to: '/admin',
+    });
+    expect(decideRoute('/dive/plan', s('owner', { vertical: 'freediving' }), app)).toEqual({
+      action: 'redirect',
+      to: '/dive',
+    });
+    expect(decideRoute('/billing/card', s('owner'), app)).toEqual({
+      action: 'redirect',
+      to: '/admin',
+    });
+  });
+  it('leaves the browser alone', () => {
+    expect(decideRoute('/signup', null)).toEqual({ action: 'next' });
+    expect(decideRoute('/admin/plan', s('owner'))).toEqual({ action: 'next' });
   });
 });

@@ -72,6 +72,18 @@ Proof: `packages/db/test/rls/school-switch.test.ts`, `apps/web/src/lib/join-link
 - Google Play's "web link for deletion requests": the same page on the web (sign in, then delete).
 - Not verified: deleting from `auth.users` by SQL on a real Supabase project (no project yet).
 
+## Stage 8, second part: no subscription in the app (27.11.2026)
+- The platform's subscription is sold and managed on the website only (Apple 3.1.1 and Google Play's payments
+  policy require their own billing for software sold inside an app). In the store app (`AquaSwimApp` in the user
+  agent) the middleware sends `/signup`, `/onboarding`, `/billing/*`, `/admin/plan` and `/dive/plan` home
+  (`hiddenInApp` in `lib/auth/routing.ts`), and the screens drop every way there: the trial banner (price, card,
+  plan), the past-due and cancelling banners, the plan tile on "more", the plan link on the connections screen and the
+  club owner's screen, "create a business" on sign-in and "open a school" on `/start`. A suspended office sees a plain
+  notice instead of the plan page. Nothing points to the website for buying.
+- What families and divers pay their own school (lessons, dives, stays) stays in the app: a physical service paid to
+  the business (Apple 3.1.3(e)).
+- Proof: `apps/web/src/lib/auth/routing.test.ts` ("the store app").
+
 ## Reviewer demo accounts (to set up with the Supabase project)
 Apple and Google sign in with an account we give them. Sign-in is by phone code, so:
 1. In Supabase, Authentication → Phone: add test numbers with fixed codes (no SMS is sent), e.g. an owner number and

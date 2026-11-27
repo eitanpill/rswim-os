@@ -798,7 +798,8 @@
       "trialNoCard": "Your trial runs until {date}. To continue after it, add a card.",
       "addCard": "Add a card",
       "cancelling": "The subscription was cancelled and ends on {date}.",
-      "trialNoCardShort": "To keep going after it, add a card."
+      "trialNoCardShort": "To keep going after it, add a card.",
+      "lockedInApp": "Access to the office screens is paused for now."
     },
     "plan": {
       "title": "My plan",

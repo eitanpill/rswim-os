@@ -103,6 +103,8 @@ sends user agent `AquaSwimApp` (`lib/native-app.ts`), links open it through `/.w
 `RSWIM_IOS_APP_IDS` and `RSWIM_ANDROID_CERT_SHA256`, and `.github/workflows/mobile.yml` builds both platforms. Push (stage 6): the app
 registers its token on `/api/push` (`push_devices`), and the dispatcher sends a family's message there first and by
 WhatsApp only when no phone took it (`pushProvider()` in the worker: FCM, APNs, or `RSWIM_PUSH_FAKE=1`).
+The app never shows or sells the platform's subscription (stage 8, `hiddenInApp`: sign-up, onboarding, billing and plan
+screens are sent home, and their links and the trial banner are hidden).
 Anyone deletes their own account on `/me/account`
 (`public.delete_my_account`, each school's database first; the only owner of a school is refused; hidden dev persona
 `leaver` for the E2E suite).
