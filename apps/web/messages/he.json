@@ -6022,9 +6022,14 @@
       "bit": "ביט",
       "standing_order": "הוראת קבע"
     },
+    "fieldHint": {
+      "bitPageCode": "רשות: רק אם Grow פתחו לכם תשלום בביט, עם קוד דף משלו",
+      "apiKey": "רשות: רק אם Grow נתנו לעסק מפתח API משלו. סודי: יוצג רק בארבע הספרות האחרונות"
+    },
     "field": {
       "userId": "מזהה משתמש (User ID)",
       "pageCode": "קוד דף תשלום (Page Code)",
+      "bitPageCode": "קוד דף ביט (Bit Page Code)",
       "apiKey": "מפתח API",
       "terminalNumber": "מספר מסוף",
       "apiName": "שם משתמש API",

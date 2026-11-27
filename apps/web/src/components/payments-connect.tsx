@@ -150,11 +150,11 @@ export async function PaymentsConnect({
               key={`${selected}.${f.key}`}
               name={`cred.${f.key}`}
               label={t(`field.${f.key}`)}
-              hint={f.secret ? t('secretHint') : undefined}
+              hint={f.optional ? t(`fieldHint.${f.key}`) : f.secret ? t('secretHint') : undefined}
               type={f.secret ? 'password' : 'text'}
               dir="ltr"
               autoComplete="off"
-              required
+              required={!f.optional}
             />
           ))}
           <CheckboxGroup
