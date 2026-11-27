@@ -22,6 +22,8 @@ import {
   BOT_REPLY_OUTCOMES,
   BOT_REVIEWS,
   BROADCAST_STATUSES,
+  GHL_BRIDGE_MODES,
+  GHL_BRIDGE_STATUSES,
   HOLD_REASONS,
   INBOUND_INTENTS,
   INBOUND_STATUSES,
@@ -409,6 +411,43 @@ export const whatsappConnections = pgTable(
       'whatsapp_connections_status_check',
       sql.raw(`status in (${inList(WHATSAPP_CONNECTION_STATUSES)})`),
     ),
+  ],
+);
+
+/**
+ * WhatsApp through the business's own GHL sub-account (the GHL bridge): the number lives in GHL, GHL's workflow tells
+ * us a person wrote (the hook URL carries `hook_token`), and the worker reads the conversation from GHL's API with the
+ * sub-account's Private Integration token, sealed with the org's data key. `mode` shadow keeps every bot answer as a
+ * suggestion for a person; live lets them answer. `foreign_replies` counts answers in GHL that we did not send (a
+ * person in GHL, or the old GHL bot still on): each one gives that conversation to a person.
+ */
+export const ghlConnections = pgTable(
+  'ghl_connections',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    status: text('status').notNull().default('connected'),
+    mode: text('mode').notNull().default('shadow'),
+    locationId: text('location_id').notNull(),
+    hookToken: text('hook_token').notNull(),
+    encToken: bytea('enc_token').notNull(),
+    locationName: text('location_name'),
+    checkedAt: timestamp('checked_at', { withTimezone: true }),
+    checkError: text('check_error'),
+    lastInboundAt: timestamp('last_inbound_at', { withTimezone: true }),
+    lastError: text('last_error'),
+    foreignReplies: integer('foreign_replies').notNull().default(0),
+    lastForeignAt: timestamp('last_foreign_at', { withTimezone: true }),
+    connectedBy: uuid('connected_by'),
+    connectedAt: timestamp('connected_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('ghl_connections_org_id').on(t.organizationId, t.id),
+    unique('ghl_connections_org').on(t.organizationId),
+    check('ghl_connections_status_check', sql.raw(`status in (${inList(GHL_BRIDGE_STATUSES)})`)),
+    check('ghl_connections_mode_check', sql.raw(`mode in (${inList(GHL_BRIDGE_MODES)})`)),
   ],
 );
 

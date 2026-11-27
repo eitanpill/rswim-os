@@ -47,6 +47,7 @@ import {
   platformSchoolCreated,
 } from './platform';
 import { diveDailyReminders } from './dive';
+import { commsGhlBridgeCheck, commsGhlBridgePull } from './ghl-bridge';
 import { lodgingGuestReminders, lodgingMorningBrief } from './lodging';
 import { brainLeadFollowUps, enrollmentTrialReminders } from './leads';
 import { platformProvisionDatabase, platformSyncSchool } from './tenancy';
@@ -60,6 +61,8 @@ import {
 
 export const functions = [
   outboxRelay,
+  commsGhlBridgeCheck,
+  commsGhlBridgePull,
   commsWhatsAppCheck,
   commsWhatsAppRegister,
   commsWhatsAppTemplates,

@@ -13,6 +13,7 @@ import {
   submitMetaTemplatesAction,
   testWhatsAppAction,
 } from './actions';
+import { GhlBridgeSection } from './ghl-bridge';
 
 const quality = (q: string | null) =>
   q === 'GREEN' || q === 'YELLOW' || q === 'RED' ? q : ('NA' as const);
@@ -56,12 +57,15 @@ export async function WhatsAppConnection({
         <p className="text-ink-muted" data-testid="whatsapp-owner-only">
           {connected ? t('officeConnected', { phone: connection.displayPhone }) : t('ownerOnly')}
         </p>
+        <GhlBridgeSection owner={false} />
       </>
     );
   return (
     <>
       {header}
       <div className="flex flex-col gap-4">
+        <GhlBridgeSection owner />
+        <h2 className="mt-2 text-lg font-semibold">{t('metaTitle')}</h2>
         {connection ? (
           <Card data-testid="whatsapp-status" data-status={connection.status}>
             <CardTitle

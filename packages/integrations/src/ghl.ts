@@ -225,3 +225,204 @@ export function verifyGhlSignature(
     return false;
   }
 }
+
+/**
+ * GHL's current webhook key (Ed25519, header `X-GHL-Signature`), as GHL publishes it in its webhook integration guide
+ * (marketplace.gohighlevel.com/docs/webhook/WebhookIntegrationGuide, read 2026-11-27). The RSA `x-wh-signature` is
+ * GHL's legacy header, announced for deprecation on 2026-09-01; it stays accepted with GHL_WEBHOOK_PUBLIC_KEY.
+ */
+export const GHL_ED25519_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAi2HR1srL4o18O8BRa7gVJY7G7bupbN3H9AwJrHCDiOg=
+-----END PUBLIC KEY-----`;
+
+/** Verifies `X-GHL-Signature` (base64 Ed25519 over the raw body). Returns false on any malformed input. */
+export function verifyGhlEd25519(
+  rawBody: string,
+  signature: string | null,
+  publicKeyPem: string = GHL_ED25519_PUBLIC_KEY,
+): boolean {
+  if (!signature) return false;
+  try {
+    return verify(
+      null,
+      Buffer.from(rawBody),
+      createPublicKey(publicKeyPem),
+      Buffer.from(signature, 'base64'),
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A marketplace webhook is genuine when its current signature checks out, or (while GHL still sends it) its legacy one
+ * against the RSA key configured in the environment.
+ */
+export function verifyGhlWebhook(
+  rawBody: string,
+  headers: { ghlSignature: string | null; whSignature: string | null },
+  keys: { ed25519?: string; rsa?: string | null } = {},
+): boolean {
+  if (headers.ghlSignature)
+    return verifyGhlEd25519(rawBody, headers.ghlSignature, keys.ed25519 ?? GHL_ED25519_PUBLIC_KEY);
+  return keys.rsa ? verifyGhlSignature(rawBody, headers.whSignature, keys.rsa) : false;
+}
+
+// ─── The GHL bridge: WhatsApp through a business's own GHL sub-account ─────
+
+/** One message of a GHL conversation, as the bridge reads it. */
+export interface GhlChatMessage {
+  id: string;
+  direction: 'inbound' | 'outbound';
+  /** WhatsApp, or anything else GHL carries (SMS, email, calls…), which the bridge leaves alone. */
+  whatsapp: boolean;
+  body: string;
+  at: Date;
+  /** The GHL user who wrote it by hand, when a person did. */
+  userId: string | null;
+}
+
+/**
+ * What the bridge reads from a sub-account with its Private Integration token: the location (the connection check),
+ * a contact's phone, and a contact's latest messages. Writing goes through GhlMessagingProvider.
+ */
+export interface GhlBridgeClient {
+  location(): Promise<{ id: string; name: string }>;
+  contactPhone(contactId: string): Promise<string | null>;
+  /** The contact's latest messages, newest first (at most `limit`). */
+  recentMessages(contactId: string, limit?: number): Promise<GhlChatMessage[]>;
+}
+
+interface RawGhlMessage {
+  id?: string;
+  direction?: string;
+  messageType?: string;
+  type?: number | string;
+  body?: string | null;
+  dateAdded?: string;
+  userId?: string | null;
+}
+
+/** GHL's message as the bridge reads it, or null for one it cannot place. */
+export function toGhlChatMessage(m: RawGhlMessage): GhlChatMessage | null {
+  if (!m.id || (m.direction !== 'inbound' && m.direction !== 'outbound')) return null;
+  const at = m.dateAdded ? new Date(m.dateAdded) : null;
+  if (!at || Number.isNaN(at.getTime())) return null;
+  return {
+    id: m.id,
+    direction: m.direction,
+    whatsapp: /whatsapp/i.test(
+      `${m.messageType ?? ''} ${typeof m.type === 'string' ? m.type : ''}`,
+    ),
+    body: m.body ?? '',
+    at,
+    userId: m.userId || null,
+  };
+}
+
+/**
+ * The bridge over GHL's API v2 (services.leadconnectorhq.com) with a sub-account's Private Integration token:
+ * GET /locations/{id}, GET /contacts/{id}, GET /conversations/search?contactId=…, GET /conversations/{id}/messages.
+ * Scopes: locations.readonly, contacts.readonly, conversations.readonly, conversations/message.readonly (and
+ * conversations/message.write + contacts.write for sending). Written from GHL's published API (2026-11); not yet
+ * exercised against a live sub-account.
+ */
+export class HttpGhlBridgeClient implements GhlBridgeClient {
+  private readonly baseUrl: string;
+  private readonly fetchImpl: typeof fetch;
+
+  constructor(private readonly opts: HttpGhlOptions) {
+    this.baseUrl = opts.baseUrl ?? 'https://services.leadconnectorhq.com';
+    this.fetchImpl = opts.fetch ?? fetch;
+  }
+
+  private async get<T>(path: string, version: string): Promise<T> {
+    const res = await this.fetchImpl(`${this.baseUrl}${path}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${this.opts.token}`,
+        Version: version,
+        Accept: 'application/json',
+      },
+    });
+    const text = await res.text();
+    if (!res.ok) throw new GhlApiError(res.status, text);
+    return JSON.parse(text) as T;
+  }
+
+  async location() {
+    const res = await this.get<{ location?: { id?: string; name?: string } }>(
+      `/locations/${encodeURIComponent(this.opts.locationId)}`,
+      '2021-07-28',
+    );
+    return { id: res.location?.id ?? this.opts.locationId, name: res.location?.name ?? '' };
+  }
+
+  async contactPhone(contactId: string) {
+    const res = await this.get<{ contact?: { phone?: string | null; locationId?: string } }>(
+      `/contacts/${encodeURIComponent(contactId)}`,
+      '2021-07-28',
+    );
+    // A contact of another sub-account is not ours to read, even if the token could.
+    if (res.contact?.locationId && res.contact.locationId !== this.opts.locationId) return null;
+    return res.contact?.phone ?? null;
+  }
+
+  async recentMessages(contactId: string, limit = 20) {
+    const q = new URLSearchParams({ locationId: this.opts.locationId, contactId });
+    const found = await this.get<{ conversations?: { id: string }[] }>(
+      `/conversations/search?${q}`,
+      '2021-04-15',
+    );
+    const out: GhlChatMessage[] = [];
+    for (const c of found.conversations ?? []) {
+      const res = await this.get<{
+        messages?: RawGhlMessage[] | { messages?: RawGhlMessage[] };
+      }>(`/conversations/${encodeURIComponent(c.id)}/messages?limit=${limit}`, '2021-04-15');
+      const list = Array.isArray(res.messages) ? res.messages : (res.messages?.messages ?? []);
+      for (const m of list) {
+        const parsed = toGhlChatMessage(m);
+        if (parsed) out.push(parsed);
+      }
+    }
+    return out.sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, limit);
+  }
+}
+
+/**
+ * An in-memory sub-account for tests and demos (`RSWIM_GHL_FAKE=1`): contacts with phones and their messages. A
+ * location id containing "bad" fails the connection check, like a wrong token.
+ */
+export class FakeGhlBridgeClient implements GhlBridgeClient {
+  readonly phones = new Map<string, string>();
+  readonly messages = new Map<string, GhlChatMessage[]>();
+
+  constructor(private readonly locationId: string) {}
+
+  async location() {
+    if (this.locationId.includes('bad')) throw new GhlApiError(401, 'Invalid JWT');
+    return { id: this.locationId, name: 'Fake sub-account' };
+  }
+
+  async contactPhone(contactId: string) {
+    return this.phones.get(contactId) ?? null;
+  }
+
+  async recentMessages(contactId: string, limit = 20) {
+    return [...(this.messages.get(contactId) ?? [])]
+      .sort((a, b) => b.at.getTime() - a.at.getTime())
+      .slice(0, limit);
+  }
+
+  /** A person writes on WhatsApp (or the old bot, or a person in GHL, answers). */
+  add(
+    contactId: string,
+    phone: string,
+    m: Omit<GhlChatMessage, 'whatsapp'> & { whatsapp?: boolean },
+  ) {
+    this.phones.set(contactId, phone);
+    const list = this.messages.get(contactId) ?? [];
+    list.push({ whatsapp: true, ...m });
+    this.messages.set(contactId, list);
+  }
+}

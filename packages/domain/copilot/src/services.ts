@@ -32,7 +32,7 @@ import {
   requestFreeze,
   requestPaymentLink,
 } from '@rswim/domain-billing';
-import { enqueueMessage, schoolName, sendToTargets } from '@rswim/domain-comms';
+import { enqueueMessage, ghlBridgeMode, schoolName, sendToTargets } from '@rswim/domain-comms';
 import { DomainError, toDomainError, type ServiceContext } from '@rswim/domain-core';
 import {
   cancelSlot,
@@ -56,7 +56,7 @@ import {
 } from '@rswim/integrations';
 import { actionHandler, type ModuleResults } from './action-handlers';
 import { gateFor, getAgentSettings } from './agent';
-import { approvalText } from './agent-policies';
+import { approvalText, type GateDecision } from './agent-policies';
 import { sendLeadFollowUp } from './lead-followup';
 import { bookLeadTrial, cancelLeadTrial } from './lead-trial';
 import { businessForecast } from './forecast';
@@ -999,7 +999,15 @@ export async function takeAction(
   /** What the domain service returned, when it ran. */
   result?: unknown;
 }> {
-  const { level, decision } = await gateFor(tx, a.kind, a.amountAgorot);
+  const gated = await gateFor(tx, a.kind, a.amountAgorot);
+  const { level } = gated;
+  let decision: GateDecision = gated.decision;
+  // The GHL bridge in shadow mode: what a bot wants to do from a WhatsApp conversation waits for the owner.
+  const shadow =
+    decision.route === 'run' &&
+    a.source === 'parent_whatsapp' &&
+    (await ghlBridgeMode(tx)) === 'shadow';
+  if (shadow) decision = { route: 'wait', reason: 'paused' };
   if (decision.route === 'refuse') throw new DomainError(decision.code);
   const [row] = await tx
     .insert(copilotActions)
@@ -1015,7 +1023,7 @@ export async function takeAction(
       summary: a.summary,
       // Why it waits, when the level alone would have let it run.
       ...(decision.route === 'wait' && decision.reason !== 'level'
-        ? { result: { waitReason: decision.reason } }
+        ? { result: { waitReason: shadow ? 'shadow' : decision.reason } }
         : {}),
     })
     .returning();

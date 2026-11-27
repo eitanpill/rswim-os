@@ -1,10 +1,19 @@
 import { readFileSync } from 'node:fs';
 import type { Tx } from '@rswim/db';
-import { loadWhatsApp, recordWhatsAppError } from '@rswim/domain-comms';
+import {
+  loadGhlBridge,
+  loadWhatsApp,
+  recordGhlBridgeError,
+  recordWhatsAppError,
+  type LoadedGhlBridge,
+} from '@rswim/domain-comms';
 import { ghlSettings, type TagMap } from '@rswim/domain-crm';
 import {
+  FakeGhlBridgeClient,
   FakeGhlClient,
   FakeMessagingProvider,
+  GhlApiError,
+  HttpGhlBridgeClient,
   GhlMessagingProvider,
   HttpGhlClient,
   MetaApiError,
@@ -12,6 +21,7 @@ import {
   MetaCloudMessagingProvider,
   MetaWhatsAppAdmin,
   type WhatsAppAdmin,
+  type GhlBridgeClient,
   type GhlClient,
   type GhlContact,
   type MessagingProvider,
@@ -35,10 +45,12 @@ export async function ghlFor(
     fake ??= new FakeGhlClient(fakeContacts());
     return { client: fake, tagMap: settings.tagMap };
   }
-  const token = process.env.GHL_API_TOKEN;
+  // The business's own sub-account token (the GHL bridge) first, then the platform's (tenant #1's) environment.
+  const bridge = await loadGhlBridge(tx, orgId);
+  const token = bridge?.token ?? process.env.GHL_API_TOKEN;
   if (!token) return null;
   return {
-    client: new HttpGhlClient({ token, locationId: settings.locationId }),
+    client: new HttpGhlClient({ token, locationId: bridge?.locationId ?? settings.locationId }),
     tagMap: settings.tagMap,
   };
 }
@@ -58,6 +70,7 @@ let fakeCloud: FakeMessagingProvider | undefined;
  *   the 24-hour window, approved templates outside it. A refused send is kept on the connection for the owner.
  * - RSWIM_MESSAGING_FAKE=1: in-memory WhatsApp for local demos and CI (with the window rules when a number is
  *   connected). Never touches a real account.
+ * - The business's own GHL sub-account when the owner connected it (the GHL bridge), with its own token.
  * - Otherwise WhatsApp through the org's GHL location with GHL_API_TOKEN.
  */
 export async function messagingFor(tx: Tx, orgId: string): Promise<MessagingProvider | null> {
@@ -83,10 +96,54 @@ export async function messagingFor(tx: Tx, orgId: string): Promise<MessagingProv
       },
     };
   }
+  // The business's own GHL sub-account (the GHL bridge): its token, and GHL's refusals kept for the owner.
+  const bridge = await loadGhlBridge(tx, orgId);
+  if (bridge) {
+    const ghl = new GhlMessagingProvider({ token: bridge.token, locationId: bridge.locationId });
+    return {
+      async send(ctx, message) {
+        try {
+          return await ghl.send(ctx, message);
+        } catch (e) {
+          if (e instanceof GhlApiError) await recordGhlBridgeError(tx, e.message);
+          throw e;
+        }
+      },
+    };
+  }
   const settings = await ghlSettings(tx, orgId);
   const token = process.env.GHL_API_TOKEN;
   if (!settings || !token) return null;
   return new GhlMessagingProvider({ token, locationId: settings.locationId });
+}
+
+const fakeBridges = new Map<string, FakeGhlBridgeClient>();
+
+/** The in-memory sub-account behind a location id (RSWIM_GHL_FAKE=1), for demos and tests. */
+export function fakeGhlBridge(locationId: string): FakeGhlBridgeClient {
+  let fake = fakeBridges.get(locationId);
+  if (!fake) {
+    fake = new FakeGhlBridgeClient(locationId);
+    fakeBridges.set(locationId, fake);
+  }
+  return fake;
+}
+
+/**
+ * The business's GHL sub-account for the bridge (reading conversations, the connection check), or null when the bridge
+ * is not connected. RSWIM_GHL_FAKE=1 reads an in-memory sub-account instead.
+ */
+export async function ghlBridgeFor(
+  tx: Tx,
+  orgId: string,
+): Promise<{ bridge: LoadedGhlBridge; client: GhlBridgeClient } | null> {
+  const bridge = await loadGhlBridge(tx, orgId);
+  if (!bridge) return null;
+  const client =
+    process.env.RSWIM_GHL_FAKE === '1'
+      ? fakeGhlBridge(bridge.locationId)
+      : new HttpGhlBridgeClient({ token: bridge.token, locationId: bridge.locationId });
+  return { bridge, client };
 }
 
 const fakeAdmins = new Map<string, FakeWhatsAppAdmin>();

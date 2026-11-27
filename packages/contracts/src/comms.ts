@@ -48,8 +48,20 @@ export type MessageChannel = (typeof MESSAGE_CHANNELS)[number];
 export const PUSH_PLATFORMS = ['ios', 'android'] as const;
 export type PushPlatform = (typeof PUSH_PLATFORMS)[number];
 
-/** queued → sent | failed; held waits for a send window; blocked never goes out (the reason is kept). */
-export const MESSAGE_STATUSES = ['queued', 'held', 'sent', 'failed', 'blocked'] as const;
+/**
+ * queued → sent | failed; held waits for a send window; blocked never goes out (the reason is kept). suggested is a
+ * bot's answer while the GHL bridge is in shadow mode: it waits for a person to send it (→ queued) or drop it
+ * (→ dismissed).
+ */
+export const MESSAGE_STATUSES = [
+  'queued',
+  'held',
+  'sent',
+  'failed',
+  'blocked',
+  'suggested',
+  'dismissed',
+] as const;
 export type MessageStatus = (typeof MESSAGE_STATUSES)[number];
 
 export const HOLD_REASONS = ['quiet_hours', 'rest_window'] as const;
@@ -179,3 +191,30 @@ export const MetaTemplateInput = z.object({
   metaParams: z.string().trim().max(500),
 });
 export type MetaTemplateInput = z.input<typeof MetaTemplateInput>;
+
+// ─── WhatsApp through the business's own GHL sub-account (the GHL bridge) ──
+
+/**
+ * shadow: the bots read every message and write their answer as a suggestion for a person to send; nothing they write
+ * goes out alone. live: the bots answer on their own, as on any other route.
+ */
+export const GHL_BRIDGE_MODES = ['shadow', 'live'] as const;
+export type GhlBridgeMode = (typeof GHL_BRIDGE_MODES)[number];
+export const GHL_BRIDGE_STATUSES = ['connected', 'disconnected'] as const;
+export type GhlBridgeStatus = (typeof GHL_BRIDGE_STATUSES)[number];
+
+/** What the owner copies from her GHL sub-account: its location id and a Private Integration token. */
+export const GhlBridgeConnectInput = z.object({
+  locationId: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9_-]{6,64}$/, 'ghlBridge.errors.locationId'),
+  token: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9._-]{20,2000}$/, 'ghlBridge.errors.token'),
+});
+export type GhlBridgeConnectInput = z.input<typeof GhlBridgeConnectInput>;
+
+export const GhlBridgeModeInput = z.object({ mode: z.enum(GHL_BRIDGE_MODES) });
+export type GhlBridgeModeInput = z.input<typeof GhlBridgeModeInput>;

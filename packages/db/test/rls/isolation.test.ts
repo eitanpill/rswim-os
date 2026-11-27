@@ -170,6 +170,7 @@ const TENANT_TABLES = [
   'payment_connections',
   'checkouts',
   'whatsapp_connections',
+  'ghl_connections',
   'push_devices',
 ] as const;
 
@@ -664,6 +665,35 @@ describe('the business WhatsApp number (WhatsApp track W5)', () => {
     });
     await as(A.users.instructor, A.orgId, async (run) => {
       expect(await run(`select id from whatsapp_connections`)).toEqual([]);
+    });
+  });
+});
+
+describe('WhatsApp through the business GHL sub-account (the GHL bridge)', () => {
+  it('lets only the owner connect it, and nobody signed in read its sealed token', async () => {
+    await t.pool.query(
+      `insert into ghl_connections (organization_id, location_id, hook_token, enc_token)
+       values ($1, 'loc-rls-0001', 'hook', decode('00', 'hex'))`,
+      [A.orgId],
+    );
+    await as(A.users.admin, A.orgId, async (run) => {
+      expect(await run(`select mode from ghl_connections`)).toHaveLength(1);
+      await expect(run(`select enc_token from ghl_connections`)).rejects.toThrow(
+        /permission denied/,
+      );
+      expect(await run(`update ghl_connections set mode = 'live' returning id`)).toEqual([]);
+    });
+    await as(A.users.owner, A.orgId, async (run) => {
+      await expect(run(`select enc_token from ghl_connections`)).rejects.toThrow(
+        /permission denied/,
+      );
+      expect(await run(`update ghl_connections set mode = 'live' returning id`)).toHaveLength(1);
+    });
+    await as(A.users.instructor, A.orgId, async (run) => {
+      expect(await run(`select id from ghl_connections`)).toEqual([]);
+    });
+    await as(B.users.owner, B.orgId, async (run) => {
+      expect(await run(`select id from ghl_connections`)).toEqual([]);
     });
   });
 });

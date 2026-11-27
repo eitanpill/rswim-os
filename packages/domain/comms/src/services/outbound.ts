@@ -6,7 +6,7 @@
  */
 import type { TemplateKey } from '@rswim/contracts';
 import { and, asc, desc, eq, inArray, lte, schema, sql, type Tx } from '@rswim/db';
-import type { ServiceContext } from '@rswim/domain-core';
+import { DomainError, type ServiceContext } from '@rswim/domain-core';
 import { resolvePolicyFor } from '@rswim/domain-settings';
 import { PushTokenGone, type MessagingProvider, type PushProvider } from '@rswim/integrations';
 import {
@@ -15,6 +15,7 @@ import {
   outboundShape,
   renderTemplate,
   sendDecision,
+  shadowHolds,
   windowOpen,
   type CommsRules,
 } from '../policies';
@@ -66,6 +67,14 @@ export async function schoolName(tx: Tx, orgId: string): Promise<string> {
   return o?.name ?? '';
 }
 
+/** The GHL bridge's mode while connected (the same question as ghl-bridge.ts's ghlBridgeMode). */
+async function bridgeMode(tx: Tx): Promise<'shadow' | 'live' | null> {
+  const r = await tx.execute<{ mode: 'shadow' | 'live' }>(
+    sql`select mode from ghl_connections where status = 'connected' limit 1`,
+  );
+  return r.rows[0]?.mode ?? null;
+}
+
 /**
  * Queues one message to one guardian, or logs why it cannot go. The same idempotency key queues once.
  * Returns the row's id and status (the existing row's when it was queued before).
@@ -97,7 +106,13 @@ export async function enqueueMessage(
     render,
   });
   const notBefore = input.notBefore ?? new Date();
-  const timing = decision.status === 'queued' ? sendDecision(notBefore, cache.rules) : null;
+  // The GHL bridge in shadow mode: a bot's words wait as a suggestion for a person (ghl-bridge.ts).
+  const suggested =
+    decision.status === 'queued' &&
+    input.idempotencyKey.startsWith('bot:') &&
+    shadowHolds(await bridgeMode(tx), input.idempotencyKey);
+  const timing =
+    decision.status === 'queued' && !suggested ? sendDecision(notBefore, cache.rules) : null;
   const held = timing?.action === 'hold' ? timing : null;
   const [row] = await tx
     .insert(messages)
@@ -109,7 +124,14 @@ export async function enqueueMessage(
       templateKey: input.templateKey,
       locale: template?.locale ?? locale,
       body: decision.text,
-      status: decision.status === 'blocked' ? 'blocked' : held ? 'held' : 'queued',
+      status:
+        decision.status === 'blocked'
+          ? 'blocked'
+          : suggested
+            ? 'suggested'
+            : held
+              ? 'held'
+              : 'queued',
       notBefore: held ? held.until : notBefore,
       holdReason: held?.reason ?? null,
       blockReason: decision.status === 'blocked' ? decision.reason : null,
@@ -369,4 +391,36 @@ export async function messageCounts(tx: Tx): Promise<Record<string, number>> {
     sql`select status, count(*)::int as n from messages group by status`,
   );
   return Object.fromEntries(r.rows.map((x) => [x.status, x.n]));
+}
+
+/**
+ * A bot's suggestion (the GHL bridge in shadow mode) is sent by a person: it joins the queue now, and keeps to the
+ * send window like any message.
+ */
+export async function sendSuggestion(tx: Tx, ctx: ServiceContext, messageId: string) {
+  const rules = await commsRules(tx);
+  const now = new Date();
+  const timing = sendDecision(now, rules);
+  const held = timing.action === 'hold' ? timing : null;
+  const rows = await tx
+    .update(messages)
+    .set({
+      status: held ? 'held' : 'queued',
+      notBefore: held ? held.until : now,
+      holdReason: held?.reason ?? null,
+      createdBy: ctx.userId,
+    })
+    .where(and(eq(messages.id, messageId), eq(messages.status, 'suggested')))
+    .returning({ id: messages.id });
+  if (!rows.length) throw new DomainError('chats.errors.noSuggestion');
+}
+
+/** A person drops a bot's suggestion: it stays on the log as dismissed and never goes out. */
+export async function dismissSuggestion(tx: Tx, messageId: string) {
+  const rows = await tx
+    .update(messages)
+    .set({ status: 'dismissed' })
+    .where(and(eq(messages.id, messageId), eq(messages.status, 'suggested')))
+    .returning({ id: messages.id });
+  if (!rows.length) throw new DomainError('chats.errors.noSuggestion');
 }
