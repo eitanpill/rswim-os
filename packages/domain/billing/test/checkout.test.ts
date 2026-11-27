@@ -206,7 +206,7 @@ describe('connecting the business processor', () => {
           connectPaymentGateway(
             tx,
             ctx,
-            { provider: 'grow', methods: ['card'], credentials: { ...GROW, apiKey: '' } },
+            { provider: 'grow', methods: ['card'], credentials: { ...GROW, pageCode: '' } },
             { build: sandbox, sandbox: true },
           ),
         ),

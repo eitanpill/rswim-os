@@ -6022,9 +6022,14 @@
       "bit": "Bit",
       "standing_order": "Standing order"
     },
+    "fieldHint": {
+      "bitPageCode": "Optional: only if Grow opened Bit for you, with its own page code",
+      "apiKey": "Optional: only if Grow gave your business its own API key. Secret: only its last 4 characters will show"
+    },
     "field": {
       "userId": "User ID",
       "pageCode": "Page code",
+      "bitPageCode": "Bit page code",
       "apiKey": "API key",
       "terminalNumber": "Terminal number",
       "apiName": "API user name",

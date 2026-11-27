@@ -54,6 +54,13 @@ the test plan and what is still unverified are in `docs/payments/CARDCOM.md`. It
 own Cardcom terminal (live only with `RSWIM_CARDCOM_LIVE=1`) and the platform's own terminal for the subscription
 card and monthly charges (`PLATFORM_CARDCOM_*`).
 
+## Grow (Meshulam)
+
+`packages/integrations/src/grow-gateway.ts`, written from Grow's documentation (developers.grow.business) and tested
+against answers in its documented shapes; details and the sandbox test plan are in `docs/payments/GROW.md`. A business
+connects its own Grow (user id, card page code, and its Bit page code when Grow opened Bit); the platform's key from
+Grow is `GROW_PLATFORM_API_KEY`. Live only with `RSWIM_GROW_LIVE=1` (`GROW_SANDBOX=1` points it at Grow's sandbox).
+
 ## Going live with a real processor (needs Pit / the business)
 
 - Which processor the business uses, and a **sandbox (test) account** at that processor.
