@@ -61,9 +61,10 @@ GHL (LeadYourWay): the worker reads `GHL_API_TOKEN`; the webhook route needs `GH
 run the worker with `RSWIM_GHL_FAKE=1` (optionally `RSWIM_GHL_FAKE_CONTACTS=<fake contacts json>`). Never point tests
 at the real account.
 
-Receipts are per business (`docs/payments/MORNING.md`): the owner connects the business's own Morning account on
-`/admin/integrations/receipts` (`/dive/receipts`; table `invoicing_connections`, API key sealed with the org's data key),
-and the worker issues each payment's document there (`invoicingProvider(orgId)`); it runs only with `RSWIM_MORNING_LIVE=1`
+Receipts: the business's processor issues the receipt for each payment it takes, so the worker skips those
+(`processorIssuesReceipts()`, off only with `RSWIM_INVOICING_FAKE=1`). Payments the office records (cash, transfer) get
+theirs from the business's own Morning account, optional (`docs/payments/MORNING.md`, `/admin/integrations/receipts`,
+`/dive/receipts`; table `invoicing_connections`, API key sealed with the org's data key; `invoicingProvider(orgId)`); it runs only with `RSWIM_MORNING_LIVE=1`
 (`MORNING_SANDBOX=1` for Morning's sandbox). The platform's own invoices use `PLATFORM_MORNING_API_KEY_ID`/`_SECRET`.
 Grow (payments) and Green Invoice (receipts) run on fakes only until Pit's accounts exist: start the worker with
 `RSWIM_GROW_FAKE=1 RSWIM_INVOICING_FAKE=1` (a mandate id containing "fail" is declined). The Grow webhook route needs

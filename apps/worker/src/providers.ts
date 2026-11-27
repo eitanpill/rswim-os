@@ -108,8 +108,17 @@ export function invoicingProviderName(): string {
 }
 
 /**
- * A business's receipts: its own Morning account when the owner connected one (/admin/integrations/receipts), or null
- * (the documents wait, nothing is issued in someone else's account).
+ * Whether the business's processor issues the receipts of the payments it takes (every real deployment: Grow, Cardcom,
+ * SUMIT, PayPlus each issue their own). With RSWIM_INVOICING_FAKE=1 (local, CI, the live demo) no real processor is
+ * behind the payment, so the fake issues a document for every payment, to show it.
+ */
+export function processorIssuesReceipts(): boolean {
+  return process.env.RSWIM_INVOICING_FAKE !== '1';
+}
+
+/**
+ * A business's receipts for payments the office records (cash, transfer, cheque): its own Morning account when the
+ * owner connected one (/admin/integrations/receipts), or null (nothing is issued in someone else's account).
  * - RSWIM_INVOICING_FAKE=1: an in-memory Morning that numbers documents from 10001 (local, CI, the live demo).
  * - A connected Morning runs only with RSWIM_MORNING_LIVE=1 (docs/payments/MORNING.md).
  */

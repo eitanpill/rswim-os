@@ -1,9 +1,16 @@
-# Morning (Green Invoice): each business's own receipts
+# Morning (Green Invoice): receipts for payments the office records
 
-Every payment a business records (card, Bit, standing order, cash at the desk) gets its invoice-receipt in **the
-business's own Morning account**. The adapter is `packages/integrations/src/morning.ts`, written from Morning's
-official OpenAPI (read 2026-11-27) and tested against recorded answers in `packages/integrations/test/morning.test.ts`.
-No test talks to Morning.
+**The business's payment processor issues the receipt for every payment it takes** (Grow, Cardcom, SUMIT, PayPlus each
+issue their own, set up in the processor). We never issue a second document for those payments: the worker skips any
+payment whose `source` is `provider` (`issueReceipts(..., { processorIssues: true })`).
+
+Morning is optional. It covers what no processor sees: cash, transfers and cheques the office records. When the owner
+connects the business's own Morning account, each of those payments gets its invoice-receipt there. The adapter is
+`packages/integrations/src/morning.ts`, written from Morning's official OpenAPI (read 2026-11-27) and tested against
+recorded answers in `packages/integrations/test/morning.test.ts`. No test talks to Morning.
+
+With `RSWIM_INVOICING_FAKE=1` (local, CI, the live demo) no real processor is behind a payment, so the fake issues a
+document for every payment, to show the flow.
 
 ## Who provides what
 
@@ -16,15 +23,15 @@ No test talks to Morning.
 `sandbox.d.greeninvoice.co.il` for documents). `RSWIM_INVOICING_FAKE=1` (local, CI, the live demo) keeps the in-memory
 fake for every school, and the web app then accepts any well-formed key.
 
-A business with no connection gets no document: the payment is recorded and the receipt event waits (the worker logs
-"receipts not usable"). Nothing is ever issued in someone else's account.
+A business without Morning gets no document for a manual payment from us (the worker logs "receipts not usable").
+Nothing is ever issued in someone else's account.
 
 ## How each flow maps onto Morning
 
 | Ours | Morning |
 | --- | --- |
 | Connection check (on save) | `POST /idp/v1/oauth/token` with `client_credentials`. A token = the key works; `invalid_client` = wrong key; `unauthorized_client` = the plan has no API. No document is made |
-| Payment received | `POST /documents` type 320 (invoice-receipt) with one payment row; on error 2403 (an exempt dealer) the same as type 400 (receipt) |
+| Manual payment recorded (cash, transfer, cheque) | `POST /documents` type 320 (invoice-receipt) with one payment row; on error 2403 (an exempt dealer) the same as type 400 (receipt) |
 | Institution invoice | type 305 with `dueDate` |
 | Institution payment | type 400 linked to the invoice (`linkType: link`) |
 | Refund | type 330 credit note linked to the original (`linkType: cancel`) |
@@ -45,6 +52,10 @@ is kept per process and renewed once on a 401.
 6. Where the client's ID number goes (`taxId`) and that `add: false` keeps one-off clients out of the business's list.
 
 ## Later
+
+Showing the processor's own receipt to the family: Cardcom returns `DocumentInfo` (number and link) with the payment
+result, and Grow posts `invoiceNumber`/`invoiceUrl` to an `invoiceNotifyUrl`. Recording those on the payment would let the
+parent portal link the processor's receipt.
 
 Morning's Partners flow (`/partners/users/connection`) would let an owner connect with one approval email instead of
 copying a key. It needs a Green Invoice partner code for the platform.
