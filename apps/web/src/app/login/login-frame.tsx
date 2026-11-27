@@ -24,7 +24,17 @@ export async function LoginFrame({
   children: ReactNode;
 }) {
   const t = await getTranslations();
-  const known = ['invalid', 'phone', 'code', 'no_membership', 'not_configured', 'confirm'];
+  const known = [
+    'invalid',
+    'phone',
+    'code',
+    'code_expired',
+    'sms_wait',
+    'sms_failed',
+    'no_membership',
+    'not_configured',
+    'confirm',
+  ];
   const brand = await hostBranding();
   return (
     <main

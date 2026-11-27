@@ -5,6 +5,7 @@ import { clubForJoin } from '@rswim/domain-dive';
 import { schoolPublic } from '@rswim/domain-platform';
 import { redirect } from 'next/navigation';
 import { dbForSlug, withAnon } from '@/lib/db';
+import { sendCodeError, verifyCodeError } from '@/lib/auth/sms-errors';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const safeNext = (v: FormDataEntryValue | null) =>
@@ -57,7 +58,14 @@ export async function sendPhoneCode(formData: FormData) {
     phone: phone.data,
     options: { shouldCreateUser: true },
   });
-  if (error) redirect(phonePage({ error: 'phone', join, invite }));
+  if (error) {
+    // The code only (never the number): Sentry and the logs show whether the SMS provider or the limit is the cause.
+    console.error('phone sign-in: sending the code failed', {
+      code: error.code,
+      status: error.status,
+    });
+    redirect(phonePage({ error: sendCodeError(error.code), join, invite }));
+  }
   redirect(phonePage({ phone: phone.data, join, invite }));
 }
 
@@ -70,6 +78,7 @@ export async function verifyPhoneCode(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) redirect(phonePage({ error: 'not_configured', join, invite }));
   const { error } = await supabase.auth.verifyOtp({ phone: phone.data, token, type: 'sms' });
-  if (error) redirect(phonePage({ phone: phone.data, error: 'code', join, invite }));
+  if (error)
+    redirect(phonePage({ phone: phone.data, error: verifyCodeError(error.code), join, invite }));
   redirect(invite ? `/i/${invite}` : join ? `/join/${join}` : '/');
 }

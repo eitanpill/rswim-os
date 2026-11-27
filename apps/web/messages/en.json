@@ -74,6 +74,9 @@
       "phone": "Invalid phone number",
       "code": "The code is wrong or expired",
       "no_membership": "This user isn't linked to any swim school yet. Ask an admin.",
+      "code_expired": "The code has expired. Ask for a new one",
+      "sms_wait": "Several codes were already sent to this number. Wait a minute and try again",
+      "sms_failed": "We couldn't send the SMS right now. Try again shortly, and if it keeps happening contact your school",
       "not_configured": "Sign-in isn't configured in this environment",
       "confirm": "This link was already used or has expired. If you clicked it once before, your email is confirmed: just sign in with your email and password."
     },
