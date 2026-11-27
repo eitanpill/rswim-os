@@ -93,6 +93,13 @@ export default async function BrainPage() {
             >
               {t('forecast.link')}
             </Link>
+            <Link
+              href="/admin/brain/coach"
+              className="text-sm text-brand-ink underline"
+              data-testid="brain-coach-link"
+            >
+              {t('coach.link')}
+            </Link>
             {data.chat ? (
               <Link
                 href="/admin/copilot"

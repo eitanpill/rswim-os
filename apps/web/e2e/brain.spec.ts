@@ -161,3 +161,21 @@ test("the office admin cannot read the brain's forecast", async ({ page }) => {
   await page.goto('/admin');
   await expect(page.getByTestId('home-forecast')).toHaveCount(0);
 });
+
+test("the owner reads the weekly coach: this week's note and the weeks it kept", async ({
+  page,
+}) => {
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin/brain');
+  await page.getByTestId('brain-coach-link').click();
+  await expect(page).toHaveURL(/\/admin\/brain\/coach$/);
+  await expect(page.getByTestId('coach-this-week')).toContainText('השבוע');
+  await expect(page.getByTestId('coach-history')).toContainText('השבועות הקודמים');
+});
+
+test('the office admin cannot read the weekly coach', async ({ page }) => {
+  await page.goto('/dev/login?as=admin');
+  await page.goto('/admin/brain/coach');
+  await expect(page.getByTestId('brain-owner-only')).toBeVisible();
+  await expect(page.getByTestId('coach-this-week')).toHaveCount(0);
+});

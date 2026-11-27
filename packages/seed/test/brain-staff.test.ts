@@ -5,7 +5,7 @@
  */
 import { randomBytes, randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { asUser, type Tx } from '@rswim/db';
+import { asUser, sql, type Tx } from '@rswim/db';
 import { DEMO_ORG, PERSONAS } from '@rswim/db/personas';
 import { withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
@@ -13,6 +13,7 @@ import { intakeInbound } from '@rswim/domain-comms';
 import {
   askCopilot,
   coachFacts,
+  coachWeekView,
   confirmCopilotAction,
   FakeCopilotModel,
   FakeParentBotModel,
@@ -342,9 +343,71 @@ describe('the brain takes requests from the owner and the instructors', () => {
       sent: false,
       reason: 'already',
     });
+    // The week is kept as it was sent, for next Sunday's check (stage 8).
+    const [week] = await q(`select priorities, sent_at from coach_weeks where week_of = $1`, [
+      facts.weekOf,
+    ]);
+    expect(week.sent_at).not.toBeNull();
+    expect(week.priorities.length).toBeGreaterThan(0);
     // Pesach 2027 starts on 22 April: one entry for the holiday, not one per day.
     const ahead = holidaysAhead('2027-04-01');
     expect(ahead[0]).toMatchObject({ date: '2027-04-22', daysAway: 21 });
     expect(new Set(ahead.map((h) => h.name)).size).toBe(ahead.length);
+  });
+
+  it("checks last week's advice and decides a priority's actions in one reply (stage 8)", async () => {
+    const facts = await withOrg(t.db, DEMO_ORG.id, (tx) => coachFacts(tx, today));
+    const lastSunday = await q(`select ($1::date - 7)::text d`, [facts.weekOf]);
+    const summary = {
+      code: 'copilot.summary.payment_link',
+      params: { family: 'כהן', amount: 30000 },
+    };
+    const [{ r }] = await q(`select coalesce(max(ref), 0) r from copilot_actions`);
+    const refs = [Number(r) + 1, Number(r) + 2];
+    for (const ref of refs)
+      await q(
+        `insert into copilot_actions (organization_id, source, ref, autonomy, kind, params, summary)
+         values ($1, 'morning_check', $2, 'approve', 'payment_link', '{}', $3)`,
+        [DEMO_ORG.id, ref, summary],
+      );
+    await q(
+      `insert into coach_weeks (organization_id, week_of, priorities, sent_at) values ($1, $2, $3, now())`,
+      [
+        DEMO_ORG.id,
+        lastSunday[0].d,
+        JSON.stringify([{ kind: 'waiting', count: 2, top: [], refs }]),
+      ],
+    );
+    const before = await withOrg(t.db, DEMO_ORG.id, (tx) => coachFacts(tx, today));
+    expect(before.lastWeek).toHaveLength(1);
+
+    // One reply drops both; the answer has a line for each.
+    const no = await write(OWNER_PHONE, `לא ${refs.join(' ')} לא עכשיו`, { model });
+    expect(no.run).toMatchObject({
+      outcome: 'owner_decided',
+      decision: 'dismissed',
+      decisions: refs.map((ref) => ({ ref, decision: 'dismissed' })),
+    });
+    expect(no.replies[0].body.split('\n')).toHaveLength(2);
+    expect(
+      (await q(`select status from copilot_actions where ref = any($1)`, [refs])).map(
+        (x) => x.status,
+      ),
+    ).toEqual(['dismissed', 'dismissed']);
+
+    // The owner's screen shows the note with the check, and the weeks it kept.
+    const view = await asUser(t.db, { sub: PERSONAS.owner.userId, org_id: DEMO_ORG.id }, (tx) =>
+      coachWeekView(tx, 'he'),
+    );
+    expect(view.text).toContain('מה שהצעתי בשבוע שעבר:');
+    expect(view.text).toContain('✅ פעולות שחיכו לך: 2 מתוך 2 הוחלטו.');
+    expect(view.history.map((h) => h.weekOf)).toEqual([facts.weekOf, lastSunday[0].d]);
+    // Nobody but the owner reads the coach's weeks.
+    const office = await asUser(
+      t.db,
+      { sub: PERSONAS.admin.userId, org_id: DEMO_ORG.id },
+      async (tx) => (await tx.execute(sql`select 1 from coach_weeks`)).rows,
+    );
+    expect(office).toEqual([]);
   });
 });
