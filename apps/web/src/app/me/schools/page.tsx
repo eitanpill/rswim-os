@@ -20,7 +20,7 @@ export default async function MySchoolsPage() {
   const schools = await withSignedIn((tx) => mySchools(tx));
   if (schools.length === 0) redirect('/start');
   return (
-    <AppShell session={session} surface="schools" nav={[]}>
+    <AppShell session={session} surface="schools" nav={[]} backHome>
       <PageHeader icon="🏫" title={t('title')} subtitle={t('subtitle')} />
       <ul className="stagger flex flex-col gap-3" data-testid="my-schools">
         {schools.map((s) => {

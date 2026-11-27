@@ -3,9 +3,10 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { PRODUCT } from '@rswim/contracts';
 import { brandPalette, myBranding } from '@rswim/domain-platform';
-import { Avatar, Button } from '@rswim/ui';
+import { Avatar, Button, buttonVariants, cn } from '@rswim/ui';
 import { setLocale } from '@/app/actions/locale';
 import { isDemoMode } from '@/lib/auth/dev';
+import { homePath } from '@/lib/auth/routing';
 import { canSwitchSchool } from '@/lib/auth/schools';
 import type { Session } from '@/lib/auth/types';
 import { withSession } from '@/lib/db';
@@ -15,17 +16,21 @@ import { OfflineBanner } from './offline-banner';
 
 /**
  * Shared frame for every signed-in surface: top bar, side nav (desktop), bottom nav (mobile). Inside a school it
- * wears that school's name and brand colour.
+ * wears that school's name and brand colour. The school's mark and name always lead back to the person's main
+ * screen; `backHome` adds a clear "back" button above the page, for pages outside a role's own nav (my account,
+ * my schools) that would otherwise only offer signing out.
  */
 export async function AppShell({
   session,
   surface,
   nav,
+  backHome = false,
   children,
 }: {
   session: Session;
   surface: string;
   nav: NavSpec[];
+  backHome?: boolean;
   children: ReactNode;
 }) {
   const t = await getTranslations('common');
@@ -33,6 +38,7 @@ export async function AppShell({
   const brand = session.orgId ? await withSession((tx) => myBranding(tx)) : {};
   const name = brand.displayName ?? session.orgName ?? brand.name ?? PRODUCT.name;
   const switcher = await canSwitchSchool(session);
+  const home = homePath(session);
   return (
     <div
       className="flex min-h-dvh flex-col"
@@ -51,16 +57,20 @@ export async function AppShell({
       ) : null}
       <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line/70 bg-surface-raised/85 px-4 py-2 backdrop-blur-md print:hidden">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span
-            aria-hidden
+          <Link
+            href={home}
+            aria-label={t('backHome')}
             className="bg-water grid size-9 shrink-0 place-items-center rounded-xl text-lg shadow-sm"
+            data-testid="home-mark"
           >
-            {[...name.trim()][0] ?? '🌊'}
-          </span>
+            <span aria-hidden>{[...name.trim()][0] ?? '🌊'}</span>
+          </Link>
           <div className="min-w-0">
-            <p className="truncate leading-tight font-semibold" data-testid="org-name">
-              {name}
-            </p>
+            <Link href={home} className="block hover:underline underline-offset-2">
+              <p className="truncate leading-tight font-semibold" data-testid="org-name">
+                {name}
+              </p>
+            </Link>
             {/* The person's own account (store launch: deleting it is one tap away from every screen). */}
             <Link
               href="/me/account"
@@ -129,6 +139,30 @@ export async function AppShell({
           </div>
         ) : null}
         <main className="page-in mx-auto w-full max-w-5xl flex-1 px-4 pt-5 pb-28 md:pb-8 print:p-0">
+          {backHome ? (
+            <Link
+              href={home}
+              className={cn(
+                buttonVariants({ variant: 'soft', size: 'sm' }),
+                'mb-4 gap-1.5 print:hidden',
+              )}
+              data-testid="back-home"
+            >
+              <svg
+                aria-hidden
+                viewBox="0 0 24 24"
+                className="size-5 rtl:-scale-x-100"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              {t('backHome')}
+            </Link>
+          ) : null}
           {children}
         </main>
       </div>

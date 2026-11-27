@@ -36,6 +36,7 @@
     },
     "demoBanner": "Demo environment · all data is invented · no message or charge is really sent",
     "myAccount": "My account",
+    "backHome": "Back to home",
     "greet": {
       "morning": "Good morning",
       "noon": "Good afternoon",
