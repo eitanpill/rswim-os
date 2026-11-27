@@ -216,7 +216,8 @@ export const CheckoutMethod = z.enum(CHECKOUT_METHODS);
 export type CheckoutMethod = z.infer<typeof CheckoutMethod>;
 
 /** Where a business issues its receipts (its own account; docs/payments/MORNING.md). */
-export const INVOICING_PROVIDERS = ['morning'] as const;
+/** Where a business's receipts come from: its Morning account, or its connected payment processor's own documents. */
+export const INVOICING_PROVIDERS = ['morning', 'processor'] as const;
 export const InvoicingProviderKind = z.enum(INVOICING_PROVIDERS);
 export type InvoicingProviderKind = z.infer<typeof InvoicingProviderKind>;
 

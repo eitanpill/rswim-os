@@ -5,7 +5,7 @@ import { InvoicingProviderKind } from '@rswim/contracts';
 import { connectInvoicing, disconnectInvoicing } from '@rswim/domain-billing';
 import type { FormState } from '@/lib/form-state';
 import { runForm } from '@/lib/forms';
-import { invoicingFactory } from '@/lib/receipts';
+import { invoicingFactory, processorDocsLive } from '@/lib/receipts';
 
 /** The swim school's screen and the dive club's show the same connection. */
 const PAGES = [
@@ -32,11 +32,21 @@ export async function connectReceiptsAction(_: FormState, fd: FormData) {
   return runForm(
     fd,
     Connect,
-    (tx, ctx, input) => connectInvoicing(tx, ctx, input, { build: invoicingFactory }),
+    (tx, ctx, input) =>
+      connectInvoicing(tx, ctx, input, {
+        build: invoicingFactory,
+        processorLive: processorDocsLive,
+      }),
     {
       revalidate: PAGES,
       success: (r, tr) =>
-        tr(r.status === 'connected' ? 'receipts.connected' : 'receipts.savedNotWorking'),
+        tr(
+          r.status === 'connected'
+            ? r.provider === 'processor'
+              ? 'receipts.processorChosen'
+              : 'receipts.connected'
+            : 'receipts.savedNotWorking',
+        ),
       errorField: (path) =>
         path[0] === 'credentials' ? `cred.${String(path[1])}` : String(path[0]),
     },

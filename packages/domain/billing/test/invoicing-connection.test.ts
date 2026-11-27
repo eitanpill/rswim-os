@@ -9,13 +9,16 @@ import { asUser, sql, type Tx } from '@rswim/db';
 import { withOrg } from '@rswim/db/service';
 import { createTestDatabase, type TestDatabase } from '@rswim/db/testing';
 import { createDataKey, DomainError, type ServiceContext } from '@rswim/domain-core';
-import { createInvoicing, FakeInvoicingProvider } from '@rswim/integrations';
+import { createGateway, createInvoicing, FakeInvoicingProvider } from '@rswim/integrations';
 import {
+  connectPaymentGateway,
+  disconnectPaymentGateway,
   connectInvoicing,
   disconnectInvoicing,
   invoicingConnection,
   loadInvoicing,
   type InvoicingFactory,
+  type ProcessorInvoicingFactory,
 } from '../src';
 
 let t: TestDatabase;
@@ -173,5 +176,78 @@ describe('connecting the business receipts account', () => {
       invoicing: null,
       reason: 'disconnected',
     });
+  });
+});
+
+describe("the processor's own documents instead of Morning", () => {
+  const processorOpened: { kind: string; creds: Record<string, string> }[] = [];
+  const processorDocs: ProcessorInvoicingFactory = (kind, creds) => {
+    processorOpened.push({ kind, creds });
+    return new FakeInvoicingProvider();
+  };
+  const connectProcessor = (provider: 'grow' | 'cardcom', credentials: Record<string, string>) =>
+    owner((tx) =>
+      connectPaymentGateway(
+        tx,
+        ctx,
+        { provider, methods: ['card'], credentials },
+        {
+          build: (kind, creds, o) => createGateway(kind, creds, { ...o, sandbox: true }),
+          sandbox: true,
+        },
+      ),
+    );
+  const useProcessor = (live: boolean) =>
+    owner((tx) =>
+      connectInvoicing(
+        tx,
+        ctx,
+        { provider: 'processor', credentials: {} },
+        { build: working, processorLive: () => live },
+      ),
+    );
+
+  it('needs a connected processor whose API issues documents', async () => {
+    expect(await codeOf(useProcessor(true))).toBe('receipts.errors.processorNotConnected');
+    await connectProcessor('grow', { userId: 'demo-user-1', pageCode: 'demo-page-1' });
+    expect(await codeOf(useProcessor(true))).toBe('receipts.errors.processorNoDocuments');
+  });
+
+  it('replaces Morning: one source, opened with the processor credentials', async () => {
+    const CARDCOM = { terminalNumber: '1000', apiName: 'demo-api', apiPassword: 'demo-pass-77' };
+    await connectProcessor('cardcom', CARDCOM);
+    expect(await useProcessor(false)).toMatchObject({
+      provider: 'processor',
+      status: 'failed',
+      error: 'adapter_not_live',
+    });
+    expect(await useProcessor(true)).toMatchObject({ provider: 'processor', status: 'connected' });
+    // Still one row: Morning is no longer the source.
+    expect(await q(`select provider from invoicing_connections`)).toEqual([
+      { provider: 'processor' },
+    ]);
+    expect(await owner((tx) => invoicingConnection(tx))).toMatchObject({
+      provider: 'processor',
+      credentialHints: { processor: 'cardcom' },
+    });
+    const loaded = await system((tx) =>
+      loadInvoicing(tx, ctx.orgId, { build: working, buildProcessor: processorDocs }),
+    );
+    expect(loaded?.invoicing).toBeInstanceOf(FakeInvoicingProvider);
+    expect(processorOpened.at(-1)).toEqual({ kind: 'cardcom', creds: CARDCOM });
+    // Without a processor document adapter in this process, nothing is issued.
+    expect(await system((tx) => loadInvoicing(tx, ctx.orgId, { build: working }))).toMatchObject({
+      invoicing: null,
+      reason: 'adapter_not_live',
+    });
+  });
+
+  it('follows the processor: disconnecting it stops the documents too', async () => {
+    await owner((tx) => disconnectPaymentGateway(tx));
+    expect(
+      await system((tx) =>
+        loadInvoicing(tx, ctx.orgId, { build: working, buildProcessor: processorDocs }),
+      ),
+    ).toMatchObject({ invoicing: null, reason: 'disconnected' });
   });
 });

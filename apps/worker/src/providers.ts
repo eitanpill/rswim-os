@@ -10,6 +10,7 @@ import {
   MorningInvoicing,
   platformMorningCredentials,
   gatewaySandbox,
+  processorInvoicing,
   platformCardcomCredentials,
   type PaymentGateway,
   ClaudeInsightWriter,
@@ -108,8 +109,9 @@ export function invoicingProviderName(): string {
 }
 
 /**
- * A business's receipts: its own Morning account when the owner connected one (/admin/integrations/receipts), or null
- * (the documents wait, nothing is issued in someone else's account).
+ * A business's receipts from the one source its owner chose (/admin/integrations/receipts): its own Morning account,
+ * or its connected processor's own documents (docs/payments/DOCUMENTS.md). Null when none is usable (the documents
+ * wait, nothing is issued in someone else's account).
  * - RSWIM_INVOICING_FAKE=1: an in-memory Morning that numbers documents from 10001 (local, CI, the live demo).
  * - A connected Morning runs only with RSWIM_MORNING_LIVE=1 (docs/payments/MORNING.md).
  */
@@ -117,7 +119,11 @@ export async function invoicingProvider(orgId: string): Promise<InvoicingProvide
   if (process.env.RSWIM_INVOICING_FAKE === '1') return (invoicing ??= new FakeInvoicingProvider());
   try {
     const loaded = await withOrg(getDb(), orgId, (tx) =>
-      loadInvoicing(tx, orgId, { build: (kind, creds) => createInvoicing(kind, creds) }),
+      loadInvoicing(tx, orgId, {
+        build: (kind, creds) => createInvoicing(kind, creds),
+        buildProcessor: (kind, creds) =>
+          processorInvoicing(kind, creds, { sandbox: gatewaySandbox() }),
+      }),
     );
     if (loaded && !loaded.invoicing)
       log.warn({ orgId, reason: loaded.reason }, 'receipts not usable');

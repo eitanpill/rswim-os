@@ -65,6 +65,8 @@ Receipts are per business (`docs/payments/MORNING.md`): the owner connects the b
 `/admin/integrations/receipts` (`/dive/receipts`; table `invoicing_connections`, API key sealed with the org's data key),
 and the worker issues each payment's document there (`invoicingProvider(orgId)`); it runs only with `RSWIM_MORNING_LIVE=1`
 (`MORNING_SANDBOX=1` for Morning's sandbox). The platform's own invoices use `PLATFORM_MORNING_API_KEY_ID`/`_SECRET`.
+Instead of Morning, the owner may choose the connected processor's own documents (`docs/payments/DOCUMENTS.md`,
+`provider = 'processor'`, `processorInvoicing`): one source per business, so a payment never gets two documents.
 Grow (payments) and Green Invoice (receipts) run on fakes only until Pit's accounts exist: start the worker with
 `RSWIM_GROW_FAKE=1 RSWIM_INVOICING_FAKE=1` (a mandate id containing "fail" is declined). The Grow webhook route needs
 `GROW_WEBHOOK_SECRET`. Saving a payer's ID number needs `RSWIM_MASTER_KEY` in the web app's environment too.

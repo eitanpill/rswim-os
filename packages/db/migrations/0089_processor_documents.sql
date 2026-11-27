@@ -1,0 +1,2 @@
+ALTER TABLE "invoicing_connections" DROP CONSTRAINT "invoicing_connections_provider_check";--> statement-breakpoint
+ALTER TABLE "invoicing_connections" ADD CONSTRAINT "invoicing_connections_provider_check" CHECK (provider in ('morning', 'processor'));

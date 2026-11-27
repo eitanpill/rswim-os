@@ -75,4 +75,4 @@ callback cannot confirm it; the processor retries and the office has to refund b
 ## Receipts
 
 Each payment's invoice-receipt is issued in the business's own Morning account, connected on
-`/admin/integrations/receipts` (`/dive/receipts`). See `docs/payments/MORNING.md`.
+`/admin/integrations/receipts` (`/dive/receipts`). See `docs/payments/MORNING.md`. A business may instead use its processor's own documents (`docs/payments/DOCUMENTS.md`).

@@ -72,6 +72,8 @@ export interface FiscalLine {
   quantity: number;
 }
 export interface InvoicingProvider {
+  /** Stored on each document (`fiscal_documents.provider`): `green_invoice`, a processor's kind, or none for the fake. */
+  readonly name?: string;
   issueInvoiceReceipt(
     ctx: ProviderContext,
     req: {
@@ -130,6 +132,7 @@ export * from './gateways';
 export * from './cardcom';
 export * from './grow-gateway';
 export * from './morning';
+export * from './processor-documents';
 export * from './cards';
 export * from './fakes';
 export * from './messaging';

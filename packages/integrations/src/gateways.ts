@@ -31,6 +31,12 @@ export interface GatewaySpec {
   fields: readonly CredentialField[];
   methods: readonly CheckoutMethod[];
   /**
+   * Whether the processor's own API issues the business's tax documents (docs/payments/DOCUMENTS.md). `api`: the
+   * business may choose it as its receipts instead of Morning, and the worker then asks the processor for each document
+   * through `processorInvoicing`. `none`: receipts come from Morning only.
+   */
+  documents: 'api' | 'none';
+  /**
    * Whether a real adapter talks to this processor yet. Credentials can be saved before; payments start once the
    * adapter is checked against the processor's sandbox with the business's own account.
    */
@@ -54,6 +60,9 @@ export const PAYMENT_GATEWAYS: Record<PaymentGatewayKind, GatewaySpec> = {
       { key: 'apiKey', secret: true, pattern: secret, optional: true },
     ],
     methods: ['card', 'bit', 'standing_order'],
+    // Grow issues documents only from its own dashboard and reports them on a callback (invoiceNotifyUrl); its API
+    // has no call that issues one for a payment, so the business keeps Morning (or Grow's own setting, never both).
+    documents: 'none',
     live: false,
   },
   cardcom: {
@@ -65,6 +74,8 @@ export const PAYMENT_GATEWAYS: Record<PaymentGatewayKind, GatewaySpec> = {
       { key: 'apiPassword', secret: true, pattern: secret },
     ],
     methods: ['card', 'bit', 'standing_order'],
+    // Documents/CreateDocument with the same API name and password.
+    documents: 'api',
     live: false,
   },
   tranzila: {
@@ -76,6 +87,8 @@ export const PAYMENT_GATEWAYS: Record<PaymentGatewayKind, GatewaySpec> = {
       { key: 'secretKey', secret: true, pattern: secret },
     ],
     methods: ['card', 'bit', 'standing_order'],
+    // Not documented in a public API we could read.
+    documents: 'none',
     live: false,
   },
   payplus: {
@@ -87,6 +100,8 @@ export const PAYMENT_GATEWAYS: Record<PaymentGatewayKind, GatewaySpec> = {
       { key: 'paymentPageUid', secret: false, pattern: id },
     ],
     methods: ['card', 'bit', 'standing_order'],
+    // books/docs/new/{docType} (the business turns on PayPlus's invoice module).
+    documents: 'api',
     live: false,
   },
   fake: {
@@ -94,6 +109,7 @@ export const PAYMENT_GATEWAYS: Record<PaymentGatewayKind, GatewaySpec> = {
     name: 'Demo',
     fields: [{ key: 'merchantId', secret: false, pattern: id }],
     methods: ['card', 'bit', 'standing_order'],
+    documents: 'api',
     live: true,
   },
 };

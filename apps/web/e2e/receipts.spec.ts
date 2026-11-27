@@ -10,6 +10,9 @@ test('the owner connects Morning and the secret is never shown again', async ({ 
   await page.goto('/admin/more');
   await page.getByTestId('more-receipts').click();
   await expect(page).toHaveURL(/\/admin\/integrations\/receipts$/);
+  // The school's processor (Grow) has no API for documents, so Morning is the only source offered.
+  await expect(page.getByTestId('receipts-processor-none')).toContainText('Grow');
+  await expect(page.getByTestId('receipts-use-processor')).toHaveCount(0);
   const form = page.getByTestId('receipts-form');
   await form.getByLabel('מזהה המפתח (API Key ID)').fill('e2e-key-id-not-real');
   await form.getByLabel('סוד המפתח (API Key Secret)').fill('e2e-secret-not-real-4417');

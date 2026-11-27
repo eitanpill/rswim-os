@@ -67,7 +67,8 @@ export class MorningError extends Error {
 }
 
 export class InvoicingNotLiveError extends Error {
-  constructor(readonly kind: InvoicingKind) {
+  /** `morning`, or the processor whose own documents are not live yet. */
+  constructor(readonly kind: string) {
     super(`invoicing ${kind} has no live adapter yet`);
   }
 }
@@ -241,6 +242,7 @@ export class MorningClient {
 
 /** A business's (or the platform's) Morning account as our invoicing provider. */
 export class MorningInvoicing implements InvoicingProvider {
+  readonly name = 'green_invoice';
   readonly client: MorningClient;
   private readonly now: () => number;
 

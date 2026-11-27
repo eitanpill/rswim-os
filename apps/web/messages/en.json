@@ -6160,7 +6160,8 @@
       "disconnected": "Disconnected"
     },
     "provider": {
-      "morning": "Morning (Green Invoice)"
+      "morning": "Morning (Green Invoice)",
+      "processor": "{name}'s documents"
     },
     "checkError": {
       "adapter_not_live": "The live Morning connection isn't open yet. The key is saved, and no receipt goes through it until we test against a sandbox account.",
@@ -6174,8 +6175,18 @@
     },
     "errors": {
       "field": "One of the details doesn't look right ({field}). Check and copy it again.",
-      "notConnected": "No receipts account is connected."
-    }
+      "notConnected": "No receipts account is connected.",
+      "processorNotConnected": "Connect the payment processor first, on the payments screen.",
+      "processorNoDocuments": "The connected processor doesn't issue documents through its API."
+    },
+    "processorTitle": "Receipts from {name}",
+    "processorHint": "{name} can issue the invoice-receipt itself. You can choose it instead of Morning: every payment gets one document, from your {name} account.",
+    "processorNotLiveYet": "Issuing through {name} opens after a test against a sandbox account. You can choose it now; no document is issued until then.",
+    "processorInUse": "Receipts now come from {name}. To go back to Morning, connect it below.",
+    "useProcessor": "Issue receipts through {name}",
+    "processorChosen": "Receipts now come from your payment processor",
+    "processorNoDocuments": "{name} doesn't issue documents through its API, so receipts come from Morning.",
+    "how5": "One source at a time: Morning or the processor. If you turned on automatic documents in the processor's own dashboard, turn that off there, so a payment doesn't get two receipts."
   },
   "schools": {
     "title": "Where are you working today?",

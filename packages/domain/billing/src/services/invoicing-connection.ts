@@ -1,11 +1,16 @@
 /**
- * The business's own receipts account (Morning), connected in-app by the owner (docs/payments/MORNING.md). The API
- * key is sealed with the organization's data key and never shown again; only the tenant's system role (the worker)
- * opens it to issue the business's receipts and invoices.
+ * Where the business's receipts come from, chosen in-app by the owner: its own Morning account (docs/payments/MORNING.md),
+ * whose API key is sealed with the organization's data key and never shown again, or its connected payment processor's
+ * own documents (docs/payments/DOCUMENTS.md), opened with the processor's sealed credentials. One source per business,
+ * so a payment never gets two documents. Only the tenant's system role (the worker) opens the credentials.
  */
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { InvoicingProviderKind, type InvoicingProviderKind as Kind } from '@rswim/contracts';
+import {
+  InvoicingProviderKind,
+  type InvoicingProviderKind as Kind,
+  type PaymentGatewayKind,
+} from '@rswim/contracts';
 import { eq, schema, sql, type Tx } from '@rswim/db';
 import {
   decryptField,
@@ -19,9 +24,12 @@ import {
   InvoicingNotLiveError,
   invalidInvoicingField,
   invoicingHints,
+  processorIssuesDocuments,
+  type GatewayCredentials,
   type InvoicingCredentials,
   type InvoicingProvider,
 } from '@rswim/integrations';
+import { paymentConnection } from './gateway';
 
 const { invoicingConnections } = schema;
 
@@ -31,7 +39,16 @@ export type ConnectedInvoicing = InvoicingProvider & {
 };
 
 /** Builds the provider from plain credentials (`createInvoicing` from @rswim/integrations, or a test double). */
-export type InvoicingFactory = (kind: Kind, creds: InvoicingCredentials) => ConnectedInvoicing;
+export type InvoicingFactory = (kind: 'morning', creds: InvoicingCredentials) => ConnectedInvoicing;
+
+/**
+ * Builds the processor's own documents from its sealed credentials (`processorInvoicing` from @rswim/integrations, or a
+ * test double). Throws `InvoicingNotLiveError` while the processor's document adapter is not live.
+ */
+export type ProcessorInvoicingFactory = (
+  kind: PaymentGatewayKind,
+  creds: GatewayCredentials,
+) => InvoicingProvider;
 
 export const InvoicingConnectionInput = z.object({
   provider: InvoicingProviderKind,
@@ -76,29 +93,44 @@ export async function connectInvoicing(
   tx: Tx,
   ctx: ServiceContext,
   raw: InvoicingConnectionInput,
-  opts: { build: InvoicingFactory },
+  opts: { build: InvoicingFactory; processorLive?: (kind: PaymentGatewayKind) => boolean },
 ) {
   const input = InvoicingConnectionInput.parse(raw);
-  const creds: InvoicingCredentials = {};
-  for (const f of INVOICING_FIELDS[input.provider]) creds[f.key] = input.credentials[f.key] ?? '';
-  const bad = invalidInvoicingField(input.provider, creds);
-  if (bad) throw new DomainError('receipts.errors.field', { field: bad });
-
   const dek = await orgDataKey(tx, ctx.orgId);
   if (!dek) throw new DomainError('payments.errors.noMasterKey');
 
   let status: 'connected' | 'failed' = 'connected';
   let error: string | null = null;
-  try {
-    const check = await opts.build(input.provider, creds).testConnection();
-    if (!check.ok) {
+  const creds: InvoicingCredentials = {};
+  let hints: Record<string, string>;
+  if (input.provider === 'processor') {
+    // The processor's own documents: no key of its own, it uses the connected processor's credentials.
+    const gateway = await paymentConnection(tx);
+    if (!gateway || gateway.status !== 'connected')
+      throw new DomainError('receipts.errors.processorNotConnected');
+    if (!processorIssuesDocuments(gateway.provider))
+      throw new DomainError('receipts.errors.processorNoDocuments');
+    if (!(opts.processorLive?.(gateway.provider) ?? false)) {
       status = 'failed';
-      error = check.reason;
+      error = 'adapter_not_live';
     }
-  } catch (e) {
-    if (!(e instanceof InvoicingNotLiveError)) throw e;
-    status = 'failed';
-    error = 'adapter_not_live';
+    hints = { processor: gateway.provider };
+  } else {
+    for (const f of INVOICING_FIELDS[input.provider]) creds[f.key] = input.credentials[f.key] ?? '';
+    const bad = invalidInvoicingField(input.provider, creds);
+    if (bad) throw new DomainError('receipts.errors.field', { field: bad });
+    try {
+      const check = await opts.build(input.provider, creds).testConnection();
+      if (!check.ok) {
+        status = 'failed';
+        error = check.reason;
+      }
+    } catch (e) {
+      if (!(e instanceof InvoicingNotLiveError)) throw e;
+      status = 'failed';
+      error = 'adapter_not_live';
+    }
+    hints = invoicingHints(input.provider, creds);
   }
 
   const [existing] = await tx
@@ -110,7 +142,7 @@ export async function connectInvoicing(
     provider: input.provider,
     status,
     encCredentials: encryptField(dek, JSON.stringify(creds), enc(rowId)),
-    credentialHints: invoicingHints(input.provider, creds),
+    credentialHints: hints,
     lastCheckedAt: new Date(),
     lastCheckError: error,
     connectedBy: ctx.userId,
@@ -122,7 +154,7 @@ export async function connectInvoicing(
       .insert(invoicingConnections)
       .values({ id: rowId, organizationId: ctx.orgId, ...values });
   }
-  return { id: rowId, status, error };
+  return { id: rowId, provider: input.provider, status, error };
 }
 
 /** Disconnects: no new documents are issued; the ones already issued stay where they are. */
@@ -140,11 +172,14 @@ export interface LoadedInvoicing {
   reason: 'disconnected' | 'failed' | 'adapter_not_live' | null;
 }
 
-/** The tenant's receipts provider, opened as its system role (the worker). Null when nothing was ever connected. */
+/**
+ * The tenant's receipts, opened as its system role (the worker). Null when nothing was ever chosen. With the
+ * processor's own documents, it follows the processor connection: a disconnected processor issues nothing.
+ */
 export async function loadInvoicing(
   tx: Tx,
   orgId: string,
-  opts: { build: InvoicingFactory },
+  opts: { build: InvoicingFactory; buildProcessor?: ProcessorInvoicingFactory },
 ): Promise<LoadedInvoicing | null> {
   const r = await tx.execute<{ id: string; provider: Kind; status: string; c: Buffer }>(
     sql`select id, provider, status, enc_credentials as c
@@ -160,8 +195,36 @@ export async function loadInvoicing(
     };
   const dek = await orgDataKey(tx, orgId);
   if (!dek) throw new DomainError('payments.errors.noMasterKey');
-  const creds = JSON.parse(decryptField(dek, row.c, enc(row.id))) as InvoicingCredentials;
   try {
+    if (row.provider === 'processor') {
+      const g = await tx.execute<{
+        id: string;
+        provider: PaymentGatewayKind;
+        status: string;
+        c: Buffer;
+      }>(
+        sql`select id, provider, status, enc_credentials as c
+            from payment_connections where organization_id = ${orgId}`,
+      );
+      const gw = g.rows[0];
+      if (!gw || gw.status !== 'connected')
+        return { provider: row.provider, invoicing: null, reason: 'disconnected' };
+      if (!opts.buildProcessor)
+        return { provider: row.provider, invoicing: null, reason: 'adapter_not_live' };
+      const gcreds = JSON.parse(
+        decryptField(dek, gw.c, {
+          table: 'payment_connections',
+          column: 'enc_credentials',
+          rowId: gw.id,
+        }),
+      ) as GatewayCredentials;
+      return {
+        provider: row.provider,
+        invoicing: opts.buildProcessor(gw.provider, gcreds),
+        reason: null,
+      };
+    }
+    const creds = JSON.parse(decryptField(dek, row.c, enc(row.id))) as InvoicingCredentials;
     return { provider: row.provider, invoicing: opts.build(row.provider, creds), reason: null };
   } catch (e) {
     if (e instanceof InvoicingNotLiveError)
