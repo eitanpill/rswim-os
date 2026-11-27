@@ -6044,7 +6044,9 @@
       "secretKey": "Secret key",
       "paymentPageUid": "Payment page ID",
       "merchantId": "Merchant ID (demo)",
-      "companyId": "SUMIT company number"
+      "companyId": "SUMIT company number",
+      "terminalUid": "Terminal UID",
+      "cashierUid": "Cashier UID"
     },
     "errors": {
       "notConnected": "Online payment isn't available right now. Contact the business.",

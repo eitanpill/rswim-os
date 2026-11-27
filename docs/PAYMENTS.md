@@ -68,6 +68,14 @@ against recorded answers; details and the test plan are in `docs/payments/SUMIT.
 number and API key; customers pay by card on SUMIT's hosted page, or save a card there for a standing order (no Bit
 until checked). Refunds are made in SUMIT. Live only with `RSWIM_SUMIT_LIVE=1`.
 
+## PayPlus
+
+`packages/integrations/src/payplus.ts`, written from PayPlus's REST API v1.0 reference and tested against recorded
+answers; details and the staging test plan are in `docs/payments/PAYPLUS.md`. A business connects both keys, its
+payment page, terminal and cashier; customers pay by card or Bit on PayPlus's page, or save a card for a standing order
+charged by token. Its callback is signed (`hash`). Live only with `RSWIM_PAYPLUS_LIVE=1` (`PAYPLUS_STAGING=1` for
+PayPlus's staging).
+
 ## Going live with a real processor (needs Pit / the business)
 
 - Which processor the business uses, and a **sandbox (test) account** at that processor.

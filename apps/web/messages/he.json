@@ -6044,7 +6044,9 @@
       "secretKey": "מפתח סודי (Secret)",
       "paymentPageUid": "מזהה דף תשלום",
       "merchantId": "מזהה בית עסק (דמו)",
-      "companyId": "מספר חברה ב-SUMIT"
+      "companyId": "מספר חברה ב-SUMIT",
+      "terminalUid": "מזהה מסוף (Terminal UID)",
+      "cashierUid": "מזהה קופה (Cashier UID)"
     },
     "errors": {
       "notConnected": "התשלום אונליין לא זמין כרגע. פנו לעסק.",

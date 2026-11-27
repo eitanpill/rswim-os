@@ -14,6 +14,7 @@ import { CardcomGateway, type CardcomOptions } from './cardcom';
 import { FakePaymentProvider } from './fakes';
 import { GROW_SANDBOX_URL, GrowGateway, type GrowOptions } from './grow-gateway';
 import type { PaymentProvider, ProviderContext } from './index';
+import { PAYPLUS_STAGING_URL, PayPlusGateway, type PayPlusOptions } from './payplus';
 import { SumitGateway, type SumitOptions } from './sumit';
 
 export interface CredentialField {
@@ -94,9 +95,12 @@ export const PAYMENT_GATEWAYS: Record<PaymentGatewayKind, GatewaySpec> = {
     kind: 'payplus',
     name: 'PayPlus',
     fields: [
-      { key: 'apiKey', secret: false, pattern: id },
+      { key: 'apiKey', secret: true, pattern: secret },
       { key: 'secretKey', secret: true, pattern: secret },
       { key: 'paymentPageUid', secret: false, pattern: id },
+      // A standing order's monthly charge runs on the terminal and its cashier.
+      { key: 'terminalUid', secret: false, pattern: id },
+      { key: 'cashierUid', secret: false, pattern: id },
     ],
     methods: ['card', 'bit', 'standing_order'],
     live: false,
@@ -260,6 +264,7 @@ export function createGateway(
     cardcom?: CardcomOptions;
     grow?: GrowOptions;
     sumit?: SumitOptions;
+    payplus?: PayPlusOptions;
   },
 ): PaymentGateway {
   if (opts.sandbox) return new SandboxGateway(kind, creds, opts.webhookSecret);
@@ -276,6 +281,13 @@ export function createGateway(
     });
   }
   if (kind === 'sumit') return new SumitGateway(creds, opts.sumit);
+  if (kind === 'payplus')
+    return new PayPlusGateway(creds, {
+      ...((opts.env ?? process.env).PAYPLUS_STAGING === '1'
+        ? { baseUrl: PAYPLUS_STAGING_URL }
+        : {}),
+      ...opts.payplus,
+    });
   throw new GatewayNotLiveError(kind);
 }
 
@@ -283,7 +295,7 @@ export function createGateway(
  * Whether a processor's real adapter may run in this process. Cardcom's adapter is written and tested against
  * recorded answers, and runs only once `RSWIM_CARDCOM_LIVE=1` is set (after a test in Cardcom's test terminal).
  * Grow's the same with `RSWIM_GROW_LIVE=1` (`GROW_SANDBOX=1` points it at Grow's sandbox), SUMIT's with
- * `RSWIM_SUMIT_LIVE=1`.
+ * `RSWIM_SUMIT_LIVE=1`, PayPlus's with `RSWIM_PAYPLUS_LIVE=1` (`PAYPLUS_STAGING=1` points it at PayPlus's staging).
  */
 export function gatewayLive(
   kind: PaymentGatewayKind,
@@ -292,6 +304,7 @@ export function gatewayLive(
   if (kind === 'cardcom') return env.RSWIM_CARDCOM_LIVE === '1';
   if (kind === 'grow') return env.RSWIM_GROW_LIVE === '1';
   if (kind === 'sumit') return env.RSWIM_SUMIT_LIVE === '1';
+  if (kind === 'payplus') return env.RSWIM_PAYPLUS_LIVE === '1';
   return PAYMENT_GATEWAYS[kind].live;
 }
 
