@@ -131,6 +131,7 @@ export * from './cardcom';
 export * from './grow-gateway';
 export * from './sumit';
 export * from './payplus';
+export * from './tranzila';
 export * from './morning';
 export * from './cards';
 export * from './fakes';

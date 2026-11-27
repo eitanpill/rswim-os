@@ -84,7 +84,9 @@ not signed: we only trust what `LowProfile/GetLpResult` answers for our own term
 third: live only with `RSWIM_SUMIT_LIVE=1`, card and standing order on its hosted page, its unsigned IPN trusted only
 through `billing/payments/get`, refunds made in SUMIT. PayPlus (`payplus.ts`, `docs/payments/PAYPLUS.md`) is the fourth:
 live only with `RSWIM_PAYPLUS_LIVE=1` (`PAYPLUS_STAGING=1`), card, Bit and token standing orders, its callback signed
-with the business's secret key (`hash` header).
+with the business's secret key (`hash` header). Tranzila (`tranzila.ts`, `docs/payments/TRANZILA.md`) is the fifth: live only with
+`RSWIM_TRANZILA_LIVE=1`, card, Bit and token standing orders on the DirectNG page with a handshake that binds the sum,
+its unsigned notify trusted only through the reports API, refunds made in Tranzila.
 
 WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, or to an in-memory fake with
 `RSWIM_MESSAGING_FAKE=1` (a phone containing 0000000 fails). Inbound WhatsApp arrives on the same GHL webhook route

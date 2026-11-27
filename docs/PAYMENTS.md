@@ -76,6 +76,15 @@ payment page, terminal and cashier; customers pay by card or Bit on PayPlus's pa
 charged by token. Its callback is signed (`hash`). Live only with `RSWIM_PAYPLUS_LIVE=1` (`PAYPLUS_STAGING=1` for
 PayPlus's staging).
 
+## Tranzila
+
+`packages/integrations/src/tranzila.ts`, written from Tranzila's documentation (API authentication, handshake, the
+DirectNG hosted page, transactions and reports) and tested against recorded answers; details and the test plan are in
+`docs/payments/TRANZILA.md`. A business connects its terminal name and API app key and secret; customers pay by card or
+Bit on the DirectNG page (the sum bound by a handshake), or save a card for a standing order charged by token. Its
+notify is not signed: we trust only what the reports API answers for that transaction. Refunds are made in Tranzila.
+Live only with `RSWIM_TRANZILA_LIVE=1`.
+
 ## Going live with a real processor (needs Pit / the business)
 
 - Which processor the business uses, and a **sandbox (test) account** at that processor.
