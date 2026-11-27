@@ -204,7 +204,7 @@ All in `brain-inbound.ts` (worker function `brain-inbound`), texts in `agent-pol
 - What she can do is a reply: "כן N" decides a waiting action, and with her assistant on WhatsApp (W7) the message
   suggests asking it ("מי חייב לנו?"). Without the assistant it points to the screen instead.
 - Not sent without an approvals number, with her summaries turned off, or with nothing to say; once a week.
-- Still open from brain stages 7 and 8: a three-month forecast with ranges, and tracking whether last week's advice
+- Still open from brain stage 8 (the forecast came with stage 7): tracking whether last week's advice
   worked.
 
 ## W9: one conversations screen

@@ -21,6 +21,7 @@ import type { CopilotModel } from '@rswim/integrations';
 import { getAgentSettings, listAgentActions } from './agent';
 import { summaryText } from './agent-policies';
 import { coachText, type CoachFacts } from './coach-policies';
+import { businessForecast } from './forecast';
 import { listSnapshots } from './memory';
 import { copilotAvailable } from './services';
 
@@ -60,6 +61,7 @@ export async function coachFacts(tx: Tx, today: string, assistant = false): Prom
   const period = next ? `${Number(next.date.slice(0, 4)) - 1}${next.date.slice(4, 7)}` : null;
   const then = period ? (await listSnapshots(tx, 40)).find((s) => s.period === period) : undefined;
   return {
+    forecast: await businessForecast(tx, today),
     weekOf,
     newPlaces: week.newPlaces,
     endedPlaces: week.endedPlaces,

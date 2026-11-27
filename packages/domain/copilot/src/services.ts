@@ -59,6 +59,8 @@ import { gateFor, getAgentSettings } from './agent';
 import { approvalText } from './agent-policies';
 import { sendLeadFollowUp } from './lead-followup';
 import { bookLeadTrial, cancelLeadTrial } from './lead-trial';
+import { businessForecast } from './forecast';
+import { aheadLines, warningText } from './forecast-policies';
 import { listMemories, monthReport, remember } from './memory';
 import { changeLines, memoryLine } from './memory-policies';
 import {
@@ -237,6 +239,12 @@ export const COPILOT_TOOLS: CopilotTool[] = [
     input_schema: obj({ period: str('YYYY-MM') }, ['period']),
   },
   {
+    name: 'forecast',
+    description:
+      'Looking ahead (rules, no guessing): the next months as ranges (low, mid, high) of places at month end, joining, leaving, charged and collected (agorot), what each month is based on (the same month last year scaled by growth, or the average of the recent months), warnings (places or income going down, more leaving than usual, payments short, attendance dip) and holidays, the summer and the school year 2-6 weeks away against last year with one thing to do. Null when the owner turned the forecast off.',
+    input_schema: obj({}, []),
+  },
+  {
     name: 'remember',
     description:
       "Keep a note the owner asked you to remember, in the owner's own words. About the school, or one family (household), child (student), instructor (staff), venue or group: find its id first. The note is saved at once and the owner can delete it on the memory page.",
@@ -406,6 +414,16 @@ export function copilotToolbox(tx: Tx, ctx: ServiceContext, today: string, reque
           againstLastYear: r.lastYear ? changeLines(r.lastYear, 'he') : null,
           happened: r.memories.map((m) => memoryLine(m, 'he')),
         };
+      }
+      case 'forecast': {
+        const f = await businessForecast(tx);
+        return f
+          ? {
+              ...f,
+              warnings: f.warnings.map((w) => warningText(w, 'he')),
+              ahead: f.ahead.map((a) => aheadLines(a, 'he').join(' ')),
+            }
+          : null;
       }
       case 'remember': {
         const out = await remember(tx, ctx, input, 'owner_chat');
@@ -780,6 +798,22 @@ export class FakeCopilotModel implements CopilotModel {
         if (r.happened.length) parts.push(`מה קרה: ${r.happened.slice(0, 3).join(' | ')}.`);
         return done(parts.join(' '));
       }
+      case 'forecast': {
+        const f = await use<{
+          months: { period: string; places: { low: number; high: number }; basis: string }[];
+          warnings: string[];
+          ahead: string[];
+        } | null>('forecast', {});
+        const next = f?.months[0];
+        if (!f || !next || next.basis === 'none')
+          return done('אין לי עדיין מספיק היסטוריה כדי לצפות קדימה.');
+        const parts = [
+          `ב-${next.period} צפויים ${next.places.low}–${next.places.high} מקומות.`,
+          ...f.warnings.slice(0, 2),
+          ...f.ahead.slice(0, 1),
+        ];
+        return done(parts.join(' '));
+      }
       case 'recall': {
         const r =
           (await use<string[]>('recall', {
@@ -796,7 +830,7 @@ export class FakeCopilotModel implements CopilotModel {
       }
       default:
         return done(
-          'אני (גרסת הדמו) מבין/ה: "תעביר את <ילד> ל<קבוצה>", "תשלח ל<ילד>: <הודעה>", "תפתח השלמות עם <מדריך> ב-<תאריך> <שעה>-<שעה>", "תבטל את השיעורים מחר", "תמצא מחליף ל<מדריך> היום", "מי חייב", "מה יש היום", "תזכור ש...", "איך היה החודש", "מה אתה זוכר על <...>".',
+          'אני (גרסת הדמו) מבין/ה: "תעביר את <ילד> ל<קבוצה>", "תשלח ל<ילד>: <הודעה>", "תפתח השלמות עם <מדריך> ב-<תאריך> <שעה>-<שעה>", "תבטל את השיעורים מחר", "תמצא מחליף ל<מדריך> היום", "מי חייב", "מה יש היום", "תזכור ש...", "איך היה החודש", "מה אתה זוכר על <...>", "מה צפוי".',
         );
     }
   }

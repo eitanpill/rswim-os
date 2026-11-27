@@ -262,6 +262,30 @@ debt older than `debt_attention_days` (1). Two points or more is a risk. Each in
 its subject: a group id, or a fingerprint of the families listed), so a list with a new family in it is a new insight
 and comes back even if the old one was dismissed.
 
+## 17b. Looking ahead (the brain's forecast)
+
+| Key | Default | Notes |
+|---|---|---|
+| `forecast.enabled` | `true` | The forecast on the owner's home and `/admin/brain/forecast`, its lines in the weekly coach and the evening summary, and the assistant's `forecast` tool |
+| `forecast.horizon_months` | `3` | How many months ahead |
+| `forecast.alert_max_days` | `42` | Important dates (holidays, the summer, the new school year) show from this many days before… |
+| `forecast.alert_min_days` | `14` | …until this many; the evening summary announces each on the first day, half way and the last day |
+| `forecast.dip_pct` | `10` | Places at the horizon, or a month's charges, this much below today's places / the last month's charges warn |
+| `forecast.range_pct` | `15` | Each range is at least this share of its middle each way (or half the recent months' movement, if more) |
+| `forecast.churn_rise_pct` | `50` | A month with at least 3 leaving and this much above the recent average warns |
+| `forecast.collection_warn_pct` | `85` | Collected below this share of charged (recent months) warns about the coming month's cash |
+| `forecast.absence_rise_points` | `10` | A month whose absences last year were this many points above the recent average warns, and turns a date's advice into a reminder |
+| `forecast.summer_month` | `7` | The month the summer starts (its 1st is the date ahead) |
+| `forecast.school_year_month` | `9` | The month the school year starts |
+
+Rules only, no model. A month follows the same month last year times the growth (the last complete month's places
+against the same month a year before, held between 50% and 200%); without that month, the average of the last three
+complete months. Places already asked to end count as leaving in the month of their last day. Places chain month to
+month from today's places less this month's known leavers; charges are places times the recent charge per place, and
+collected is charges times the recent collected share. A date ahead says "plan makeups" for a holiday and "open
+registration" for the summer and the school year, unless last year's month lost at least 1.5 times the usual leavers
+(and at least 2): then "talk to the families at risk"; or its absences rose by `absence_rise_points`: then "remind".
+
 ## 18. Plans, limits and platform billing (Phase 10)
 
 These are platform rules, not a school's own: they live in the `plans` rows (price, limits, features, trial and grace

@@ -23,5 +23,6 @@ export const SECTION_ORDER = [
   'comms',
   'digest',
   'insights',
+  'forecast',
   'copilot',
 ] as const;

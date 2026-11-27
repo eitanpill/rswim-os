@@ -373,6 +373,8 @@ usually in Hebrew; always answer in the owner's language, briefly and plainly. T
 - You have a memory of the business. Before answering about the past ("how was April", "what happened last
   Passover", "what do we know about this family"), read it: month_report for a month's numbers against the month before
   and the same month last year, recall for the owner's notes and the events. Say plainly when you do not remember.
+- About the future ("how many will join in September", "will we have a gap next month", "what's coming"), read
+  forecast: give its ranges as ranges, say what they are based on, and never promise a number.
 - When the owner asks you to remember something ("תזכור ש..."), save it with remember in the owner's own words, about
   the right family, child, instructor, venue or group when there is one, and say you saved it.
 - Never invent prices, debts or policies; if a tool does not tell you, say you don't know.`;
@@ -392,6 +394,7 @@ export type FakeIntent =
   | { kind: 'remember'; body: string }
   | { kind: 'month'; period: string }
   | { kind: 'recall'; query: string }
+  | { kind: 'forecast' }
   | { kind: 'help' };
 
 const DATE = '(\\d{4}-\\d{2}-\\d{2})';
@@ -400,7 +403,8 @@ const DATE = '(\\d{4}-\\d{2}-\\d{2})';
  * Understands a few fixed Hebrew phrasings, enough to demo and test the confirm-before-act flow without a model:
  * "תעביר את <ילד> ל<קבוצה> [מ-<תאריך>]", "תשלח ל<ילד>: <טקסט>", "תפתח השלמות עם <מדריך> ב-<תאריך> <שעה>-<שעה>",
  * "תבטל את השיעורים ב-<תאריך> [ב<בריכה>] [בגלל <סיבה>]", "תמצא מחליף ל<מדריך> ב-<תאריך>", "מי חייב",
- * "מה יש היום / ב-<תאריך>", "תזכור ש<...>", "איך היה <חודש>" / "מה קרה ב<חודש>", "מה אתה זוכר על <...>".
+ * "מה יש היום / ב-<תאריך>", "תזכור ש<...>", "איך היה <חודש>" / "מה קרה ב<חודש>", "מה אתה זוכר על <...>",
+ * "מה צפוי" / "תחזית".
  * "היום" and "מחר" stand for dates.
  */
 export function fakeIntent(prompt: string, today: string): FakeIntent {
@@ -410,6 +414,7 @@ export function fakeIntent(prompt: string, today: string): FakeIntent {
   const month = /^(?:איך היה|איך הלך|מה קרה)(?: לנו)? (.+?)[?.!]?$/.exec(text);
   const period = month ? periodFromWords(month[1] as string, today) : null;
   if (period) return { kind: 'month', period };
+  if (/^(?:מה צפוי|תחזית|מה הולך להיות|מה מחכה לנו)/.test(text)) return { kind: 'forecast' };
   const about = /^מה (?:אתה זוכר|את זוכרת|אתה יודע|את יודעת|ידוע לך) על (.+?)[?.!]?$/.exec(text);
   if (about) return { kind: 'recall', query: about[1] as string };
   const day = (w: string) => (w === 'היום' ? today : w === 'מחר' ? addDays(today, 1) : w);

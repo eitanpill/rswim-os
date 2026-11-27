@@ -3,6 +3,8 @@
  * picks at most three things the owner should look at this week, in a fixed order of urgency, and writes the Sunday
  * message. What she can do is a reply: "כן N" for an action that waits, or a sentence to her assistant.
  */
+import { forecastLines, type Forecast } from './forecast-policies';
+
 type Locale = 'he' | 'en';
 
 export interface CoachFacts {
@@ -28,6 +30,8 @@ export interface CoachFacts {
   assistant: boolean;
   /** The same month a year ago, when the brain remembers it. */
   lastYear: { period: string; newPlaces: number; endedPlaces: number } | null;
+  /** The forecast (stage 7): its lines show next month as ranges and its warnings. */
+  forecast?: Forecast | null;
 }
 
 export type CoachPriority =
@@ -102,7 +106,8 @@ export function coachText(f: CoachFacts, locale: Locale): string | null {
   const en = locale === 'en';
   const priorities = coachPriorities(f);
   const next = f.ahead[0] ?? null;
-  if (priorities.length === 0 && !next) return null;
+  const ahead = f.forecast ? forecastLines(f.forecast, locale) : [];
+  if (priorities.length === 0 && !next && ahead.length === 0) return null;
   const lines: string[] = [
     en ? `🧭 Your week (from ${dm(f.weekOf)})` : `🧭 השבוע שלך (מ-${dm(f.weekOf)})`,
     en
@@ -127,5 +132,6 @@ export function coachText(f: CoachFacts, locale: Locale): string | null {
           : `באותו חודש בשנה שעברה: ${f.lastYear.newPlaces} הצטרפו, ${f.lastYear.endedPlaces} עזבו.`,
       );
   }
+  if (ahead.length) lines.push('', ...ahead);
   return lines.join('\n');
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { coachPriorities, coachText, type CoachFacts } from '../src/coach-policies';
+import { DEFAULT_FORECAST_RULES, forecast } from '../src/forecast-policies';
 
 const base: CoachFacts = {
   weekOf: '2026-11-22',
@@ -42,6 +43,29 @@ describe('the weekly coach', () => {
 
   it('says nothing when there is nothing to say', () => {
     expect(coachText(base, 'he')).toBeNull();
+    const history = ['2026-08', '2026-09', '2026-10'].map((period) => ({
+      period,
+      placesAtEnd: 10,
+      newPlaces: 0,
+      endedPlaces: 0,
+      lessonsHeld: 0,
+      lessonsCancelled: 0,
+      marks: 0,
+      absences: 0,
+      trialsHeld: 0,
+      trialsEnrolled: 0,
+      chargedAgorot: 0,
+      collectedAgorot: 0,
+      venues: [],
+    }));
+    const ahead = forecast(
+      { today: '2026-11-27', history, placesNow: 10, ending: {}, holidays: [] },
+      DEFAULT_FORECAST_RULES,
+    );
+    expect(coachText({ ...base, forecast: ahead }, 'he')).toContain(
+      '\n\n🔮 החודש הבא (12/2026): 10 מקומות, 0 מצטרפים, 0 עוזבים.',
+    );
+    expect(coachText({ ...base, forecast: null }, 'he')).toBeNull();
   });
 
   it('writes the week with what to reply', () => {

@@ -2339,7 +2339,8 @@
       "migration": "Venue moves",
       "copilot": "AI copilot",
       "digest": "Weekly digest",
-      "insights": "Proactive insights"
+      "insights": "Proactive insights",
+      "forecast": "Looking ahead (forecast)"
     },
     "fields": {
       "billing": {
@@ -2487,6 +2488,19 @@
         "staff_max_weekly_hours": "Instructor load: max hours a week",
         "trial_followup_days": "Trial follow-up window (days)",
         "snooze_days": "A hidden insight returns after (days)"
+      },
+      "forecast": {
+        "enabled": "Looking ahead is on (forecast, warnings and important dates)",
+        "horizon_months": "How many months ahead",
+        "alert_max_days": "An important date shows from (days before)",
+        "alert_min_days": "until (days before)",
+        "dip_pct": "Drop in places or charges that warns (%)",
+        "range_pct": "Smallest range width (%)",
+        "churn_rise_pct": "Leavers above usual that warn (%)",
+        "collection_warn_pct": "Collected share below which it warns",
+        "absence_rise_points": "Absences above usual that warn (percentage points)",
+        "summer_month": "Month the summer starts (1-12)",
+        "school_year_month": "Month the school year starts (1-12)"
       }
     },
     "options": {
@@ -5845,7 +5859,89 @@
         "gone": "This suggestion is no longer current; refresh the page"
       }
     },
-    "chatLink": "Talk to the assistant"
+    "chatLink": "Talk to the assistant",
+    "forecast": {
+      "link": "Looking ahead",
+      "title": "Looking ahead",
+      "subtitle": "What the coming months are likely to bring, from the months the brain remembers: ranges, not promises, and every number with how it was worked out.",
+      "back": "Back to the brain",
+      "ownerOnly": "The brain's forecast belongs to the school's owner.",
+      "off": "The forecast is off in the policies (Looking ahead). You can turn it on on the policies screen.",
+      "homeTitle": "Looking ahead",
+      "homeMore": "How I worked it out",
+      "noHistory": "Not enough history to look ahead yet. After a full month of lessons the brain starts estimating.",
+      "nextMonth": "{period}: {places} places, {joining} joining, {leaving} leaving",
+      "charged": "expected charges {amount}",
+      "months": {
+        "title": "The coming months",
+        "period": "Month",
+        "places": "Places at month end",
+        "joining": "Joining",
+        "leaving": "Leaving",
+        "charged": "Charged",
+        "collected": "Collected",
+        "absences": "Absences",
+        "lastYear": "Last year",
+        "lastYearValue": "{places} places, {joining} joined, {leaving} left",
+        "known": "{n} already asked to end",
+        "basis": {
+          "last_year": "From the same month last year",
+          "recent": "From the recent months' average",
+          "none": "No history"
+        }
+      },
+      "warnings": {
+        "title": "Warnings",
+        "empty": "No warnings right now. The numbers look steady.",
+        "places_drop": {
+          "title": "Places are heading down: from {from} today to about {to} by {period} ({pct}%)",
+          "action": "Reach out to families at risk of leaving and open registration for groups with room."
+        },
+        "churn_rise": {
+          "title": "About {n} are expected to leave in {period}, more than usual ({usual})",
+          "action": "Talk to the families who asked to end and those missing lessons."
+        },
+        "revenue_drop": {
+          "title": "Charges in {period} are heading down to about {amount} (usually {usual})",
+          "action": "Fill open places from the waiting list and the leads before the month starts."
+        },
+        "collection_low": {
+          "title": "Only {pct}% of what is charged gets collected: about {gap} may be missing in {period}",
+          "action": "Send payment links for old debts and check failed standing orders."
+        },
+        "attendance_dip": {
+          "title": "In {period} last year {pct}% were absent (usually {usual}%)",
+          "action": "Send families a reminder and plan places for makeups."
+        }
+      },
+      "ahead": {
+        "title": "Important dates in the coming weeks",
+        "empty": "No holidays, summer or school-year start within {min}–{max} days.",
+        "when": "{name} in {days} days ({date})",
+        "summer": "The summer",
+        "school_year": "The new school year",
+        "lastYear": "The same month last year: {joined} joined, {left} left, {cancelled} lessons cancelled",
+        "usual": "Usually per month: {joined} joining, {left} leaving",
+        "noLastYear": "The brain does not remember the same month last year yet.",
+        "actions": {
+          "plan_makeups": "Tell the families now and plan makeups.",
+          "open_registration": "Time to open registration and reach out to leads and families who left.",
+          "retain": "More families than usual left then last year: talk to the families at risk before.",
+          "remind_attendance": "Many were absent then last year: send a reminder and open makeups."
+        }
+      },
+      "how": {
+        "title": "How I worked it out",
+        "basis": "Each month follows the same month last year, multiplied by the school's size now against then ({growth}%). While the brain does not remember that month yet, it uses the average of {recent}.",
+        "range": "The range is at least {range}% each way, or half of how much the recent months moved when that is more.",
+        "known": "Places already asked to end always count as leaving in the month they end.",
+        "money": "Charges: expected places times the average charge per place ({perPlace}). Collected: the charges times the recent share collected ({collection}%).",
+        "noMoney": "No charges in the recent months yet, so no money forecast.",
+        "window": "Important dates show {max} to {min} days before, and the evening summary announces them {max}, {mid} and {min} days before.",
+        "rules": "The thresholds can be changed on the policies screen, in \"Looking ahead\".",
+        "noAi": "The forecast is worked out by rules only, with no AI, so it uses none of the allowance on any level. When you ask the assistant about the future, it answers from these numbers."
+      }
+    }
   },
   "payments": {
     "kicker": "Money",

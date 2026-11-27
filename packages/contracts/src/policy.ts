@@ -213,6 +213,23 @@ export const PolicyRules = z
       })
       .partial()
       .strict(),
+    /** The brain looks ahead (docs/AI-BRAIN.md stage 7): forecast ranges, warnings and dates 2-6 weeks away. */
+    forecast: z
+      .object({
+        enabled: z.boolean(),
+        horizon_months: int(1, 6),
+        alert_max_days: int(7, 90),
+        alert_min_days: int(1, 60),
+        dip_pct: int(1, 90),
+        range_pct: int(0, 100),
+        churn_rise_pct: int(0, 500),
+        collection_warn_pct: int(0, 100),
+        absence_rise_points: int(1, 100),
+        summer_month: int(1, 12),
+        school_year_month: int(1, 12),
+      })
+      .partial()
+      .strict(),
     comms: z
       .object({
         quiet_hours_start: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -437,6 +454,19 @@ export const DEFAULT_ORG_RULES: PolicyRules = {
     staff_max_weekly_hours: 25,
     trial_followup_days: 14,
     snooze_days: 14,
+  },
+  forecast: {
+    enabled: true,
+    horizon_months: 3,
+    alert_max_days: 42,
+    alert_min_days: 14,
+    dip_pct: 10,
+    range_pct: 15,
+    churn_rise_pct: 50,
+    collection_warn_pct: 85,
+    absence_rise_points: 10,
+    summer_month: 7,
+    school_year_month: 9,
   },
   comms: {
     quiet_hours_start: '21:30',
