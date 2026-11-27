@@ -130,6 +130,16 @@ families goes through the messaging provider, not SMS.
 - SMS: Twilio Verify (supported by Supabase out of the box, sends to Israeli numbers). Account SID, auth token and
   Verify service SID go into Supabase → Authentication → Providers → Phone. An Israeli SMS provider would need
   Supabase's *Send SMS* hook; not worth it before the pilot.
+  - Twilio: upgrade the account (a trial sends only to verified numbers), create a Verify service named "Aqua Swim"
+    with SMS on and code length 6. Verify picks the message language from the number's country, so Israeli numbers
+    get Hebrew; Supabase's own SMS template is not used with Verify.
+  - Supabase (each project: staging, then aqua-production): Providers → Phone on, provider *Twilio Verify*, the three
+    values above, OTP expiry 600 s, code length 6. Rate Limits → *SMS messages sent per hour* up from the default 30
+    (start with 150; the hourly cap is for the whole project, so a busy morning hits it first).
+  - Nothing goes into Vercel or Railway: the app calls `signInWithOtp` / `verifyOtp` and maps the Supabase error code
+    to a message (`apps/web/src/lib/auth/sms-errors.ts`): wait for the limit, the provider failed, or the code
+    expired. A failed send logs only the code, never the number.
+  - Store reviewers and tests use Supabase's *Test phone numbers* (fixed code, no SMS sent).
 
 ## Environment variables
 
