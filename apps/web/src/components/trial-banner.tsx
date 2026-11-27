@@ -3,6 +3,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import { agorot } from '@rswim/money';
 import { trialTimeline } from '@rswim/domain-platform';
 import { Money } from '@rswim/ui';
+import { inNativeApp } from '@/lib/native-app-server';
 import { dmy, todayIL } from '@/lib/options';
 
 /**
@@ -26,6 +27,8 @@ export async function TrialBanner({
   isOwner: boolean;
   planHref: string;
 }) {
+  // The store app never shows the subscription (its price, the card, the plan): store stage 8.
+  if (await inNativeApp()) return null;
   const t = await getTranslations('platform.trial');
   const tAccount = await getTranslations('platform.account');
   const locale = (await getLocale()) === 'en' ? 'en' : 'he';

@@ -7,6 +7,7 @@ import { isDemoMode, isDevAuthEnabled, personaName, type DevKey } from '@/lib/au
 import { signInWithPassword } from './actions';
 import { DiveLanding } from './dive-landing';
 import { hostBranding, inputClass, LoginFrame } from './login-frame';
+import { inNativeApp } from '@/lib/native-app-server';
 
 export default async function LoginPage({
   searchParams,
@@ -60,7 +61,7 @@ export default async function LoginPage({
       >
         {t('parentsLink')}
       </Link>
-      {(await hostBranding()) ? null : (
+      {(await hostBranding()) || (await inNativeApp()) ? null : (
         <Link
           href="/signup"
           data-testid="signup-link"

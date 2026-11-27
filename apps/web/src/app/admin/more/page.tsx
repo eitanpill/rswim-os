@@ -4,6 +4,7 @@ import type { PlanFeature } from '@rswim/contracts';
 import { myFeatures } from '@rswim/domain-platform';
 import { PageHeader } from '@rswim/ui';
 import { withSession } from '@/lib/db';
+import { inNativeApp } from '@/lib/native-app-server';
 
 const LINKS = [
   'leads',
@@ -182,8 +183,11 @@ const SECTIONS: { key: string; links: (typeof LINKS)[number][] }[] = [
 export default async function MorePage() {
   const t = await getTranslations('admin.more');
   const features = await withSession((tx) => myFeatures(tx));
+  // The subscription is managed on the website only, never in the store app (store stage 8).
+  const app = await inNativeApp();
   const allowed = (k: (typeof LINKS)[number]) => {
     if (!LINKS.includes(k)) return false;
+    if (app && k === 'plan') return false;
     const f = FEATURE[k];
     return !f || features[f];
   };

@@ -10,6 +10,7 @@ import { Bubbles, CallBadge, Empty, Kpi, Panel } from '../_ui/kit';
 import { Dismissible } from '../_ui/motion';
 import { InsightList, PersonLine, SeaCard, SessionRow } from '../_ui/widgets';
 import { SetupNudge } from '../_ui/setup-nudge';
+import { inNativeApp } from '@/lib/native-app-server';
 
 const STREAMS = ['courses', 'training', 'experiences', 'gear'] as const;
 
@@ -20,6 +21,8 @@ const STREAMS = ['courses', 'training', 'experiences', 'gear'] as const;
 export default async function OwnerBridge() {
   const { session } = await requireDivePage('owner');
   const t = await getTranslations('dive');
+  // No way to the plan in the store app (store stage 8).
+  const app = await inNativeApp();
   const locale = await getLocale();
   const [b, rec] = await withSession(
     async (tx) => [await ownerBridge(tx), await clubRecords(tx)] as const,
@@ -249,13 +252,15 @@ export default async function OwnerBridge() {
               >
                 {t('owner.toPayments')}
               </a>
-              <a
-                href="/dive/plan"
-                className="text-sm text-[var(--dive-sea-ink)] hover:underline"
-                data-testid="to-plan"
-              >
-                {t('owner.toPlan')}
-              </a>
+              {app ? null : (
+                <a
+                  href="/dive/plan"
+                  className="text-sm text-[var(--dive-sea-ink)] hover:underline"
+                  data-testid="to-plan"
+                >
+                  {t('owner.toPlan')}
+                </a>
+              )}
               <a
                 href="/dive/connections"
                 className="text-sm text-[var(--dive-sea-ink)] hover:underline"

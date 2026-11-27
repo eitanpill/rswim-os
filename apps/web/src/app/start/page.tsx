@@ -7,6 +7,7 @@ import { AppShell } from '@/components/app-shell';
 import { ActionButton, ActionForm, Field, SubmitButton } from '@/components/form';
 import { getSession } from '@/lib/auth/session';
 import { myFindings } from '@/lib/finding';
+import { inNativeApp } from '@/lib/native-app-server';
 import { switchSchoolAction } from '../me/schools/actions';
 import { claimFamilyAction, openSchoolLinkAction } from './actions';
 
@@ -136,13 +137,16 @@ export default async function StartPage() {
             </form>
           </Card>
         ) : null}
-        <Card>
-          <PathTitle icon="🏊">{t('owner.title')}</PathTitle>
-          <p className="mb-3 text-sm text-ink-muted">{t('owner.body')}</p>
-          <Link href="/onboarding" className={linkButton} data-testid="start-owner">
-            {t('owner.go')}
-          </Link>
-        </Card>
+        {/* Opening a business means choosing a paid plan: on the website only, never in the store app (stage 8). */}
+        {(await inNativeApp()) ? null : (
+          <Card>
+            <PathTitle icon="🏊">{t('owner.title')}</PathTitle>
+            <p className="mb-3 text-sm text-ink-muted">{t('owner.body')}</p>
+            <Link href="/onboarding" className={linkButton} data-testid="start-owner">
+              {t('owner.go')}
+            </Link>
+          </Card>
+        )}
       </div>
     </AppShell>
   );

@@ -37,6 +37,24 @@ export const PUBLIC_PREFIXES = [
   '/.well-known',
 ];
 
+/**
+ * Screens the store app never shows (store launch, stage 8): the subscription's prices, opening a business on a plan,
+ * and paying for or changing the subscription. Apple and Google require their own billing for software sold inside an
+ * app, so the platform's subscription is sold and managed on the website only, and the app neither shows it nor
+ * points to it. Everything a school's own customers pay the school (lessons, dives, stays) stays in the app.
+ */
+export const APP_HIDDEN_PREFIXES = [
+  '/signup',
+  '/onboarding',
+  '/billing',
+  '/admin/plan',
+  '/dive/plan',
+];
+
+export function hiddenInApp(pathname: string): boolean {
+  return APP_HIDDEN_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 export function surfaceForPath(pathname: string): Surface | 'platform' | null {
   if (pathname === '/platform' || pathname.startsWith('/platform/')) return 'platform';
   for (const [surface, prefix] of Object.entries(SURFACE_PATHS) as [Surface, string][]) {
@@ -64,6 +82,8 @@ export function decideRoute(
   session: Session | null,
   opts: { nativeApp?: boolean } = {},
 ): RouteDecision {
+  if (opts.nativeApp && hiddenInApp(pathname))
+    return { action: 'redirect', to: session ? homePath(session) : '/login' };
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`)))
     return { action: 'next' };
   if (!session) {

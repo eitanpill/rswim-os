@@ -8,6 +8,7 @@ import { Badge, Card, CardTitle } from '@rswim/ui';
 import { AiLevelCard } from '@/components/ai-level';
 import { AiMeter } from '@/components/ai-meter';
 import { withSession } from '@/lib/db';
+import { inNativeApp } from '@/lib/native-app-server';
 
 type State = 'connected' | 'missing' | 'failing' | 'soon' | 'on' | 'off' | 'notInPlan';
 const TONE: Record<State, 'ok' | 'warn' | 'danger' | 'neutral'> = {
@@ -41,7 +42,8 @@ export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' 
     rules: await commsRules(tx),
     botInPlan: await hasFeature(tx, 'parent_bot'),
   }));
-  const plan = vertical === 'swim' ? '/admin/plan' : '/dive/plan';
+  // No way to the plan in the store app (store stage 8).
+  const plan = (await inNativeApp()) ? null : vertical === 'swim' ? '/admin/plan' : '/dive/plan';
   const swim = vertical === 'swim';
   const rows: Row[] = [
     {
