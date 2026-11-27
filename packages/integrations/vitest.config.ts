@@ -13,6 +13,7 @@ export default defineConfig({
         'src/dns.ts',
         'src/storage.ts',
         'src/push.ts',
+        'src/cardcom.ts',
       ],
       thresholds: { branches: 100, functions: 100, lines: 100, statements: 100 },
     },

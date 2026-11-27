@@ -3,8 +3,10 @@ import { withOrg } from '@rswim/db/service';
 import { aiModelFor, type AiLevel } from '@rswim/contracts';
 import { FakeCopilotModel, FakeParentBotModel } from '@rswim/domain-copilot';
 import {
+  CardcomPlatformProvider,
   createGateway,
   gatewaySandbox,
+  platformCardcomCredentials,
   type PaymentGateway,
   ClaudeInsightWriter,
   ClaudeCopilotModel,
@@ -40,6 +42,21 @@ let invoicing: FakeInvoicingProvider | undefined;
 export function paymentProvider(): PaymentProvider | null {
   if (process.env.RSWIM_GROW_FAKE === '1') return (payments ??= new FakePaymentProvider());
   return null;
+}
+
+let platformCharges: PaymentProvider | undefined;
+
+/**
+ * The platform's own processor: it charges the schools' subscription cards (never a school's customers).
+ * - RSWIM_GROW_FAKE=1: the same in-memory provider as above (local, CI, the live demo).
+ * - PLATFORM_CARDCOM_TERMINAL_NUMBER + PLATFORM_CARDCOM_API_NAME: the platform's Cardcom terminal.
+ * Null otherwise: nothing is charged.
+ */
+export function platformPaymentProvider(): PaymentProvider | null {
+  if (process.env.RSWIM_GROW_FAKE === '1') return paymentProvider();
+  const creds = platformCardcomCredentials();
+  if (!creds) return null;
+  return (platformCharges ??= new CardcomPlatformProvider(creds));
 }
 
 /**

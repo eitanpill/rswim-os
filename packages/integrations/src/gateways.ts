@@ -10,6 +10,7 @@ import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import type { CheckoutMethod, PaymentGatewayKind } from '@rswim/contracts';
 import type { Agorot } from '@rswim/money';
+import { CardcomGateway, type CardcomOptions } from './cardcom';
 import { FakePaymentProvider } from './fakes';
 import type { PaymentProvider, ProviderContext } from './index';
 
@@ -232,11 +233,30 @@ export class GatewayNotLiveError extends Error {
 export function createGateway(
   kind: PaymentGatewayKind,
   creds: GatewayCredentials,
-  opts: { webhookSecret: string; sandbox: boolean },
+  opts: {
+    webhookSecret: string;
+    sandbox: boolean;
+    env?: Record<string, string | undefined>;
+    cardcom?: CardcomOptions;
+  },
 ): PaymentGateway {
   if (opts.sandbox) return new SandboxGateway(kind, creds, opts.webhookSecret);
   // The demo processor approves everything: it never runs outside a sandboxed process.
+  if (kind === 'fake' || !gatewayLive(kind, opts.env)) throw new GatewayNotLiveError(kind);
+  if (kind === 'cardcom') return new CardcomGateway(creds, opts.cardcom);
   throw new GatewayNotLiveError(kind);
+}
+
+/**
+ * Whether a processor's real adapter may run in this process. Cardcom's adapter is written and tested against
+ * recorded answers, and runs only once `RSWIM_CARDCOM_LIVE=1` is set (after a test in Cardcom's test terminal).
+ */
+export function gatewayLive(
+  kind: PaymentGatewayKind,
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  if (kind === 'cardcom') return env.RSWIM_CARDCOM_LIVE === '1';
+  return PAYMENT_GATEWAYS[kind].live;
 }
 
 /** Whether this process runs processors as the demo processor (never set in production). */

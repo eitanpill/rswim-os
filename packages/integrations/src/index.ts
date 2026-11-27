@@ -127,6 +127,7 @@ export interface CrmProvider {
 export * from './ghl';
 export * from './grow';
 export * from './gateways';
+export * from './cardcom';
 export * from './cards';
 export * from './fakes';
 export * from './messaging';

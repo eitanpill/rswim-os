@@ -1,14 +1,15 @@
 /**
- * The platform's own card vault (SaaS stage 3): a school owner saves a card at the platform's processor (Grow's
+ * The platform's own card vault (SaaS stage 3): a school owner saves a card at the platform's processor (Cardcom's
  * "token only" page: the card is checked, not charged), and the processor calls back with a token the platform charges
  * every month. The card number never reaches us.
  *
- * Until the platform's Grow account and its sandbox exist, only the demo vault runs (sandboxed processes: local, CI,
+ * Until the platform's Cardcom terminal is set in the environment, only the demo vault runs (sandboxed processes: local, CI,
  * the live demo), whose card page is our own `/billing/card/<setup>/sandbox`.
  */
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import type { ProviderContext } from './index';
+import { CardcomCardVault, platformCardcomCredentials } from './cardcom';
 import { gatewaySandbox } from './gateways';
 
 export interface CardSetupRequest {
@@ -90,12 +91,15 @@ export class SandboxCardVault implements CardVault {
 
 /**
  * The platform's card vault, or null while none is live. A sandboxed process gets the demo vault (its secret is
- * `GROW_WEBHOOK_SECRET` when set). The real Grow adapter arrives with the platform's Grow sandbox account.
+ * `GROW_WEBHOOK_SECRET` when set); otherwise the platform's Cardcom terminal once `PLATFORM_CARDCOM_TERMINAL_NUMBER`
+ * and `PLATFORM_CARDCOM_API_NAME` are set (`PLATFORM_CARDCOM_API_PASSWORD` for refunds).
  */
 export function platformCardVault(
   env: Record<string, string | undefined> = process.env,
 ): CardVault | null {
   if (gatewaySandbox(env))
     return new SandboxCardVault(env.GROW_WEBHOOK_SECRET ?? 'sandbox-card-vault');
+  const cardcom = platformCardcomCredentials(env);
+  if (cardcom) return new CardcomCardVault(cardcom);
   return null;
 }
