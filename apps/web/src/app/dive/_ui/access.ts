@@ -13,6 +13,7 @@ export type DivePage =
   | 'divers'
   | 'forms'
   | 'payments'
+  | 'receipts'
   | 'plan'
   | 'setup'
   | 'import'
@@ -39,6 +40,7 @@ const PAGES: Record<DiveRole, DivePage[]> = {
     'divers',
     'forms',
     'payments',
+    'receipts',
     'plan',
     'setup',
     'import',
@@ -79,6 +81,7 @@ export function pagesFor(role: DiveRole): DivePage[] {
   return PAGES[role].filter(
     (p) =>
       p !== 'payments' &&
+      p !== 'receipts' &&
       p !== 'plan' &&
       p !== 'setup' &&
       p !== 'import' &&

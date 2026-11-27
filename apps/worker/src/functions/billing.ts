@@ -126,9 +126,12 @@ export const billingIssueReceipts = inngest.createFunction(
   async ({ event, step }) => {
     const envelope = toEnvelope(event);
     const { paymentId } = z.object({ paymentId: z.uuid() }).parse(envelope.payload);
-    return step.run('issue', () =>
-      withProvider('billing-issue-receipts', envelope, invoicingProvider(), (p, tx) =>
-        issueReceipts(tx, sys(envelope), p, paymentId, invoicingProviderName()),
+    return step.run('issue', async () =>
+      withProvider(
+        'billing-issue-receipts',
+        envelope,
+        await invoicingProvider(envelope.organizationId),
+        (p, tx) => issueReceipts(tx, sys(envelope), p, paymentId, invoicingProviderName()),
       ),
     );
   },

@@ -1,10 +1,14 @@
-import { loadGateway } from '@rswim/domain-billing';
+import { loadGateway, loadInvoicing } from '@rswim/domain-billing';
 import { withOrg } from '@rswim/db/service';
 import { aiModelFor, type AiLevel } from '@rswim/contracts';
 import { FakeCopilotModel, FakeParentBotModel } from '@rswim/domain-copilot';
 import {
   CardcomPlatformProvider,
   createGateway,
+  createInvoicing,
+  invoicingLive,
+  MorningInvoicing,
+  platformMorningCredentials,
   gatewaySandbox,
   platformCardcomCredentials,
   type PaymentGateway,
@@ -98,31 +102,48 @@ export function publicUrl(): string {
   return process.env.RSWIM_PUBLIC_URL ?? 'http://localhost:3000';
 }
 
-/**
- * The invoicing provider (Green Invoice), or null while none is set up.
- * - RSWIM_INVOICING_FAKE=1: an in-memory Green Invoice that numbers documents from 10001.
- */
 /** The name stored on each document, so the portal knows a fake document has no real PDF behind it. */
 export function invoicingProviderName(): string {
   return process.env.RSWIM_INVOICING_FAKE === '1' ? 'fake' : 'green_invoice';
 }
 
-export function invoicingProvider(): InvoicingProvider | null {
+/**
+ * A business's receipts: its own Morning account when the owner connected one (/admin/integrations/receipts), or null
+ * (the documents wait, nothing is issued in someone else's account).
+ * - RSWIM_INVOICING_FAKE=1: an in-memory Morning that numbers documents from 10001 (local, CI, the live demo).
+ * - A connected Morning runs only with RSWIM_MORNING_LIVE=1 (docs/payments/MORNING.md).
+ */
+export async function invoicingProvider(orgId: string): Promise<InvoicingProvider | null> {
   if (process.env.RSWIM_INVOICING_FAKE === '1') return (invoicing ??= new FakeInvoicingProvider());
-  return null;
+  try {
+    const loaded = await withOrg(getDb(), orgId, (tx) =>
+      loadInvoicing(tx, orgId, { build: (kind, creds) => createInvoicing(kind, creds) }),
+    );
+    if (loaded && !loaded.invoicing)
+      log.warn({ orgId, reason: loaded.reason }, 'receipts not usable');
+    return loaded?.invoicing ?? null;
+  } catch (e) {
+    log.error({ orgId, err: e }, 'receipts could not be opened');
+    return null;
+  }
 }
 
-let platformDocs: FakeInvoicingProvider | undefined;
+let platformDocs: InvoicingProvider | undefined;
 
 /**
  * The platform's own invoicing (Morning, the platform owner's account): tax invoice-receipts to schools for their
- * subscription. Separate from any school's invoicing. RSWIM_INVOICING_FAKE=1: an in-memory Morning; the real client
- * arrives with the platform's Morning API key (worker environment only).
+ * subscription. Separate from any school's invoicing.
+ * - RSWIM_INVOICING_FAKE=1: an in-memory Morning.
+ * - PLATFORM_MORNING_API_KEY_ID + PLATFORM_MORNING_API_KEY_SECRET with RSWIM_MORNING_LIVE=1: the platform's Morning.
  */
 export function platformInvoicing(): InvoicingProvider | null {
   if (process.env.RSWIM_INVOICING_FAKE === '1')
     return (platformDocs ??= new FakeInvoicingProvider());
-  return null;
+  const creds = platformMorningCredentials();
+  if (!creds || !invoicingLive('morning')) return null;
+  return (platformDocs ??= new MorningInvoicing(creds, {
+    sandbox: process.env.MORNING_SANDBOX === '1',
+  }));
 }
 
 let classifier: ClaudeTriageClassifier | undefined;

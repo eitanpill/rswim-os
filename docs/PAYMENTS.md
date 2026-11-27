@@ -71,3 +71,8 @@ Grow is `GROW_PLATFORM_API_KEY`. Live only with `RSWIM_GROW_LIVE=1` (`GROW_SANDB
 
 Known gap: if a dive booking's hold lapsed and the seat was taken while the diver was on the processor's page, the
 callback cannot confirm it; the processor retries and the office has to refund by hand.
+
+## Receipts
+
+Each payment's invoice-receipt is issued in the business's own Morning account, connected on
+`/admin/integrations/receipts` (`/dive/receipts`). See `docs/payments/MORNING.md`.

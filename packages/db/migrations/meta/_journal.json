@@ -617,6 +617,13 @@
       "when": 1795779429715,
       "tag": "0087_ghl_bridge_per_school",
       "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1795784763917,
+      "tag": "0088_invoicing_connections",
+      "breakpoints": true
     }
   ]
 }

@@ -13,7 +13,10 @@ test('AC: the connections screen shows what is connected and the month of AI use
   await page.getByTestId('more-connections').click();
   await expect(page).toHaveURL(/\/admin\/connections$/);
   await expect(page.getByTestId('connection-payments')).toBeVisible();
-  await expect(page.getByTestId('connection-receipts')).toHaveAttribute('data-state', 'soon');
+  await expect(page.getByTestId('connection-receipts-link')).toHaveAttribute(
+    'href',
+    '/admin/integrations/receipts',
+  );
   await expect(page.getByTestId('connection-bot')).toHaveAttribute('data-state', 'on');
   await expect(page.getByTestId('ai-meter')).toBeVisible();
   await expect(page.getByTestId('ai-meter-used')).toContainText('0 מתוך 3000 פעולות AI');

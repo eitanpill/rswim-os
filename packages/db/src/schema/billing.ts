@@ -22,6 +22,7 @@ import {
   CHECKOUT_PURPOSES,
   CHECKOUT_STATUSES,
   PAYMENT_CONNECTION_STATUSES,
+  INVOICING_PROVIDERS,
   PAYMENT_GATEWAY_KINDS,
   CANCELLATION_STATUSES,
   PORTAL_REQUEST_KINDS,
@@ -638,6 +639,39 @@ export const paymentConnections = pgTable(
     check(
       'payment_connections_methods_check',
       sql.raw(`methods <@ array[${inList(CHECKOUT_METHODS)}]::text[] and cardinality(methods) > 0`),
+    ),
+  ],
+);
+
+/**
+ * The business's own receipts account (Morning), connected by the owner like its processor. The API key is
+ * enc_credentials (unreadable for signed-in users); the worker opens it to issue the business's documents.
+ */
+export const invoicingConnections = pgTable(
+  'invoicing_connections',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    provider: text('provider').notNull(),
+    status: text('status').notNull().default('connected'),
+    encCredentials: bytea('enc_credentials').notNull(),
+    credentialHints: jsonb('credential_hints').notNull().default({}),
+    lastCheckedAt: timestamp('last_checked_at', { withTimezone: true }),
+    lastCheckError: text('last_check_error'),
+    connectedBy: uuid('connected_by'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('invoicing_connections_org_id').on(t.organizationId, t.id),
+    unique('invoicing_connections_org').on(t.organizationId),
+    check(
+      'invoicing_connections_provider_check',
+      sql.raw(`provider in (${inList(INVOICING_PROVIDERS)})`),
+    ),
+    check(
+      'invoicing_connections_status_check',
+      sql.raw(`status in (${inList(PAYMENT_CONNECTION_STATUSES)})`),
     ),
   ],
 );
