@@ -25,7 +25,7 @@ import { SchoolDatabaseNotReady } from '@rswim/db/tenants';
 import { syncDown } from '@rswim/domain-platform/tenancy';
 import { getDb, inngest, log, router } from '../client';
 import { withDatabase } from '../tenancy';
-import { paymentProvider, platformInvoicing } from '../providers';
+import { platformInvoicing, platformPaymentProvider } from '../providers';
 import { toEnvelope } from './core-ping';
 
 const todayIL = () =>
@@ -115,7 +115,7 @@ export const platformBillSchool = inngest.createFunction(
           tx,
           { orgId: envelope.organizationId, userId: null },
           period,
-          paymentProvider(),
+          platformPaymentProvider(),
           todayIL(),
           { ...(from ? { from } : {}), invoicing: platformInvoicing() },
         );
@@ -147,7 +147,7 @@ export const platformMonthlyBilling = inngest.createFunction(
     for (const orgId of orgIds) {
       outcomes[orgId] = await step.run(`bill-${orgId}`, () =>
         withOrg(getDb(), orgId, (tx) =>
-          billSchool(tx, { orgId, userId: null }, period, paymentProvider(), today, {
+          billSchool(tx, { orgId, userId: null }, period, platformPaymentProvider(), today, {
             invoicing: platformInvoicing(),
           }),
         ),
@@ -186,14 +186,14 @@ export const platformDaily = inngest.createFunction(
           const opts = { invoicing: platformInvoicing() };
           // The trial ended yesterday: the rest of this month is billed now (prorated).
           if (c?.reason === 'trialEnded') {
-            await billSchool(tx, ctx, billingPeriod(today), paymentProvider(), today, {
+            await billSchool(tx, ctx, billingPeriod(today), platformPaymentProvider(), today, {
               ...opts,
               from: today,
             });
           }
           // Declined invoices due for another attempt, then tax documents still missing.
           for (const period of await invoicesToRetry(tx, today)) {
-            await billSchool(tx, ctx, period, paymentProvider(), today, opts);
+            await billSchool(tx, ctx, period, platformPaymentProvider(), today, opts);
           }
           for (const id of await paidWithoutDocument(tx)) {
             try {

@@ -47,6 +47,13 @@ order), whose approve/decline sends a callback signed with the business's webhoo
 intake. The seed connects R-SWIM (card, Bit, standing order) and the Eilat club (card, Bit) to "Grow" with invented
 keys. Without sandbox mode the demo processor never runs.
 
+## Cardcom (the first real adapter)
+
+`packages/integrations/src/cardcom.ts`, written from Cardcom's API v11 and tested against recorded answers; details,
+the test plan and what is still unverified are in `docs/payments/CARDCOM.md`. It serves a business that connects its
+own Cardcom terminal (live only with `RSWIM_CARDCOM_LIVE=1`) and the platform's own terminal for the subscription
+card and monthly charges (`PLATFORM_CARDCOM_*`).
+
 ## Going live with a real processor (needs Pit / the business)
 
 - Which processor the business uses, and a **sandbox (test) account** at that processor.

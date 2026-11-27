@@ -1,7 +1,7 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { PAYMENT_GATEWAY_KINDS, type PaymentGatewayKind } from '@rswim/contracts';
 import type { PaymentConnectionView } from '@rswim/domain-billing';
-import { PAYMENT_GATEWAYS } from '@rswim/integrations';
+import { gatewayLive, PAYMENT_GATEWAYS } from '@rswim/integrations';
 import { Badge, Card, CardTitle } from '@rswim/ui';
 import {
   connectPaymentsAction,
@@ -140,7 +140,7 @@ export async function PaymentsConnect({
             </a>
           ))}
         </nav>
-        {!spec.live && !sandbox ? (
+        {!gatewayLive(selected) && !sandbox ? (
           <p className="mb-3 rounded-xl bg-warn/10 px-3 py-2 text-sm">{t('notLiveYet')}</p>
         ) : null}
         <ActionForm action={connectPaymentsAction} testId="payments-form">

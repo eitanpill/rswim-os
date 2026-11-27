@@ -107,8 +107,9 @@ GitHub, once: Settings → Environments → `production` with Pit as required re
 branch so only GitHub Actions moves it. *Promote to production* then waits for Pit's approval every time.
 
 What stays off in production until its own account and test exist (each is a feature that stays off, never a fake):
-WhatsApp per business (Meta), card payments per business (a processor's adapter tested on its sandbox), the platform's
-subscription charging (Grow) and its invoices (Morning), a database per school (`SUPABASE_ACCESS_TOKEN`).
+WhatsApp per business (Meta), card payments per business (a processor's adapter tested on its sandbox; Cardcom's
+adapter exists and turns on with `RSWIM_CARDCOM_LIVE=1`), the platform's subscription charging (Cardcom, on once
+`PLATFORM_CARDCOM_*` is set, `docs/payments/CARDCOM.md`) and its invoices (Morning), a database per school (`SUPABASE_ACCESS_TOKEN`).
 
 Cloudflare
 - `app.aqua-swim.co.il` → Vercel project `aqua-production`; `staging.aqua-swim.co.il` → `aqua-web`. Schools get
@@ -167,6 +168,9 @@ rotation: it unlocks every school's encrypted data.
 | `SENTRY_DSN` | ✓ | ✓ | per project |
 | `NEXT_PUBLIC_SENTRY_DSN` | ✓ (build) | | the web project's DSN, for browser errors |
 | `GROW_WEBHOOK_SECRET` | ✓ | | when Grow is live: verifies the processor's callbacks, including the owner's saved card (`/api/webhooks/platform-card`) |
+| `PLATFORM_CARDCOM_TERMINAL_NUMBER`, `PLATFORM_CARDCOM_API_NAME` | ✓ | ✓ | the platform's own Cardcom terminal: opens the sign-up card step (`/billing/card`) and charges the schools' subscriptions; unset = the card step stays closed |
+| `PLATFORM_CARDCOM_API_PASSWORD` | ✓ | ✓ | secret; the same terminal's API password (refunds only) |
+| `RSWIM_CARDCOM_LIVE` | ✓ | ✓ | `1` lets a business that connected Cardcom take real payments; set only after the test in `docs/payments/CARDCOM.md` |
 | `GHL_API_TOKEN` / `GHL_WEBHOOK_PUBLIC_KEY` | | ✓ / ✓ web | only if the platform keeps GHL as its own CRM |
 | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_ORG_SLUG` | | ✓ | only when the per-school database switch is turned on |
 | `RSWIM_IOS_APP_IDS` | ✓ | | the store app's `<Team ID>.il.co.aquaswim.app`; lets links open the iPhone app (`docs/store/APP.md`) |

@@ -70,6 +70,10 @@ Each business can connect its own processor in-app (`docs/PAYMENTS.md`, `/admin/
 and the processor's callback lands on `/api/webhooks/pay/<connectionId>`. With `RSWIM_GROW_FAKE=1`,
 `RSWIM_PAYMENTS_SANDBOX=1` or demo mode every processor runs as the demo processor (`/pay/<token>/sandbox`); real
 adapters are not live until tested against a processor's sandbox account. The worker builds links from `RSWIM_PUBLIC_URL`.
+Cardcom (`cardcom.ts`, `docs/payments/CARDCOM.md`) is the first real adapter: a business's Cardcom runs only with
+`RSWIM_CARDCOM_LIVE=1`; the platform's own terminal (`PLATFORM_CARDCOM_*`, web and worker) opens the sign-up card step
+and charges subscriptions (`platformPaymentProvider()` in the worker, never a school's customers). Cardcom's webhook is
+not signed: we only trust what `LowProfile/GetLpResult` answers for our own terminal.
 
 WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, or to an in-memory fake with
 `RSWIM_MESSAGING_FAKE=1` (a phone containing 0000000 fails). Inbound WhatsApp arrives on the same GHL webhook route
