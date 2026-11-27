@@ -16,6 +16,7 @@ import { GROW_SANDBOX_URL, GrowGateway, type GrowOptions } from './grow-gateway'
 import type { PaymentProvider, ProviderContext } from './index';
 import { PAYPLUS_STAGING_URL, PayPlusGateway, type PayPlusOptions } from './payplus';
 import { SumitGateway, type SumitOptions } from './sumit';
+import { TranzilaGateway, type TranzilaOptions } from './tranzila';
 
 export interface CredentialField {
   key: string;
@@ -84,8 +85,8 @@ export const PAYMENT_GATEWAYS: Record<PaymentGatewayKind, GatewaySpec> = {
     kind: 'tranzila',
     name: 'Tranzila',
     fields: [
-      { key: 'terminalName', secret: false, pattern: id },
-      { key: 'appKey', secret: false, pattern: id },
+      { key: 'terminalName', secret: false, pattern: /^[A-Za-z0-9_-]{2,40}$/ },
+      { key: 'appKey', secret: true, pattern: secret },
       { key: 'secretKey', secret: true, pattern: secret },
     ],
     methods: ['card', 'bit', 'standing_order'],
@@ -265,6 +266,7 @@ export function createGateway(
     grow?: GrowOptions;
     sumit?: SumitOptions;
     payplus?: PayPlusOptions;
+    tranzila?: TranzilaOptions;
   },
 ): PaymentGateway {
   if (opts.sandbox) return new SandboxGateway(kind, creds, opts.webhookSecret);
@@ -281,6 +283,7 @@ export function createGateway(
     });
   }
   if (kind === 'sumit') return new SumitGateway(creds, opts.sumit);
+  if (kind === 'tranzila') return new TranzilaGateway(creds, opts.tranzila);
   if (kind === 'payplus')
     return new PayPlusGateway(creds, {
       ...((opts.env ?? process.env).PAYPLUS_STAGING === '1'
@@ -295,7 +298,8 @@ export function createGateway(
  * Whether a processor's real adapter may run in this process. Cardcom's adapter is written and tested against
  * recorded answers, and runs only once `RSWIM_CARDCOM_LIVE=1` is set (after a test in Cardcom's test terminal).
  * Grow's the same with `RSWIM_GROW_LIVE=1` (`GROW_SANDBOX=1` points it at Grow's sandbox), SUMIT's with
- * `RSWIM_SUMIT_LIVE=1`, PayPlus's with `RSWIM_PAYPLUS_LIVE=1` (`PAYPLUS_STAGING=1` points it at PayPlus's staging).
+ * `RSWIM_SUMIT_LIVE=1`, PayPlus's with `RSWIM_PAYPLUS_LIVE=1` (`PAYPLUS_STAGING=1` points it at PayPlus's staging),
+ * Tranzila's with `RSWIM_TRANZILA_LIVE=1`.
  */
 export function gatewayLive(
   kind: PaymentGatewayKind,
@@ -305,6 +309,7 @@ export function gatewayLive(
   if (kind === 'grow') return env.RSWIM_GROW_LIVE === '1';
   if (kind === 'sumit') return env.RSWIM_SUMIT_LIVE === '1';
   if (kind === 'payplus') return env.RSWIM_PAYPLUS_LIVE === '1';
+  if (kind === 'tranzila') return env.RSWIM_TRANZILA_LIVE === '1';
   return PAYMENT_GATEWAYS[kind].live;
 }
 
