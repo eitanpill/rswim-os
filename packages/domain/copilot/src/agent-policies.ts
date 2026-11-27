@@ -190,7 +190,10 @@ export function approvalText(
 
 export type OwnerReply = {
   verb: 'confirm' | 'dismiss';
+  /** The first number. */
   ref: number;
+  /** Every number, in her order: the weekly coach asks "כן 12 13 14" for all of a priority's actions at once. */
+  refs: number[];
   /** Why she dropped it, when she said ("לא 12 מקרה מיוחד"); the brain learns from it (stage 6). */
   reason?: DismissReason;
 };
@@ -202,23 +205,29 @@ const REASON_WORDS: [RegExp, DismissReason][] = [
   [/^טעות$|^לא נכון$|^wrong$/i, 'wrong'],
 ];
 
+/** At most this many actions in one reply. */
+export const OWNER_REPLY_MAX_REFS = 10;
+
 /**
- * "כן 12", "אישור #12", "לא 12", "yes 12", "no 12": a decision on one waiting action. A drop may say why: "לא 12 מקרה
- * מיוחד", "לא 12 קטן", "no 12 not now". Anything else is not one.
+ * "כן 12", "אישור #12", "לא 12", "yes 12", "no 12": a decision on a waiting action, or on several ("כן 12 13 14",
+ * "כן 12, 13"). A drop may say why: "לא 12 מקרה מיוחד", "לא 12 קטן", "no 12 not now". Anything else is not one.
  */
 export function ownerReply(text: string): OwnerReply | null {
   const m =
-    /^\s*(כן|אישור|אשר|מאשר|מאשרת|yes|ok|לא|no)\s*#?\s*(\d{1,6})\s*[.!]?\s*(.*?)\s*[.!]?\s*$/i.exec(
+    /^\s*(כן|אישור|אשר|מאשר|מאשרת|yes|ok|לא|no)\s*#?\s*(\d{1,6}(?:\s*,?\s*#?\s*\d{1,6})*)\s*[.!]?\s*(.*?)\s*[.!]?\s*$/i.exec(
       text,
     );
   if (!m) return null;
   const word = (m[1] as string).toLowerCase();
   const verb = word === 'לא' || word === 'no' ? 'dismiss' : 'confirm';
+  const refs = [...new Set((m[2] as string).match(/\d+/g)?.map(Number))];
+  if (refs.length > OWNER_REPLY_MAX_REFS) return null;
+  const ref = refs[0] as number;
   const rest = (m[3] as string).replace(/\s+/g, ' ').replace(/^[-,:]\s*/, '');
-  if (!rest) return { verb, ref: Number(m[2]) };
+  if (!rest) return { verb, ref, refs };
   const reason = REASON_WORDS.find(([re]) => re.test(rest))?.[1];
   if (verb === 'confirm' || !reason) return null;
-  return { verb, ref: Number(m[2]), reason };
+  return { verb, ref, refs, reason };
 }
 
 export type DecisionOutcome =

@@ -190,6 +190,25 @@ The forecast itself costs no AI allowance on any level; only the assistant's ans
 freediving club has no months in the brain's memory yet, so it sees no forecast. With `forecast.enabled` off nothing
 of it shows or is sent.
 
+## The weekly coach (stage 8)
+
+Rules only, no model, no AI allowance on any level (`coach-policies.ts`, `coach.ts`, worker `brain-weekly-coach`,
+Sundays 08:00). It reads the brain's journal, memory (stage 5), what it learned (stage 6: the morning check's
+proposals already leave out what she said no to) and the forecast (stage 7), and sends one WhatsApp to the approvals
+number unless she turned the evening summary off:
+
+| Part | What |
+|---|---|
+| What went well | At most three: last week's priorities that moved forward, more places joined than left, more collected than the week before, nothing waiting and every lesson covered. Alone it is not a reason to write |
+| Last week's advice | Each priority kept last Sunday, judged on today's facts: its waiting actions decided, lessons still without an instructor, old debts' total, seats held in the group that ran near empty. ✅ done, ↗️ better, ⏳ open, • gone |
+| What matters this week | At most three priorities in a fixed order (what waits for her, uncovered lessons, old debts, the emptiest group). The morning check's payment links and substitute searches belong to the priority they carry out, so each priority has one reply: "כן 7 8" sends both links. "כן"/"לא" take up to 10 numbers (`ownerReply`), and the answer has a line for each |
+| Ahead | The next holiday against the same month last year, and the forecast's next month and first warnings |
+
+Each week is a row of `coach_weeks` (owner only, RLS `is_owner()`): its priorities with their action numbers and the
+check on the week before. Once the message went out the priorities stay as sent; the row is kept even when nothing
+was sent (no approvals number), so the screen and next week's check work. `/admin/brain/coach` shows this week's note
+in her language and the last 12 weeks with how their advice went.
+
 ## Stages
 
 1. **Engine** (PR #26): gate, settings, journal and undo, the screens; the chat's moves, messages, makeup slots and
@@ -206,7 +225,7 @@ of it shows or is sent.
 7. **Looking ahead** (this PR): the next three months as ranges, warnings, and holidays, the summer and the school
    year 2-6 weeks away against last year, on the home screen, a forecast page, the weekly coach, the evening summary
    and the assistant.
-8. **A weekly coach**: Sunday's three priorities with buttons, and whether last week's advice worked. First cut
-   (W8): the Sunday WhatsApp with three priorities and replies; tracking the advice is still open.
+8. **A weekly coach** (W8, then this PR): Sunday's note with what went well, last week's advice checked, three
+   priorities each with one reply that carries it out ("כן 12 13"), and what is ahead; `/admin/brain/coach`.
 
 Kinds not wired yet show as "soon" in the settings.

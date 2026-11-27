@@ -1,5 +1,5 @@
 {
-  "id": "c7549da9-abc7-4990-887a-7f962a8c8857",
+  "id": "fd73a6df-5d12-4f68-8659-54ef8e0027fc",
   "prevId": "dfb5d2a1-f01f-45c7-9752-cb213fabe5f2",
   "version": "7",
   "dialect": "postgresql",
@@ -12066,173 +12066,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.ghl_connections": {
-      "name": "ghl_connections",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'connected'"
-        },
-        "mode": {
-          "name": "mode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'shadow'"
-        },
-        "location_id": {
-          "name": "location_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "hook_token": {
-          "name": "hook_token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "enc_token": {
-          "name": "enc_token",
-          "type": "bytea",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "location_name": {
-          "name": "location_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "checked_at": {
-          "name": "checked_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "check_error": {
-          "name": "check_error",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_inbound_at": {
-          "name": "last_inbound_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_error": {
-          "name": "last_error",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "foreign_replies": {
-          "name": "foreign_replies",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "last_foreign_at": {
-          "name": "last_foreign_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "connected_by": {
-          "name": "connected_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "connected_at": {
-          "name": "connected_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "ghl_connections_organization_id_organizations_id_fk": {
-          "name": "ghl_connections_organization_id_organizations_id_fk",
-          "tableFrom": "ghl_connections",
-          "tableTo": "organizations",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "ghl_connections_org_id": {
-          "name": "ghl_connections_org_id",
-          "nullsNotDistinct": false,
-          "columns": [
-            "organization_id",
-            "id"
-          ]
-        },
-        "ghl_connections_org": {
-          "name": "ghl_connections_org",
-          "nullsNotDistinct": false,
-          "columns": [
-            "organization_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "ghl_connections_status_check": {
-          "name": "ghl_connections_status_check",
-          "value": "status in ('connected', 'disconnected')"
-        },
-        "ghl_connections_mode_check": {
-          "name": "ghl_connections_mode_check",
-          "value": "mode in ('shadow', 'live')"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.inbound_messages": {
       "name": "inbound_messages",
       "schema": "",
@@ -12927,7 +12760,7 @@
         },
         "messages_status_check": {
           "name": "messages_status_check",
-          "value": "status in ('queued', 'held', 'sent', 'failed', 'blocked', 'suggested', 'dismissed')"
+          "value": "status in ('queued', 'held', 'sent', 'failed', 'blocked')"
         },
         "messages_hold_check": {
           "name": "messages_hold_check",
@@ -16627,6 +16460,106 @@
         "business_snapshots_period_check": {
           "name": "business_snapshots_period_check",
           "value": "\"business_snapshots\".\"period\" ~ '^[0-9]{4}-[0-9]{2}$'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.coach_weeks": {
+      "name": "coach_weeks",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "week_of": {
+          "name": "week_of",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "priorities": {
+          "name": "priorities",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "review": {
+          "name": "review",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coach_weeks_organization_id_organizations_id_fk": {
+          "name": "coach_weeks_organization_id_organizations_id_fk",
+          "tableFrom": "coach_weeks",
+          "tableTo": "organizations",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "coach_weeks_org_id": {
+          "name": "coach_weeks_org_id",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "id"
+          ]
+        },
+        "coach_weeks_week": {
+          "name": "coach_weeks_week",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "week_of"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "coach_weeks_sunday_check": {
+          "name": "coach_weeks_sunday_check",
+          "value": "extract(dow from \"coach_weeks\".\"week_of\") = 0"
         }
       },
       "isRLSEnabled": false

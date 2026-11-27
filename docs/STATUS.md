@@ -545,7 +545,7 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 
 - Sundays at 08:00 the owner's approvals number gets the week: last week, three priorities with replies, the next
   holiday against last year (`brain-weekly-coach`, `coach.ts`).
-- Not built yet: tracking last week's advice (the three-month forecast came with brain stage 7).
+- Tracking last week's advice came with brain stage 8; the three-month forecast with brain stage 7.
 - Not verified: real WhatsApp delivery (messaging runs on the fake).
 
 ## WhatsApp W9: one conversations screen (2026-11-20)
@@ -579,3 +579,17 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - Verified: pure rules at 100% branch coverage, the demo tenant in `packages/seed/test/brain-forecast.test.ts`, the
   screens in `apps/web/e2e/brain.spec.ts`.
 - Not verified: how close the ranges come on a real school's history (demo data only).
+
+## Brain stage 8: the weekly coach (2026-11-27)
+
+- The Sunday note now opens with what went well and checks last week's advice (✅ / ↗️ / ⏳) against today's facts;
+  each week's priorities are kept in `coach_weeks` (owner only).
+- Each priority carries the actions that do it: the morning check's payment links go with old debts and its substitute
+  searches with uncovered lessons, so one reply ("כן 7 8") does a whole priority. "כן" / "לא" take up to 10 numbers.
+- `/admin/brain/coach` shows this week's note and the last 12 weeks with how their advice went.
+- Rules only: no AI cost on any level.
+- Verified: pure rules at 100% branch coverage, the demo tenant in `packages/seed/test/brain-staff.test.ts` (sent week
+  kept, the check, several numbers in one reply, owner-only rows), RLS sweep.
+- Not built: a monthly coach report (the assistant's `month_report` answers about a month), and a coach for
+  freediving clubs (they have no months in the brain's memory yet).
+- Not verified: real WhatsApp delivery (messaging runs on the fake).

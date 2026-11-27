@@ -5944,6 +5944,23 @@
         "rules": "The thresholds can be changed on the policies screen, in \"Looking ahead\".",
         "noAi": "The forecast is worked out by rules only, with no AI, so it uses none of the allowance on any level. When you ask the assistant about the future, it answers from these numbers."
       }
+    },
+    "coach": {
+      "link": "Weekly coach",
+      "title": "Weekly coach",
+      "subtitle": "Every Sunday at 08:00: what went well, what matters this week with one reply that does each thing, and how last week's advice went. Rules only, no AI cost.",
+      "back": "Back to the brain",
+      "ownerOnly": "The weekly coach belongs to the school's owner.",
+      "thisWeek": "This week (from {date})",
+      "howToReply": "The replies in the note (e.g. \"yes 12 13\") work from the approvals WhatsApp. You can also approve each action on the brain page.",
+      "nothing": "Nothing needs you this week. See you next Sunday.",
+      "history": "Earlier weeks",
+      "noHistory": "No weeks kept yet. The coach keeps each week on Sunday morning.",
+      "week": "Week of {date}",
+      "sent": "Sent on WhatsApp",
+      "notSent": "Not sent",
+      "priorities": "{count, plural, =0 {nothing to act on} one {one thing to act on} other {# things to act on}}",
+      "checkedThen": "How the advice of the week before went:"
     }
   },
   "payments": {
