@@ -623,6 +623,13 @@ describe('AC4: a reimbursement receipt', () => {
     ).toBe('settled');
     const [p] = await q(`select id, status, method from payments where household_id = $1`, [h.E]);
     expect(p).toMatchObject({ status: 'succeeded', method: 'credit_card' });
+    // In a real deployment the processor that took it issues the receipt itself: nothing here.
+    expect(
+      await system((tx) =>
+        issueReceipts(tx, sys(), invoicing, p.id, 'green_invoice', { processorIssues: true }),
+      ),
+    ).toEqual([]);
+    expect(await q(`select id from fiscal_documents where payment_id = $1`, [p.id])).toEqual([]);
     const issued = await system((tx) => issueReceipts(tx, sys(), invoicing, p.id));
     expect(issued).toHaveLength(1);
     const doc = invoicing.issued.at(-1);

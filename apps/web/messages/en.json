@@ -348,7 +348,7 @@
       },
       "receipts": {
         "title": "Receipts",
-        "hint": "Your Morning account, a receipt for every payment"
+        "hint": "Receipts for cash and transfers (Morning, optional)"
       },
       "join": {
         "title": "New families",
@@ -6131,12 +6131,12 @@
   "receipts": {
     "kicker": "Money",
     "title": "Receipts (Morning)",
-    "subtitle": "The business's own Morning (Green Invoice) account: every payment gets its invoice-receipt automatically, in your account",
-    "subtitleDive": "The club's own Morning (Green Invoice) account: every paid booking and pass gets its receipt automatically, in your account",
+    "subtitle": "Your payment processor issues the receipt for every payment made through it. Morning is only for payments the office records by hand (cash, transfer, cheque)",
+    "subtitleDive": "The club's processor issues the receipt for every payment made through it. Morning is only for payments recorded at the desk (cash, transfer)",
     "ownerOnly": "Only the business owner connects the receipts account.",
     "officeConnected": "Receipts account connected: every payment gets a receipt automatically.",
-    "emptyTitle": "No receipts account connected yet",
-    "emptyHint": "Without it, payments are recorded but no receipt is issued. Connect once with an API key from your Morning account.",
+    "emptyTitle": "Morning not connected (optional)",
+    "emptyHint": "Card, Bit and standing-order payments get their receipt from your processor. If you also record cash or transfers, connect Morning here and they get a receipt automatically.",
     "connect": "Connect Morning",
     "replace": "Replace key",
     "keysHint": "In Morning: Settings → Developer tools → API keys → Create key. Paste the id and the secret here. The key is sealed and never shown again.",
@@ -6150,10 +6150,10 @@
     "disconnectConfirm": "Disconnect Morning? New payments won't get receipts until you connect again.",
     "checkedAt": "Last checked",
     "howTitle": "How it works",
-    "how1": "Every recorded payment, by card, Bit, standing order or cash at the desk, gets an invoice-receipt in your Morning account.",
-    "how2": "An exempt dealer gets a receipt instead of an invoice-receipt, automatically.",
-    "how3": "A refund goes out as a credit note linked to the original document.",
-    "how4": "Documents come from your account and are numbered there; we only ask Morning to issue them.",
+    "how1": "Card, Bit or standing order: your processor issues the receipt and sends it to the customer.",
+    "how2": "A payment the office records (cash, transfer, cheque) gets an invoice-receipt in Morning, if you connected it. An exempt dealer gets a receipt.",
+    "how3": "A refund of a manual payment goes out as a credit note linked to the original document.",
+    "how4": "Documents are numbered in your account; we never issue one for a payment your processor already issued.",
     "status": {
       "connected": "Connected",
       "failed": "Not working",
@@ -6621,9 +6621,9 @@
       "link": "Connect payments"
     },
     "receipts": {
-      "title": "Receipts (Morning)",
-      "connected": "Every payment gets a receipt automatically in the business's Morning account.",
-      "missing": "Not connected yet. Payments are recorded, but no receipt is issued.",
+      "title": "Receipts",
+      "connected": "Your processor issues receipts for its payments, and Morning for the ones the office records.",
+      "missing": "Your processor issues receipts for payments made through it. Morning is optional, for cash or transfer payments.",
       "failing": "The last check with Morning failed. Check the key.",
       "link": "Connect receipts"
     },

@@ -23,6 +23,7 @@ import { getDb, inngest, log } from '../client';
 import {
   invoicingProvider,
   invoicingProviderName,
+  processorIssuesReceipts,
   paymentProvider,
   publicUrl,
   tenantGateway,
@@ -131,7 +132,10 @@ export const billingIssueReceipts = inngest.createFunction(
         'billing-issue-receipts',
         envelope,
         await invoicingProvider(envelope.organizationId),
-        (p, tx) => issueReceipts(tx, sys(envelope), p, paymentId, invoicingProviderName()),
+        (p, tx) =>
+          issueReceipts(tx, sys(envelope), p, paymentId, invoicingProviderName(), {
+            processorIssues: processorIssuesReceipts(),
+          }),
       ),
     );
   },

@@ -74,5 +74,7 @@ callback cannot confirm it; the processor retries and the office has to refund b
 
 ## Receipts
 
-Each payment's invoice-receipt is issued in the business's own Morning account, connected on
-`/admin/integrations/receipts` (`/dive/receipts`). See `docs/payments/MORNING.md`.
+The processor issues the receipt for every payment it takes; we don't issue a second one (the worker skips payments
+with `source = 'provider'`). Payments the office records by hand (cash, transfer, cheque) get their receipt from the
+business's own Morning account when it connected one on `/admin/integrations/receipts` (`/dive/receipts`). See
+`docs/payments/MORNING.md`.

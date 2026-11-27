@@ -111,6 +111,10 @@ async function coveredBy(
 /**
  * Issues the invoice-receipt(s) of a successful payment. Documents already issued are left alone; one the rules
  * refuse (no ID number for a reimbursement profile that needs it) is stored as failed with the reason, for the office.
+ *
+ * With `processorIssues` (every real deployment), a payment the business's processor took is skipped: the processor
+ * issues its receipt itself (docs/PAYMENTS.md, "Receipts"). Only payments recorded by the office (cash, transfer,
+ * cheque) get a document here, from the business's Morning when it connected one.
  */
 export async function issueReceipts(
   tx: Tx,
@@ -118,9 +122,11 @@ export async function issueReceipts(
   invoicing: InvoicingProvider,
   paymentId: string,
   providerName = 'green_invoice',
+  opts: { processorIssues?: boolean } = {},
 ) {
   const [p] = await tx.select().from(payments).where(eq(payments.id, paymentId));
   if (!p || p.kind !== 'payment' || p.status !== 'succeeded') return [];
+  if (opts.processorIssues && p.source === 'provider') return [];
   const [entry] = await tx
     .select({ id: ledgerEntries.id })
     .from(ledgerEntries)
