@@ -32,3 +32,22 @@ test("the only owner of a school can't delete the account before handing it over
   await expect(page.getByTestId('sole-owner')).toContainText('R-SWIM (דמו)');
   await expect(page.getByTestId('delete-submit')).toHaveCount(0);
 });
+
+// "My account" sits outside every role's own nav, so it must lead back home, not only to signing out.
+for (const [as, home] of [
+  ['owner', /\/admin$/],
+  ['parent', /\/parent$/],
+  ['instructor', /\/instructor$/],
+  ['diveCustomer', /\/dive\/me$|\/dive$/],
+] as const) {
+  test(`${as} leaves "my account" back to the main screen`, async ({ page }) => {
+    await page.goto(`/dev/login?as=${as}`);
+    await page.goto('/me/account');
+    await page.getByTestId('back-home').click();
+    await expect(page).toHaveURL(home);
+    // The school's mark in the top bar leads home too.
+    await page.goto('/me/account');
+    await page.getByTestId('home-mark').click();
+    await expect(page).toHaveURL(home);
+  });
+}

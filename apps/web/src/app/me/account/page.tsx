@@ -21,7 +21,7 @@ export default async function MyAccountPage() {
   );
   const blockers = [...new Map(soleOwner.map((s) => [s.orgId, s.name])).values()];
   return (
-    <AppShell session={session} surface="account" nav={[]}>
+    <AppShell session={session} surface="account" nav={[]} backHome>
       <PageHeader icon="👤" title={t('title')} />
       <Card className="bg-water-soft mb-4 flex items-center gap-4" data-testid="me-profile">
         <Avatar name={session.displayName ?? '?'} size="lg" />
