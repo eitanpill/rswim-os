@@ -173,6 +173,23 @@ and turns them into three things. It never changes a level by itself.
 Sundays at 09:00 (worker function `brain-learning`) the approvals number gets what it learned, when there is something
 new, unless the owner turned the evening summary off.
 
+## Looking ahead (stage 7)
+
+Rules only, transparent, no model (`forecast-policies.ts`, `forecast.ts`, policy section `forecast`, docs/POLICIES.md
+§17b). It reads the months the brain remembers (stage 5; before the first refresh it works out the last three months
+itself), today's places and the places already asked to end, and the Hebrew calendar.
+
+| What | Where |
+|---|---|
+| The next three months as ranges (low to high): places at month end, joining, leaving, charged and collected, absences, with what each month is based on (the same month last year scaled by growth, or the recent average) and last year's month beside it | The owner's home ("מבט קדימה", owner only) and `/admin/brain/forecast`, which also says how every number was worked out |
+| Warnings with one thing to do: places heading down, more leaving than usual, charges heading down, collection short (cash), a month whose attendance dropped last year | The same two screens; the weekly coach (Sundays 08:00) adds next month's ranges and the first two warnings |
+| Holidays (yom tov, Yom Kippur, Yom HaAtzmaut), the summer and the new school year 2 to 6 weeks away, against the same month last year, with what to do now (plan makeups, open registration, talk to families at risk, remind about attendance) | The screens, and the evening summary (20:00) announces each date 6 weeks, 4 weeks and 2 weeks before |
+| The owner's assistant | Chat tool `forecast` (and "מה צפוי" / "תחזית" on the rules-based stand-in): it answers about the future from these ranges, on the business's AI level |
+
+The forecast itself costs no AI allowance on any level; only the assistant's answer about it does, as any answer. A
+freediving club has no months in the brain's memory yet, so it sees no forecast. With `forecast.enabled` off nothing
+of it shows or is sent.
+
 ## Stages
 
 1. **Engine** (PR #26): gate, settings, journal and undo, the screens; the chat's moves, messages, makeup slots and
@@ -184,10 +201,11 @@ new, unless the owner turned the evening summary off.
    lessons; the evening summary.
 5. **Memory** (PR #32): every month's facts, what happened, and what the owner asked to remember; the chat answers
    about the past from it.
-6. **Learning the owner** (this PR): approvals, take-backs and the reasons she drops proposals turn into suggested
+6. **Learning the owner** (PR #33): approvals, take-backs and the reasons she drops proposals turn into suggested
    levels and a morning check that stops asking what she said no to.
-7. **Looking ahead**: holidays, seasons and the school year against last year's months; heads-ups weeks before.
-   First cut in the weekly coach (WhatsApp track W8): the next holiday against the same month last year.
+7. **Looking ahead** (this PR): the next three months as ranges, warnings, and holidays, the summer and the school
+   year 2-6 weeks away against last year, on the home screen, a forecast page, the weekly coach, the evening summary
+   and the assistant.
 8. **A weekly coach**: Sunday's three priorities with buttons, and whether last week's advice worked. First cut
    (W8): the Sunday WhatsApp with three priorities and replies; tracking the advice is still open.
 

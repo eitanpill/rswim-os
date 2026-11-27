@@ -545,7 +545,7 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 
 - Sundays at 08:00 the owner's approvals number gets the week: last week, three priorities with replies, the next
   holiday against last year (`brain-weekly-coach`, `coach.ts`).
-- Not built yet: the three-month forecast and tracking last week's advice.
+- Not built yet: tracking last week's advice (the three-month forecast came with brain stage 7).
 - Not verified: real WhatsApp delivery (messaging runs on the fake).
 
 ## WhatsApp W9: one conversations screen (2026-11-20)
@@ -568,3 +568,14 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - Not built: Embedded Signup.
 - Not verified: every call to Meta. They are written from Meta's documentation and run against a fake here; the
   first real check needs Pit's verified business, a number and a token.
+
+## Brain stage 7: looking ahead (2026-11-27)
+
+- The owner's home and `/admin/brain/forecast` show the next three months as ranges (places, joining, leaving, charged,
+  collected, absences), warnings with what to do, and holidays / summer / school year 2-6 weeks ahead against last year,
+  with how each number was worked out (`forecast-policies.ts`, policy `forecast`).
+- The weekly coach adds next month's ranges and warnings; the evening summary announces dates 6, 4 and 2 weeks before;
+  the assistant has a `forecast` tool.
+- Verified: pure rules at 100% branch coverage, the demo tenant in `packages/seed/test/brain-forecast.test.ts`, the
+  screens in `apps/web/e2e/brain.spec.ts`.
+- Not verified: how close the ranges come on a real school's history (demo data only).

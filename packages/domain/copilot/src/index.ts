@@ -21,3 +21,5 @@ export * from './diver-bot';
 export * from './coach';
 export * from './coach-policies';
 export * from './action-handlers';
+export * from './forecast-policies';
+export * from './forecast';

@@ -158,6 +158,8 @@ describe('copilotSystem', () => {
 
 describe('fakeIntent', () => {
   it('understands the demo phrasings', () => {
+    expect(fakeIntent('מה צפוי לנו?', '2026-11-03')).toEqual({ kind: 'forecast' });
+    expect(fakeIntent('תחזית', '2026-11-03')).toEqual({ kind: 'forecast' });
     expect(fakeIntent('תעביר את יואב כהן לקבוצת מעורבת ראשון', '2026-11-03')).toEqual({
       kind: 'move',
       splits: [{ student: 'יואב כהן', group: 'מעורבת ראשון' }],

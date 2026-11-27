@@ -131,3 +131,33 @@ test("the office admin cannot read the brain's memory", async ({ page }) => {
   await expect(page.getByTestId('brain-owner-only')).toBeVisible();
   await expect(page.getByTestId('memory-notes')).toHaveCount(0);
 });
+
+test('the owner looks ahead: the coming months as ranges, from home to how they were worked out', async ({
+  page,
+}) => {
+  await page.goto('/dev/login?as=owner');
+  await page.goto('/admin');
+  const card = page.getByTestId('home-forecast');
+  await expect(card).toBeVisible();
+  // Three months, each "places, joining, leaving" (a range or one number).
+  await expect(card.getByTestId('home-forecast-months').locator('li')).toHaveCount(3);
+  await expect(card.getByTestId('home-forecast-months')).toContainText('מקומות');
+  await card.getByTestId('home-forecast-more').click();
+  await expect(page).toHaveURL(/\/admin\/brain\/forecast$/);
+  await expect(page.getByTestId('forecast-table').locator('tbody tr')).toHaveCount(3);
+  await expect(page.getByTestId('forecast-how')).toContainText('בלי בינה מלאכותית');
+  await expect(page.getByTestId('forecast-ahead')).toBeVisible();
+  await page.goto('/admin/brain');
+  await expect(page.getByTestId('brain-forecast-link')).toHaveAttribute(
+    'href',
+    '/admin/brain/forecast',
+  );
+});
+
+test("the office admin cannot read the brain's forecast", async ({ page }) => {
+  await page.goto('/dev/login?as=admin');
+  await page.goto('/admin/brain/forecast');
+  await expect(page.getByTestId('brain-owner-only')).toBeVisible();
+  await page.goto('/admin');
+  await expect(page.getByTestId('home-forecast')).toHaveCount(0);
+});

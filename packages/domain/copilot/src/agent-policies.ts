@@ -13,6 +13,7 @@ import {
   type AutonomyLevel,
   type DismissReason,
 } from '@rswim/contracts';
+import { aheadLines, type AheadDate } from './forecast-policies';
 
 const rank = (l: AutonomyLevel) => AUTONOMY_LEVELS.indexOf(l);
 
@@ -451,6 +452,17 @@ export interface DayFacts {
   tomorrowUncovered: number;
   /** New customers today (WhatsApp track W4): new leads, trials booked, and who joined. */
   leads?: { new: number; trials: number; joined: number };
+  /** Dates ahead announced tonight (stage 7): 6 weeks, half way and 2 weeks before each. */
+  ahead?: readonly AheadDate[];
+}
+
+/** The dates ahead, when tonight announces any. */
+function aheadBlock(d: DayFacts, locale: Locale): string[] {
+  if (!d.ahead?.length) return [];
+  return [
+    locale === 'en' ? 'Looking ahead:' : 'מבט קדימה:',
+    ...d.ahead.flatMap((a) => aheadLines(a, locale)),
+  ];
 }
 
 /** Today's new customers, when there were any. */
@@ -476,6 +488,7 @@ export function eveningText(d: DayFacts, locale: Locale): string {
       `• Refused by the rules: ${d.failed}`,
       ...leadLine(d, 'en'),
       `Tomorrow: ${d.tomorrowLessons} lessons${d.tomorrowUncovered ? `, ${d.tomorrowUncovered} without an instructor` : ''}.`,
+      ...aheadBlock(d, 'en'),
     ].join('\n');
   }
   return [
@@ -486,5 +499,6 @@ export function eveningText(d: DayFacts, locale: Locale): string {
     `• הכללים לא אפשרו: ${d.failed}`,
     ...leadLine(d, 'he'),
     `מחר: ${d.tomorrowLessons} שיעורים${d.tomorrowUncovered ? `, ${d.tomorrowUncovered} בלי מדריך` : ''}.`,
+    ...aheadBlock(d, 'he'),
   ].join('\n');
 }

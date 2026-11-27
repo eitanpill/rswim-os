@@ -13,6 +13,7 @@ import { todayIL } from '@rswim/domain-scheduling';
 import { resolvePolicyFor } from '@rswim/domain-settings';
 import { getAgentSettings } from './agent';
 import { eveningText, morningPlan, type MorningPlan } from './agent-policies';
+import { aheadToAnnounce } from './forecast';
 import { morningLessons } from './learning';
 import { proposalSummary } from './policies';
 import { substituteSummary, takeAction } from './services';
@@ -141,6 +142,7 @@ export async function sendEveningSummary(
                            and (stage_changed_at at time zone 'Asia/Jerusalem')::date = ${today}::date)::int joined
         from ${schema.leads}`,
   );
+  const ahead = await aheadToAnnounce(tx, today);
   const out = await enqueueMessage(tx, ctx, {
     guardian: {
       id: null,
@@ -162,6 +164,7 @@ export async function sendEveningSummary(
           tomorrowLessons: facts.lessons,
           tomorrowUncovered: facts.uncovered,
           leads: leadsToday,
+          ahead,
         },
         locale,
       ),

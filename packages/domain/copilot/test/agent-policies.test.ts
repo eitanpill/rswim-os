@@ -389,6 +389,24 @@ describe('the evening summary', () => {
     expect(eveningText(day, 'en')).toContain('reply "yes <number>"');
     expect(eveningText(quiet, 'en')).toContain('Tomorrow: 12 lessons.');
     expect(eveningText(quiet, 'en')).toContain('Waiting for you: 0\n');
+    const ahead = [
+      {
+        kind: 'holiday' as const,
+        name: { he: 'חנוכה', en: 'Chanukah' },
+        date: '2026-12-15',
+        daysAway: 42,
+        lastYear: null,
+        usual: null,
+        action: 'plan_makeups' as const,
+      },
+    ];
+    expect(eveningText({ ...day, ahead }, 'he')).toContain(
+      'מבט קדימה:\n📅 חנוכה בעוד 42 ימים (15/12).\n   כדאי להודיע למשפחות כבר עכשיו ולתכנן השלמות.',
+    );
+    expect(eveningText({ ...day, ahead }, 'en')).toContain(
+      'Looking ahead:\n📅 Chanukah in 42 days',
+    );
+    expect(eveningText({ ...day, ahead: [] }, 'he')).not.toContain('מבט קדימה');
     const leads = { ...day, leads: { new: 3, trials: 1, joined: 0 } };
     expect(eveningText(leads, 'he')).toContain(
       'לקוחות חדשים: 3 פניות, 1 קבעו שיעור ניסיון, 0 הצטרפו\nמחר',
