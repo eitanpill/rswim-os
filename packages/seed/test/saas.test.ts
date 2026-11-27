@@ -413,6 +413,44 @@ describe('platform billing', () => {
     expect(await admin((tx) => requestBilling(tx, '2027-01-01'))).toBeGreaterThanOrEqual(3);
     expect(await code(owner((tx) => listSchools(tx)))).toBe('common.errors.forbidden');
   });
+
+  it('turns an option kept for one business (the GHL bridge) on and off for that school alone', async () => {
+    const extras = async () =>
+      (await admin((tx) => listSchools(tx))).find((s) => s.organizationId === orgId)?.extras;
+    expect(await extras()).toEqual([]);
+    const set = (on: '0' | '1') =>
+      admin((tx) =>
+        updateSchool(
+          tx,
+          { organizationId: orgId, action: 'extra', extra: 'ghl_bridge', on },
+          '2026-12-12',
+        ),
+      );
+    await set('1');
+    await set('1');
+    expect(await extras()).toEqual(['ghl_bridge']);
+    expect(
+      (await admin((tx) => listSchools(tx))).find((s) => s.organizationId === DEMO_ORG.id)?.extras,
+    ).toEqual([]);
+    expect(
+      await code(
+        owner((tx) =>
+          updateSchool(
+            tx,
+            { organizationId: orgId, action: 'extra', extra: 'ghl_bridge', on: '1' },
+            '2026-12-12',
+          ),
+        ),
+      ),
+    ).toBe('common.errors.forbidden');
+    expect(
+      await code(
+        admin((tx) => updateSchool(tx, { organizationId: orgId, action: 'extra' }, '2026-12-12')),
+      ),
+    ).toBe('platform.errors.extra');
+    await set('0');
+    expect(await extras()).toEqual([]);
+  });
 });
 
 describe('sharing a template', () => {

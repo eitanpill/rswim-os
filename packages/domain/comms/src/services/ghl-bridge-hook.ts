@@ -5,7 +5,7 @@
  */
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
-import { eq, schema, type Db } from '@rswim/db';
+import { eq, schema, sql, type Db } from '@rswim/db';
 import { asPlatform, withOrg } from '@rswim/db/service';
 import { emit } from '@rswim/domain-core';
 import { GHL_BRIDGE_PULL_REQUESTED } from './ghl-bridge';
@@ -62,13 +62,14 @@ export async function ingestGhlBridgeHook(
         orgId: ghlConnections.organizationId,
         hookToken: ghlConnections.hookToken,
         status: ghlConnections.status,
+        allowed: sql<boolean>`app.has_extra(${ghlConnections.organizationId}, 'ghl_bridge')`,
       })
       .from(ghlConnections)
       .where(eq(ghlConnections.id, connectionId)),
   );
   if (!conn) return 'unknown_connection';
   if (!sameToken(conn.hookToken, token)) return 'forbidden';
-  if (conn.status !== 'connected') return 'not_connected';
+  if (conn.status !== 'connected' || !conn.allowed) return 'not_connected';
   let body: unknown;
   try {
     body = JSON.parse(rawBody);

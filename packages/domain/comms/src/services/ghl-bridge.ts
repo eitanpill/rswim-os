@@ -40,6 +40,17 @@ export const GHL_BRIDGE_PULL_REQUESTED = 'comms.ghl_bridge_pull_requested';
 const enc = (rowId: string) => ({ table: 'ghl_connections', column: 'enc_token', rowId });
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 500);
 
+/**
+ * Whether the platform gave this business the bridge (`org_subscriptions.extras`). It is not a plan feature and not
+ * offered to owners: without it the WhatsApp page shows no bridge and the database hides any connection.
+ */
+export async function ghlBridgeAllowed(tx: Tx): Promise<boolean> {
+  const r = await tx.execute<{ ok: boolean }>(
+    sql`select app.has_extra(app.current_org(), 'ghl_bridge') as ok`,
+  );
+  return r.rows[0]?.ok === true;
+}
+
 /** The bridge as the owner and the office see it: never its token. */
 export async function ghlBridge(tx: Tx) {
   const [row] = await tx
@@ -75,6 +86,7 @@ export const ghlBridgeHookPath = (b: { id: string; hookToken: string }) =>
  */
 export async function connectGhlBridge(tx: Tx, ctx: ServiceContext, raw: GhlBridgeConnectInput) {
   const input = GhlBridgeConnectInput.parse(raw);
+  if (!(await ghlBridgeAllowed(tx))) throw new DomainError('ghlBridge.errors.notAllowed');
   const dek = await orgDataKey(tx, ctx.orgId);
   if (!dek) throw new DomainError('ghlBridge.errors.noMasterKey');
   const [existing] = await tx

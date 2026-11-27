@@ -21,6 +21,7 @@ import {
   dismissSuggestion,
   getChat,
   ghlBridge,
+  ghlBridgeAllowed,
   ingestGhlBridgeHook,
   loadGhlBridge,
   runGhlBridgeCheck,
@@ -77,6 +78,25 @@ beforeAll(async () => {
 }, 240_000);
 afterAll(async () => {
   await t.drop();
+});
+
+const setExtra = async (on: boolean) => {
+  const r = await t.pool.query(
+    `update org_subscriptions set extras = $2 where organization_id = $1`,
+    [DEMO_ORG.id, on ? ['ghl_bridge'] : []],
+  );
+  expect(r.rowCount).toBe(1);
+};
+
+describe('kept for the one business the platform gives it to', () => {
+  it('is refused, and not shown, until the platform turns it on', async () => {
+    expect(await owner((tx) => ghlBridgeAllowed(tx))).toBe(false);
+    await expect(
+      owner((tx) => connectGhlBridge(tx, office, { locationId: LOCATION, token: TOKEN })),
+    ).rejects.toMatchObject({ code: 'ghlBridge.errors.notAllowed' });
+    await setExtra(true);
+    expect(await owner((tx) => ghlBridgeAllowed(tx))).toBe(true);
+  });
 });
 
 describe('connecting the sub-account', () => {
@@ -308,5 +328,20 @@ describe('live mode', () => {
     });
     expect(await pull('contact-second')).toMatchObject({ foreignReplies: 1 });
     expect(await system((tx) => chatHeld(tx, SECOND))).toBe(true);
+  });
+});
+
+describe('turning the option off', () => {
+  it('hides the connection everywhere and stops the hook; turning it on brings it back as it was', async () => {
+    const view = (await owner((tx) => ghlBridge(tx))) as NonNullable<
+      Awaited<ReturnType<typeof ghlBridge>>
+    >;
+    const body = JSON.stringify({ contact_id: 'contact-lead-1' });
+    await setExtra(false);
+    expect(await owner((tx) => ghlBridge(tx))).toBeNull();
+    expect(await system((tx) => loadGhlBridge(tx, DEMO_ORG.id))).toBeNull();
+    expect(await ingestGhlBridgeHook(t.db, view.id, view.hookToken, body)).toBe('not_connected');
+    await setExtra(true);
+    expect(await owner((tx) => ghlBridge(tx))).toMatchObject({ id: view.id, mode: view.mode });
   });
 });

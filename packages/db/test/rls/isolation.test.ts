@@ -677,6 +677,34 @@ describe('WhatsApp through the business GHL sub-account (the GHL bridge)', () =>
        values ($1, 'loc-rls-0001', 'hook', decode('00', 'hex'))`,
       [A.orgId],
     );
+    // Not given to the business by the platform: the connection is invisible and untouchable, even to its owner.
+    await as(A.users.owner, A.orgId, async (run) => {
+      expect(await run(`select id from ghl_connections`)).toEqual([]);
+      expect(await run(`update ghl_connections set mode = 'live' returning id`)).toEqual([]);
+      expect(await run(`select app.has_extra(app.current_org(), 'ghl_bridge') ok`)).toEqual([
+        { ok: false },
+      ]);
+    });
+    await t.pool.query(
+      `insert into plans (code, name_he, name_en, price_agorot) values ('rls-extra', 'x', 'x', 0)
+       on conflict do nothing`,
+    );
+    await t.pool.query(
+      `insert into org_subscriptions (organization_id, plan_code, extras) values ($1, 'rls-extra', '{ghl_bridge}')
+       on conflict (organization_id) do update set extras = '{ghl_bridge}'`,
+      [A.orgId],
+    );
+    await expect(
+      t.pool.query(`update org_subscriptions set extras = '{nope}' where organization_id = $1`, [
+        A.orgId,
+      ]),
+    ).rejects.toThrow(/extras_check/);
+    await as(A.users.owner, A.orgId, async (run) => {
+      // An owner cannot give herself an option the platform keeps for single businesses.
+      expect(
+        await run(`update org_subscriptions set extras = '{}' returning organization_id`),
+      ).toEqual([]);
+    });
     await as(A.users.admin, A.orgId, async (run) => {
       expect(await run(`select mode from ghl_connections`)).toHaveLength(1);
       await expect(run(`select enc_token from ghl_connections`)).rejects.toThrow(

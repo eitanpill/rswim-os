@@ -16,6 +16,14 @@ export const PLAN_FEATURES = [
   'parent_bot',
 ] as const;
 export const PlanFeature = z.enum(PLAN_FEATURES);
+
+/**
+ * Options the platform turns on for one business by hand, never part of a plan or offered to owners: the GHL bridge
+ * (WhatsApp through the business's own GHL sub-account) is for one customer who already runs her number there.
+ */
+export const ORG_EXTRAS = ['ghl_bridge'] as const;
+export const OrgExtra = z.enum(ORG_EXTRAS);
+export type OrgExtra = z.infer<typeof OrgExtra>;
 export type PlanFeature = z.infer<typeof PlanFeature>;
 
 /** What a plan limits; null in a plan = unlimited. */
