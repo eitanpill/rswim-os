@@ -1,0 +1,2 @@
+ALTER TABLE "payment_connections" DROP CONSTRAINT "payment_connections_provider_check";--> statement-breakpoint
+ALTER TABLE "payment_connections" ADD CONSTRAINT "payment_connections_provider_check" CHECK (provider in ('grow', 'cardcom', 'sumit', 'tranzila', 'payplus', 'fake'));

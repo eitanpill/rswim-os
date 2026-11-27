@@ -624,6 +624,13 @@
       "when": 1795784763917,
       "tag": "0088_invoicing_connections",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1795791243277,
+      "tag": "0089_payment_connections_sumit",
+      "breakpoints": true
     }
   ]
 }

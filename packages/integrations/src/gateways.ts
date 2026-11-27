@@ -14,6 +14,7 @@ import { CardcomGateway, type CardcomOptions } from './cardcom';
 import { FakePaymentProvider } from './fakes';
 import { GROW_SANDBOX_URL, GrowGateway, type GrowOptions } from './grow-gateway';
 import type { PaymentProvider, ProviderContext } from './index';
+import { SumitGateway, type SumitOptions } from './sumit';
 
 export interface CredentialField {
   key: string;
@@ -65,6 +66,17 @@ export const PAYMENT_GATEWAYS: Record<PaymentGatewayKind, GatewaySpec> = {
       { key: 'apiPassword', secret: true, pattern: secret },
     ],
     methods: ['card', 'bit', 'standing_order'],
+    live: false,
+  },
+  sumit: {
+    kind: 'sumit',
+    name: 'SUMIT',
+    fields: [
+      { key: 'companyId', secret: false, pattern: /^\d{1,12}$/ },
+      { key: 'apiKey', secret: true, pattern: secret },
+    ],
+    // Bit on SUMIT's hosted page is not documented: card and standing order until it is checked.
+    methods: ['card', 'standing_order'],
     live: false,
   },
   tranzila: {
@@ -247,6 +259,7 @@ export function createGateway(
     env?: Record<string, string | undefined>;
     cardcom?: CardcomOptions;
     grow?: GrowOptions;
+    sumit?: SumitOptions;
   },
 ): PaymentGateway {
   if (opts.sandbox) return new SandboxGateway(kind, creds, opts.webhookSecret);
@@ -262,13 +275,15 @@ export function createGateway(
       ...opts.grow,
     });
   }
+  if (kind === 'sumit') return new SumitGateway(creds, opts.sumit);
   throw new GatewayNotLiveError(kind);
 }
 
 /**
  * Whether a processor's real adapter may run in this process. Cardcom's adapter is written and tested against
  * recorded answers, and runs only once `RSWIM_CARDCOM_LIVE=1` is set (after a test in Cardcom's test terminal).
- * Grow's the same with `RSWIM_GROW_LIVE=1` (`GROW_SANDBOX=1` points it at Grow's sandbox).
+ * Grow's the same with `RSWIM_GROW_LIVE=1` (`GROW_SANDBOX=1` points it at Grow's sandbox), SUMIT's with
+ * `RSWIM_SUMIT_LIVE=1`.
  */
 export function gatewayLive(
   kind: PaymentGatewayKind,
@@ -276,6 +291,7 @@ export function gatewayLive(
 ): boolean {
   if (kind === 'cardcom') return env.RSWIM_CARDCOM_LIVE === '1';
   if (kind === 'grow') return env.RSWIM_GROW_LIVE === '1';
+  if (kind === 'sumit') return env.RSWIM_SUMIT_LIVE === '1';
   return PAYMENT_GATEWAYS[kind].live;
 }
 

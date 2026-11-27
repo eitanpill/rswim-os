@@ -337,7 +337,11 @@ describe('Grow charges and refunds', () => {
         amount: agorot(100),
         description: 'x',
       }),
-    ).toEqual({ externalPaymentId: 'grow_none', status: 'failed', failureReason: 'grow_140' });
+    ).toEqual({
+      externalPaymentId: expect.stringMatching(/^grow_none:[0-9a-f]{24}$/),
+      status: 'failed',
+      failureReason: 'grow_140',
+    });
     expect(
       await g.chargeStandingOrder(ctx, { mandateId: 'bad', amount: agorot(100), description: 'x' }),
     ).toMatchObject({ status: 'failed', failureReason: 'bad_mandate' });

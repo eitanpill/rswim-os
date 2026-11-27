@@ -350,11 +350,15 @@ export function cardcomCredentials(creds: GatewayCredentials): CardcomCredential
   };
 }
 
-function chargeResult(info: TransactionInfo): ChargeResult {
+/** A failed charge's id when Cardcom gave none: unique per charge, since a payment's external id is unique. */
+export const cardcomNoneId = (idempotencyKey: string) =>
+  `cardcom_none:${cardcomUniqTranId(idempotencyKey)}`;
+
+function chargeResult(info: TransactionInfo, idempotencyKey: string): ChargeResult {
   const id = info.TranzactionId != null ? String(info.TranzactionId) : null;
   if (info.ResponseCode === 0 && id) return { externalPaymentId: id, status: 'succeeded' };
   return {
-    externalPaymentId: id ?? 'cardcom_none',
+    externalPaymentId: id ?? cardcomNoneId(idempotencyKey),
     status: 'failed',
     failureReason: `cardcom_${info.ResponseCode}`,
   };
@@ -459,14 +463,18 @@ export class CardcomGateway implements PaymentGateway {
   ): Promise<ChargeResult> {
     const m = parseCardcomMandate(req.mandateId);
     if (!m)
-      return { externalPaymentId: 'cardcom_none', status: 'failed', failureReason: 'bad_mandate' };
+      return {
+        externalPaymentId: cardcomNoneId(ctx.idempotencyKey),
+        status: 'failed',
+        failureReason: 'bad_mandate',
+      };
     const info = await this.client.chargeToken(ctx.idempotencyKey, {
       token: m.token,
       mmyy: m.mmyy,
       amount: toShekels(req.amount),
       description: req.description,
     });
-    return chargeResult(info);
+    return chargeResult(info, ctx.idempotencyKey);
   }
 
   /**

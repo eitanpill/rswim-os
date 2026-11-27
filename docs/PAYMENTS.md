@@ -24,7 +24,7 @@ through the business's processor into the business's account; the platform never
 2. **Adapters** (`packages/integrations/src/gateways.ts`). `PaymentGateway` = the monthly billing's `PaymentProvider`
    (standing-order charges, links, refunds, mandate cancel) + `createCheckout` (hosted page for a card, Bit or a new
    standing order) + `readWebhook` (verify, then normalize the callback). `PAYMENT_GATEWAYS` lists Grow, Cardcom,
-   Tranzila and PayPlus with the fields each asks for. Adding a processor = one adapter class + its spec entry.
+   SUMIT, Tranzila and PayPlus with the fields each asks for. Adding a processor = one adapter class + its spec entry.
 3. **Checkouts** (`checkouts`): one amount and what it pays for (`household`, `mandate`, `dive_booking`, `dive_pass`,
    `lodging_stay`),
    with a long random token that is the customer's only key. Tapping a method opens the processor's page
@@ -60,6 +60,13 @@ card and monthly charges (`PLATFORM_CARDCOM_*`).
 against answers in its documented shapes; details and the sandbox test plan are in `docs/payments/GROW.md`. A business
 connects its own Grow (user id, card page code, and its Bit page code when Grow opened Bit); the platform's key from
 Grow is `GROW_PLATFORM_API_KEY`. Live only with `RSWIM_GROW_LIVE=1` (`GROW_SANDBOX=1` points it at Grow's sandbox).
+
+## SUMIT (OfficeGuy)
+
+`packages/integrations/src/sumit.ts`, written from SUMIT's API as public integrations quote its schema and tested
+against recorded answers; details and the test plan are in `docs/payments/SUMIT.md`. A business connects its company
+number and API key; customers pay by card on SUMIT's hosted page, or save a card there for a standing order (no Bit
+until checked). Refunds are made in SUMIT. Live only with `RSWIM_SUMIT_LIVE=1`.
 
 ## Going live with a real processor (needs Pit / the business)
 
