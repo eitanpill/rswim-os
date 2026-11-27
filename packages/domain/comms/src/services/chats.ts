@@ -98,7 +98,8 @@ export async function listChats(
           where from_phone_e164 is not null and status in ('new', 'needs_human') group by 1
         ), last_out as (
           select distinct on (to_phone_e164) to_phone_e164 phone, body, created_at
-          from messages where to_phone_e164 is not null and body is not null and status <> 'blocked'
+          from messages where to_phone_e164 is not null and body is not null
+            and status not in ('blocked', 'suggested', 'dismissed')
           order by to_phone_e164, created_at desc
         )
         select i.phone, i.household_id "householdId", i.guardian_id "guardianId", i.lead_id "leadId",
@@ -140,7 +141,7 @@ export interface ChatLine {
   body: string;
   at: Date;
   /** Who wrote an outgoing line: the bot, a person at the office, or an automatic message. */
-  by: 'person' | 'bot' | 'office' | 'auto';
+  by: 'person' | 'bot' | 'office' | 'auto' | 'ghl';
   /** An outgoing line's delivery status. */
   status: string | null;
 }
@@ -171,12 +172,15 @@ export async function getChat(tx: Tx, rawPhone: string, now = new Date()) {
     status: string;
     office: boolean;
     bot: boolean;
+    ghl: boolean;
   }>(
     tx,
     sql`select m.id, m.body, m.created_at at, m.status, m.created_by is not null office,
-               exists (select 1 from bot_replies b where b.message_id = m.id) bot
+               exists (select 1 from bot_replies b where b.message_id = m.id) bot,
+               m.source_event_type is not distinct from 'ghl.foreign' ghl
         from messages m
-        where m.to_phone_e164 = ${phone} and m.body is not null and m.status <> 'blocked'
+        where m.to_phone_e164 = ${phone} and m.body is not null
+          and m.status not in ('blocked', 'dismissed')
         order by m.created_at desc limit 100`,
   );
   const [hold] = await tx
@@ -197,7 +201,13 @@ export async function getChat(tx: Tx, rawPhone: string, now = new Date()) {
       direction: 'out' as const,
       body: m.body,
       at: new Date(m.at),
-      by: m.bot ? ('bot' as const) : m.office ? ('office' as const) : ('auto' as const),
+      by: m.ghl
+        ? ('ghl' as const)
+        : m.bot
+          ? ('bot' as const)
+          : m.office
+            ? ('office' as const)
+            : ('auto' as const),
       status: m.status,
     })),
   ].sort((a, b) => a.at.getTime() - b.at.getTime());

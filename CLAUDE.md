@@ -147,6 +147,15 @@ registered diver gets the divers' bot (`diver-bot.ts`): coming dives, passes, mi
 (`/admin/messages/chats`, `/dive/chats`; `chats.ts` in `@rswim/domain-comms`): the thread by phone, a reply, the bot's
 last 30 days, and "I'm taking over" (`chat_holds`), which keeps every bot quiet for that number until it is given back.
 
+WhatsApp through GHL (`docs/whatsapp/GHL-BRIDGE.md`, the GHL bridge, optional per business): a school whose number lives in its
+own GHL sub-account connects it on the WhatsApp page (`ghl_connections`, location id + Private Integration token sealed with
+the org's data key; `ghl-bridge.ts` in `@rswim/domain-comms`). A GHL workflow ("Customer Replied" on WhatsApp → Webhook) calls
+`/api/webhooks/ghl/bridge/<connectionId>/<secret>` naming only the contact; the worker (`comms-ghl-bridge-pull`) reads the
+conversation from GHL's API with the school's token, brings new WhatsApp messages into the inbox once, and keeps answers
+someone else wrote in GHL (`ghl.foreign`; in live mode they hold the conversation). Sending goes through GHL with the same
+token. A new bridge is in shadow mode: bot answers are `suggested` messages the office sends or drops on the conversations
+screen, and brain actions from WhatsApp wait (`waitReason: 'shadow'`). `RSWIM_GHL_FAKE=1` reads an in-memory sub-account.
+
 Lodging (`docs/LODGING.md`, optional per business, `@rswim/domain-lodging`): rooms by kind with beds and private or shared
 facilities, stays (dorms by the bed, overlaps refused in the database), `/admin/lodging` and `/dive/lodging` (today,
 board, rooms, prices). The price list (`lodging_rates`, `prices.ts`) prices each night by season, weekend and Hebrew

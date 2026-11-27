@@ -1621,7 +1621,9 @@
       "held": "Waiting for send window",
       "sent": "Sent",
       "failed": "Failed",
-      "blocked": "Blocked"
+      "blocked": "Blocked",
+      "suggested": "Bot suggestion, waiting for you",
+      "dismissed": "Dropped"
     },
     "holdReason": {
       "quiet_hours": "Quiet hours",
@@ -5724,7 +5726,8 @@
     "wait": {
       "paused": "Waiting because the brain is stopped",
       "daily_cap": "Waiting because today's actions on its own are used up",
-      "amount_cap": "Waiting because the amount is above your cap"
+      "amount_cap": "Waiting because the amount is above your cap",
+      "shadow": "Waiting because the GHL connection is in shadow mode: the bot only suggests"
     },
     "ranAlone": "Done on its own",
     "approve": "Approve and run",
@@ -6653,7 +6656,9 @@
       "held": "Goes after quiet hours",
       "sent": "Sent",
       "failed": "Not sent",
-      "blocked": "Blocked"
+      "blocked": "Blocked",
+      "suggested": "Bot suggestion, waiting for you",
+      "dismissed": "Dropped"
     },
     "where": "Where it stands",
     "openFamily": "Open the family",
@@ -6786,7 +6791,8 @@
       "testRun": "Send a test message",
       "testQueued": "The message is queued. You can see it in the message log.",
       "testText": "Connection test: this message was sent from the system through your business number. Everything works!"
-    }
+    },
+    "metaTitle": "Or: your own number directly on Meta"
   },
   "lodging": {
     "title": "Lodging",
@@ -7211,14 +7217,17 @@
       "person": "Customer",
       "bot": "Bot",
       "office": "Staff",
-      "auto": "Automatic message"
+      "auto": "Automatic message",
+      "ghl": "Sent from GHL (not by us)"
     },
     "status": {
       "queued": "On its way",
       "held": "Goes out after quiet hours",
       "sent": "Sent",
       "failed": "Not sent",
-      "blocked": "Blocked"
+      "blocked": "Blocked",
+      "suggested": "Bot suggestion, waiting for you",
+      "dismissed": "Dropped"
     },
     "reason": {
       "unknown": "did not know the answer",
@@ -7240,6 +7249,71 @@
       "heldHint": "The bot is quiet in them",
       "period": "Last 30 days",
       "bad": "{n} answers marked as not good"
+    },
+    "suggestion": {
+      "send": "Send",
+      "dismiss": "Drop"
+    },
+    "errors": {
+      "noSuggestion": "This suggestion was already sent or dropped"
+    }
+  },
+  "ghlBridge": {
+    "title": "WhatsApp through GHL",
+    "intro": "The number stays in GHL as it is today, and GHL is the bridge: messages to the business's WhatsApp come to us, and our bots answer through GHL. No direct connection to Meta is needed.",
+    "notConnected": "Not connected",
+    "mode": {
+      "shadow": "Shadow mode",
+      "live": "Bot answers"
+    },
+    "officeConnected": "WhatsApp is connected through GHL ({mode}).",
+    "checkPending": "Checking the connection with GHL...",
+    "checkFailed": "GHL did not accept the token:",
+    "checkOk": "Connected to the GHL account: {name}",
+    "lastError": "GHL refused the last send:",
+    "foreignShadow": "Since shadow mode started, {n} answers went to customers from GHL and not from us (last {at}). If that is the old bot, turn it off before switching to ours.",
+    "foreignLive": "{n} answers were sent from GHL and not from us (last {at}). In each of those conversations our bot stopped so the customer does not get two answers. If the old bot is still on, turn it off.",
+    "hookUrl": "Webhook URL for GHL",
+    "hookHint": "Copy this URL into a Webhook action of a GHL workflow (see below). It is secret; do not share it.",
+    "locationId": "Sub-account (Location) ID",
+    "locationIdHint": "In GHL: Settings > Business Profile, or in the browser address after /location/",
+    "token": "Private Integration token",
+    "tokenHint": "Stored encrypted and never shown again. Paste it once.",
+    "lastInbound": "Last message received",
+    "noInboundYet": "No message yet",
+    "check": "Check connection",
+    "checkAsked": "Checking with GHL; the result appears here in a moment",
+    "goLive": "Switch to our bot",
+    "goLiveConfirm": "Before you continue: did you turn off the old bot in GHL? Otherwise customers get two answers.",
+    "backToShadow": "Back to shadow mode",
+    "disconnect": "Disconnect",
+    "disconnectConfirm": "Disconnect GHL? New messages will not reach us.",
+    "shadowHint": "In shadow mode the bot reads every message and writes its answer as a suggestion on the conversations screen. You decide to send or drop it; nothing goes out alone. Actions the bot wants to take (a trial, a payment link) also wait for you.",
+    "liveHint": "The bot answers on its own through GHL. When someone answers a customer directly in GHL, our bot stops in that conversation until it is given back on the conversations screen.",
+    "connect": "Connect",
+    "replace": "Replace token or account",
+    "save": "Save and check",
+    "connected": "Saved. Checking it with GHL.",
+    "modeSaved": "Saved",
+    "disconnected": "Disconnected",
+    "suggestionSent": "On its way to the customer",
+    "suggestionDismissed": "Suggestion dropped",
+    "howTitle": "How to connect (about 10 minutes)",
+    "how": {
+      "step1": "In GHL, in the business's sub-account: Settings > Private Integrations > Create new integration.",
+      "step2": "Tick the scopes: View Locations, View Contacts, Edit Contacts, View Conversations, View Conversation Messages, Edit Conversation Messages. Save and copy the token.",
+      "step3": "Paste the sub-account ID and the token here and press \"Save and check\".",
+      "step4": "In GHL: Automation > Workflows > Create workflow. Trigger \"Customer Replied\" filtered on Reply channel = WhatsApp. Action \"Webhook\" (POST) with the URL shown above. Publish.",
+      "step5": "Send a WhatsApp message to the business's number and check it shows on the conversations screen with the bot's suggested answer.",
+      "step6": "After a few days in shadow mode, and only after you turned off the old bot in GHL, press \"Switch to our bot\"."
+    },
+    "errors": {
+      "locationId": "Invalid sub-account ID",
+      "token": "The token does not look right. Copy it again from Private Integrations",
+      "noMasterKey": "The server has no encryption key; contact support",
+      "ownerOnly": "Only the business owner can connect",
+      "notConnected": "No active GHL connection",
+      "checkFirst": "A successful connection check comes first"
     }
   }
 }

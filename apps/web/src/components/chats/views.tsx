@@ -15,6 +15,7 @@ import { Badge, buttonVariants, Card, cn, EmptyState, StatTile } from '@rswim/ui
 import { ActionButton, ActionForm, SubmitButton, TextareaField } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { releaseChatAction, replyToChatAction, takeOverChatAction } from './actions';
+import { dismissSuggestionAction, sendSuggestionAction } from '@/components/whatsapp/ghl-actions';
 
 /** Where the conversations live: a swim school's messages, or a freediving club. */
 export type ChatsBase = '/admin/messages/chats' | '/dive/chats';
@@ -207,7 +208,9 @@ export async function ChatView({ base, digits }: { base: ChatsBase; digits: stri
               className={
                 m.direction === 'in'
                   ? 'me-8 rounded-2xl rounded-ss-sm bg-surface p-3 text-sm ring-1 ring-line/60'
-                  : 'ms-8 rounded-2xl rounded-se-sm bg-brand-50 p-3 text-sm'
+                  : m.status === 'suggested'
+                    ? 'ms-8 rounded-2xl rounded-se-sm border border-dashed border-warn bg-warn/10 p-3 text-sm'
+                    : 'ms-8 rounded-2xl rounded-se-sm bg-brand-50 p-3 text-sm'
               }
             >
               <p className="whitespace-pre-wrap" dir="auto">
@@ -218,6 +221,27 @@ export async function ChatView({ base, digits }: { base: ChatsBase; digits: stri
                 {m.direction === 'out' ? ` · ${t(`by.${m.by}`)}` : ''}
                 {m.direction === 'out' && m.status ? ` · ${t(`status.${m.status}`)}` : ''}
               </p>
+              {m.direction === 'out' && m.status === 'suggested' ? (
+                <div className="mt-2 flex flex-wrap gap-2" data-testid="chat-suggestion">
+                  <ActionButton
+                    action={sendSuggestionAction}
+                    fields={{ messageId: m.id }}
+                    size="sm"
+                    data-testid="chat-suggestion-send"
+                  >
+                    {t('suggestion.send')}
+                  </ActionButton>
+                  <ActionButton
+                    action={dismissSuggestionAction}
+                    fields={{ messageId: m.id }}
+                    size="sm"
+                    variant="ghost"
+                    data-testid="chat-suggestion-dismiss"
+                  >
+                    {t('suggestion.dismiss')}
+                  </ActionButton>
+                </div>
+              ) : null}
             </li>
           ))}
         </ol>

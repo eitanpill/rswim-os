@@ -9,3 +9,5 @@ export * from './services/previews';
 export * from './services/whatsapp';
 export * from './services/whatsapp-admin';
 export * from './services/whatsapp-webhook';
+export * from './services/ghl-bridge';
+export * from './services/ghl-bridge-hook';

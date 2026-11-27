@@ -789,3 +789,77 @@ export function migrationNoticeVars(
     price_note: price,
   };
 }
+
+// ─── The GHL bridge: reading a conversation from GHL ─────────────────────────
+
+/** One GHL message as the bridge plans with it (GhlChatMessage from @rswim/integrations). */
+export interface GhlPullMessage {
+  id: string;
+  direction: 'inbound' | 'outbound';
+  whatsapp: boolean;
+  body: string;
+  at: Date;
+  userId: string | null;
+}
+
+export interface GhlPullFacts {
+  messages: GhlPullMessage[];
+  /** GHL ids already in our log: inbound messages we stored, answers we sent, answers by others we recorded. */
+  known: ReadonlySet<string>;
+  /** The texts we sent this number lately (trimmed): our own answer, should GHL give it another id than it told us. */
+  ourTexts: ReadonlySet<string>;
+  /** When the bridge was connected: what was said before is history, never answered. */
+  connectedAt: Date;
+  now: Date;
+}
+
+export interface GhlPullPlan {
+  /** New messages from the person, oldest first: each goes into the inbox (and to the bots). */
+  inbound: GhlPullMessage[];
+  /**
+   * Answers in GHL that we did not send, oldest first: a person in GHL, the old GHL bot, or a GHL automation. `reply`
+   * when it answered the person (within GHL_REPLY_MINUTES of their message): someone else is talking to them.
+   */
+  foreign: (GhlPullMessage & { reply: boolean })[];
+  /** Answers too fresh to judge yet (ours may still be on its way into the log); the next read decides them. */
+  deferred: number;
+}
+
+/** How long after an answer it is judged ours or someone else's. */
+export const GHL_SETTLE_MS = 60_000;
+/** An answer this soon after the person wrote is a reply to them. */
+export const GHL_REPLY_MINUTES = 15;
+
+/**
+ * Plans one read of a GHL conversation: what is new from the person and which answers came from someone other than
+ * us. Only WhatsApp is the bridge's; everything before the connection is history.
+ */
+export function ghlPullPlan(f: GhlPullFacts): GhlPullPlan {
+  const mine = f.messages
+    .filter((m) => m.whatsapp && m.at >= f.connectedAt && !f.known.has(m.id))
+    .sort((a, b) => a.at.getTime() - b.at.getTime());
+  const inbound = mine.filter((m) => m.direction === 'inbound');
+  const plan: GhlPullPlan = { inbound, foreign: [], deferred: 0 };
+  const person = f.messages
+    .filter((m) => m.whatsapp && m.direction === 'inbound')
+    .map((m) => m.at.getTime());
+  for (const m of mine) {
+    if (m.direction !== 'outbound' || f.ourTexts.has(m.body.trim())) continue;
+    if (f.now.getTime() - m.at.getTime() < GHL_SETTLE_MS) {
+      plan.deferred++;
+      continue;
+    }
+    const t = m.at.getTime();
+    const reply = person.some((p) => p <= t && t - p <= GHL_REPLY_MINUTES * 60_000);
+    plan.foreign.push({ ...m, reply });
+  }
+  return plan;
+}
+
+/**
+ * Whether the bridge's mode lets a bot's message go out alone. In shadow mode a bot's words (`bot:` keys) wait as a
+ * suggestion; everything else (a person's reply, a reminder, a receipt) goes as usual.
+ */
+export function shadowHolds(mode: 'shadow' | 'live' | null, idempotencyKey: string): boolean {
+  return mode === 'shadow' && idempotencyKey.startsWith('bot:');
+}
