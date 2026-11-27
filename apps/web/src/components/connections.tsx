@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { paymentConnection } from '@rswim/domain-billing';
+import { invoicingConnection, paymentConnection } from '@rswim/domain-billing';
 import { commsRules, whatsappConnection } from '@rswim/domain-comms';
 import { ghlSettings } from '@rswim/domain-crm';
 import { hasFeature } from '@rswim/domain-platform';
@@ -33,10 +33,11 @@ interface Row {
  */
 export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' }) {
   const t = await getTranslations('connections');
-  const { ghl, own, payments, rules, botInPlan } = await withSession(async (tx, ctx) => ({
+  const { ghl, own, payments, receipts, rules, botInPlan } = await withSession(async (tx, ctx) => ({
     ghl: await ghlSettings(tx, ctx.orgId),
     own: await whatsappConnection(tx),
     payments: await paymentConnection(tx),
+    receipts: await invoicingConnection(tx),
     rules: await commsRules(tx),
     botInPlan: await hasFeature(tx, 'parent_bot'),
   }));
@@ -60,7 +61,17 @@ export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' 
             : 'missing',
       href: swim ? '/admin/integrations/payments' : '/dive/payments',
     },
-    { key: 'receipts', state: 'soon', href: null },
+    {
+      key: 'receipts',
+      state: !receipts
+        ? 'missing'
+        : receipts.status === 'connected'
+          ? 'connected'
+          : receipts.status === 'failed'
+            ? 'failing'
+            : 'missing',
+      href: swim ? '/admin/integrations/receipts' : '/dive/receipts',
+    },
     {
       key: 'bot',
       state: !botInPlan ? 'notInPlan' : rules.botEnabled ? 'on' : 'off',

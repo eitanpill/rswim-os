@@ -215,6 +215,11 @@ export const CHECKOUT_METHODS = ['card', 'bit', 'standing_order'] as const;
 export const CheckoutMethod = z.enum(CHECKOUT_METHODS);
 export type CheckoutMethod = z.infer<typeof CheckoutMethod>;
 
+/** Where a business issues its receipts (its own account; docs/payments/MORNING.md). */
+export const INVOICING_PROVIDERS = ['morning'] as const;
+export const InvoicingProviderKind = z.enum(INVOICING_PROVIDERS);
+export type InvoicingProviderKind = z.infer<typeof InvoicingProviderKind>;
+
 export const PAYMENT_CONNECTION_STATUSES = ['connected', 'failed', 'disconnected'] as const;
 export const PaymentConnectionStatus = z.enum(PAYMENT_CONNECTION_STATUSES);
 export type PaymentConnectionStatus = z.infer<typeof PaymentConnectionStatus>;

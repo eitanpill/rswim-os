@@ -42,6 +42,7 @@ const LINKS = [
   'substitutes',
   'recruiting',
   'payments',
+  'receipts',
   'whatsapp',
   'ghl',
 ] as const;
@@ -82,6 +83,7 @@ const HREF: Record<(typeof LINKS)[number], string> = {
   substitutes: '/admin/staff/substitutes',
   recruiting: '/admin/staff/recruiting',
   payments: '/admin/integrations/payments',
+  receipts: '/admin/integrations/receipts',
   whatsapp: '/admin/integrations/whatsapp',
   ghl: '/admin/integrations/ghl',
 };
@@ -132,6 +134,7 @@ const ICON: Record<(typeof LINKS)[number], string> = {
   substitutes: '🙋',
   recruiting: '🌱',
   payments: '💳',
+  receipts: '🧾',
   whatsapp: '💬',
   ghl: '📇',
 };
@@ -158,7 +161,7 @@ const SECTIONS: { key: string; links: (typeof LINKS)[number][] }[] = [
     links: ['groups', 'slots', 'shifts', 'terms', 'cohorts', 'institutions', 'venues', 'programs'],
   },
   { key: 'team', links: ['staff', 'payroll', 'substitutes', 'recruiting'] },
-  { key: 'money', links: ['prices', 'policies', 'reimbursement', 'payments', 'plan'] },
+  { key: 'money', links: ['prices', 'policies', 'reimbursement', 'payments', 'receipts', 'plan'] },
   { key: 'smart', links: ['brain', 'copilot', 'reports'] },
   {
     key: 'business',

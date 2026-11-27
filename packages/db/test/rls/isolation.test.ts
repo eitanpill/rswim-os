@@ -172,6 +172,7 @@ const TENANT_TABLES = [
   'checkouts',
   'whatsapp_connections',
   'ghl_connections',
+  'invoicing_connections',
   'push_devices',
 ] as const;
 

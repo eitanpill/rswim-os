@@ -18,9 +18,12 @@ export const institutionsPrintInvoice = inngest.createFunction(
   async ({ event, step }) => {
     const envelope = toEnvelope(event);
     const { invoiceId } = z.object({ invoiceId: z.uuid() }).parse(envelope.payload);
-    return step.run('print', () =>
-      withProvider('institutions-print-invoice', envelope, invoicingProvider(), (p, tx) =>
-        printInstitutionInvoice(tx, sys(envelope), p, invoiceId),
+    return step.run('print', async () =>
+      withProvider(
+        'institutions-print-invoice',
+        envelope,
+        await invoicingProvider(envelope.organizationId),
+        (p, tx) => printInstitutionInvoice(tx, sys(envelope), p, invoiceId),
       ),
     );
   },
@@ -35,9 +38,12 @@ export const institutionsPrintReceipt = inngest.createFunction(
   async ({ event, step }) => {
     const envelope = toEnvelope(event);
     const { paymentId } = z.object({ paymentId: z.uuid() }).parse(envelope.payload);
-    return step.run('print', () =>
-      withProvider('institutions-print-receipt', envelope, invoicingProvider(), (p, tx) =>
-        printInstitutionReceipt(tx, sys(envelope), p, paymentId),
+    return step.run('print', async () =>
+      withProvider(
+        'institutions-print-receipt',
+        envelope,
+        await invoicingProvider(envelope.organizationId),
+        (p, tx) => printInstitutionReceipt(tx, sys(envelope), p, paymentId),
       ),
     );
   },

@@ -346,6 +346,10 @@
         "title": "Payment processor",
         "hint": "Card, Bit and standing orders through your own processor"
       },
+      "receipts": {
+        "title": "Receipts",
+        "hint": "Your Morning account, a receipt for every payment"
+      },
       "join": {
         "title": "New families",
         "hint": "Join requests, link and QR, and the app's search"
@@ -6119,6 +6123,55 @@
       "mandateHint": "The monthly charge comes off automatically, no links or reminders."
     }
   },
+  "receipts": {
+    "kicker": "Money",
+    "title": "Receipts (Morning)",
+    "subtitle": "The business's own Morning (Green Invoice) account: every payment gets its invoice-receipt automatically, in your account",
+    "subtitleDive": "The club's own Morning (Green Invoice) account: every paid booking and pass gets its receipt automatically, in your account",
+    "ownerOnly": "Only the business owner connects the receipts account.",
+    "officeConnected": "Receipts account connected: every payment gets a receipt automatically.",
+    "emptyTitle": "No receipts account connected yet",
+    "emptyHint": "Without it, payments are recorded but no receipt is issued. Connect once with an API key from your Morning account.",
+    "connect": "Connect Morning",
+    "replace": "Replace key",
+    "keysHint": "In Morning: Settings → Developer tools → API keys → Create key. Paste the id and the secret here. The key is sealed and never shown again.",
+    "notLiveYet": "The live Morning connection opens after a test against a sandbox account. You can save the key now; no receipt is issued through it until then.",
+    "secretHint": "Secret: only its last four characters are shown",
+    "save": "Connect and check",
+    "connected": "Morning connected and the key checked",
+    "savedNotWorking": "Saved, but the connection doesn't work yet (the reason is shown above)",
+    "disconnected": "Disconnected. Receipts already issued stay in Morning.",
+    "disconnect": "Disconnect Morning",
+    "disconnectConfirm": "Disconnect Morning? New payments won't get receipts until you connect again.",
+    "checkedAt": "Last checked",
+    "howTitle": "How it works",
+    "how1": "Every recorded payment, by card, Bit, standing order or cash at the desk, gets an invoice-receipt in your Morning account.",
+    "how2": "An exempt dealer gets a receipt instead of an invoice-receipt, automatically.",
+    "how3": "A refund goes out as a credit note linked to the original document.",
+    "how4": "Documents come from your account and are numbered there; we only ask Morning to issue them.",
+    "status": {
+      "connected": "Connected",
+      "failed": "Not working",
+      "disconnected": "Disconnected"
+    },
+    "provider": {
+      "morning": "Morning (Green Invoice)"
+    },
+    "checkError": {
+      "adapter_not_live": "The live Morning connection isn't open yet. The key is saved, and no receipt goes through it until we test against a sandbox account.",
+      "auth_failed": "Morning didn't accept the key. Check that you copied the id and the secret in full.",
+      "plan_without_api": "Your Morning plan doesn't include API access. You need a plan that does (Best or higher, for example).",
+      "other": "The connection failed. Try again or check the key in Morning."
+    },
+    "field": {
+      "apiKeyId": "API Key ID",
+      "apiKeySecret": "API Key Secret"
+    },
+    "errors": {
+      "field": "One of the details doesn't look right ({field}). Check and copy it again.",
+      "notConnected": "No receipts account is connected."
+    }
+  },
   "schools": {
     "title": "Where are you working today?",
     "subtitle": "You have more than one place here. Pick one; you can switch any time from the \"Switch\" button at the top.",
@@ -6563,8 +6616,11 @@
       "link": "Connect payments"
     },
     "receipts": {
-      "title": "Receipts (Green Invoice)",
-      "soon": "Connecting the business's Green Invoice account so every payment gets a receipt automatically. Coming here soon."
+      "title": "Receipts (Morning)",
+      "connected": "Every payment gets a receipt automatically in the business's Morning account.",
+      "missing": "Not connected yet. Payments are recorded, but no receipt is issued.",
+      "failing": "The last check with Morning failed. Check the key.",
+      "link": "Connect receipts"
     },
     "bot": {
       "title": "Parents' bot",
