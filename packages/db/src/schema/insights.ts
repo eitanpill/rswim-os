@@ -294,3 +294,29 @@ export const businessMemories = pgTable(
     ),
   ],
 );
+
+/**
+ * The weekly coach's weeks (stage 8): what it advised the owner on a Sunday, with the numbers each priority stood at
+ * then, so the next Sunday it can say whether the advice worked. One row per week; `sent_at` once the WhatsApp left.
+ */
+export const coachWeeks = pgTable(
+  'coach_weeks',
+  {
+    id: id(),
+    organizationId: orgId().references(() => organizations.id, { onDelete: 'cascade' }),
+    /** The Sunday the week starts. */
+    weekOf: date('week_of').notNull(),
+    /** The week's priorities as the coach saw them (CoachPriority[] from coach-policies.ts). */
+    priorities: jsonb('priorities').notNull(),
+    /** How last week's advice went, as the coach judged it this Sunday (CoachReviewLine[]). */
+    review: jsonb('review'),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('coach_weeks_org_id').on(t.organizationId, t.id),
+    unique('coach_weeks_week').on(t.organizationId, t.weekOf),
+    check('coach_weeks_sunday_check', sql`extract(dow from ${t.weekOf}) = 0`),
+  ],
+);

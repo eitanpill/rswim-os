@@ -172,24 +172,52 @@ describe('WhatsApp approvals', () => {
   });
 
   it('reads yes and no with the number, and nothing else', () => {
-    expect(ownerReply('כן 12')).toEqual({ verb: 'confirm', ref: 12 });
-    expect(ownerReply(' אישור #7. ')).toEqual({ verb: 'confirm', ref: 7 });
-    expect(ownerReply('YES 3')).toEqual({ verb: 'confirm', ref: 3 });
-    expect(ownerReply('לא 12')).toEqual({ verb: 'dismiss', ref: 12 });
-    expect(ownerReply('no 4!')).toEqual({ verb: 'dismiss', ref: 4 });
+    expect(ownerReply('כן 12')).toEqual({ verb: 'confirm', ref: 12, refs: [12] });
+    expect(ownerReply(' אישור #7. ')).toEqual({ verb: 'confirm', ref: 7, refs: [7] });
+    expect(ownerReply('YES 3')).toEqual({ verb: 'confirm', ref: 3, refs: [3] });
+    expect(ownerReply('לא 12')).toEqual({ verb: 'dismiss', ref: 12, refs: [12] });
+    expect(ownerReply('no 4!')).toEqual({ verb: 'dismiss', ref: 4, refs: [4] });
     expect(ownerReply('כן')).toBeNull();
     expect(ownerReply('כן, נדבר מחר ב-12')).toBeNull();
     // A drop may say why; anything else after the number is not a decision.
     expect(ownerReply('לא 12 מקרה מיוחד')).toEqual({
       verb: 'dismiss',
       ref: 12,
+      refs: [12],
       reason: 'special_case',
     });
-    expect(ownerReply('לא 12 - לא עכשיו')).toEqual({ verb: 'dismiss', ref: 12, reason: 'not_now' });
-    expect(ownerReply('לא #3 קטן מדי.')).toEqual({ verb: 'dismiss', ref: 3, reason: 'too_small' });
-    expect(ownerReply('no 5 wrong')).toEqual({ verb: 'dismiss', ref: 5, reason: 'wrong' });
+    expect(ownerReply('לא 12 - לא עכשיו')).toEqual({
+      verb: 'dismiss',
+      ref: 12,
+      refs: [12],
+      reason: 'not_now',
+    });
+    expect(ownerReply('לא #3 קטן מדי.')).toEqual({
+      verb: 'dismiss',
+      ref: 3,
+      refs: [3],
+      reason: 'too_small',
+    });
+    expect(ownerReply('no 5 wrong')).toEqual({
+      verb: 'dismiss',
+      ref: 5,
+      refs: [5],
+      reason: 'wrong',
+    });
     expect(ownerReply('לא 5 מחר')).toBeNull();
     expect(ownerReply('כן 5 מיוחד')).toBeNull();
+  });
+
+  it('reads several numbers in one reply, for the weekly coach', () => {
+    expect(ownerReply('כן 12 13 14')).toEqual({ verb: 'confirm', ref: 12, refs: [12, 13, 14] });
+    expect(ownerReply('yes 3, #4,5')).toEqual({ verb: 'confirm', ref: 3, refs: [3, 4, 5] });
+    expect(ownerReply('לא 7 7 8 מקרה מיוחד')).toEqual({
+      verb: 'dismiss',
+      ref: 7,
+      refs: [7, 8],
+      reason: 'special_case',
+    });
+    expect(ownerReply(`כן ${Array.from({ length: 11 }, (_, i) => i + 1).join(' ')}`)).toBeNull();
   });
 
   it('tells the owner what happened, in both languages', () => {

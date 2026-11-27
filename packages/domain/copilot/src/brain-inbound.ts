@@ -17,7 +17,7 @@
  *
  * Everything else stays in the inbox. The rules decide the rest; no model reads those messages.
  */
-import { and, asc, desc, eq, schema, sql, type Tx } from '@rswim/db';
+import { asc, desc, eq, schema, sql, type Tx } from '@rswim/db';
 import { enqueueMessage } from '@rswim/domain-comms';
 import type { ServiceContext } from '@rswim/domain-core';
 import { instructorDay } from '@rswim/domain-dive';
@@ -65,7 +65,13 @@ export interface BrainInboundOptions {
 export type BrainInboundResult =
   | { outcome: 'skipped'; reason: string }
   | { outcome: 'remembered'; memoryId: string }
-  | { outcome: 'owner_decided'; decision: DecisionOutcome; actionId: string | null }
+  | {
+      outcome: 'owner_decided';
+      /** The first number's, as before several numbers were read. */
+      decision: DecisionOutcome;
+      actionId: string | null;
+      decisions: { ref: number; decision: DecisionOutcome; actionId: string | null }[];
+    }
   | { outcome: 'owner_asked'; requestId: string; waiting: number }
   | { outcome: 'staff_day'; date: string; lessons: number }
   | { outcome: 'staff_attendance'; lesson: boolean }
@@ -316,7 +322,10 @@ async function rememberFromWhatsApp(
   return { outcome: 'remembered', memoryId: saved.id };
 }
 
-/** "כן 12" / "לא 12": the newest action with that number, decided as the school's owner. */
+/**
+ * "כן 12" / "לא 12": the newest action with that number, decided as the school's owner. "כן 12 13 14" (the weekly
+ * coach's one reply for a priority) decides each in turn and answers in one message, a line for each.
+ */
 async function decideFromWhatsApp(
   tx: Tx,
   ctx: ServiceContext,
@@ -325,51 +334,51 @@ async function decideFromWhatsApp(
 ): Promise<BrainInboundResult> {
   const ownerId = await schoolOwner(tx);
   if (!ownerId) return { outcome: 'skipped', reason: 'no_owner' };
-  const owner = { userId: ownerId };
-  const [action] = await tx
-    .select({
-      id: copilotActions.id,
-      status: copilotActions.status,
-      summary: copilotActions.summary,
-    })
-    .from(copilotActions)
-    .where(and(eq(copilotActions.ref, reply.ref)))
-    .orderBy(desc(copilotActions.createdAt))
-    .limit(1);
-  let decision: DecisionOutcome;
-  if (!action) decision = 'not_found';
-  else if (action.status !== 'proposed') decision = 'already_decided';
-  else if (reply.verb === 'dismiss') {
-    await dismissCopilotAction(
-      tx,
-      { orgId: ctx.orgId, userId: owner.userId },
-      action.id,
-      reply.reason ?? null,
+  const owner = { orgId: ctx.orgId, userId: ownerId };
+  const decisions: { ref: number; decision: DecisionOutcome; actionId: string | null }[] = [];
+  const lines: string[] = [];
+  for (const ref of reply.refs) {
+    const [action] = await tx
+      .select({
+        id: copilotActions.id,
+        status: copilotActions.status,
+        summary: copilotActions.summary,
+      })
+      .from(copilotActions)
+      .where(eq(copilotActions.ref, ref))
+      .orderBy(desc(copilotActions.createdAt))
+      .limit(1);
+    let decision: DecisionOutcome;
+    if (!action) decision = 'not_found';
+    else if (action.status !== 'proposed') decision = 'already_decided';
+    else if (reply.verb === 'dismiss') {
+      await dismissCopilotAction(tx, owner, action.id, reply.reason ?? null);
+      decision = 'dismissed';
+    } else {
+      const out = await confirmCopilotAction(tx, owner, action.id);
+      decision = out.status;
+    }
+    decisions.push({ ref, decision, actionId: action?.id ?? null });
+    lines.push(
+      decisionText(
+        {
+          outcome: decision,
+          ref,
+          summary: action ? summaryText(action.summary as Explanation, 'he') : null,
+        },
+        'he',
+      ),
     );
-    decision = 'dismissed';
-  } else {
-    const out = await confirmCopilotAction(
-      tx,
-      { orgId: ctx.orgId, userId: owner.userId },
-      action.id,
-    );
-    decision = out.status;
   }
-  await replyTo(
-    tx,
-    ctx,
-    row,
-    decisionText(
-      {
-        outcome: decision,
-        ref: reply.ref,
-        summary: action ? summaryText(action.summary as Explanation, 'he') : null,
-      },
-      'he',
-    ),
-  );
+  await replyTo(tx, ctx, row, lines.join('\n'));
   await markHandled(tx, row, 'actioned');
-  return { outcome: 'owner_decided', decision, actionId: action?.id ?? null };
+  const first = decisions[0] as (typeof decisions)[number];
+  return {
+    outcome: 'owner_decided',
+    decision: first.decision,
+    actionId: first.actionId,
+    decisions,
+  };
 }
 
 /** An instructor cannot teach on a date: a substitute search for each lesson they lead that has not started. */
