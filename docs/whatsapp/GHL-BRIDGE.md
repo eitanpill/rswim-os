@@ -2,8 +2,14 @@
 
 A school whose WhatsApp number already lives in its GoHighLevel sub-account keeps it there. GHL is the bridge: people's
 WhatsApp messages come to us, our bots (lead bot, parents' bot, divers' bot, the brain) answer, and the answer goes out
-through GHL. We never talk to Meta for that school. Optional per business, multi-tenant: every school brings its own
-sub-account and token.
+through GHL. We never talk to Meta for that school.
+
+**Not a product option.** It exists for one customer who already runs her WhatsApp in GHL; every other business
+connects its own number on Meta. A platform admin turns it on for that business alone on `/platform` (the school's
+"manage" panel, "וואטסאפ דרך GHL"), which adds `ghl_bridge` to `org_subscriptions.extras` (synced down to a school's own
+database with the subscription). Without it the WhatsApp page shows no bridge, `connectGhlBridge` refuses
+(`ghlBridge.errors.notAllowed`), RLS hides `ghl_connections` from every role (`app.has_extra`), and the hook answers 410.
+Turning it off and on again brings the connection back as it was.
 
 ## How it works
 
@@ -54,9 +60,10 @@ re-enter it on the page, the hook URL stays.
 המטרה: אף לקוח לא מקבל שתי תשובות, ואף הודעה לא נופלת בין הכיסאות.
 
 **שלב 0: הכנה באפליקציה (לפני החיבור)**
-1. מחירים, תוכניות ושעות פתוחות מעודכנים במערכת (הבוט עונה רק ממה שיש במערכת).
-2. במסך הבוט: תשובות לשאלות הנפוצות שהבוט הישן עונה עליהן היום.
-3. "הבוט עונה ללקוחות חדשים" דלוק (מדיניות הודעות).
+1. פיט מדליק את "וואטסאפ דרך GHL" לעסק הזה בלבד ב-/platform (ניהול בית הספר). בלי זה החיבור לא מופיע במסך הוואטסאפ.
+2. מחירים, תוכניות ושעות פתוחות מעודכנים במערכת (הבוט עונה רק ממה שיש במערכת).
+3. במסך הבוט: תשובות לשאלות הנפוצות שהבוט הישן עונה עליהן היום.
+4. "הבוט עונה ללקוחות חדשים" דלוק (מדיניות הודעות).
 
 **שלב 1: חיבור במצב צל (הבוט הישן עדיין דלוק)**
 1. ב-GHL: Settings > Private Integrations > Create new integration, עם ההרשאות שבמסך החיבור. מעתיקים את הטוקן.

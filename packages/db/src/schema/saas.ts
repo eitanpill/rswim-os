@@ -25,6 +25,7 @@ import {
   DOMAIN_STATUSES,
   PLAN_FEATURES,
   PLATFORM_INVOICE_STATUSES,
+  ORG_EXTRAS,
   SUBSCRIPTION_STATUSES,
   TENANT_DATABASE_PROVIDERS,
   TENANT_DATABASE_STATUSES,
@@ -94,6 +95,11 @@ export const orgSubscriptions = pgTable(
     billingName: text('billing_name'),
     billingTaxId: text('billing_tax_id'),
     billingEmail: text('billing_email'),
+    /** Options the platform turned on for this business alone (ORG_EXTRAS), e.g. the GHL bridge. */
+    extras: text('extras')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -101,6 +107,10 @@ export const orgSubscriptions = pgTable(
     check(
       'org_subscriptions_status_check',
       sql.raw(`status in (${inList(SUBSCRIPTION_STATUSES)})`),
+    ),
+    check(
+      'org_subscriptions_extras_check',
+      sql.raw(`extras <@ array[${inList(ORG_EXTRAS)}]::text[]`),
     ),
   ],
 );

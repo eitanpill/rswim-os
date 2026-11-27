@@ -9,6 +9,7 @@ import {
   Branding,
   CatalogTemplate,
   DEFAULT_ORG_RULES,
+  OrgExtra,
   OrgRole,
   PLAN_FEATURES,
   PRODUCT,
@@ -932,6 +933,8 @@ export interface SchoolRow {
   lastPeriod: string | null;
   lastStatus: string | null;
   lastAmount: number | null;
+  /** Options the platform turned on for this school alone (ORG_EXTRAS). */
+  extras: OrgExtra[];
 }
 
 export async function listSchools(tx: Tx): Promise<SchoolRow[]> {
@@ -941,6 +944,10 @@ export async function listSchools(tx: Tx): Promise<SchoolRow[]> {
                mandate_id, students::int, staff::int, venues::int, last_period::text, last_status, last_amount
         from public.platform_schools()`,
   );
+  const subs = await tx
+    .select({ organizationId: orgSubscriptions.organizationId, extras: orgSubscriptions.extras })
+    .from(orgSubscriptions);
+  const extrasOf = new Map(subs.map((x) => [x.organizationId, x.extras]));
   return list.map((r) => ({
     organizationId: r.organization_id as string,
     name: r.name as string,
@@ -957,13 +964,19 @@ export async function listSchools(tx: Tx): Promise<SchoolRow[]> {
     lastPeriod: (r.last_period as string | null) ?? null,
     lastStatus: (r.last_status as string | null) ?? null,
     lastAmount: (r.last_amount as number | null) ?? null,
+    extras: (extrasOf.get(r.organization_id as string) ?? []).filter(
+      (x): x is OrgExtra => OrgExtra.safeParse(x).success,
+    ),
   }));
 }
 
 export const SchoolUpdateInput = z.object({
   organizationId: z.uuid(),
-  action: z.enum(['plan', 'endTrial', 'suspend', 'reactivate', 'mandate']),
+  action: z.enum(['plan', 'endTrial', 'suspend', 'reactivate', 'mandate', 'extra']),
   planCode: z.string().optional(),
+  /** action 'extra': which option, and on ('1') or off. */
+  extra: OrgExtra.optional(),
+  on: z.enum(['0', '1']).optional(),
   mandateId: z
     .string()
     .trim()
@@ -974,7 +987,10 @@ export const SchoolUpdateInput = z.object({
 });
 export type SchoolUpdateInput = z.input<typeof SchoolUpdateInput>;
 
-/** A platform admin changes a school's plan, ends its trial, suspends or reactivates it, or records its mandate. */
+/**
+ * A platform admin changes a school's plan, ends its trial, suspends or reactivates it, records its mandate, or turns
+ * one of the options kept for single businesses on or off (the GHL bridge).
+ */
 export async function updateSchool(tx: Tx, raw: SchoolUpdateInput, today: string) {
   const input = SchoolUpdateInput.parse(raw);
   await assertPlatformAdmin(tx);
@@ -1010,6 +1026,15 @@ export async function updateSchool(tx: Tx, raw: SchoolUpdateInput, today: string
     case 'reactivate':
       await tx.update(orgSubscriptions).set({ status: 'active', pastDueSince: null }).where(where);
       return;
+    case 'extra': {
+      if (!input.extra || !input.on) throw new DomainError('platform.errors.extra');
+      const rest = sub.extras.filter((x) => x !== input.extra);
+      await tx
+        .update(orgSubscriptions)
+        .set({ extras: input.on === '1' ? [...rest, input.extra] : rest })
+        .where(where);
+      return;
+    }
     default:
       await tx
         .update(orgSubscriptions)

@@ -960,7 +960,17 @@
         "active": "Active",
         "trialing": "On trial",
         "trouble": "Need attention"
-      }
+      },
+      "extras": "Options for this customer only",
+      "extrasHint": "Not part of any plan; other owners never see them.",
+      "extra": {
+        "ghl_bridge": "WhatsApp through GHL"
+      },
+      "extraOn": "On",
+      "extraOff": "Off",
+      "turnOn": "Turn on",
+      "turnOff": "Turn off",
+      "turnOffConfirm": "Turn off? The business's GHL connection stops working and is hidden; it comes back as it was if you turn it on again."
     },
     "review": {
       "title": "Templates to review",
@@ -1005,7 +1015,8 @@
       "billingName": "A name of 2 to 120 characters",
       "billingTaxId": "A number of 5 to 9 digits",
       "billingEmail": "Invalid email address",
-      "aiCap": "This month's AI actions are used up. A bigger plan raises the allowance, on the plan page."
+      "aiCap": "This month's AI actions are used up. A bigger plan raises the allowance, on the plan page.",
+      "extra": "Unknown option"
     },
     "network": {
       "kicker": "From the top bridge",
@@ -7313,7 +7324,8 @@
       "noMasterKey": "The server has no encryption key; contact support",
       "ownerOnly": "Only the business owner can connect",
       "notConnected": "No active GHL connection",
-      "checkFirst": "A successful connection check comes first"
+      "checkFirst": "A successful connection check comes first",
+      "notAllowed": "The GHL connection is not open to this business"
     }
   }
 }
