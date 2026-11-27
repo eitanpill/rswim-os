@@ -77,7 +77,9 @@ adapters are not live until tested against a processor's sandbox account. The wo
 Cardcom (`cardcom.ts`, `docs/payments/CARDCOM.md`) is the first real adapter: a business's Cardcom runs only with
 `RSWIM_CARDCOM_LIVE=1`; the platform's own terminal (`PLATFORM_CARDCOM_*`, web and worker) opens the sign-up card step
 and charges subscriptions (`platformPaymentProvider()` in the worker, never a school's customers). Cardcom's webhook is
-not signed: we only trust what `LowProfile/GetLpResult` answers for our own terminal.
+not signed: we only trust what `LowProfile/GetLpResult` answers for our own terminal. Grow (`grow-gateway.ts`,
+`docs/payments/GROW.md`) is the second: live only with `RSWIM_GROW_LIVE=1`, the platform's Grow key is
+`GROW_PLATFORM_API_KEY`, and its unsigned callback is trusted only through `getPaymentProcessInfo`.
 
 WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, or to an in-memory fake with
 `RSWIM_MESSAGING_FAKE=1` (a phone containing 0000000 fails). Inbound WhatsApp arrives on the same GHL webhook route
