@@ -40,6 +40,7 @@ const config: CapacitorConfig = {
       '*.meshulam.co.il',
       '*.grow.business',
       '*.cardcom.solutions',
+      '*.sumit.co.il',
       '*.tranzila.com',
       '*.payplus.co.il',
     ],

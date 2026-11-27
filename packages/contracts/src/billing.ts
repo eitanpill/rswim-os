@@ -206,7 +206,14 @@ export function isValidIsraeliId(raw: string): boolean {
  * Processors a business can connect. `fake` is the demo processor (local, CI, the live demo). Real adapters plug in
  * behind the same interface (`@rswim/integrations` gateways), one per processor.
  */
-export const PAYMENT_GATEWAY_KINDS = ['grow', 'cardcom', 'tranzila', 'payplus', 'fake'] as const;
+export const PAYMENT_GATEWAY_KINDS = [
+  'grow',
+  'cardcom',
+  'sumit',
+  'tranzila',
+  'payplus',
+  'fake',
+] as const;
 export const PaymentGatewayKind = z.enum(PAYMENT_GATEWAY_KINDS);
 export type PaymentGatewayKind = z.infer<typeof PaymentGatewayKind>;
 

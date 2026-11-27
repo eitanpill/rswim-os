@@ -10,6 +10,7 @@ import {
   CardcomGateway,
   CardcomPlatformProvider,
   cardcomMandateId,
+  cardcomNoneId,
   cardcomReturnValue,
   cardcomUniqTranId,
   createGateway,
@@ -427,7 +428,7 @@ describe('Cardcom as a business processor', () => {
     );
     expect(await noId.chargeStandingOrder(c, req)).toMatchObject({
       status: 'failed',
-      externalPaymentId: 'cardcom_none',
+      externalPaymentId: cardcomNoneId(c.idempotencyKey),
     });
   });
 

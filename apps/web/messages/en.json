@@ -6042,7 +6042,8 @@
       "appKey": "App key",
       "secretKey": "Secret key",
       "paymentPageUid": "Payment page ID",
-      "merchantId": "Merchant ID (demo)"
+      "merchantId": "Merchant ID (demo)",
+      "companyId": "SUMIT company number"
     },
     "errors": {
       "notConnected": "Online payment isn't available right now. Contact the business.",

@@ -487,9 +487,10 @@ export class GrowGateway implements PaymentGateway {
     ctx: ProviderContext,
     req: { mandateId: string; amount: Agorot; description: string },
   ): Promise<ChargeResult> {
+    // A failed charge's id when Grow gave none: unique per charge, since a payment's external id is unique.
+    const none = `grow_none:${growUniqueId(ctx.idempotencyKey).slice(0, 24)}`;
     const m = parseGrowMandate(req.mandateId);
-    if (!m)
-      return { externalPaymentId: 'grow_none', status: 'failed', failureReason: 'bad_mandate' };
+    if (!m) return { externalPaymentId: none, status: 'failed', failureReason: 'bad_mandate' };
     try {
       const data = await this.client.post('createTransactionWithToken', {
         userId: this.client.creds.userId,
@@ -505,7 +506,7 @@ export class GrowGateway implements PaymentGateway {
       if (t.success && t.data.statusCode === GROW_PAID)
         return { externalPaymentId: growPaymentId(t.data), status: 'succeeded' };
       return {
-        externalPaymentId: t.success ? growPaymentId(t.data) : 'grow_none',
+        externalPaymentId: t.success ? growPaymentId(t.data) : none,
         status: 'failed',
         failureReason: t.success ? `grow_status_${t.data.statusCode}` : 'grow_unexpected',
       };
@@ -513,7 +514,7 @@ export class GrowGateway implements PaymentGateway {
       // Grow answered with a refusal (an error id): the charge did not happen. A network or HTTP error is retried.
       if (e instanceof GrowError && !e.http && e.code !== null)
         return {
-          externalPaymentId: 'grow_none',
+          externalPaymentId: none,
           status: 'failed',
           failureReason: `grow_${e.code}`,
         };

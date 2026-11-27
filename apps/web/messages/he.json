@@ -6042,7 +6042,8 @@
       "appKey": "מפתח אפליקציה (App Key)",
       "secretKey": "מפתח סודי (Secret)",
       "paymentPageUid": "מזהה דף תשלום",
-      "merchantId": "מזהה בית עסק (דמו)"
+      "merchantId": "מזהה בית עסק (דמו)",
+      "companyId": "מספר חברה ב-SUMIT"
     },
     "errors": {
       "notConnected": "התשלום אונליין לא זמין כרגע. פנו לעסק.",

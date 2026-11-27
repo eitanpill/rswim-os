@@ -80,7 +80,9 @@ Cardcom (`cardcom.ts`, `docs/payments/CARDCOM.md`) is the first real adapter: a 
 and charges subscriptions (`platformPaymentProvider()` in the worker, never a school's customers). Cardcom's webhook is
 not signed: we only trust what `LowProfile/GetLpResult` answers for our own terminal. Grow (`grow-gateway.ts`,
 `docs/payments/GROW.md`) is the second: live only with `RSWIM_GROW_LIVE=1`, the platform's Grow key is
-`GROW_PLATFORM_API_KEY`, and its unsigned callback is trusted only through `getPaymentProcessInfo`.
+`GROW_PLATFORM_API_KEY`, and its unsigned callback is trusted only through `getPaymentProcessInfo`. SUMIT (`sumit.ts`, `docs/payments/SUMIT.md`) is the
+third: live only with `RSWIM_SUMIT_LIVE=1`, card and standing order on its hosted page, its unsigned IPN trusted only
+through `billing/payments/get`, refunds made in SUMIT.
 
 WhatsApp goes through GHL conversations: the worker sends with `GHL_API_TOKEN`, or to an in-memory fake with
 `RSWIM_MESSAGING_FAKE=1` (a phone containing 0000000 fails). Inbound WhatsApp arrives on the same GHL webhook route
