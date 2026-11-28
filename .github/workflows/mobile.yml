@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Test builds load staging; the store builds will load production (the default in capacitor.config.ts).
+  # Test builds (android, ios) load staging; the store builds (play, testflight) load production, set on their jobs.
   AQUA_APP_URL: https://staging.aqua-swim.co.il
 
 jobs:
@@ -64,6 +64,8 @@ jobs:
     env:
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_B64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' }}
       HAS_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+      # What people install from the store opens the live site.
+      AQUA_APP_URL: https://app.aqua-swim.co.il
     steps:
       - name: Skip without the upload key
         if: env.HAS_KEYSTORE != 'true'
@@ -158,6 +160,8 @@ jobs:
     timeout-minutes: 60
     env:
       HAS_KEY: ${{ secrets.APPSTORE_P8 != '' && secrets.APPSTORE_KEY_ID != '' && secrets.APPSTORE_ISSUER_ID != '' }}
+      # What people install from TestFlight and the App Store opens the live site.
+      AQUA_APP_URL: https://app.aqua-swim.co.il
     steps:
       - name: Skip without the App Store Connect key
         if: env.HAS_KEY != 'true'
