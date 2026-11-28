@@ -5977,7 +5977,12 @@
       "sent": "Sent on WhatsApp",
       "notSent": "Not sent",
       "priorities": "{count, plural, =0 {nothing to act on} one {one thing to act on} other {# things to act on}}",
-      "checkedThen": "How the advice of the week before went:"
+      "checkedThen": "How the advice of the week before went:",
+      "month": {
+        "title": "Last month in review",
+        "when": "Sent to the approvals WhatsApp on the 1st of every month at 08:30, with next month's forecast. Rules only, no AI cost.",
+        "empty": "Nothing to sum up for last month."
+      }
     }
   },
   "payments": {

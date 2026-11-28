@@ -25,6 +25,7 @@ import {
   brainEveningSummary,
   brainLearning,
   brainMemory,
+  brainMonthlyReport,
   brainMorningCheck,
   brainWeeklyCoach,
 } from './brain';
@@ -116,5 +117,6 @@ export const functions = [
   brainMemory,
   brainLearning,
   brainWeeklyCoach,
+  brainMonthlyReport,
   crmPipelineSync,
 ];

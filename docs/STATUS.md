@@ -590,6 +590,16 @@ verified yet: any real processor; every processor runs as the sandboxed demo pro
 - Rules only: no AI cost on any level.
 - Verified: pure rules at 100% branch coverage, the demo tenant in `packages/seed/test/brain-staff.test.ts` (sent week
   kept, the check, several numbers in one reply, owner-only rows), RLS sweep.
-- Not built: a monthly coach report (the assistant's `month_report` answers about a month), and a coach for
-  freediving clubs (they have no months in the brain's memory yet).
+- Not built: a coach for freediving clubs (they have no months in the brain's memory yet).
 - Not verified: real WhatsApp delivery (messaging runs on the fake).
+
+## Brain stage 8: the monthly report (2026-11-28)
+
+- On the 1st at 08:30 the owner's approvals number gets the month that ended (`brain-monthly-report`, rules only, no AI
+  cost): places against the month before and last year, joined/left, trials, absences, charged against collected,
+  how the coach's advice went, what the brain did and what she decided, and next month's forecast. Same switch as the
+  evening summary; once a month; nothing for an empty month.
+- `/admin/brain/coach` shows last month's report above the weeks.
+- Verified: pure rules at 100% branch coverage, the demo tenant in `packages/seed/test/brain-monthly.test.ts` (sent
+  once, off, no number), the coach screen in `apps/web/e2e/brain.spec.ts`.
+- Not built: a coach for freediving clubs. Not verified: real WhatsApp delivery (messaging runs on the fake).

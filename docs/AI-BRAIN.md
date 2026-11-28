@@ -209,6 +209,15 @@ check on the week before. Once the message went out the priorities stay as sent;
 was sent (no approvals number), so the screen and next week's check work. `/admin/brain/coach` shows this week's note
 in her language and the last 12 weeks with how their advice went.
 
+### The monthly report
+
+On the 1st at 08:30 (worker `brain-monthly-report`, `monthly-policies.ts`, `monthly.ts`, rules only) the same number
+gets the month that ended in one message, under the same switch: places at month end against the month before and the
+same month last year (from memory, or worked out now when no snapshot exists), who joined and left, trials and
+absences, charged against collected, cancelled lessons, how the coach's advice went over the month's Sundays (moved
+forward / done), what the brain did alone and what she approved, dropped or took back, and the forecast's next month.
+A month with nothing in it sends nothing; once per month (`agent.month:<YYYY-MM>`). `/admin/brain/coach` shows it.
+
 ## Stages
 
 1. **Engine** (PR #26): gate, settings, journal and undo, the screens; the chat's moves, messages, makeup slots and
@@ -222,10 +231,11 @@ in her language and the last 12 weeks with how their advice went.
    about the past from it.
 6. **Learning the owner** (PR #33): approvals, take-backs and the reasons she drops proposals turn into suggested
    levels and a morning check that stops asking what she said no to.
-7. **Looking ahead** (this PR): the next three months as ranges, warnings, and holidays, the summer and the school
+7. **Looking ahead** (PR #92): the next three months as ranges, warnings, and holidays, the summer and the school
    year 2-6 weeks away against last year, on the home screen, a forecast page, the weekly coach, the evening summary
    and the assistant.
 8. **A weekly coach** (W8, then this PR): Sunday's note with what went well, last week's advice checked, three
-   priorities each with one reply that carries it out ("כן 12 13"), and what is ahead; `/admin/brain/coach`.
+   priorities each with one reply that carries it out ("כן 12 13"), and what is ahead; `/admin/brain/coach`
+   (PR #93). Then the monthly report on the 1st (this PR).
 
 Kinds not wired yet show as "soon" in the settings.
