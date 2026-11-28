@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { coachWeekView, isAgentOwner, reviewLine } from '@rswim/domain-copilot';
+import {
+  coachWeekView,
+  isAgentOwner,
+  monthlyFacts,
+  monthlyText,
+  reviewLine,
+} from '@rswim/domain-copilot';
+import { todayIL } from '@rswim/domain-reports';
 import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
 import { withSession } from '@/lib/db';
 
@@ -14,7 +21,12 @@ export default async function BrainCoachPage() {
   const t = await getTranslations('agent.coach');
   const locale = (await getLocale()) === 'en' ? 'en' : 'he';
   const view = await withSession(async (tx) =>
-    (await isAgentOwner(tx)) ? coachWeekView(tx, locale) : null,
+    (await isAgentOwner(tx))
+      ? {
+          ...(await coachWeekView(tx, locale)),
+          month: monthlyText(await monthlyFacts(tx, await todayIL(tx)), locale),
+        }
+      : null,
   );
   const header = (
     <PageHeader
@@ -53,6 +65,19 @@ export default async function BrainCoachPage() {
             </>
           ) : (
             <EmptyState icon="🌤️" title={t('nothing')} />
+          )}
+        </Card>
+        <Card data-testid="coach-month">
+          <CardTitle>{t('month.title')}</CardTitle>
+          {view.month ? (
+            <>
+              <p className="whitespace-pre-line text-sm leading-6" data-testid="coach-month-note">
+                {view.month}
+              </p>
+              <p className="mt-3 text-xs text-ink-muted">{t('month.when')}</p>
+            </>
+          ) : (
+            <EmptyState icon="🗓️" title={t('month.empty')} />
           )}
         </Card>
         <Card data-testid="coach-history">

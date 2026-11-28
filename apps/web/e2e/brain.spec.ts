@@ -171,6 +171,9 @@ test("the owner reads the weekly coach: this week's note and the weeks it kept",
   await expect(page).toHaveURL(/\/admin\/brain\/coach$/);
   await expect(page.getByTestId('coach-this-week')).toContainText('השבוע');
   await expect(page.getByTestId('coach-history')).toContainText('השבועות הקודמים');
+  // Last month in review: the demo school has a month behind it.
+  await expect(page.getByTestId('coach-month-note')).toContainText('📊 סיכום');
+  await expect(page.getByTestId('coach-month-note')).toContainText('בסוף החודש');
 });
 
 test('the office admin cannot read the weekly coach', async ({ page }) => {

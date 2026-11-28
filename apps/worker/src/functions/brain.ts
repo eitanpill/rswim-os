@@ -13,6 +13,7 @@ import {
   runMorningCheck,
   sendEveningSummary,
   sendLearningDigest,
+  sendMonthlyReport,
   sendWeeklyCoach,
 } from '@rswim/domain-copilot';
 import { todayIL } from '@rswim/domain-scheduling';
@@ -125,6 +126,29 @@ export const brainWeeklyCoach = inngest.createFunction(
             ownerCopilotModel(await aiLevel(tx), await todayIL(tx)),
           ),
         ),
+      );
+      if (r.sent) sent++;
+    }
+    return { orgs: orgIds.length, sent };
+  },
+);
+
+/**
+ * The monthly report (stage 8): on the 1st at 08:30 each owner's approvals number gets the month that ended: its
+ * numbers against the month before and last year, how the coach's advice went, what the brain did, and next month.
+ */
+export const brainMonthlyReport = inngest.createFunction(
+  {
+    id: 'brain-monthly-report',
+    triggers: [{ cron: 'TZ=Asia/Jerusalem 30 8 1 * *' }, { event: 'brain/month.run' }],
+    concurrency: { limit: 1 },
+  },
+  async ({ step }) => {
+    const orgIds = await step.run('find-orgs', allOrgs);
+    let sent = 0;
+    for (const orgId of orgIds) {
+      const r = await step.run(`month-${orgId}`, () =>
+        withOrg(getDb(), orgId, (tx) => sendMonthlyReport(tx, { orgId, userId: null })),
       );
       if (r.sent) sent++;
     }

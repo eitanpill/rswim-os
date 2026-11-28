@@ -13,6 +13,7 @@ export default defineConfig({
         'src/agent-policies.ts',
         'src/coach-policies.ts',
         'src/forecast-policies.ts',
+        'src/monthly-policies.ts',
         'src/memory-policies.ts',
         'src/learning-policies.ts',
         'src/lead-bot-policies.ts',
