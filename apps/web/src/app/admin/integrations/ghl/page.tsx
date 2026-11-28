@@ -1,9 +1,11 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { ghlSettings, listImportRuns } from '@rswim/domain-crm';
 import { Badge, Card, CardTitle, EmptyState, PageHeader } from '@rswim/ui';
-import { ActionButton, ActionForm, Field, SubmitButton } from '@/components/form';
+import { ActionButton } from '@/components/form';
+import { GhlConnectionView } from '@/components/ghl/connection';
+import { requireSurface } from '@/lib/auth/session';
 import { withSession } from '@/lib/db';
-import { requestImportAction, saveGhlLocationAction } from './actions';
+import { requestImportAction } from './actions';
 
 const STAT_KEYS = [
   'create',
@@ -14,7 +16,12 @@ const STAT_KEYS = [
   'skipped',
 ] as const;
 
+/**
+ * A swim school's GHL sub-account: the owner connects it here (location id + Private Integration token), sees what it
+ * holds, and brings its contacts in.
+ */
 export default async function GhlPage() {
+  const session = await requireSurface('admin');
   const t = await getTranslations('crm');
   const format = await getFormatter();
   const { settings, runs } = await withSession(async (tx, ctx) => ({
@@ -24,36 +31,10 @@ export default async function GhlPage() {
   return (
     <>
       <PageHeader icon="🔌" title={t('title')} subtitle={t('subtitle')} />
-      <div className="flex flex-col gap-4">
-        <Card>
-          <CardTitle
-            aside={
-              <Badge tone={settings ? 'ok' : 'warn'}>
-                {settings ? t('connected') : t('notConnected')}
-              </Badge>
-            }
-          >
-            {t('location')}
-          </CardTitle>
-          <p className="mb-3 text-sm text-ink-muted">{t('locationHint')}</p>
-          <ActionForm action={saveGhlLocationAction}>
-            <Field
-              name="locationId"
-              label={t('locationId')}
-              dir="ltr"
-              defaultValue={settings?.locationId ?? ''}
-            />
-            <div>
-              <SubmitButton variant="secondary">{t('saveLocation')}</SubmitButton>
-            </div>
-          </ActionForm>
-          {settings ? (
-            <p className="mt-3 text-sm text-ink-muted">
-              {t('tagMap', { count: Object.keys(settings.tagMap).length })}
-            </p>
-          ) : null}
-        </Card>
-
+      <GhlConnectionView
+        owner={session.role === 'owner'}
+        whatsappHref="/admin/integrations/whatsapp"
+      >
         <Card>
           <CardTitle>{t('import')}</CardTitle>
           <p className="mb-3 text-sm text-ink-muted">{t('importHint')}</p>
@@ -130,7 +111,7 @@ export default async function GhlPage() {
             </ul>
           )}
         </Card>
-      </div>
+      </GhlConnectionView>
     </>
   );
 }

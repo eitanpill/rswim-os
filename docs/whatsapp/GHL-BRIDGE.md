@@ -4,12 +4,14 @@ A school whose WhatsApp number already lives in its GoHighLevel sub-account keep
 WhatsApp messages come to us, our bots (lead bot, parents' bot, divers' bot, the brain) answer, and the answer goes out
 through GHL. We never talk to Meta for that school.
 
-**Not a product option.** It exists for one customer who already runs her WhatsApp in GHL; every other business
-connects its own number on Meta. A platform admin turns it on for that business alone on `/platform` (the school's
-"manage" panel, "וואטסאפ דרך GHL"), which adds `ghl_bridge` to `org_subscriptions.extras` (synced down to a school's own
-database with the subscription). Without it the WhatsApp page shows no bridge, `connectGhlBridge` refuses
-(`ghlBridge.errors.notAllowed`), RLS hides `ghl_connections` from every role (`app.has_extra`), and the hook answers 410.
-Turning it off and on again brings the connection back as it was.
+**Open to every business (2026-11-28, feature A1).** The owner connects the business's GHL sub-account on its GHL page
+(`/admin/integrations/ghl`, `/dive/ghl`; component `components/ghl/connection.tsx`): location id + Private Integration
+token. The worker checks it and surveys the sub-account (`GhlBridgeClient.survey()`: contacts, pipelines, tags, WhatsApp
+conversations, missing permissions, kept in `ghl_connections.summary`). WhatsApp through GHL is a second step on the
+WhatsApp page, for a number already connected to WhatsApp inside GHL officially: the owner turns it on
+(`setGhlWhatsApp`, `ghl_connections.whatsapp`) after a passed check, and it starts in shadow mode. With it off the hook
+answers "not connected", nothing is read from GHL's conversations and nothing is sent through GHL. The platform's
+`ghl_bridge` option (2026-11-27) is retired; migration 0090 turned `whatsapp` on for the connections made before.
 
 ## How it works
 
@@ -51,8 +53,8 @@ Not verified against a live sub-account yet: the exact `messageType` GHL gives W
 messages response shape (both a bare list and `{ messages: { messages } }` are read), and the Version headers
 (`2021-07-28` for locations/contacts, `2021-04-15` for conversations).
 
-Scopes for the Private Integration: View Locations, View Contacts, Edit Contacts, View Conversations, View Conversation
-Messages, Edit Conversation Messages. GHL recommends rotating the token every 90 days (7 days where both work):
+Scopes for the Private Integration: View Locations, View Contacts, Edit Contacts, View Opportunities, View Tags, View
+Conversations, View Conversation Messages, Edit Conversation Messages. GHL recommends rotating the token every 90 days (7 days where both work):
 re-enter it on the page, the hook URL stays.
 
 ## מעבר בטוח מהבוט הישן ב-GHL (רשימת צעדים לבעל/ת העסק)
@@ -60,7 +62,7 @@ re-enter it on the page, the hook URL stays.
 המטרה: אף לקוח לא מקבל שתי תשובות, ואף הודעה לא נופלת בין הכיסאות.
 
 **שלב 0: הכנה באפליקציה (לפני החיבור)**
-1. פיט מדליק את "וואטסאפ דרך GHL" לעסק הזה בלבד ב-/platform (ניהול בית הספר). בלי זה החיבור לא מופיע במסך הוואטסאפ.
+1. בעל/ת העסק מחבר/ת את החשבון ב-GHL במסך "חיבור ל-GHL" ומחכה שהבדיקה תעבור.
 2. מחירים, תוכניות ושעות פתוחות מעודכנים במערכת (הבוט עונה רק ממה שיש במערכת).
 3. במסך הבוט: תשובות לשאלות הנפוצות שהבוט הישן עונה עליהן היום.
 4. "הבוט עונה ללקוחות חדשים" דלוק (מדיניות הודעות).

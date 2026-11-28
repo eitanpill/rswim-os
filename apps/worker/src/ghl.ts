@@ -70,7 +70,7 @@ let fakeCloud: FakeMessagingProvider | undefined;
  *   the 24-hour window, approved templates outside it. A refused send is kept on the connection for the owner.
  * - RSWIM_MESSAGING_FAKE=1: in-memory WhatsApp for local demos and CI (with the window rules when a number is
  *   connected). Never touches a real account.
- * - The business's own GHL sub-account when the owner connected it (the GHL bridge), with its own token.
+ * - The business's own GHL sub-account when the owner runs WhatsApp through it (the GHL bridge), with its own token.
  * - Otherwise WhatsApp through the org's GHL location with GHL_API_TOKEN.
  */
 export async function messagingFor(tx: Tx, orgId: string): Promise<MessagingProvider | null> {
@@ -96,8 +96,10 @@ export async function messagingFor(tx: Tx, orgId: string): Promise<MessagingProv
       },
     };
   }
-  // The business's own GHL sub-account (the GHL bridge): its token, and GHL's refusals kept for the owner.
+  // The business's own GHL sub-account (the GHL bridge) when its WhatsApp runs there: its token, and GHL's refusals
+  // kept for the owner. A connection for contacts only sends nothing through GHL (nor through the platform's token).
   const bridge = await loadGhlBridge(tx, orgId);
+  if (bridge && !bridge.whatsapp) return null;
   if (bridge) {
     const ghl = new GhlMessagingProvider({ token: bridge.token, locationId: bridge.locationId });
     return {

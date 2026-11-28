@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { GhlBridgeConnectInput, GhlBridgeModeInput } from '@rswim/contracts';
+import { GhlBridgeConnectInput, GhlBridgeModeInput, GhlWhatsAppInput } from '@rswim/contracts';
 import {
   connectGhlBridge,
   disconnectGhlBridge,
@@ -9,15 +9,20 @@ import {
   requestGhlBridgeCheck,
   sendSuggestion,
   setGhlBridgeMode,
+  setGhlWhatsApp,
 } from '@rswim/domain-comms';
 import type { FormState } from '@/lib/form-state';
 import { runForm } from '@/lib/forms';
 
-/** The WhatsApp page of a swim school and of a freediving club, and the screens that show what is connected. */
+/**
+ * The GHL connection page and the WhatsApp page of a swim school and of a freediving club, and the screens that show
+ * what is connected.
+ */
 const ALL = [
   '/admin/integrations/whatsapp',
   '/dive/whatsapp',
   '/admin/integrations/ghl',
+  '/dive/ghl',
   '/admin/connections',
   '/dive/connections',
 ];
@@ -41,6 +46,14 @@ export async function checkGhlBridgeAction(_: FormState, fd: FormData) {
 /** Shadow (the bots suggest) or live (the bots answer). */
 export async function ghlBridgeModeAction(_: FormState, fd: FormData) {
   return runForm(fd, GhlBridgeModeInput, (tx, _ctx, input) => setGhlBridgeMode(tx, input), {
+    revalidate: ALL,
+    success: 'ghlBridge.modeSaved',
+  });
+}
+
+/** The owner runs WhatsApp through the GHL connection (always starting in shadow mode), or stops. */
+export async function ghlWhatsAppAction(_: FormState, fd: FormData) {
+  return runForm(fd, GhlWhatsAppInput, (tx, _ctx, input) => setGhlWhatsApp(tx, input), {
     revalidate: ALL,
     success: 'ghlBridge.modeSaved',
   });

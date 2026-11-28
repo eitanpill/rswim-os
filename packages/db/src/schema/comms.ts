@@ -420,6 +420,11 @@ export const whatsappConnections = pgTable(
  * sub-account's Private Integration token, sealed with the org's data key. `mode` shadow keeps every bot answer as a
  * suggestion for a person; live lets them answer. `foreign_replies` counts answers in GHL that we did not send (a
  * person in GHL, or the old GHL bot still on): each one gives that conversation to a person.
+ *
+ * Since 2026-11-28 any business connects its sub-account itself (the GHL connection): `summary` keeps what the check
+ * found there (contacts, pipelines, tags, WhatsApp conversations, missing permissions), and `whatsapp` says whether the
+ * business also chose to run its WhatsApp through it. Without that, nothing is read from or sent through GHL's
+ * conversations, and the connection serves only contacts and pipelines.
  */
 export const ghlConnections = pgTable(
   'ghl_connections',
@@ -438,6 +443,8 @@ export const ghlConnections = pgTable(
     lastError: text('last_error'),
     foreignReplies: integer('foreign_replies').notNull().default(0),
     lastForeignAt: timestamp('last_foreign_at', { withTimezone: true }),
+    whatsapp: boolean('whatsapp').notNull().default(false),
+    summary: jsonb('summary'),
     connectedBy: uuid('connected_by'),
     connectedAt: timestamp('connected_at', { withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),

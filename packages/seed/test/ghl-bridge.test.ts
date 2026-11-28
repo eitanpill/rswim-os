@@ -21,13 +21,14 @@ import {
   dismissSuggestion,
   getChat,
   ghlBridge,
-  ghlBridgeAllowed,
+  ghlBridgeMode,
   ingestGhlBridgeHook,
   loadGhlBridge,
   runGhlBridgeCheck,
   runGhlBridgePull,
   sendSuggestion,
   setGhlBridgeMode,
+  setGhlWhatsApp,
   GHL_BRIDGE_PULL_REQUESTED,
   type LoadedGhlBridge,
 } from '@rswim/domain-comms';
@@ -80,22 +81,12 @@ afterAll(async () => {
   await t.drop();
 });
 
-const setExtra = async (on: boolean) => {
-  const r = await t.pool.query(
-    `update org_subscriptions set extras = $2 where organization_id = $1`,
-    [DEMO_ORG.id, on ? ['ghl_bridge'] : []],
-  );
-  expect(r.rowCount).toBe(1);
-};
-
-describe('kept for the one business the platform gives it to', () => {
-  it('is refused, and not shown, until the platform turns it on', async () => {
-    expect(await owner((tx) => ghlBridgeAllowed(tx))).toBe(false);
-    await expect(
-      owner((tx) => connectGhlBridge(tx, office, { locationId: LOCATION, token: TOKEN })),
-    ).rejects.toMatchObject({ code: 'ghlBridge.errors.notAllowed' });
-    await setExtra(true);
-    expect(await owner((tx) => ghlBridgeAllowed(tx))).toBe(true);
+describe('open to every business (A1, 2026-11-28)', () => {
+  it('needs no option from the platform', async () => {
+    const [sub] = await q(`select extras from org_subscriptions where organization_id = $1`, [
+      DEMO_ORG.id,
+    ]);
+    expect(sub.extras).toEqual([]);
   });
 });
 
@@ -120,8 +111,8 @@ describe('connecting the sub-account', () => {
     expect(s.loc).toBe(LOCATION);
   });
 
-  it('cannot go live before the check passed; the check keeps what GHL said', async () => {
-    await expect(owner((tx) => setGhlBridgeMode(tx, { mode: 'live' }))).rejects.toMatchObject({
+  it('cannot run WhatsApp before the check passed; the check keeps what GHL said', async () => {
+    await expect(owner((tx) => setGhlWhatsApp(tx, { on: '1' }))).rejects.toMatchObject({
       code: 'ghlBridge.errors.checkFirst',
     });
     expect(
@@ -134,7 +125,35 @@ describe('connecting the sub-account', () => {
     expect(await owner((tx) => ghlBridge(tx))).toMatchObject({
       checkError: null,
       locationName: 'Fake sub-account',
+      whatsapp: false,
+      summary: { pipelines: [{ name: 'Fake pipeline' }], tags: 1, missing: [] },
     });
+  });
+
+  it('tells the owner which permission the token lacks', async () => {
+    const lacking = new FakeGhlBridgeClient('loc-nopipes');
+    expect(await system(async (tx) => runGhlBridgeCheck(tx, await bridge(), lacking))).toBe('ok');
+    expect((await owner((tx) => ghlBridge(tx)))?.summary).toMatchObject({
+      pipelines: null,
+      missing: ['pipelines'],
+    });
+    await system(async (tx) => runGhlBridgeCheck(tx, await bridge(), fake));
+  });
+
+  it('serves contacts only until the owner runs WhatsApp through it', async () => {
+    const view = (await owner((tx) => ghlBridge(tx))) as NonNullable<
+      Awaited<ReturnType<typeof ghlBridge>>
+    >;
+    const body = JSON.stringify({ contact_id: 'contact-lead-1' });
+    expect(await ingestGhlBridgeHook(t.db, view.id, view.hookToken, body)).toBe('not_connected');
+    expect(await owner((tx) => ghlBridgeMode(tx))).toBeNull();
+    expect((await bridge()).whatsapp).toBe(false);
+    await expect(owner((tx) => setGhlBridgeMode(tx, { mode: 'live' }))).rejects.toMatchObject({
+      code: 'ghlBridge.errors.whatsappOff',
+    });
+    await owner((tx) => setGhlWhatsApp(tx, { on: '1' }));
+    expect(await owner((tx) => ghlBridgeMode(tx))).toBe('shadow');
+    expect((await bridge()).whatsapp).toBe(true);
   });
 });
 
@@ -331,17 +350,27 @@ describe('live mode', () => {
   });
 });
 
-describe('turning the option off', () => {
-  it('hides the connection everywhere and stops the hook; turning it on brings it back as it was', async () => {
+describe('stopping WhatsApp through GHL', () => {
+  it('stops the hook and the bots’ mode but keeps the connection for contacts', async () => {
     const view = (await owner((tx) => ghlBridge(tx))) as NonNullable<
       Awaited<ReturnType<typeof ghlBridge>>
     >;
     const body = JSON.stringify({ contact_id: 'contact-lead-1' });
-    await setExtra(false);
-    expect(await owner((tx) => ghlBridge(tx))).toBeNull();
-    expect(await system((tx) => loadGhlBridge(tx, DEMO_ORG.id))).toBeNull();
+    await owner((tx) => setGhlWhatsApp(tx, { on: '0' }));
+    expect(await owner((tx) => ghlBridge(tx))).toMatchObject({
+      id: view.id,
+      status: 'connected',
+      whatsapp: false,
+      mode: 'shadow',
+    });
+    expect(await owner((tx) => ghlBridgeMode(tx))).toBeNull();
     expect(await ingestGhlBridgeHook(t.db, view.id, view.hookToken, body)).toBe('not_connected');
-    await setExtra(true);
-    expect(await owner((tx) => ghlBridge(tx))).toMatchObject({ id: view.id, mode: view.mode });
+    // Turning it on again starts in shadow mode with the same hook.
+    await owner((tx) => setGhlWhatsApp(tx, { on: '1' }));
+    expect(await owner((tx) => ghlBridge(tx))).toMatchObject({
+      hookToken: view.hookToken,
+      mode: 'shadow',
+      whatsapp: true,
+    });
   });
 });

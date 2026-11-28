@@ -218,3 +218,6 @@ export type GhlBridgeConnectInput = z.input<typeof GhlBridgeConnectInput>;
 
 export const GhlBridgeModeInput = z.object({ mode: z.enum(GHL_BRIDGE_MODES) });
 export type GhlBridgeModeInput = z.input<typeof GhlBridgeModeInput>;
+/** WhatsApp through the GHL connection on ('1') or off ('0'). */
+export const GhlWhatsAppInput = z.object({ on: z.enum(['0', '1']) });
+export type GhlWhatsAppInput = z.input<typeof GhlWhatsAppInput>;

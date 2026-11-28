@@ -1,5 +1,5 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
-import { ghlBridgeAllowed, metaTemplateOverview, whatsappConnection } from '@rswim/domain-comms';
+import { metaTemplateOverview, whatsappConnection } from '@rswim/domain-comms';
 import { Badge, Card, CardTitle } from '@rswim/ui';
 import { ActionButton, ActionForm, Field, SubmitButton } from '@/components/form';
 import { withSession } from '@/lib/db';
@@ -26,18 +26,19 @@ const quality = (q: string | null) =>
 export async function WhatsAppConnection({
   owner,
   header,
+  ghlHref,
 }: {
   owner: boolean;
   header: React.ReactNode;
+  /** The surface's GHL connection page (WhatsApp through GHL starts from a connected sub-account). */
+  ghlHref: string;
 }) {
   const t = await getTranslations('whatsapp');
   const format = await getFormatter();
-  const { connection, templates, ghl } = await withSession(async (tx, ctx) => {
+  const { connection, templates } = await withSession(async (tx, ctx) => {
     const connection = await whatsappConnection(tx);
     return {
       connection,
-      // The GHL bridge is shown only to the business the platform gave it to.
-      ghl: await ghlBridgeAllowed(tx),
       templates: connection?.status === 'connected' ? await metaTemplateOverview(tx, ctx) : [],
     };
   });
@@ -59,19 +60,15 @@ export async function WhatsAppConnection({
         <p className="text-ink-muted" data-testid="whatsapp-owner-only">
           {connected ? t('officeConnected', { phone: connection.displayPhone }) : t('ownerOnly')}
         </p>
-        {ghl ? <GhlBridgeSection owner={false} /> : null}
+        <GhlBridgeSection owner={false} ghlHref={ghlHref} />
       </>
     );
   return (
     <>
       {header}
       <div className="flex flex-col gap-4">
-        {ghl ? (
-          <>
-            <GhlBridgeSection owner />
-            <h2 className="mt-2 text-lg font-semibold">{t('metaTitle')}</h2>
-          </>
-        ) : null}
+        <GhlBridgeSection owner ghlHref={ghlHref} />
+        <h2 className="mt-2 text-lg font-semibold">{t('metaTitle')}</h2>
         {connection ? (
           <Card data-testid="whatsapp-status" data-status={connection.status}>
             <CardTitle

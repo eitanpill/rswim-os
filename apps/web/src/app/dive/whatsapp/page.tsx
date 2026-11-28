@@ -11,6 +11,7 @@ export default async function DiveWhatsAppPage() {
     <div className="flex flex-col gap-5" data-testid="dive-whatsapp">
       <WhatsAppConnection
         owner={role === 'owner'}
+        ghlHref="/dive/ghl"
         header={<Hero kicker={t('kickerDive')} title={t('title')} sub={t('subtitle')} />}
       />
     </div>

@@ -55,7 +55,7 @@ export const commsGhlBridgePull = inngest.createFunction(
         let result: Record<string, unknown> = { skipped: 'already' };
         await consumeOnce(getDb(), consumer, envelope, async (tx) => {
           const own = await ghlBridgeFor(tx, envelope.organizationId);
-          if (!own || own.bridge.connectionId !== payload.connectionId) {
+          if (!own || own.bridge.connectionId !== payload.connectionId || !own.bridge.whatsapp) {
             result = { skipped: 'not_connected' };
             return;
           }
