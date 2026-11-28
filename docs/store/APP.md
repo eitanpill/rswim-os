@@ -61,7 +61,7 @@ debug APK (downloadable from the run for 14 days) and an iPhone simulator build,
 On main (and from Actions → Mobile app → Run workflow) the `testflight` job archives the iPhone app on GitHub's Mac,
 signs it with Xcode's cloud signing through the App Store Connect key, and uploads it to TestFlight with the run number
 as build number. Nobody needs Xcode or a Mac (Pit has no room for Xcode, 19.11.2026). Without the key's secrets the job
-is skipped. TestFlight builds load staging for now; the store build switches `AQUA_APP_URL` to production. The `play` job does the
+is skipped. TestFlight and Play builds load production (`AQUA_APP_URL` on those jobs, 28.11.2026); the debug and simulator builds load staging. The `play` job does the
 same for Google Play (below): a signed bundle with the run number as version code, sent to internal testing.
 
 ## Setting up the stores (once)
