@@ -2288,8 +2288,8 @@
     }
   },
   "crm": {
-    "title": "LeadYourWay connection",
-    "subtitle": "Leads and marketing stay in LeadYourWay; families sync here",
+    "title": "GHL connection",
+    "subtitle": "The business's GoHighLevel sub-account: contacts, pipelines and WhatsApp",
     "location": "Account",
     "connected": "Connected",
     "notConnected": "Not connected",
@@ -6644,6 +6644,13 @@
       "on": "Claude gives a second opinion on each inbound message and sorts it.",
       "off": "Off. The rules sort messages alone.",
       "link": "Policies"
+    },
+    "ghl": {
+      "title": "GHL",
+      "connected": "The business's GoHighLevel sub-account is connected.",
+      "missing": "Not connected. Connect the GHL sub-account to bring contacts, pipelines and WhatsApp from it.",
+      "failing": "The last check with GHL failed. The reason is on the connection page.",
+      "link": "To the GHL connection"
     }
   },
   "leads": {
@@ -7337,7 +7344,7 @@
   },
   "ghlBridge": {
     "title": "WhatsApp through GHL",
-    "intro": "The number stays in GHL as it is today, and GHL is the bridge: messages to the business's WhatsApp come to us, and our bots answer through GHL. No direct connection to Meta is needed.",
+    "intro": "The number stays in GHL and GHL is the bridge: messages to the business's WhatsApp come to us and our bots answer through GHL. Only for a number already connected to WhatsApp inside GHL, officially.",
     "notConnected": "Not connected",
     "mode": {
       "shadow": "Shadow mode",
@@ -7391,7 +7398,64 @@
       "ownerOnly": "Only the business owner can connect",
       "notConnected": "No active GHL connection",
       "checkFirst": "A successful connection check comes first",
-      "notAllowed": "The GHL connection is not open to this business"
-    }
+      "notAllowed": "The GHL connection is not open to this business",
+      "whatsappOff": "WhatsApp does not run through GHL for this business"
+    },
+    "needsConnection": "First connect the business's GHL sub-account.",
+    "toConnection": "To the GHL connection",
+    "requirement": "Before turning it on: the business's number is already connected to WhatsApp inside GHL, officially (WhatsApp in GHL, not the WhatsApp Business app on a phone). It starts in shadow mode: the old GHL bot keeps answering and ours only suggests.",
+    "checkFirstHint": "First the connection check must pass, on the GHL connection page.",
+    "turnOn": "Run WhatsApp through GHL",
+    "turnOnConfirm": "Is the business's number already connected to WhatsApp inside GHL, officially?",
+    "turnOff": "Stop WhatsApp through GHL",
+    "turnOffConfirm": "Stop? New messages will not reach us through GHL. Contacts and pipelines keep working."
+  },
+  "ghlConnection": {
+    "kickerDive": "Settings",
+    "title": "GHL connection",
+    "subtitle": "Connect the business's GoHighLevel sub-account and see what it holds",
+    "intro": "Paste the sub-account id (Location ID) and a Private Integration token. We check the connection and show what the sub-account holds: contacts, pipelines, tags and WhatsApp conversations. Nothing is sent to customers and nothing changes in GHL.",
+    "notConnected": "Not connected",
+    "checking": "Checking",
+    "failed": "Failed",
+    "connected": "Connected",
+    "checkPending": "Checking the connection with GHL...",
+    "checkFailed": "GHL refused the token:",
+    "contacts": "Contacts",
+    "pipelines": "Pipelines",
+    "tags": "Tags",
+    "whatsapp": "WhatsApp",
+    "unknown": "Unknown",
+    "none": "None",
+    "whatsappSeen": "{n, plural, one {One WhatsApp conversation} other {# WhatsApp conversations}}",
+    "whatsappNone": "No WhatsApp conversations",
+    "missing": "The token lacks permissions, so we could not see: {parts}. Add them under Private Integrations in GHL and check again.",
+    "scope": {
+      "contacts": "contacts (View Contacts)",
+      "pipelines": "pipelines (View Opportunities)",
+      "tags": "tags (View Tags)",
+      "whatsapp": "conversations (View Conversations)"
+    },
+    "check": "Check again",
+    "disconnect": "Disconnect",
+    "disconnectConfirm": "Disconnect GHL? If WhatsApp runs through GHL it stops too. You can connect again any time.",
+    "connect": "Connect",
+    "replace": "Replace token or sub-account",
+    "how": {
+      "step1": "In GHL, in the business's sub-account: Settings > Private Integrations > Create new integration.",
+      "step2": "Tick: View Locations, View Contacts, Edit Contacts, View Opportunities, View Tags, View Conversations, View Conversation Messages, Edit Conversation Messages. Save and copy the token.",
+      "step3": "Paste the sub-account id and the token here and tap \"Save and check\"."
+    },
+    "locationId": "Sub-account id (Location ID)",
+    "locationIdHint": "In GHL: Settings > Business Profile, or in the address bar after /location/",
+    "token": "Private Integration token",
+    "tokenHint": "Kept encrypted and never shown again.",
+    "save": "Save and check",
+    "nextTitle": "Next",
+    "nextWhatsapp": "Run WhatsApp through GHL",
+    "nextWhatsappOn": "WhatsApp runs through GHL: mode and conversations",
+    "nextWhatsappHint": "Only when the business's number is already connected to WhatsApp inside GHL, officially.",
+    "officeConnected": "The business is connected to GHL ({name}).",
+    "ownerOnly": "Only the owner connects GHL."
   }
 }

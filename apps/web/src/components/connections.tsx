@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { invoicingConnection, paymentConnection } from '@rswim/domain-billing';
-import { commsRules, whatsappConnection } from '@rswim/domain-comms';
-import { ghlSettings } from '@rswim/domain-crm';
+import { commsRules, ghlBridge, whatsappConnection } from '@rswim/domain-comms';
 import { hasFeature } from '@rswim/domain-platform';
 import { Badge, Card, CardTitle } from '@rswim/ui';
 import { AiLevelCard } from '@/components/ai-level';
@@ -22,7 +21,7 @@ const TONE: Record<State, 'ok' | 'warn' | 'danger' | 'neutral'> = {
 };
 
 interface Row {
-  key: 'whatsapp' | 'payments' | 'receipts' | 'bot' | 'triage';
+  key: 'whatsapp' | 'ghl' | 'payments' | 'receipts' | 'bot' | 'triage';
   state: State;
   href: string | null;
 }
@@ -34,8 +33,8 @@ interface Row {
  */
 export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' }) {
   const t = await getTranslations('connections');
-  const { ghl, own, payments, receipts, rules, botInPlan } = await withSession(async (tx, ctx) => ({
-    ghl: await ghlSettings(tx, ctx.orgId),
+  const { ghl, own, payments, receipts, rules, botInPlan } = await withSession(async (tx) => ({
+    ghl: await ghlBridge(tx),
     own: await whatsappConnection(tx),
     payments: await paymentConnection(tx),
     receipts: await invoicingConnection(tx),
@@ -49,8 +48,17 @@ export async function ConnectionsView({ vertical }: { vertical: 'swim' | 'dive' 
     {
       key: 'whatsapp',
       state:
-        own?.status === 'connected' || ghl ? 'connected' : own?.lastError ? 'failing' : 'missing',
+        own?.status === 'connected' || (ghl?.status === 'connected' && ghl.whatsapp)
+          ? 'connected'
+          : own?.lastError
+            ? 'failing'
+            : 'missing',
       href: swim ? '/admin/integrations/whatsapp' : '/dive/whatsapp',
+    },
+    {
+      key: 'ghl',
+      state: ghl?.status !== 'connected' ? 'missing' : ghl.checkError ? 'failing' : 'connected',
+      href: swim ? '/admin/integrations/ghl' : '/dive/ghl',
     },
     {
       key: 'payments',

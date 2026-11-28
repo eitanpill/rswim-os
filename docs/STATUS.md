@@ -14,6 +14,17 @@
 | 9 Reports, venue migration, copilot | **Done**, merged (PR #10) | The acceptance criterion passes (see below) |
 | 10 SaaS hardening | **Done** (PR #11) | The acceptance criterion passes (see below) |
 
+## Connecting GHL and other systems (feature A1, 2026-11-28)
+
+A1 any business connects its own GHL sub-account by itself (`/admin/integrations/ghl`, `/dive/ghl`, owner only): a
+location id and a Private Integration token, sealed with the org's data key. The check also surveys the sub-account
+(contacts, pipelines, tags, WhatsApp conversations, and any permission the token lacks) into `ghl_connections.summary`.
+WhatsApp through GHL is a separate switch on the WhatsApp page (`ghl_connections.whatsapp`, mig 0090), open only after
+a passed check, for a number already connected to WhatsApp inside GHL; until then the connection never sends or pulls.
+The platform's per-school extra is retired. Proof: `packages/integrations/test/ghl-bridge.test.ts` (ghl.ts 100%),
+`packages/seed/test/ghl-bridge.test.ts`, `packages/db/test/rls/isolation.test.ts`, `apps/web/e2e/ghl-connection.spec.ts`.
+Not verified against a real GHL sub-account yet.
+
 ## WhatsApp track (docs/whatsapp/PLAN.md)
 
 W1 leads in one place: a new number on WhatsApp opens a lead by itself, one lead list for swim schools and

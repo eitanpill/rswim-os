@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from 'next-intl/server';
-import { ORG_EXTRAS } from '@rswim/contracts';
+import { OFFERED_EXTRAS } from '@rswim/contracts';
 import { agorot } from '@rswim/money';
 import { listPlans, listSchools } from '@rswim/domain-platform';
 import { Avatar, Badge, Card, CardTitle, EmptyState, Money, PageHeader, StatTile } from '@rswim/ui';
@@ -188,39 +188,41 @@ export default async function PlatformHome() {
                           <SubmitButton variant="secondary">{t('saveMandate')}</SubmitButton>
                         </div>
                       </ActionForm>
-                      <div className="flex flex-col gap-2" data-testid="school-extras">
-                        <p className="text-sm font-medium">{t('extras')}</p>
-                        <p className="text-xs text-ink-muted">{t('extrasHint')}</p>
-                        {ORG_EXTRAS.map((x) => {
-                          const on = s.extras.includes(x);
-                          return (
-                            <div
-                              key={x}
-                              className="flex flex-wrap items-center gap-2"
-                              data-testid={`extra-${x}`}
-                              data-on={on}
-                            >
-                              <span className="text-sm">{t(`extra.${x}`)}</span>
-                              <Badge tone={on ? 'ok' : 'neutral'}>
-                                {on ? t('extraOn') : t('extraOff')}
-                              </Badge>
-                              <ActionButton
-                                action={updateSchoolAction}
-                                fields={{
-                                  organizationId: s.organizationId,
-                                  action: 'extra',
-                                  extra: x,
-                                  on: on ? '0' : '1',
-                                }}
-                                variant={on ? 'ghost' : 'secondary'}
-                                confirm={on ? t('turnOffConfirm') : undefined}
+                      {OFFERED_EXTRAS.length > 0 ? (
+                        <div className="flex flex-col gap-2" data-testid="school-extras">
+                          <p className="text-sm font-medium">{t('extras')}</p>
+                          <p className="text-xs text-ink-muted">{t('extrasHint')}</p>
+                          {OFFERED_EXTRAS.map((x) => {
+                            const on = s.extras.includes(x);
+                            return (
+                              <div
+                                key={x}
+                                className="flex flex-wrap items-center gap-2"
+                                data-testid={`extra-${x}`}
+                                data-on={on}
                               >
-                                {on ? t('turnOff') : t('turnOn')}
-                              </ActionButton>
-                            </div>
-                          );
-                        })}
-                      </div>
+                                <span className="text-sm">{t(`extra.${x}`)}</span>
+                                <Badge tone={on ? 'ok' : 'neutral'}>
+                                  {on ? t('extraOn') : t('extraOff')}
+                                </Badge>
+                                <ActionButton
+                                  action={updateSchoolAction}
+                                  fields={{
+                                    organizationId: s.organizationId,
+                                    action: 'extra',
+                                    extra: x,
+                                    on: on ? '0' : '1',
+                                  }}
+                                  variant={on ? 'ghost' : 'secondary'}
+                                  confirm={on ? t('turnOffConfirm') : undefined}
+                                >
+                                  {on ? t('turnOff') : t('turnOn')}
+                                </ActionButton>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
                     </div>
                   </details>
                 ) : null}

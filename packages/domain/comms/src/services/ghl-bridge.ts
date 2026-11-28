@@ -15,6 +15,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import {
   GhlBridgeConnectInput,
   GhlBridgeModeInput,
+  GhlWhatsAppInput,
   toE164IL,
   type GhlBridgeMode,
 } from '@rswim/contracts';
@@ -28,7 +29,7 @@ import {
   type ServiceContext,
 } from '@rswim/domain-core';
 import { ghlSettings, saveGhlLocation } from '@rswim/domain-crm';
-import type { GhlBridgeClient } from '@rswim/integrations';
+import type { GhlBridgeClient, GhlSurvey } from '@rswim/integrations';
 import { ghlPullPlan, type GhlPullPlan } from '../policies';
 import { intakeInbound } from './inbox';
 
@@ -39,17 +40,6 @@ export const GHL_BRIDGE_PULL_REQUESTED = 'comms.ghl_bridge_pull_requested';
 
 const enc = (rowId: string) => ({ table: 'ghl_connections', column: 'enc_token', rowId });
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 500);
-
-/**
- * Whether the platform gave this business the bridge (`org_subscriptions.extras`). It is not a plan feature and not
- * offered to owners: without it the WhatsApp page shows no bridge and the database hides any connection.
- */
-export async function ghlBridgeAllowed(tx: Tx): Promise<boolean> {
-  const r = await tx.execute<{ ok: boolean }>(
-    sql`select app.has_extra(app.current_org(), 'ghl_bridge') as ok`,
-  );
-  return r.rows[0]?.ok === true;
-}
 
 /** The bridge as the owner and the office see it: never its token. */
 export async function ghlBridge(tx: Tx) {
@@ -67,11 +57,15 @@ export async function ghlBridge(tx: Tx) {
       lastError: ghlConnections.lastError,
       foreignReplies: ghlConnections.foreignReplies,
       lastForeignAt: ghlConnections.lastForeignAt,
+      whatsapp: ghlConnections.whatsapp,
+      summary: ghlConnections.summary,
       connectedAt: ghlConnections.connectedAt,
       updatedAt: ghlConnections.updatedAt,
     })
     .from(ghlConnections);
-  return row ? { ...row, mode: row.mode as GhlBridgeMode } : null;
+  return row
+    ? { ...row, mode: row.mode as GhlBridgeMode, summary: row.summary as GhlSurvey | null }
+    : null;
 }
 export type GhlBridgeView = NonNullable<Awaited<ReturnType<typeof ghlBridge>>>;
 
@@ -80,13 +74,14 @@ export const ghlBridgeHookPath = (b: { id: string; hookToken: string }) =>
   `/api/webhooks/ghl/bridge/${b.id}/${b.hookToken}`;
 
 /**
- * The owner connects (or replaces) the sub-account. The token is sealed; the hook token is kept when the connection
- * already had one (GHL's workflow keeps working), and a new connection starts in shadow mode. The location id also
- * becomes the school's GHL location for contacts and pipelines. The worker then checks the token.
+ * The owner connects (or replaces) the sub-account: any business, on its own (the GHL connection). The token is
+ * sealed; the hook token and the WhatsApp choice are kept when the connection already had them (GHL's workflow keeps
+ * working), and a new connection serves contacts and pipelines only until the owner turns WhatsApp on. The location id
+ * also becomes the school's GHL location for contacts and pipelines. The worker then checks the token and surveys the
+ * sub-account.
  */
 export async function connectGhlBridge(tx: Tx, ctx: ServiceContext, raw: GhlBridgeConnectInput) {
   const input = GhlBridgeConnectInput.parse(raw);
-  if (!(await ghlBridgeAllowed(tx))) throw new DomainError('ghlBridge.errors.notAllowed');
   const dek = await orgDataKey(tx, ctx.orgId);
   if (!dek) throw new DomainError('ghlBridge.errors.noMasterKey');
   const [existing] = await tx
@@ -99,6 +94,7 @@ export async function connectGhlBridge(tx: Tx, ctx: ServiceContext, raw: GhlBrid
     locationId: input.locationId,
     encToken: encryptField(dek, input.token, enc(rowId)),
     locationName: null,
+    summary: null,
     checkedAt: null,
     checkError: null,
     lastError: null,
@@ -161,20 +157,44 @@ export async function setGhlBridgeMode(tx: Tx, raw: GhlBridgeModeInput) {
   const { mode } = GhlBridgeModeInput.parse(raw);
   const view = await ghlBridge(tx);
   if (!view || view.status !== 'connected') throw new DomainError('ghlBridge.errors.notConnected');
+  if (!view.whatsapp) throw new DomainError('ghlBridge.errors.whatsappOff');
   if (mode === 'live' && (!view.checkedAt || view.checkError))
     throw new DomainError('ghlBridge.errors.checkFirst');
   await ownBridge(tx, { mode, foreignReplies: 0, lastForeignAt: null });
 }
 
-/** Switches the bridge off: nothing more is read from GHL; sending falls back to the school's other route. */
+/**
+ * The owner runs the business's WhatsApp through GHL, or stops. Only for a number already connected to WhatsApp inside
+ * GHL (GHL's official WhatsApp), which the owner confirms; it always starts in shadow mode, so the old GHL bot and ours
+ * are compared before anyone switches. Off: nothing more is read from GHL's conversations and sending goes the
+ * school's other route; contacts and pipelines keep working.
+ */
+export async function setGhlWhatsApp(tx: Tx, raw: GhlWhatsAppInput) {
+  const { on } = GhlWhatsAppInput.parse(raw);
+  const view = await ghlBridge(tx);
+  if (!view || view.status !== 'connected') throw new DomainError('ghlBridge.errors.notConnected');
+  if (on === '1' && (!view.checkedAt || view.checkError))
+    throw new DomainError('ghlBridge.errors.checkFirst');
+  await ownBridge(tx, {
+    whatsapp: on === '1',
+    mode: 'shadow',
+    foreignReplies: 0,
+    lastForeignAt: null,
+  });
+}
+
+/** Switches the connection off: nothing more is read from GHL; sending falls back to the school's other route. */
 export async function disconnectGhlBridge(tx: Tx) {
   await ownBridge(tx, { status: 'disconnected', mode: 'shadow' });
 }
 
-/** The bridge's mode while it is connected, or null (no bridge). Bots and the brain ask before acting. */
+/**
+ * The bridge's mode while WhatsApp runs through it, or null (no bridge, or GHL serves contacts only). Bots and the
+ * brain ask before acting.
+ */
 export async function ghlBridgeMode(tx: Tx): Promise<GhlBridgeMode | null> {
   const r = await tx.execute<{ mode: GhlBridgeMode }>(
-    sql`select mode from ghl_connections where status = 'connected' limit 1`,
+    sql`select mode from ghl_connections where status = 'connected' and whatsapp limit 1`,
   );
   return r.rows[0]?.mode ?? null;
 }
@@ -184,6 +204,8 @@ export interface LoadedGhlBridge {
   locationId: string;
   token: string;
   mode: GhlBridgeMode;
+  /** WhatsApp runs through this sub-account (else it serves contacts and pipelines only). */
+  whatsapp: boolean;
   connectedAt: Date;
 }
 
@@ -193,10 +215,11 @@ export async function loadGhlBridge(tx: Tx, orgId: string): Promise<LoadedGhlBri
     id: string;
     location_id: string;
     mode: GhlBridgeMode;
+    whatsapp: boolean;
     connected_at: Date | string;
     t: Buffer;
   }>(
-    sql`select id, location_id, mode, connected_at, enc_token t from ghl_connections
+    sql`select id, location_id, mode, whatsapp, connected_at, enc_token t from ghl_connections
         where organization_id = ${orgId} and status = 'connected'`,
   );
   const row = r.rows[0];
@@ -208,11 +231,15 @@ export async function loadGhlBridge(tx: Tx, orgId: string): Promise<LoadedGhlBri
     locationId: row.location_id,
     token: decryptField(dek, row.t, enc(row.id)),
     mode: row.mode,
+    whatsapp: row.whatsapp,
     connectedAt: new Date(row.connected_at),
   };
 }
 
-/** The worker's check: GHL answers for the location with the token, or says why not. */
+/**
+ * The worker's check: GHL answers for the location with the token, or says why not. A passed check also surveys the
+ * sub-account (contacts, pipelines, tags, WhatsApp conversations, permissions it lacks) for the owner to see.
+ */
 export async function runGhlBridgeCheck(
   tx: Tx,
   bridge: LoadedGhlBridge,
@@ -220,9 +247,10 @@ export async function runGhlBridgeCheck(
 ): Promise<'ok' | 'failed'> {
   try {
     const loc = await client.location();
+    const summary = await client.survey();
     await tx
       .update(ghlConnections)
-      .set({ locationName: loc.name || null, checkedAt: new Date(), checkError: null })
+      .set({ locationName: loc.name || null, summary, checkedAt: new Date(), checkError: null })
       .where(eq(ghlConnections.id, bridge.connectionId));
     return 'ok';
   } catch (e) {

@@ -2288,8 +2288,8 @@
     }
   },
   "crm": {
-    "title": "חיבור ל-LeadYourWay",
-    "subtitle": "הלידים והשיווק נשארים ב-LeadYourWay; המשפחות מסונכרנות לכאן",
+    "title": "חיבור ל-GHL",
+    "subtitle": "החשבון של העסק ב-GoHighLevel: אנשי קשר, Pipelines ווואטסאפ",
     "location": "חשבון",
     "connected": "מחובר",
     "notConnected": "לא מחובר",
@@ -6612,7 +6612,7 @@
     },
     "whatsapp": {
       "title": "WhatsApp",
-      "connected": "ההודעות יוצאות מהמספר של העסק, ישירות דרך Meta או דרך LeadYourWay.",
+      "connected": "ההודעות יוצאות מהמספר של העסק, ישירות דרך Meta או דרך GHL.",
       "missing": "עוד לא מחובר. בלי זה תזכורות, אישורים וקישורי תשלום לא יוצאים ב-WhatsApp.",
       "link": "לחיבור WhatsApp",
       "failing": "המספר מחובר אבל השליחה האחרונה נכשלה. הסיבה מופיעה במסך החיבור."
@@ -6644,6 +6644,13 @@
       "on": "Claude נותן דעה שנייה על כל הודעה נכנסת וממיין אותה.",
       "off": "כבוי. הכללים ממיינים לבד.",
       "link": "למדיניות"
+    },
+    "ghl": {
+      "title": "GHL",
+      "connected": "החשבון של העסק ב-GoHighLevel מחובר.",
+      "missing": "לא מחובר. אפשר לחבר את החשבון ב-GHL כדי להביא ממנו אנשי קשר, Pipelines ווואטסאפ.",
+      "failing": "הבדיקה האחרונה מול GHL נכשלה. הסיבה מופיעה במסך החיבור.",
+      "link": "לחיבור GHL"
     }
   },
   "leads": {
@@ -7337,7 +7344,7 @@
   },
   "ghlBridge": {
     "title": "וואטסאפ דרך GHL",
-    "intro": "המספר נשאר ב-GHL כמו היום, ו-GHL הוא הגשר: הודעות שמגיעות לוואטסאפ של העסק עוברות אלינו, והבוטים שלנו עונים דרך GHL. אין צורך בחיבור ישיר ל-Meta.",
+    "intro": "המספר נשאר ב-GHL כמו היום, ו-GHL הוא הגשר: הודעות שמגיעות לוואטסאפ של העסק עוברות אלינו, והבוטים שלנו עונים דרך GHL. מתאים רק כשהמספר כבר מחובר לוואטסאפ בתוך GHL, בחיבור הרשמי.",
     "notConnected": "לא מחובר",
     "mode": {
       "shadow": "מצב צל",
@@ -7391,7 +7398,64 @@
       "ownerOnly": "רק בעלי העסק יכולים לחבר",
       "notConnected": "אין חיבור פעיל ל-GHL",
       "checkFirst": "קודם צריך בדיקת חיבור שעברה בהצלחה",
-      "notAllowed": "החיבור ל-GHL לא פתוח לעסק הזה"
-    }
+      "notAllowed": "החיבור ל-GHL לא פתוח לעסק הזה",
+      "whatsappOff": "הוואטסאפ לא עובר דרך GHL בעסק הזה"
+    },
+    "needsConnection": "קודם מחברים את החשבון של העסק ב-GHL.",
+    "toConnection": "לחיבור GHL",
+    "requirement": "לפני שמפעילים: המספר של העסק כבר מחובר לוואטסאפ בתוך GHL בחיבור הרשמי (WhatsApp ב-GHL, לא אפליקציית וואטסאפ עסקי בטלפון). ההפעלה מתחילה במצב צל: הבוט הישן ב-GHL ממשיך לענות, והבוט שלנו רק מציע.",
+    "checkFirstHint": "קודם צריך בדיקת חיבור שעברה בהצלחה, במסך חיבור GHL.",
+    "turnOn": "להפעיל וואטסאפ דרך GHL",
+    "turnOnConfirm": "המספר של העסק כבר מחובר לוואטסאפ בתוך GHL בחיבור הרשמי?",
+    "turnOff": "להפסיק וואטסאפ דרך GHL",
+    "turnOffConfirm": "להפסיק? הודעות חדשות לא יגיעו אלינו דרך GHL. אנשי הקשר וה-Pipelines ממשיכים לעבוד."
+  },
+  "ghlConnection": {
+    "kickerDive": "הגדרות",
+    "title": "חיבור ל-GHL",
+    "subtitle": "מחברים את החשבון של העסק ב-GoHighLevel, והמערכת רואה מה יש בו",
+    "intro": "מדביקים את מזהה החשבון (Location ID) וטוקן Private Integration. המערכת בודקת את החיבור ומראה מה נמצא בחשבון: אנשי קשר, Pipelines, תגיות ושיחות וואטסאפ. שום דבר לא נשלח ללקוחות ושום דבר לא משתנה ב-GHL.",
+    "notConnected": "לא מחובר",
+    "checking": "בבדיקה",
+    "failed": "החיבור נכשל",
+    "connected": "מחובר",
+    "checkPending": "בודקים את החיבור מול GHL...",
+    "checkFailed": "GHL לא אישר את הטוקן:",
+    "contacts": "אנשי קשר",
+    "pipelines": "Pipelines",
+    "tags": "תגיות",
+    "whatsapp": "וואטסאפ",
+    "unknown": "לא ידוע",
+    "none": "אין",
+    "whatsappSeen": "{n, plural, one {שיחת וואטסאפ אחת בחשבון} other {# שיחות וואטסאפ בחשבון}}",
+    "whatsappNone": "אין שיחות וואטסאפ בחשבון",
+    "missing": "לטוקן חסרות הרשאות, ולכן לא ראינו: {parts}. מוסיפים אותן ב-Private Integrations ב-GHL ובודקים שוב.",
+    "scope": {
+      "contacts": "אנשי קשר (View Contacts)",
+      "pipelines": "Pipelines (View Opportunities)",
+      "tags": "תגיות (View Tags)",
+      "whatsapp": "שיחות (View Conversations)"
+    },
+    "check": "בדיקה חוזרת",
+    "disconnect": "ניתוק",
+    "disconnectConfirm": "לנתק את החיבור ל-GHL? אם הוואטסאפ עובר דרך GHL, גם הוא יפסיק. אפשר לחבר שוב בכל רגע.",
+    "connect": "חיבור",
+    "replace": "החלפת טוקן או חשבון",
+    "how": {
+      "step1": "ב-GHL, בתת-החשבון של העסק: Settings > Private Integrations > Create new integration.",
+      "step2": "מסמנים הרשאות: View Locations, View Contacts, Edit Contacts, View Opportunities, View Tags, View Conversations, View Conversation Messages, Edit Conversation Messages. שומרים ומעתיקים את הטוקן.",
+      "step3": "מדביקים כאן את מזהה החשבון ואת הטוקן ולוחצים \"שמירה ובדיקה\"."
+    },
+    "locationId": "מזהה החשבון (Location ID)",
+    "locationIdHint": "ב-GHL: Settings > Business Profile, או בכתובת הדפדפן אחרי /location/",
+    "token": "טוקן Private Integration",
+    "tokenHint": "נשמר מוצפן ולא מוצג שוב.",
+    "save": "שמירה ובדיקה",
+    "nextTitle": "מה עכשיו",
+    "nextWhatsapp": "להעביר את הוואטסאפ דרך GHL",
+    "nextWhatsappOn": "הוואטסאפ עובר דרך GHL: למצב ולשיחות",
+    "nextWhatsappHint": "רק כשהמספר של העסק כבר מחובר לוואטסאפ בתוך GHL, בחיבור הרשמי.",
+    "officeConnected": "העסק מחובר ל-GHL ({name}).",
+    "ownerOnly": "רק בעלי העסק מחברים את GHL."
   }
 }

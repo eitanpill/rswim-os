@@ -10,6 +10,7 @@ export default async function WhatsAppPage() {
   return (
     <WhatsAppConnection
       owner={session.role === 'owner'}
+      ghlHref="/admin/integrations/ghl"
       header={<PageHeader icon="💬" title={t('title')} subtitle={t('subtitle')} />}
     />
   );

@@ -24,6 +24,11 @@ export const PlanFeature = z.enum(PLAN_FEATURES);
 export const ORG_EXTRAS = ['ghl_bridge'] as const;
 export const OrgExtra = z.enum(ORG_EXTRAS);
 export type OrgExtra = z.infer<typeof OrgExtra>;
+/**
+ * The options the platform still turns on by hand on /platform. `ghl_bridge` is retired: since 2026-11-28 every
+ * business connects GHL itself (feature A1), and the value stays only so old rows keep their meaning.
+ */
+export const OFFERED_EXTRAS: readonly OrgExtra[] = [];
 export type PlanFeature = z.infer<typeof PlanFeature>;
 
 /** What a plan limits; null in a plan = unlimited. */

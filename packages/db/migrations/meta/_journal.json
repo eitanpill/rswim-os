@@ -631,6 +631,13 @@
       "when": 1795791243277,
       "tag": "0089_payment_connections_sumit",
       "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1795855291727,
+      "tag": "0090_ghl_connection_self_serve",
+      "breakpoints": true
     }
   ]
 }

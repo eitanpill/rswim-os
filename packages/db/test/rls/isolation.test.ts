@@ -671,17 +671,19 @@ describe('the business WhatsApp number (WhatsApp track W5)', () => {
   });
 });
 
-describe('WhatsApp through the business GHL sub-account (the GHL bridge)', () => {
+describe('the business GHL sub-account (the GHL connection and bridge)', () => {
   it('lets only the owner connect it, and nobody signed in read its sealed token', async () => {
     await t.pool.query(
       `insert into ghl_connections (organization_id, location_id, hook_token, enc_token)
        values ($1, 'loc-rls-0001', 'hook', decode('00', 'hex'))`,
       [A.orgId],
     );
-    // Not given to the business by the platform: the connection is invisible and untouchable, even to its owner.
+    // Open to every business since 2026-11-28 (migration 0090): no option from the platform decides it any more.
     await as(A.users.owner, A.orgId, async (run) => {
-      expect(await run(`select id from ghl_connections`)).toEqual([]);
-      expect(await run(`update ghl_connections set mode = 'live' returning id`)).toEqual([]);
+      expect(await run(`select id from ghl_connections`)).toHaveLength(1);
+      expect(await run(`select whatsapp, summary from ghl_connections`)).toEqual([
+        { whatsapp: false, summary: null },
+      ]);
       expect(await run(`select app.has_extra(app.current_org(), 'ghl_bridge') ok`)).toEqual([
         { ok: false },
       ]);

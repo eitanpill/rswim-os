@@ -1,28 +1,26 @@
+import Link from 'next/link';
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { ghlBridge, ghlBridgeHookPath } from '@rswim/domain-comms';
 import { Badge, Card, CardTitle } from '@rswim/ui';
-import { ActionButton, ActionForm, Field, SubmitButton } from '@/components/form';
+import { ActionButton } from '@/components/form';
 import { withSession } from '@/lib/db';
 import { requestOrigin } from '@/lib/payments';
-import {
-  checkGhlBridgeAction,
-  connectGhlBridgeAction,
-  disconnectGhlBridgeAction,
-  ghlBridgeModeAction,
-} from './ghl-actions';
+import { checkGhlBridgeAction, ghlBridgeModeAction, ghlWhatsAppAction } from './ghl-actions';
 
-const STEPS = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6'] as const;
+const STEPS = ['step4', 'step5', 'step6'] as const;
 
 /**
- * WhatsApp through the business's own GHL sub-account (the GHL bridge), for a swim school and a freediving club: the
- * owner connects it, copies the hook into one GHL workflow, watches the bots in shadow mode and then lets them answer.
- * The office sees whether it is on.
+ * WhatsApp through the business's own GHL sub-account (the GHL bridge), for a swim school and a freediving club. The
+ * sub-account itself is connected on the GHL page (`ghlHref`); here the owner, whose number is already connected to
+ * WhatsApp inside GHL, turns WhatsApp through it on, copies the hook into one GHL workflow, watches the bots in shadow
+ * mode and then lets them answer. The office sees whether it is on.
  */
-export async function GhlBridgeSection({ owner }: { owner: boolean }) {
+export async function GhlBridgeSection({ owner, ghlHref }: { owner: boolean; ghlHref: string }) {
   const t = await getTranslations('ghlBridge');
   const format = await getFormatter();
   const bridge = await withSession((tx) => ghlBridge(tx));
-  const connected = bridge?.status === 'connected';
+  const linked = bridge?.status === 'connected';
+  const connected = linked && bridge.whatsapp;
   const when = (d: Date | null) =>
     d ? format.dateTime(d, { dateStyle: 'short', timeStyle: 'short' }) : null;
   if (!owner)
@@ -32,9 +30,13 @@ export async function GhlBridgeSection({ owner }: { owner: boolean }) {
       </p>
     ) : null;
   const origin = await requestOrigin();
-  const checked = connected && bridge.checkedAt !== null && bridge.checkError === null;
+  const checked = linked && bridge.checkedAt !== null && bridge.checkError === null;
   return (
-    <Card data-testid="ghl-bridge" data-status={bridge?.status ?? 'none'} data-mode={bridge?.mode}>
+    <Card
+      data-testid="ghl-bridge"
+      data-status={connected ? 'connected' : linked ? 'linked' : 'none'}
+      data-mode={connected ? bridge.mode : undefined}
+    >
       <CardTitle
         aside={
           connected ? (
@@ -132,11 +134,13 @@ export async function GhlBridgeSection({ owner }: { owner: boolean }) {
               </ActionButton>
             )}
             <ActionButton
-              action={disconnectGhlBridgeAction}
+              action={ghlWhatsAppAction}
+              fields={{ on: '0' }}
               variant="ghost"
-              confirm={t('disconnectConfirm')}
+              confirm={t('turnOffConfirm')}
+              data-testid="ghl-bridge-off"
             >
-              {t('disconnect')}
+              {t('turnOff')}
             </ActionButton>
           </div>
           <p className="text-sm text-ink-muted">
@@ -145,38 +149,32 @@ export async function GhlBridgeSection({ owner }: { owner: boolean }) {
         </div>
       ) : null}
 
-      <details className="text-sm" open={!connected} data-testid="ghl-bridge-connect">
-        <summary className="cursor-pointer font-semibold">
-          {connected ? t('replace') : t('connect')}
-        </summary>
-        <div className="mt-2">
-          <ActionForm action={connectGhlBridgeAction} testId="ghl-bridge-form">
-            <Field
-              name="locationId"
-              label={t('locationId')}
-              hint={t('locationIdHint')}
-              dir="ltr"
-              autoComplete="off"
-              required
-              defaultValue={bridge?.locationId ?? ''}
-            />
-            <Field
-              name="token"
-              label={t('token')}
-              hint={t('tokenHint')}
-              type="password"
-              dir="ltr"
-              autoComplete="off"
-              required
-            />
-            <div>
-              <SubmitButton data-testid="ghl-bridge-save">{t('save')}</SubmitButton>
-            </div>
-          </ActionForm>
+      {!linked ? (
+        <p className="text-sm" data-testid="ghl-bridge-needs-connection">
+          {t('needsConnection')}{' '}
+          <Link href={ghlHref} className="text-brand-ink underline">
+            {t('toConnection')}
+          </Link>
+        </p>
+      ) : !connected ? (
+        <div className="flex flex-col gap-2" data-testid="ghl-bridge-off-state">
+          <p className="rounded-xl bg-surface px-3 py-2 text-sm">{t('requirement')}</p>
+          {checked ? null : <p className="text-sm text-ink-muted">{t('checkFirstHint')}</p>}
+          <div>
+            <ActionButton
+              action={ghlWhatsAppAction}
+              fields={{ on: '1' }}
+              disabled={!checked}
+              confirm={t('turnOnConfirm')}
+              data-testid="ghl-bridge-on"
+            >
+              {t('turnOn')}
+            </ActionButton>
+          </div>
         </div>
-      </details>
+      ) : null}
 
-      <details className="mt-3 text-sm" data-testid="ghl-bridge-how">
+      <details className="mt-3 text-sm" data-testid="ghl-bridge-how" hidden={!connected}>
         <summary className="cursor-pointer font-semibold">{t('howTitle')}</summary>
         <ol className="mt-2 list-decimal ps-5 text-ink-muted">
           {STEPS.map((k) => (

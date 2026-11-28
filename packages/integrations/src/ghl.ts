@@ -282,12 +282,29 @@ export interface GhlChatMessage {
   userId: string | null;
 }
 
+/** Which part of the sub-account a survey read: the owner sees what is there and which permission is missing. */
+export const GHL_SURVEY_PARTS = ['contacts', 'pipelines', 'tags', 'whatsapp'] as const;
+export type GhlSurveyPart = (typeof GHL_SURVEY_PARTS)[number];
+
+/** A sub-account at a glance: counts, pipelines by name, and the parts the token was not allowed to read. */
+export interface GhlSurvey {
+  contacts: number | null;
+  pipelines: { id: string; name: string; stages: string[] }[] | null;
+  tags: number | null;
+  /** Conversations whose last message came on WhatsApp: the number is already connected in GHL. */
+  whatsappConversations: number | null;
+  /** Parts GHL refused (401/403): the Private Integration lacks that permission. */
+  missing: GhlSurveyPart[];
+}
+
 /**
  * What the bridge reads from a sub-account with its Private Integration token: the location (the connection check),
  * a contact's phone, and a contact's latest messages. Writing goes through GhlMessagingProvider.
  */
 export interface GhlBridgeClient {
   location(): Promise<{ id: string; name: string }>;
+  /** What the sub-account holds, read once when the owner connects: each part null when GHL would not say. */
+  survey(): Promise<GhlSurvey>;
   contactPhone(contactId: string): Promise<string | null>;
   /** The contact's latest messages, newest first (at most `limit`). */
   recentMessages(contactId: string, limit?: number): Promise<GhlChatMessage[]>;
@@ -358,6 +375,65 @@ export class HttpGhlBridgeClient implements GhlBridgeClient {
     return { id: res.location?.id ?? this.opts.locationId, name: res.location?.name ?? '' };
   }
 
+  /**
+   * Four small reads (GHL API v2): GET /contacts/?limit=1 (meta.total), GET /opportunities/pipelines,
+   * GET /locations/{id}/tags, GET /conversations/search?lastMessageType=TYPE_WHATSAPP&limit=1 (total). A refusal marks
+   * the part missing; any other failure leaves it unknown, so one slow part never fails the connection.
+   */
+  async survey(): Promise<GhlSurvey> {
+    const loc = encodeURIComponent(this.opts.locationId);
+    const out: GhlSurvey = {
+      contacts: null,
+      pipelines: null,
+      tags: null,
+      whatsappConversations: null,
+      missing: [],
+    };
+    const part = async <T>(name: GhlSurveyPart, read: () => Promise<T>): Promise<T | null> => {
+      try {
+        return await read();
+      } catch (e) {
+        if (e instanceof GhlApiError && (e.status === 401 || e.status === 403))
+          out.missing.push(name);
+        return null;
+      }
+    };
+    const total = (r: { meta?: { total?: number }; total?: number; contacts?: unknown[] }) =>
+      r.meta?.total ?? r.total ?? r.contacts?.length ?? null;
+    const [contacts, pipelines, tags, whatsapp] = await Promise.all([
+      part('contacts', () =>
+        this.get<{ meta?: { total?: number }; total?: number; contacts?: unknown[] }>(
+          `/contacts/?locationId=${loc}&limit=1`,
+          '2021-07-28',
+        ),
+      ),
+      part('pipelines', () =>
+        this.get<{
+          pipelines?: { id?: string; name?: string; stages?: { name?: string }[] }[];
+        }>(`/opportunities/pipelines?locationId=${loc}`, '2021-07-28'),
+      ),
+      part('tags', () => this.get<{ tags?: unknown[] }>(`/locations/${loc}/tags`, '2021-07-28')),
+      part('whatsapp', () =>
+        this.get<{ total?: number; conversations?: unknown[] }>(
+          `/conversations/search?locationId=${loc}&lastMessageType=TYPE_WHATSAPP&limit=1`,
+          '2021-04-15',
+        ),
+      ),
+    ]);
+    if (contacts) out.contacts = total(contacts);
+    if (pipelines)
+      out.pipelines = (pipelines.pipelines ?? [])
+        .filter((p) => p.id)
+        .map((p) => ({
+          id: p.id as string,
+          name: p.name ?? '',
+          stages: (p.stages ?? []).map((st) => st.name ?? '').filter(Boolean),
+        }));
+    if (tags) out.tags = tags.tags?.length ?? 0;
+    if (whatsapp) out.whatsappConversations = whatsapp.total ?? whatsapp.conversations?.length ?? 0;
+    return out;
+  }
+
   async contactPhone(contactId: string) {
     const res = await this.get<{ contact?: { phone?: string | null; locationId?: string } }>(
       `/contacts/${encodeURIComponent(contactId)}`,
@@ -402,6 +478,24 @@ export class FakeGhlBridgeClient implements GhlBridgeClient {
   async location() {
     if (this.locationId.includes('bad')) throw new GhlApiError(401, 'Invalid JWT');
     return { id: this.locationId, name: 'Fake sub-account' };
+  }
+
+  /** Pipelines and tags a test sets; a location id containing "nopipes" lacks that permission. */
+  pipelines: { id: string; name: string; stages: string[] }[] = [
+    { id: 'pipe-1', name: 'Fake pipeline', stages: ['New', 'Trial booked', 'Joined'] },
+  ];
+  tags: string[] = ['fake tag'];
+
+  async survey(): Promise<GhlSurvey> {
+    const whatsapp = [...this.messages.values()].filter((l) => l.some((m) => m.whatsapp)).length;
+    const noPipes = this.locationId.includes('nopipes');
+    return {
+      contacts: this.phones.size,
+      pipelines: noPipes ? null : this.pipelines,
+      tags: this.tags.length,
+      whatsappConversations: whatsapp,
+      missing: noPipes ? ['pipelines'] : [],
+    };
   }
 
   async contactPhone(contactId: string) {

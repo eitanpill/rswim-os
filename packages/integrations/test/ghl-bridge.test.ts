@@ -216,3 +216,117 @@ describe('reading a GHL conversation', () => {
     expect(await fake.recentMessages('c2')).toEqual([]);
   });
 });
+
+describe('surveying a sub-account (the GHL connection, A1)', () => {
+  const reply = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+
+  it('reads counts, pipelines and WhatsApp conversations with the token', async () => {
+    const seen: string[] = [];
+    const fetchImpl = (async (url: string, init: RequestInit) => {
+      seen.push(`${url} ${(init.headers as Record<string, string>).Version}`);
+      if (url.includes('/contacts/?')) return reply({ contacts: [{}], meta: { total: 240 } });
+      if (url.includes('/opportunities/pipelines'))
+        return reply({
+          pipelines: [
+            { id: 'p1', name: 'לידים', stages: [{ name: 'חדש' }, {}, { name: 'נרשם' }] },
+            { name: 'no id' },
+            { id: 'p2' },
+          ],
+        });
+      if (url.includes('/tags')) return reply({ tags: [{}, {}, {}] });
+      return reply({ total: 17, conversations: [{}] });
+    }) as unknown as typeof fetch;
+    const client = new HttpGhlBridgeClient({ token: 'tok', locationId: 'loc 1', fetch: fetchImpl });
+    expect(await client.survey()).toEqual({
+      contacts: 240,
+      pipelines: [
+        { id: 'p1', name: 'לידים', stages: ['חדש', 'נרשם'] },
+        { id: 'p2', name: '', stages: [] },
+      ],
+      tags: 3,
+      whatsappConversations: 17,
+      missing: [],
+    });
+    expect(seen.sort()).toEqual([
+      'https://services.leadconnectorhq.com/contacts/?locationId=loc%201&limit=1 2021-07-28',
+      'https://services.leadconnectorhq.com/conversations/search?locationId=loc%201&lastMessageType=TYPE_WHATSAPP&limit=1 2021-04-15',
+      'https://services.leadconnectorhq.com/locations/loc%201/tags 2021-07-28',
+      'https://services.leadconnectorhq.com/opportunities/pipelines?locationId=loc%201 2021-07-28',
+    ]);
+  });
+
+  it('copes with answers that leave out totals', async () => {
+    let contacts = 0;
+    const fetchImpl = (async (url: string) => {
+      if (url.includes('/contacts/?'))
+        return reply(contacts++ === 0 ? { total: 5 } : { contacts: [{}, {}] });
+      if (url.includes('/opportunities/pipelines')) return reply({});
+      if (url.includes('/tags')) return reply({});
+      return reply({ conversations: [{}, {}] });
+    }) as unknown as typeof fetch;
+    const client = new HttpGhlBridgeClient({ token: 'x', locationId: 'loc', fetch: fetchImpl });
+    expect(await client.survey()).toEqual({
+      contacts: 5,
+      pipelines: [],
+      tags: 0,
+      whatsappConversations: 2,
+      missing: [],
+    });
+    const second = await client.survey();
+    expect(second.contacts).toBe(2);
+    const empty = new HttpGhlBridgeClient({
+      token: 'x',
+      locationId: 'loc',
+      fetch: (async (url: string) =>
+        reply(url.includes('/contacts/?') ? {} : {})) as unknown as typeof fetch,
+    });
+    expect(await empty.survey()).toMatchObject({ contacts: null, whatsappConversations: 0 });
+  });
+
+  it('marks refused parts missing, and leaves other failures unknown', async () => {
+    const fetchImpl = (async (url: string) => {
+      if (url.includes('/contacts/?')) return reply({ message: 'no' }, 403);
+      if (url.includes('/opportunities/pipelines')) return reply({ message: 'no' }, 401);
+      if (url.includes('/tags')) return reply({ message: 'down' }, 500);
+      throw new Error('network');
+    }) as unknown as typeof fetch;
+    const client = new HttpGhlBridgeClient({ token: 'x', locationId: 'loc', fetch: fetchImpl });
+    expect(await client.survey()).toEqual({
+      contacts: null,
+      pipelines: null,
+      tags: null,
+      whatsappConversations: null,
+      missing: ['contacts', 'pipelines'],
+    });
+  });
+
+  it('surveys the in-memory sub-account too', async () => {
+    const fake = new FakeGhlBridgeClient('loc-fake');
+    fake.add('c1', '+972500000002', {
+      id: 'x1',
+      direction: 'inbound',
+      body: 'hi',
+      at: new Date(1000),
+      userId: null,
+    });
+    fake.add('c2', '+972500000003', {
+      id: 'x2',
+      direction: 'inbound',
+      body: 'sms',
+      at: new Date(1000),
+      userId: null,
+      whatsapp: false,
+    });
+    expect(await fake.survey()).toMatchObject({
+      contacts: 2,
+      tags: 1,
+      whatsappConversations: 1,
+      missing: [],
+    });
+    expect(await new FakeGhlBridgeClient('loc-nopipes').survey()).toMatchObject({
+      pipelines: null,
+      missing: ['pipelines'],
+    });
+  });
+});

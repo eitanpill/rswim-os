@@ -162,9 +162,11 @@ registered diver gets the divers' bot (`diver-bot.ts`): coming dives, passes, mi
 (`/admin/messages/chats`, `/dive/chats`; `chats.ts` in `@rswim/domain-comms`): the thread by phone, a reply, the bot's
 last 30 days, and "I'm taking over" (`chat_holds`), which keeps every bot quiet for that number until it is given back.
 
-WhatsApp through GHL (`docs/whatsapp/GHL-BRIDGE.md`, the GHL bridge): not a product option. The platform turns it on for one
-business at a time on `/platform` (`org_subscriptions.extras`, `app.has_extra`; RLS hides `ghl_connections` without it). That
-business, whose number lives in its own GHL sub-account, connects it on the WhatsApp page (`ghl_connections`, location id + Private Integration token sealed with
+WhatsApp through GHL (`docs/whatsapp/GHL-BRIDGE.md`, the GHL bridge): any business connects its own GHL sub-account on
+`/admin/integrations/ghl` or `/dive/ghl` (feature A1; the check also surveys contacts, pipelines, tags and WhatsApp
+conversations into `ghl_connections.summary`), and runs WhatsApp through it only after the owner turns it on on the
+WhatsApp page (`ghl_connections.whatsapp`, for a number already connected to WhatsApp inside GHL). That
+business's connection (`ghl_connections`, location id + Private Integration token sealed with
 the org's data key; `ghl-bridge.ts` in `@rswim/domain-comms`). A GHL workflow ("Customer Replied" on WhatsApp → Webhook) calls
 `/api/webhooks/ghl/bridge/<connectionId>/<secret>` naming only the contact; the worker (`comms-ghl-bridge-pull`) reads the
 conversation from GHL's API with the school's token, brings new WhatsApp messages into the inbox once, and keeps answers
